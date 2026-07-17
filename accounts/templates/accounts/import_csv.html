@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Import CSV — Pronotedz{% endblock %}
+{% block page_title %}Import de comptes par CSV{% endblock %}
+
+{% block content %}
+  <div class="pn-widget">
+    <div class="pn-widget-header"><p class="pn-widget-title">Importer un fichier CSV</p></div>
+    <div class="pn-widget-body">
+      <form method="post" enctype="multipart/form-data" class="row g-3 align-items-end">
+        {% csrf_token %}
+        <div class="col-auto">
+          <label class="form-label">Type de compte</label>
+          <select name="type_import" class="form-select" required>
+            <option value="eleves">Élèves</option>
+            <option value="enseignants">Enseignants</option>
+            <option value="parents">Parents</option>
+          </select>
+        </div>
+        <div class="col-auto">
+          <label class="form-label">Fichier CSV</label>
+          <input type="file" name="fichier" accept=".csv" class="form-control" required>
+        </div>
+        <div class="col-auto">
+          <button type="submit" class="btn btn-primary">Importer</button>
+        </div>
+      </form>
+      <hr>
+      <p class="small text-muted mb-1">Colonnes attendues selon le type :</p>
+      <ul class="small text-muted">
+        <li><strong>Élèves</strong> : <code>nom,prenom,matricule,classe</code> (le libellé de classe doit exister pour l'année active)</li>
+        <li><strong>Enseignants</strong> : <code>nom,prenom,matieres</code> (matières séparées par <code>;</code>)</li>
+        <li><strong>Parents</strong> : <code>nom,prenom,matricules_enfants</code> (matricules séparés par <code>;</code>)</li>
+      </ul>
+    </div>
+  </div>
+
+  {% if resultat %}
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">Résultat de l'import</p></div>
+      <div class="pn-widget-body">
+        <p><strong>{{ resultat.nb_crees }}</strong> compte(s) créé(s).</p>
+
+        {% if resultat.erreurs %}
+          <div class="alert alert-warning">
+            <strong>Erreurs :</strong>
+            <ul class="mb-0">{% for erreur in resultat.erreurs %}<li>{{ erreur }}</li>{% endfor %}</ul>
+          </div>
+        {% endif %}
+
+        {% if resultat.comptes %}
+          <p class="text-danger small">Notez ces identifiants maintenant : les mots de passe temporaires ne seront plus affichés ensuite.</p>
+          <table class="table pn-surface">
+            <thead><tr><th>Nom</th><th>Identifiant</th><th>Mot de passe temporaire</th></tr></thead>
+            <tbody>
+              {% for compte in resultat.comptes %}
+                <tr><td>{{ compte.nom_complet }}</td><td>{{ compte.username }}</td><td><code>{{ compte.mot_de_passe }}</code></td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}
