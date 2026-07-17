@@ -92,3 +92,40 @@ class AdminDashboardStatsTests(TestCase):
 
         libelles = [item["libelle"] for item in response.context["activite_recente"]]
         self.assertFalse(any("Interro non publiée" in libelle for libelle in libelles))
+
+
+class LanguageSwitchTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo")
+
+    def _login(self, username):
+        from accounts.management.commands.seed_demo import DEMO_PASSWORD
+
+        self.assertTrue(self.client.login(username=username, password=DEMO_PASSWORD))
+
+    def test_default_language_is_french_ltr(self):
+        self._login("admin.direction")
+        response = self.client.get("/dashboard/admin/")
+        body = response.content.decode()
+        self.assertIn('dir="ltr"', body)
+        self.assertIn("Page d'accueil", body)
+
+    def test_switching_to_arabic_persists_and_flips_to_rtl(self):
+        self._login("admin.direction")
+        self.client.post("/i18n/setlang/", {"language": "ar", "next": "/dashboard/admin/"})
+        response = self.client.get("/dashboard/admin/")
+        body = response.content.decode()
+        self.assertIn('dir="rtl"', body)
+        self.assertIn("الصفحة الرئيسية", body)
+        self.assertIn("bootstrap.rtl.min.css", body)
+
+    def test_switching_back_to_french_restores_ltr(self):
+        self._login("admin.direction")
+        self.client.post("/i18n/setlang/", {"language": "ar", "next": "/dashboard/admin/"})
+        self.client.post("/i18n/setlang/", {"language": "fr", "next": "/dashboard/admin/"})
+        response = self.client.get("/dashboard/admin/")
+        body = response.content.decode()
+        self.assertIn('dir="ltr"', body)
+        self.assertIn("bootstrap.min.css", body)
+        self.assertNotIn("bootstrap.rtl.min.css", body)

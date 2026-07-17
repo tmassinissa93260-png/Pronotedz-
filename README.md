@@ -15,12 +15,20 @@ inspirée de Pronote, pour l'administration, les enseignants, les élèves et le
 - Réservation de salles/matériel
 - Espace documents partagés (par classe ou établissement entier)
 - Sondages/enquêtes
+- QCM interactifs avec correction automatique
+- Devoirs : dépôt en ligne par l'élève + correction par l'enseignant
+- Notifications in-app + email (absences, nouveaux messages, notes publiées),
+  architecture prête pour l'ajout futur de SMS/WhatsApp
+- Accusés de lecture sur les actualités (suivi par publication côté admin)
+- Import CSV des comptes élèves/enseignants/parents
+- Mode sombre/clair et interface bilingue français/arabe avec bascule RTL
 
 ## Stack
 
 - Django 5.2 + PostgreSQL (SQLite par défaut en local)
-- Templates Django server-rendered + Bootstrap 5
+- Templates Django server-rendered + Bootstrap 5 (build RTL inclus pour l'arabe)
 - `django-environ` pour la configuration via `.env`
+- `reportlab` pour la génération des bulletins PDF
 
 ## Installation locale
 
@@ -72,6 +80,20 @@ Après `python manage.py seed_demo`, mot de passe commun : **`Pronotedz2026!`**
 | Parent (2 enfants) | `parent.benali` |
 
 Voir la sortie de la commande `seed_demo` pour la liste complète des comptes créés.
+
+## Langue et RTL
+
+Le sélecteur de langue (bouton FR/AR dans l'en-tête et sur la page de
+connexion) bascule l'interface entre le français et l'arabe, avec passage
+automatique en RTL (feuille de style Bootstrap dédiée). Pour régénérer les
+fichiers de traduction après avoir ajouté du texte dans les templates :
+
+```bash
+python manage.py makemessages -l fr -l ar --no-location \
+  --ignore="venv/*" --ignore="static/vendor/*" --ignore="staticfiles/*"
+# éditer locale/ar/LC_MESSAGES/django.po
+python manage.py compilemessages
+```
 
 ## Tests
 
