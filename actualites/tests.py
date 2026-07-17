@@ -4,7 +4,7 @@ from django.test import TestCase
 from accounts.management.commands.seed_demo import DEMO_PASSWORD
 from accounts.models import Utilisateur
 
-from .models import Publication
+from .models import LectureAccusee, Publication
 
 
 class PublicationVisibilityTests(TestCase):
@@ -27,3 +27,55 @@ class PublicationVisibilityTests(TestCase):
             response = self.client.get("/actualites/")
             self.assertEqual(response.status_code, 200)
             self.client.logout()
+
+
+class LectureAccuseeTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo")
+        cls.publication = Publication.objects.create(
+            titre="Rentrée", contenu="...", audience=Publication.Audience.TOUS
+        )
+
+    def test_marquer_lu_creates_accuse_and_redirects(self):
+        self.client.login(username="eleve.202600001", password=DEMO_PASSWORD)
+        response = self.client.post(f"/actualites/{self.publication.pk}/lu/")
+        self.assertRedirects(response, "/actualites/")
+        eleve = Utilisateur.objects.get(username="eleve.202600001")
+        self.assertTrue(LectureAccusee.objects.filter(publication=self.publication, utilisateur=eleve).exists())
+
+    def test_marquer_lu_is_idempotent(self):
+        self.client.login(username="eleve.202600001", password=DEMO_PASSWORD)
+        self.client.post(f"/actualites/{self.publication.pk}/lu/")
+        self.client.post(f"/actualites/{self.publication.pk}/lu/")
+        eleve = Utilisateur.objects.get(username="eleve.202600001")
+        self.assertEqual(LectureAccusee.objects.filter(publication=self.publication, utilisateur=eleve).count(), 1)
+
+    def test_marquer_lu_rejects_publication_outside_audience(self):
+        enseignants_only = Publication.objects.create(
+            titre="Note interne", contenu="...", audience=Publication.Audience.ENSEIGNANTS
+        )
+        self.client.login(username="eleve.202600001", password=DEMO_PASSWORD)
+        response = self.client.post(f"/actualites/{enseignants_only.pk}/lu/")
+        self.assertEqual(response.status_code, 404)
+
+    def test_liste_view_flags_publications_already_read(self):
+        self.client.login(username="eleve.202600001", password=DEMO_PASSWORD)
+        self.client.post(f"/actualites/{self.publication.pk}/lu/")
+        response = self.client.get("/actualites/")
+        self.assertContains(response, "Lu")
+
+    def test_suivi_lecture_requires_admin_role(self):
+        self.client.login(username="eleve.202600001", password=DEMO_PASSWORD)
+        response = self.client.get(f"/actualites/{self.publication.pk}/suivi/")
+        self.assertEqual(response.status_code, 403)
+
+    def test_suivi_lecture_counts_reads_correctly(self):
+        self.client.login(username="eleve.202600001", password=DEMO_PASSWORD)
+        self.client.post(f"/actualites/{self.publication.pk}/lu/")
+        self.client.logout()
+
+        self.client.login(username="admin.direction", password=DEMO_PASSWORD)
+        response = self.client.get(f"/actualites/{self.publication.pk}/suivi/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["nb_lu"], 1)

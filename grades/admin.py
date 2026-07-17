@@ -11,8 +11,8 @@ class NoteInline(admin.TabularInline):
 
 @admin.register(Evaluation)
 class EvaluationAdmin(admin.ModelAdmin):
-    list_display = ("titre", "matiere", "classe", "trimestre", "type_evaluation", "date_evaluation")
-    list_filter = ("trimestre", "type_evaluation", "classe")
+    list_display = ("titre", "matiere", "classe", "trimestre", "type_evaluation", "date_evaluation", "publie")
+    list_filter = ("trimestre", "type_evaluation", "classe", "publie")
     autocomplete_fields = ("classe", "matiere", "enseignant")
     inlines = [NoteInline]
 

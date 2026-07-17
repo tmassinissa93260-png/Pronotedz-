@@ -1,11 +1,15 @@
 <!DOCTYPE html>
-{% load static %}
-<html lang="fr">
+{% load i18n static %}
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Pronotedz{% endblock %}</title>
-  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  {% if LANGUAGE_BIDI %}
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.rtl.min.css' %}" rel="stylesheet">
+  {% else %}
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  {% endif %}
   <link href="{% static 'css/app.css' %}" rel="stylesheet">
   <script>
     (function () {
@@ -26,55 +30,83 @@
       <div class="app-user">
         <div>
           <div class="fw-semibold">{{ user.get_full_name|default:user.username }}</div>
-          <div class="text-white-50">Espace {{ user.get_role_display }}</div>
+          <div class="text-white-50">{% blocktranslate with role=user.get_role_display %}Espace {{ role }}{% endblocktranslate %}</div>
+        </div>
+        <div class="dropdown">
+          <button class="btn btn-sm btn-outline-light position-relative" type="button" data-bs-toggle="dropdown" title="{% translate "Notifications" %}">
+            🔔
+            {% if notifications_non_lues_count %}
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ notifications_non_lues_count }}</span>
+            {% endif %}
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" style="min-width: 320px;">
+            {% for notification in notifications_recentes %}
+              <li>
+                <a class="dropdown-item {% if not notification.lu %}fw-semibold{% endif %}" href="{% url 'notifications:marquer_lu' notification.pk %}">
+                  <div class="small">{{ notification.titre }}</div>
+                  <div class="text-muted" style="font-size: 0.72rem;">{{ notification.date_creation|date:"d/m/Y H:i" }}</div>
+                </a>
+              </li>
+            {% empty %}
+              <li><span class="dropdown-item-text text-muted small">{% translate "Aucune notification." %}</span></li>
+            {% endfor %}
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item small text-center" href="{% url 'notifications:liste' %}">{% translate "Voir toutes les notifications" %}</a></li>
+          </ul>
         </div>
         <div class="app-user-avatar">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
-        <button type="button" id="theme-toggle" class="btn btn-sm btn-outline-light" title="Changer de thème">🌓</button>
+        <form method="post" action="{% url 'set_language' %}" class="d-inline">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <input type="hidden" name="language" value="{% if LANGUAGE_CODE == 'ar' %}fr{% else %}ar{% endif %}">
+          <button type="submit" class="btn btn-sm btn-outline-light" title="{% translate 'Changer de langue' %}">{% if LANGUAGE_CODE == 'ar' %}FR{% else %}AR{% endif %}</button>
+        </form>
+        <button type="button" id="theme-toggle" class="btn btn-sm btn-outline-light" title="{% translate 'Changer de thème' %}">🌓</button>
         <form method="post" action="{% url 'logout' %}" class="d-inline">
           {% csrf_token %}
-          <button type="submit" class="btn btn-sm btn-outline-light" title="Déconnexion">⏻</button>
+          <button type="submit" class="btn btn-sm btn-outline-light" title="{% translate 'Déconnexion' %}">⏻</button>
         </form>
       </div>
     </header>
 
     <nav class="app-tabs">
-      <a class="{% if request.resolver_match.namespace == 'dashboard' %}active{% endif %}" href="{% url 'dashboard:dispatch' %}" title="Page d'accueil">🏠</a>
-      <a class="{% if request.resolver_match.namespace == 'timetable' %}active{% endif %}" href="{% url 'timetable:grid' %}">Emploi du temps</a>
-      <a class="{% if request.resolver_match.namespace == 'homework' %}active{% endif %}" href="{% url 'homework:cahier_liste' %}">Cahier de texte</a>
+      <a class="{% if request.resolver_match.namespace == 'dashboard' %}active{% endif %}" href="{% url 'dashboard:dispatch' %}" title="{% translate "Page d'accueil" %}">🏠</a>
+      <a class="{% if request.resolver_match.namespace == 'timetable' %}active{% endif %}" href="{% url 'timetable:grid' %}">{% translate "Emploi du temps" %}</a>
+      <a class="{% if request.resolver_match.namespace == 'homework' %}active{% endif %}" href="{% url 'homework:cahier_liste' %}">{% translate "Cahier de texte" %}</a>
 
       {% if user.role == 'ENSEIGNANT' %}
-        <a class="{% if request.resolver_match.url_name == 'appel_liste' or request.resolver_match.url_name == 'appel_seance' %}active{% endif %}" href="{% url 'attendance:appel_liste' %}">Appel</a>
-        <a class="{% if request.resolver_match.url_name == 'evaluation_liste' or request.resolver_match.url_name == 'saisie_notes' %}active{% endif %}" href="{% url 'grades:evaluation_liste' %}">Notes</a>
-        <a class="{% if request.resolver_match.url_name == 'observation_liste' or request.resolver_match.url_name == 'observation_creer' %}active{% endif %}" href="{% url 'vie_scolaire:observation_liste' %}">Vie scolaire</a>
-        <a class="{% if request.resolver_match.namespace == 'qcm' %}active{% endif %}" href="{% url 'qcm:qcm_liste' %}">QCM</a>
-        <a class="{% if request.resolver_match.url_name == 'mes_disponibilites' %}active{% endif %}" href="{% url 'rendezvous:mes_disponibilites' %}">Rendez-vous</a>
-        <a class="{% if request.resolver_match.namespace == 'ressources' %}active{% endif %}" href="{% url 'ressources:mes_reservations' %}">Ressources</a>
+        <a class="{% if request.resolver_match.url_name == 'appel_liste' or request.resolver_match.url_name == 'appel_seance' %}active{% endif %}" href="{% url 'attendance:appel_liste' %}">{% translate "Appel" %}</a>
+        <a class="{% if request.resolver_match.url_name == 'evaluation_liste' or request.resolver_match.url_name == 'saisie_notes' %}active{% endif %}" href="{% url 'grades:evaluation_liste' %}">{% translate "Notes" %}</a>
+        <a class="{% if request.resolver_match.url_name == 'observation_liste' or request.resolver_match.url_name == 'observation_creer' %}active{% endif %}" href="{% url 'vie_scolaire:observation_liste' %}">{% translate "Vie scolaire" %}</a>
+        <a class="{% if request.resolver_match.namespace == 'qcm' %}active{% endif %}" href="{% url 'qcm:qcm_liste' %}">{% translate "QCM" %}</a>
+        <a class="{% if request.resolver_match.url_name == 'mes_disponibilites' %}active{% endif %}" href="{% url 'rendezvous:mes_disponibilites' %}">{% translate "Rendez-vous" %}</a>
+        <a class="{% if request.resolver_match.namespace == 'ressources' %}active{% endif %}" href="{% url 'ressources:mes_reservations' %}">{% translate "Ressources" %}</a>
       {% endif %}
 
       {% if user.role == 'ELEVE' or user.role == 'PARENT' %}
-        <a class="{% if request.resolver_match.url_name == 'bulletin' %}active{% endif %}" href="{% url 'grades:bulletin' %}">Notes / bulletin</a>
-        <a class="{% if request.resolver_match.namespace == 'attendance' %}active{% endif %}" href="{% url 'attendance:historique' %}">Vie scolaire</a>
+        <a class="{% if request.resolver_match.url_name == 'bulletin' %}active{% endif %}" href="{% url 'grades:bulletin' %}">{% translate "Notes / bulletin" %}</a>
+        <a class="{% if request.resolver_match.namespace == 'attendance' %}active{% endif %}" href="{% url 'attendance:historique' %}">{% translate "Vie scolaire" %}</a>
         {% if user.role == 'ELEVE' %}
-          <a class="{% if request.resolver_match.namespace == 'qcm' %}active{% endif %}" href="{% url 'qcm:qcm_liste' %}">QCM</a>
+          <a class="{% if request.resolver_match.namespace == 'qcm' %}active{% endif %}" href="{% url 'qcm:qcm_liste' %}">{% translate "QCM" %}</a>
         {% endif %}
       {% endif %}
 
       {% if user.role == 'PARENT' %}
-        <a class="{% if request.resolver_match.namespace == 'rendezvous' %}active{% endif %}" href="{% url 'rendezvous:mes_rdv' %}">Rendez-vous</a>
+        <a class="{% if request.resolver_match.namespace == 'rendezvous' %}active{% endif %}" href="{% url 'rendezvous:mes_rdv' %}">{% translate "Rendez-vous" %}</a>
       {% endif %}
 
-      <a class="{% if request.resolver_match.namespace == 'messaging' %}active{% endif %}" href="{% url 'messaging:boite_reception' %}">Communication</a>
-      <a class="{% if request.resolver_match.namespace == 'actualites' %}active{% endif %}" href="{% url 'actualites:liste' %}">Actualités</a>
-      <a class="{% if request.resolver_match.namespace == 'documents' %}active{% endif %}" href="{% url 'documents:liste' %}">Documents</a>
-      <a class="{% if request.resolver_match.namespace == 'sondages' %}active{% endif %}" href="{% url 'sondages:liste' %}">Sondages</a>
+      <a class="{% if request.resolver_match.namespace == 'messaging' %}active{% endif %}" href="{% url 'messaging:boite_reception' %}">{% translate "Communication" %}</a>
+      <a class="{% if request.resolver_match.namespace == 'actualites' %}active{% endif %}" href="{% url 'actualites:liste' %}">{% translate "Actualités" %}</a>
+      <a class="{% if request.resolver_match.namespace == 'documents' %}active{% endif %}" href="{% url 'documents:liste' %}">{% translate "Documents" %}</a>
+      <a class="{% if request.resolver_match.namespace == 'sondages' %}active{% endif %}" href="{% url 'sondages:liste' %}">{% translate "Sondages" %}</a>
       {% if user.role == 'ADMIN' %}
-        <a href="{% url 'admin:index' %}">Administration</a>
+        <a href="{% url 'admin:index' %}">{% translate "Administration" %}</a>
       {% endif %}
     </nav>
 
     <div class="app-breadcrumb">
-      <span>{% block page_title %}Page d'accueil{% endblock %}</span>
-      {% if user.last_login %}<span>Précédente connexion le {{ user.last_login|date:"l d F à H\hi" }}</span>{% endif %}
+      <span>{% block page_title %}{% translate "Page d'accueil" %}{% endblock %}</span>
+      {% if user.last_login %}<span>{% blocktranslate with date=user.last_login|date:"l d F à H\hi" %}Précédente connexion le {{ date }}{% endblocktranslate %}</span>{% endif %}
     </div>
 
     <main class="app-main">
@@ -87,8 +119,8 @@
     </main>
 
     <footer class="app-footer">
-      <span>Mentions légales — Pronotedz</span>
-      <span>Plateforme de gestion scolaire pour l'Algérie</span>
+      <span>{% translate "Mentions légales" %} — Pronotedz</span>
+      <span>{% translate "Plateforme de gestion scolaire pour l'Algérie" %}</span>
     </footer>
   </div>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>

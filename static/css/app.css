@@ -340,3 +340,15 @@ body.auth-page {
   justify-content: space-between;
   align-items: center;
 }
+
+/* ---- RTL (Arabic) overrides ---- */
+
+[dir="rtl"] .app-header .app-user {
+  text-align: left;
+}
+
+[dir="rtl"] .pn-day-timeline-hour {
+  text-align: left;
+  padding-right: 0;
+  padding-left: 0.4rem;
+}

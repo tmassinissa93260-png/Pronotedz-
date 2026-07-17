@@ -1,6 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Page d'accueil — Pronotedz{% endblock %}
-{% block page_title %}Page d'accueil{% endblock %}
+{% load i18n %}
+{% block title %}{% translate "Page d'accueil" %} — Pronotedz{% endblock %}
+{% block page_title %}{% translate "Page d'accueil" %}{% endblock %}
 
 {% block content %}
 <div class="pn-dashboard-grid">
@@ -11,7 +12,7 @@
 
   <div>
     <div class="pn-widget">
-      <div class="pn-widget-header"><p class="pn-widget-title">Travail à faire</p></div>
+      <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Travail à faire" %}</p></div>
       <div class="pn-widget-body">
         {% if devoirs_a_venir %}
           <ul class="pn-widget-list">
@@ -20,13 +21,13 @@
             {% endfor %}
           </ul>
         {% else %}
-          <p class="pn-widget-empty">Aucun travail à faire n'a été saisi pour cette semaine.</p>
+          <p class="pn-widget-empty">{% translate "Aucun travail à faire n'a été saisi pour cette semaine." %}</p>
         {% endif %}
       </div>
     </div>
 
     <div class="pn-widget">
-      <div class="pn-widget-header"><p class="pn-widget-title">Dernières ressources pédagogiques</p></div>
+      <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Dernières ressources pédagogiques" %}</p></div>
       <div class="pn-widget-body">
         {% if documents_recents %}
           <ul class="pn-widget-list">
@@ -35,13 +36,13 @@
             {% endfor %}
           </ul>
         {% else %}
-          <p class="pn-widget-empty">Aucune ressource déposée récemment.</p>
+          <p class="pn-widget-empty">{% translate "Aucune ressource déposée récemment." %}</p>
         {% endif %}
       </div>
     </div>
 
     <div class="pn-widget">
-      <div class="pn-widget-header"><p class="pn-widget-title">Absences, retards ...</p></div>
+      <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Absences, retards ..." %}</p></div>
       <div class="pn-widget-body">
         {% if absences_recentes %}
           <ul class="pn-widget-list">
@@ -50,13 +51,13 @@
             {% endfor %}
           </ul>
         {% else %}
-          <p class="pn-widget-empty">Aucune absence enregistrée.</p>
+          <p class="pn-widget-empty">{% translate "Aucune absence enregistrée." %}</p>
         {% endif %}
       </div>
     </div>
 
     <div class="pn-widget">
-      <div class="pn-widget-header"><p class="pn-widget-title">Dernières notes</p></div>
+      <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Dernières notes" %}</p></div>
       <div class="pn-widget-body">
         {% if notes_recentes %}
           <ul class="pn-widget-list">
@@ -65,7 +66,7 @@
             {% endfor %}
           </ul>
         {% else %}
-          <p class="pn-widget-empty">Aucune note récente.</p>
+          <p class="pn-widget-empty">{% translate "Aucune note récente." %}</p>
         {% endif %}
       </div>
     </div>
@@ -73,7 +74,7 @@
 
   <div>
     <div class="pn-widget">
-      <div class="pn-widget-header"><p class="pn-widget-title">Actualités</p></div>
+      <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Actualités" %}</p></div>
       <div class="pn-widget-body">
         {% if publications %}
           <ul class="pn-widget-list">
@@ -82,29 +83,29 @@
             {% endfor %}
           </ul>
         {% else %}
-          <p class="pn-widget-empty">Aucune nouvelle information.</p>
+          <p class="pn-widget-empty">{% translate "Aucune nouvelle information." %}</p>
         {% endif %}
       </div>
     </div>
 
     <div class="pn-widget">
-      <div class="pn-widget-header"><p class="pn-widget-title">Vie scolaire</p></div>
+      <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Vie scolaire" %}</p></div>
       <div class="pn-widget-body">
-        <p class="pn-widget-empty"><a href="{% url 'vie_scolaire:mes_observations' %}">Consulter mes observations</a></p>
+        <p class="pn-widget-empty"><a href="{% url 'vie_scolaire:mes_observations' %}">{% translate "Consulter mes observations" %}</a></p>
       </div>
     </div>
 
     <div class="pn-widget">
-      <div class="pn-widget-header"><p class="pn-widget-title">Discussions</p></div>
+      <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Discussions" %}</p></div>
       <div class="pn-widget-body">
-        <p class="pn-widget-empty"><a href="{% url 'messaging:boite_reception' %}">Accéder à ma messagerie</a></p>
+        <p class="pn-widget-empty"><a href="{% url 'messaging:boite_reception' %}">{% translate "Accéder à ma messagerie" %}</a></p>
       </div>
     </div>
 
     <div class="pn-widget">
-      <div class="pn-widget-header"><p class="pn-widget-title">Informations &amp; Sondages</p></div>
+      <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Informations & Sondages" %}</p></div>
       <div class="pn-widget-body">
-        <p class="pn-widget-empty"><a href="{% url 'sondages:liste' %}">Voir les sondages en cours</a></p>
+        <p class="pn-widget-empty"><a href="{% url 'sondages:liste' %}">{% translate "Voir les sondages en cours" %}</a></p>
       </div>
     </div>
   </div>

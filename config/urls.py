@@ -2,10 +2,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from django.views.i18n import set_language
 
 from dashboard.views import dispatch as dashboard_dispatch
 
 urlpatterns = [
+    path("i18n/setlang/", set_language, name="set_language"),
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
     path("dashboard/", include("dashboard.urls")),
@@ -21,6 +23,7 @@ urlpatterns = [
     path("documents/", include("documents.urls")),
     path("sondages/", include("sondages.urls")),
     path("qcm/", include("qcm.urls")),
+    path("notifications/", include("notifications.urls")),
     path("", dashboard_dispatch, name="home"),
 ]
 

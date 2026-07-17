@@ -14,7 +14,17 @@
           <span>{% if publication.epingle %}📌 {% endif %}{{ publication.titre }}</span>
           <span class="small text-muted">{{ publication.date_publication|date:"d/m/Y H:i" }}</span>
         </h2>
-        <p class="mb-0">{{ publication.contenu|linebreaksbr }}</p>
+        <p class="mb-2">{{ publication.contenu|linebreaksbr }}</p>
+        {% if user.role == "ADMIN" %}
+          <a href="{% url 'actualites:suivi_lecture' publication.pk %}" class="small">Voir le suivi des accusés de lecture</a>
+        {% elif publication.lue_par_moi %}
+          <span class="badge bg-success">✓ Lu</span>
+        {% else %}
+          <form method="post" action="{% url 'actualites:marquer_lu' publication.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-primary">J'ai pris connaissance</button>
+          </form>
+        {% endif %}
       </div>
     </div>
   {% empty %}

@@ -16,6 +16,7 @@ class Evaluation(models.Model):
     coefficient_evaluation = models.DecimalField(max_digits=4, decimal_places=1, default=1)
     date_evaluation = models.DateField()
     bareme = models.DecimalField(max_digits=4, decimal_places=1, default=20)
+    publie = models.BooleanField(default=True, help_text="Si décoché, les notes restent invisibles aux élèves/parents (publication différée)")
 
     class Meta:
         ordering = ["-date_evaluation"]

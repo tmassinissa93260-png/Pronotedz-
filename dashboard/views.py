@@ -9,7 +9,7 @@ from accounts.permissions import role_required
 from actualites.models import Publication
 from attendance.models import Absence
 from documents.models import Document
-from grades.models import Note
+from grades.models import Evaluation, Note
 from homework.models import Devoir
 from timetable.models import EmploiDuTempsEntry
 from timetable.services import build_day
@@ -40,11 +40,48 @@ def _jour_context(request, entries_qs, extra_qs=""):
 @role_required(Utilisateur.Role.ADMIN)
 def admin_home(request):
     annee = AnneeScolaire.objects.filter(est_active=True).first()
+    aujourdhui = datetime.date.today()
+    semaine_derniere = aujourdhui - datetime.timedelta(days=7)
+
+    nb_eleves = Eleve.objects.filter(classe__annee_scolaire=annee).count() if annee else 0
+    nb_absents_aujourdhui = (
+        Absence.objects.filter(seance__date=aujourdhui, eleve__classe__annee_scolaire=annee).values("eleve").distinct().count()
+        if annee
+        else 0
+    )
+    taux_absenteisme = round(100 * nb_absents_aujourdhui / nb_eleves, 1) if nb_eleves else 0
+
+    evaluations_semaine = Evaluation.objects.filter(date_evaluation__gte=semaine_derniere, classe__annee_scolaire=annee) if annee else Evaluation.objects.none()
+
+    absences_pour_activite = (
+        Absence.objects.filter(seance__date__gte=semaine_derniere, eleve__classe__annee_scolaire=annee).select_related(
+            "eleve__user", "seance__emploi_du_temps_entry__matiere"
+        )[:10]
+        if annee
+        else []
+    )
+    activite_recente = sorted(
+        [
+            {"date": a.seance.date, "libelle": f"Absence — {a.eleve.user.get_full_name()} ({a.seance.matiere})"}
+            for a in absences_pour_activite
+        ]
+        + [
+            {"date": e.date_evaluation, "libelle": f"Évaluation publiée — {e.titre} ({e.matiere}, {e.classe})"}
+            for e in evaluations_semaine.filter(publie=True).select_related("matiere", "classe")[:10]
+        ],
+        key=lambda item: item["date"],
+        reverse=True,
+    )[:8]
+
     context = {
         "annee": annee,
         "nb_classes": Classe.objects.filter(annee_scolaire=annee).count() if annee else 0,
-        "nb_eleves": Eleve.objects.filter(classe__annee_scolaire=annee).count() if annee else 0,
+        "nb_eleves": nb_eleves,
         "nb_enseignants": Enseignant.objects.count(),
+        "nb_absents_aujourdhui": nb_absents_aujourdhui,
+        "taux_absenteisme": taux_absenteisme,
+        "nb_evaluations_semaine": evaluations_semaine.count(),
+        "activite_recente": activite_recente,
         "publications": Publication.visibles_pour(request.user.role)[:3],
     }
     return render(request, "dashboard/admin_home.html", context)
@@ -66,7 +103,7 @@ def eleve_home(request):
             "eleve": eleve,
             "absences_recentes": Absence.objects.filter(eleve=eleve).select_related("seance__emploi_du_temps_entry__matiere")[:4],
             "devoirs_a_venir": Devoir.objects.filter(classe=eleve.classe, date_a_faire_pour__gte=datetime.date.today()).select_related("matiere")[:4],
-            "notes_recentes": Note.objects.filter(eleve=eleve, valeur__isnull=False).select_related("evaluation__matiere").order_by("-evaluation__date_evaluation")[:4],
+            "notes_recentes": Note.objects.filter(eleve=eleve, valeur__isnull=False, evaluation__publie=True).select_related("evaluation__matiere").order_by("-evaluation__date_evaluation")[:4],
             "documents_recents": Document.objects.filter(classe__isnull=True) | Document.objects.filter(classe=eleve.classe),
             "publications": Publication.visibles_pour(request.user.role)[:3],
         }
@@ -90,7 +127,7 @@ def parent_home(request):
             "enfant": enfant,
             "absences_recentes": Absence.objects.filter(eleve=enfant).select_related("seance__emploi_du_temps_entry__matiere")[:4] if enfant else [],
             "devoirs_a_venir": Devoir.objects.filter(classe=enfant.classe, date_a_faire_pour__gte=datetime.date.today()).select_related("matiere")[:4] if enfant else [],
-            "notes_recentes": Note.objects.filter(eleve=enfant, valeur__isnull=False).select_related("evaluation__matiere").order_by("-evaluation__date_evaluation")[:4] if enfant else [],
+            "notes_recentes": Note.objects.filter(eleve=enfant, valeur__isnull=False, evaluation__publie=True).select_related("evaluation__matiere").order_by("-evaluation__date_evaluation")[:4] if enfant else [],
             "publications": Publication.visibles_pour(request.user.role)[:3],
         }
     )

@@ -16,6 +16,7 @@ def moyenne_matiere(eleve, matiere, trimestre):
         evaluation__matiere=matiere,
         evaluation__trimestre=trimestre,
         evaluation__classe=eleve.classe,
+        evaluation__publie=True,
     ).select_related("evaluation")
 
     total_pondere = Decimal("0")

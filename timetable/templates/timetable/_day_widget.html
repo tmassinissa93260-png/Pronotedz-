@@ -1,4 +1,4 @@
-{% load l10n %}
+{% load i18n l10n %}
 <div class="pn-widget">
   <div class="pn-date-nav">
     <a href="?jour={{ jour_prev }}{{ jour_extra_qs }}">‹</a>
@@ -6,9 +6,9 @@
     <a href="?jour={{ jour_next }}{{ jour_extra_qs }}">›</a>
   </div>
   {% if jour_widget.vide %}
-    <div class="pn-day-timeline-empty">Aucun cours ce jour.</div>
+    <div class="pn-day-timeline-empty">{% translate "Aucun cours ce jour." %}</div>
   {% else %}
-    <div class="pn-day-timeline" style="height: 26rem;">
+    <div class="pn-day-timeline" dir="ltr" style="height: 26rem;">
       {% for h in jour_widget.heures %}
         <div class="pn-day-timeline-hour" style="top: {{ h.top|unlocalize }}%;">{{ h.label }}</div>
       {% endfor %}

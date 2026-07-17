@@ -6,6 +6,8 @@ from django.urls import reverse
 
 from accounts.models import Eleve, Utilisateur
 from accounts.permissions import role_required
+from notifications.models import Notification
+from notifications.services import notifier
 from timetable.models import CreneauHoraire, EmploiDuTempsEntry
 
 from .models import Absence, Justificatif, Seance
@@ -16,6 +18,17 @@ def _eleves_autorises(user):
     if user.role == user.Role.ELEVE:
         return Eleve.objects.filter(pk=user.eleve.pk)
     return user.parent.enfants.all()
+
+
+def _notifier_parents_absence(eleve, entry, date):
+    for parent in eleve.parents.select_related("user"):
+        notifier(
+            parent.user,
+            Notification.Type.ABSENCE,
+            titre=f"Absence de {eleve.user.get_full_name()}",
+            contenu=f"{eleve.user.get_full_name()} a été marqué(e) absent(e) en {entry.matiere} le {date:%d/%m/%Y}.",
+            lien=f"/absences/historique/?enfant={eleve.pk}",
+        )
 
 
 @role_required(Utilisateur.Role.ENSEIGNANT)
@@ -43,10 +56,13 @@ def appel_seance(request, entry_id):
 
     if request.method == "POST":
         absents_ids = set(request.POST.getlist("absent"))
+        deja_notifies_ids = set(Absence.objects.filter(seance=seance).values_list("eleve_id", flat=True))
         Absence.objects.filter(seance=seance).delete()
         for eleve in eleves:
             if str(eleve.pk) in absents_ids:
                 Absence.objects.create(seance=seance, eleve=eleve, saisie_par=request.user)
+                if eleve.pk not in deja_notifies_ids:
+                    _notifier_parents_absence(eleve, entry, date)
         messages.success(request, "Appel enregistré.")
         return redirect(f"{request.path}?date={date.isoformat()}")
 

@@ -51,12 +51,14 @@ INSTALLED_APPS = [
     "documents",
     "sondages",
     "qcm",
+    "notifications",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -75,9 +77,11 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
+                "django.template.context_processors.i18n",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "academics.context_processors.etablissement",
+                "notifications.context_processors.notifications_non_lues",
             ],
         },
     },
@@ -113,8 +117,24 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard:dispatch"
 LOGOUT_REDIRECT_URL = "login"
 
+# Email — console backend by default (dev/sandbox), real SMTP in production
+# via env vars. Notifications are also always recorded in-app (Notification
+# model) regardless of whether email delivery is configured.
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+EMAIL_HOST = env("EMAIL_HOST", default="")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="no-reply@pronotedz.dz")
+
 # Internationalization
-LANGUAGE_CODE = "fr-fr"
+LANGUAGE_CODE = "fr"
+LANGUAGES = [
+    ("fr", "Français"),
+    ("ar", "العربية"),
+]
+LOCALE_PATHS = [BASE_DIR / "locale"]
 TIME_ZONE = "Africa/Algiers"
 USE_I18N = True
 USE_TZ = True

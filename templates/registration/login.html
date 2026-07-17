@@ -1,37 +1,47 @@
 <!DOCTYPE html>
-{% load static %}
-<html lang="fr">
+{% load i18n static %}
+<html lang="{{ LANGUAGE_CODE }}" dir="{% if LANGUAGE_BIDI %}rtl{% else %}ltr{% endif %}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Connexion — Pronotedz</title>
-  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <title>{% translate "Connexion" %} — Pronotedz</title>
+  {% if LANGUAGE_BIDI %}
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.rtl.min.css' %}" rel="stylesheet">
+  {% else %}
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  {% endif %}
   <link href="{% static 'css/app.css' %}" rel="stylesheet">
 </head>
 <body class="auth-page d-flex align-items-center justify-content-center">
   <div class="card auth-card shadow-sm">
     <div class="card-body p-4">
+      <form method="post" action="{% url 'set_language' %}" class="text-end mb-2">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <input type="hidden" name="language" value="{% if LANGUAGE_CODE == 'ar' %}fr{% else %}ar{% endif %}">
+        <button type="submit" class="btn btn-sm btn-outline-secondary">{% if LANGUAGE_CODE == 'ar' %}FR{% else %}AR{% endif %}</button>
+      </form>
       <div class="text-center mb-4">
         <h1 class="h3 fw-bold text-primary mb-0">Pronotedz</h1>
-        <p class="text-muted small">Espace numérique de l'établissement</p>
+        <p class="text-muted small">{% translate "Espace numérique de l'établissement" %}</p>
       </div>
 
       {% if form.errors %}
-        <div class="alert alert-danger py-2">Identifiant ou mot de passe incorrect.</div>
+        <div class="alert alert-danger py-2">{% translate "Identifiant ou mot de passe incorrect." %}</div>
       {% endif %}
 
       <form method="post" action="{% url 'login' %}">
         {% csrf_token %}
         <div class="mb-3">
-          <label for="id_username" class="form-label">Identifiant</label>
+          <label for="id_username" class="form-label">{% translate "Identifiant" %}</label>
           <input type="text" name="username" class="form-control" id="id_username" autofocus required>
         </div>
         <div class="mb-3">
-          <label for="id_password" class="form-label">Mot de passe</label>
+          <label for="id_password" class="form-label">{% translate "Mot de passe" %}</label>
           <input type="password" name="password" class="form-control" id="id_password" required>
         </div>
         <input type="hidden" name="next" value="{{ next }}">
-        <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+        <button type="submit" class="btn btn-primary w-100">{% translate "Se connecter" %}</button>
       </form>
     </div>
   </div>

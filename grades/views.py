@@ -5,6 +5,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from academics.models import Matiere, Trimestre
 from accounts.models import Utilisateur
 from accounts.permissions import role_required
+from notifications.models import Notification
+from notifications.services import notifier
 
 from .models import AppreciationGenerale, AppreciationMatiere, Evaluation, Note
 from .services import moyenne_generale, moyenne_matiere, rang_classe, statistiques_classe_matiere
@@ -38,6 +40,24 @@ def saisie_notes(request, evaluation_id):
         "grades/saisie_notes.html",
         {"evaluation": evaluation, "eleves": eleves, "notes_par_eleve": notes_par_eleve},
     )
+
+
+@role_required(Utilisateur.Role.ENSEIGNANT)
+def publier_evaluation(request, evaluation_id):
+    evaluation = get_object_or_404(Evaluation, pk=evaluation_id, enseignant=request.user.enseignant)
+    if not evaluation.publie:
+        evaluation.publie = True
+        evaluation.save()
+        for note in evaluation.notes.filter(valeur__isnull=False).select_related("eleve__user"):
+            notifier(
+                note.eleve.user,
+                Notification.Type.NOTE,
+                titre=f"Note publiée — {evaluation.matiere}",
+                contenu=f"{evaluation.titre} : {note.valeur}/{evaluation.bareme}",
+                lien="/notes/bulletin/",
+            )
+        messages.success(request, "Notes publiées, les élèves ont été notifiés.")
+    return redirect("grades:saisie_notes", evaluation_id=evaluation.pk)
 
 
 def _resoudre_eleve(request):

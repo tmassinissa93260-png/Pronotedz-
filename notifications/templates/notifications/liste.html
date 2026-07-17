@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Notifications — Pronotedz{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+
+{% block content %}
+  {% if notifications %}
+    <p><a href="{% url 'notifications:marquer_tout_lu' %}" class="small">Tout marquer comme lu</a></p>
+  {% endif %}
+  <div class="list-group">
+    {% for notification in notifications %}
+      <a href="{% url 'notifications:marquer_lu' notification.pk %}" class="list-group-item list-group-item-action {% if not notification.lu %}fw-semibold{% endif %}">
+        <div class="d-flex justify-content-between">
+          <span>{% if not notification.lu %}🔵 {% endif %}{{ notification.titre }}</span>
+          <span class="small text-muted">{{ notification.date_creation|date:"d/m/Y H:i" }}</span>
+        </div>
+        {% if notification.contenu %}<div class="small text-muted">{{ notification.contenu }}</div>{% endif %}
+      </a>
+    {% empty %}
+      <p class="text-muted">Aucune notification.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

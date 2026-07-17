@@ -22,6 +22,7 @@ from documents.models import Document
 from grades.models import Evaluation, Note
 from homework.models import CahierDeTexte, Devoir
 from messaging.models import Conversation, Message
+from notifications.models import Notification
 from qcm.models import ChoixQCM, QCM, QuestionQCM
 from rendezvous.models import DisponibiliteRDV, RendezVous
 from ressources.models import Reservation, Ressource
@@ -99,6 +100,7 @@ class Command(BaseCommand):
         self._make_documents(admin_user, enseignants, classe_sciences)
         self._make_sondages(admin_user)
         self._make_qcm(classe_sciences, matieres, enseignants)
+        self._make_notifications(eleves_sciences, parent_benali)
 
         self.stdout.write(self.style.SUCCESS("Jeu de données de démonstration créé."))
         self.stdout.write(f"Mot de passe commun à tous les comptes de démo : {DEMO_PASSWORD}")
@@ -441,3 +443,24 @@ class Command(BaseCommand):
         ChoixQCM.objects.create(question=q2, texte="1", est_correct=False)
         ChoixQCM.objects.create(question=q2, texte="0", est_correct=True)
         ChoixQCM.objects.create(question=q2, texte="Cela dépend de x", est_correct=False)
+
+    # -- Notifications --------------------------------------------------------
+
+    def _make_notifications(self, eleves_sciences, parent_benali):
+        eleve = eleves_sciences[0]
+        Notification.objects.get_or_create(
+            destinataire=eleve.user, titre="Note publiée — Mathématiques",
+            defaults={"type_notification": Notification.Type.NOTE, "contenu": "Devoir n°1 : 8.0/20", "lien": "/notes/bulletin/"},
+        )
+        Notification.objects.get_or_create(
+            destinataire=parent_benali.user, titre=f"Absence de {eleve.user.get_full_name()}",
+            defaults={
+                "type_notification": Notification.Type.ABSENCE,
+                "contenu": f"{eleve.user.get_full_name()} a été marqué(e) absent(e) en Mathématiques le 05/10/2025.",
+                "lien": f"/absences/historique/?enfant={eleve.pk}",
+            },
+        )
+        Notification.objects.get_or_create(
+            destinataire=parent_benali.user, titre="Rentrée scolaire 2025-2026",
+            defaults={"type_notification": Notification.Type.INFO, "contenu": "Toute l'équipe pédagogique vous souhaite une excellente rentrée !", "lien": "/actualites/"},
+        )
