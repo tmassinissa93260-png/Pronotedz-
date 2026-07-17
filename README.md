@@ -37,6 +37,29 @@ python manage.py runserver
 En production, définissez `DATABASE_URL=postgres://user:password@host:5432/pronotedz`
 dans `.env` (laissez vide pour utiliser SQLite en local/sandbox).
 
+## Déploiement sur Render.com
+
+Le fichier `render.yaml` à la racine décrit un déploiement complet (web
+service + base PostgreSQL gratuite) :
+
+1. Créez un compte sur [render.com](https://render.com) (gratuit).
+2. Dans le tableau de bord Render : **New** → **Blueprint**, puis connectez
+   ce dépôt GitHub.
+3. Render détecte `render.yaml` et propose de créer le service web et la
+   base de données. Validez.
+4. Le build installe les dépendances, exécute les migrations et recrée le
+   jeu de données de démonstration (`seed_demo`) automatiquement à chaque
+   déploiement.
+5. Une fois le déploiement terminé, l'URL fournie par Render (ex.
+   `https://pronotedz.onrender.com`) donne accès à l'application avec les
+   mêmes comptes de démonstration que ci-dessous.
+
+Limites du plan gratuit à connaître : le service se met en veille après 15
+minutes d'inactivité (le premier chargement peut prendre ~30s), et le
+stockage de fichiers (photos, justificatifs, documents déposés) n'est pas
+persistant entre redéploiements sur ce plan — seules les données en base
+(comptes, notes, absences...) le sont.
+
 ## Comptes de démonstration
 
 Après `python manage.py seed_demo`, mot de passe commun : **`Pronotedz2026!`**
