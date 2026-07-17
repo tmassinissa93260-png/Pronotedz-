@@ -22,6 +22,10 @@
       <label class="form-label">À faire pour le</label>
       <input type="date" name="date_a_faire_pour" class="form-control w-auto">
     </div>
+    <div class="mb-3">
+      <label class="form-label">Pièce jointe (optionnel)</label>
+      <input type="file" name="piece_jointe" class="form-control">
+    </div>
 
     <button type="submit" class="btn btn-primary">Enregistrer</button>
   </form>
@@ -30,7 +34,10 @@
     <h2 class="h6 mt-4">Devoirs déjà donnés pour cette séance</h2>
     <ul class="list-group">
       {% for devoir in devoirs %}
-        <li class="list-group-item">Pour le {{ devoir.date_a_faire_pour|date:"d/m/Y" }} — {{ devoir.consigne }}</li>
+        <li class="list-group-item">
+          Pour le {{ devoir.date_a_faire_pour|date:"d/m/Y" }} — {{ devoir.consigne }}
+          {% if devoir.piece_jointe %}<a href="{{ devoir.piece_jointe.url }}" class="ms-2">📎 pièce jointe</a>{% endif %}
+        </li>
       {% endfor %}
     </ul>
   {% endif %}

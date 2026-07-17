@@ -11,8 +11,8 @@
     </div>
   {% endif %}
 
-  <table class="table bg-white">
-    <thead><tr><th>Date</th><th>Matière</th><th>Justifiée</th><th>Motif</th></tr></thead>
+  <table class="table bg-white align-middle">
+    <thead><tr><th>Date</th><th>Matière</th><th>Justifiée</th><th>Motif</th><th>Justificatif</th></tr></thead>
     <tbody>
       {% for absence in absences %}
         <tr>
@@ -20,9 +20,32 @@
           <td>{{ absence.seance.emploi_du_temps_entry.matiere }}</td>
           <td>{% if absence.justifiee %}<span class="badge bg-success">Oui</span>{% else %}<span class="badge bg-danger">Non</span>{% endif %}</td>
           <td>{{ absence.motif }}</td>
+          <td>
+            {% if absence.dernier_justificatif %}
+              {% if absence.dernier_justificatif.statut == "EN_ATTENTE" %}
+                <span class="badge bg-warning text-dark">En attente</span>
+              {% elif absence.dernier_justificatif.statut == "APPROUVE" %}
+                <span class="badge bg-success">Approuvé</span>
+              {% else %}
+                <span class="badge bg-danger">Rejeté</span>
+              {% endif %}
+            {% elif not absence.justifiee %}
+              <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#justif-{{ absence.pk }}">
+                Joindre un justificatif
+              </button>
+            {% endif %}
+            <div class="collapse mt-2" id="justif-{{ absence.pk }}">
+              <form method="post" action="{% url 'attendance:justificatif_upload' absence.pk %}" enctype="multipart/form-data" class="d-flex gap-2 align-items-start flex-column">
+                {% csrf_token %}
+                <input type="file" name="fichier" class="form-control form-control-sm" required>
+                <input type="text" name="commentaire" class="form-control form-control-sm" placeholder="Commentaire (optionnel)">
+                <button type="submit" class="btn btn-sm btn-primary">Envoyer</button>
+              </form>
+            </div>
+          </td>
         </tr>
       {% empty %}
-        <tr><td colspan="4" class="text-muted text-center py-3">Aucune absence enregistrée.</td></tr>
+        <tr><td colspan="5" class="text-muted text-center py-3">Aucune absence enregistrée.</td></tr>
       {% endfor %}
     </tbody>
   </table>

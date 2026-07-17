@@ -32,6 +32,7 @@
           <li class="list-group-item">
             <div class="small text-muted">Pour le {{ devoir.date_a_faire_pour|date:"d/m/Y" }} — {{ devoir.matiere }}</div>
             <div>{{ devoir.consigne }}</div>
+            {% if devoir.piece_jointe %}<a href="{{ devoir.piece_jointe.url }}">📎 pièce jointe</a>{% endif %}
           </li>
         {% empty %}
           <li class="list-group-item text-muted">Aucun devoir enregistré.</li>

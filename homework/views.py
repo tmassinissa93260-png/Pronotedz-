@@ -51,6 +51,7 @@ def cahier_seance(request, entry_id):
                 enseignant=request.user.enseignant,
                 date_a_faire_pour=date_a_faire_pour,
                 consigne=consigne,
+                piece_jointe=request.FILES.get("piece_jointe"),
             )
         messages.success(request, "Cahier de texte enregistré.")
         return redirect(f"{request.path}?date={date.isoformat()}")

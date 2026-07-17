@@ -109,6 +109,9 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # The manifest storage requires `collectstatic` to have been run, so it's only
 # safe to use once DEBUG is off (i.e. in a real deployment).
 STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
     "staticfiles": {
         "BACKEND": (
             "whitenoise.storage.CompressedManifestStaticFilesStorage"

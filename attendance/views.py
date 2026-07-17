@@ -2,12 +2,20 @@ import datetime
 
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
-from accounts.models import Utilisateur
+from accounts.models import Eleve, Utilisateur
 from accounts.permissions import role_required
 from timetable.models import CreneauHoraire, EmploiDuTempsEntry
 
-from .models import Absence, Seance
+from .models import Absence, Justificatif, Seance
+
+
+def _eleves_autorises(user):
+    """Eleve queryset the current ELEVE/PARENT user is allowed to act on."""
+    if user.role == user.Role.ELEVE:
+        return Eleve.objects.filter(pk=user.eleve.pk)
+    return user.parent.enfants.all()
 
 
 @role_required(Utilisateur.Role.ENSEIGNANT)
@@ -64,12 +72,43 @@ def historique(request):
         eleve = get_object_or_404(enfants, pk=enfant_id) if enfant_id else enfants.first()
 
     absences = (
-        Absence.objects.filter(eleve=eleve).select_related("seance__emploi_du_temps_entry__matiere")
+        list(
+            Absence.objects.filter(eleve=eleve)
+            .select_related("seance__emploi_du_temps_entry__matiere")
+            .prefetch_related("justificatifs")
+        )
         if eleve
-        else Absence.objects.none()
+        else []
     )
+    for absence in absences:
+        justificatifs = list(absence.justificatifs.all())
+        absence.dernier_justificatif = justificatifs[-1] if justificatifs else None
+
     return render(
         request,
         "attendance/historique.html",
         {"absences": absences, "eleve": eleve, "enfants": enfants},
     )
+
+
+@role_required(Utilisateur.Role.ELEVE, Utilisateur.Role.PARENT)
+def justificatif_upload(request, absence_id):
+    absence = get_object_or_404(Absence, pk=absence_id, eleve__in=_eleves_autorises(request.user))
+
+    if request.method == "POST":
+        fichier = request.FILES.get("fichier")
+        if fichier:
+            Justificatif.objects.create(
+                absence=absence,
+                fichier=fichier,
+                commentaire=request.POST.get("commentaire", "").strip(),
+                soumis_par=request.user,
+            )
+            messages.success(request, "Justificatif envoyé, en attente de validation.")
+        else:
+            messages.error(request, "Merci de joindre un fichier.")
+
+    url = reverse("attendance:historique")
+    if request.user.role == request.user.Role.PARENT:
+        url = f"{url}?enfant={absence.eleve_id}"
+    return redirect(url)
