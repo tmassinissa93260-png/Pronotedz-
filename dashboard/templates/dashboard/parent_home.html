@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Tableau de bord — Pronotedz{% endblock %}
-{% block page_title %}<h1 class="h4 mb-0">Bonjour {{ user.get_full_name }}</h1>{% endblock %}
+{% block title %}Page d'accueil — Pronotedz{% endblock %}
+{% block page_title %}Page d'accueil{% endblock %}
 
 {% block content %}
   {% if enfants|length > 1 %}
@@ -14,37 +14,97 @@
   {% if not enfant %}
     <p class="text-muted">Aucun enfant rattaché à ce compte.</p>
   {% else %}
-    <div class="row">
-      <div class="col-md-6">
-        <h2 class="h6">{{ enfant.user.get_full_name }} — aujourd'hui ({{ today|date:"l d F" }})</h2>
-        <ul class="list-group mb-4">
-          {% for entry in entries %}
-            <li class="list-group-item">{{ entry.creneau.heure_debut|time:"H:i" }} - {{ entry.matiere }} ({{ entry.salle }})</li>
-          {% empty %}
-            <li class="list-group-item text-muted">Aucun cours aujourd'hui.</li>
-          {% endfor %}
-        </ul>
+    <div class="pn-dashboard-grid">
 
-        <h2 class="h6">Devoirs à venir</h2>
-        <ul class="list-group">
-          {% for devoir in devoirs_a_venir %}
-            <li class="list-group-item"><strong>{{ devoir.matiere }}</strong> — pour le {{ devoir.date_a_faire_pour|date:"d/m/Y" }}</li>
-          {% empty %}
-            <li class="list-group-item text-muted">Aucun devoir à venir.</li>
-          {% endfor %}
-        </ul>
+      <div>
+        {% include "timetable/_day_widget.html" %}
       </div>
-      <div class="col-md-6">
-        <h2 class="h6">Absences récentes</h2>
-        <ul class="list-group">
-          {% for absence in absences_recentes %}
-            <li class="list-group-item">{{ absence.seance.date|date:"d/m/Y" }} — {{ absence.seance.emploi_du_temps_entry.matiere }}</li>
-          {% empty %}
-            <li class="list-group-item text-muted">Aucune absence.</li>
-          {% endfor %}
-        </ul>
+
+      <div>
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">Travail à faire</p></div>
+          <div class="pn-widget-body">
+            {% if devoirs_a_venir %}
+              <ul class="pn-widget-list">
+                {% for devoir in devoirs_a_venir %}
+                  <li><span><strong>{{ devoir.matiere }}</strong> — {{ devoir.consigne|truncatechars:60 }}</span><span class="text-nowrap">{{ devoir.date_a_faire_pour|date:"d/m" }}</span></li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="pn-widget-empty">Aucun travail à faire n'a été saisi pour cette semaine.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">Absences, retards ...</p></div>
+          <div class="pn-widget-body">
+            {% if absences_recentes %}
+              <ul class="pn-widget-list">
+                {% for absence in absences_recentes %}
+                  <li><span>{{ absence.seance.emploi_du_temps_entry.matiere }}</span><span class="text-nowrap">{{ absence.seance.date|date:"d/m" }}</span></li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="pn-widget-empty">Aucune absence enregistrée.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">Dernières notes</p></div>
+          <div class="pn-widget-body">
+            {% if notes_recentes %}
+              <ul class="pn-widget-list">
+                {% for note in notes_recentes %}
+                  <li><span>{{ note.evaluation.matiere }}</span><span class="pn-note-value">{{ note.valeur }}</span></li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="pn-widget-empty">Aucune note récente.</p>
+            {% endif %}
+          </div>
+        </div>
       </div>
+
+      <div>
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">Actualités</p></div>
+          <div class="pn-widget-body">
+            {% if publications %}
+              <ul class="pn-widget-list">
+                {% for publication in publications %}
+                  <li><span>{% if publication.epingle %}📌 {% endif %}{{ publication.titre }}</span></li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="pn-widget-empty">Aucune nouvelle information.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">Vie scolaire</p></div>
+          <div class="pn-widget-body">
+            <p class="pn-widget-empty"><a href="{% url 'vie_scolaire:mes_observations' %}">Consulter les observations</a></p>
+          </div>
+        </div>
+
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">Rendez-vous</p></div>
+          <div class="pn-widget-body">
+            <p class="pn-widget-empty"><a href="{% url 'rendezvous:mes_rdv' %}">Mes rendez-vous</a> · <a href="{% url 'rendezvous:disponibilites_liste' %}">Prendre RDV</a></p>
+          </div>
+        </div>
+
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">Discussions</p></div>
+          <div class="pn-widget-body">
+            <p class="pn-widget-empty"><a href="{% url 'messaging:boite_reception' %}">Accéder à ma messagerie</a></p>
+          </div>
+        </div>
+      </div>
+
     </div>
   {% endif %}
-  {% include "dashboard/_publications.html" %}
 {% endblock %}

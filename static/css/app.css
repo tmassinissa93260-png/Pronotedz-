@@ -1,7 +1,12 @@
 :root {
   --pn-primary: #2f5fa8;
-  --pn-sidebar-bg: #1c2b45;
+  --pn-header-bg: #1c2b45;
+  --pn-tab-active: #2f5fa8;
+  --pn-page-bg: #eef1f5;
+  --pn-widget-title: #2f5fa8;
 }
+
+/* ---- Auth page ---- */
 
 body.auth-page {
   min-height: 100vh;
@@ -15,40 +20,262 @@ body.auth-page {
   border-radius: 1rem;
 }
 
-.app-layout {
-  display: flex;
+/* ---- App shell: top header + horizontal tabs (Pronote-style) ---- */
+
+.app-shell {
   min-height: 100vh;
+  background: var(--pn-page-bg);
+  display: flex;
+  flex-direction: column;
 }
 
-.app-sidebar {
-  width: 240px;
-  background: var(--pn-sidebar-bg);
+.app-header {
+  background: var(--pn-header-bg);
   color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  gap: 1rem;
+}
+
+.app-header .app-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.app-header .app-brand-badge {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: linear-gradient(135deg, #4f7fd6, #2f5fa8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.app-header .app-user {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.app-header .app-user-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: #4f7fd6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
   flex-shrink: 0;
 }
 
-.app-sidebar .nav-link {
-  color: rgba(255, 255, 255, 0.8);
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.75rem;
-}
-
-.app-sidebar .nav-link.active,
-.app-sidebar .nav-link:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-}
-
-.app-topbar {
+.app-tabs {
   background: #fff;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #dfe3e9;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0 0.75rem;
+  overflow-x: auto;
+}
+
+.app-tabs a {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.85rem;
+  color: #4a5568;
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+  white-space: nowrap;
+}
+
+.app-tabs a:hover {
+  color: var(--pn-primary);
+}
+
+.app-tabs a.active {
+  color: var(--pn-tab-active);
+  border-bottom-color: var(--pn-tab-active);
+  font-weight: 600;
+}
+
+.app-breadcrumb {
+  background: #f7f9fb;
+  border-bottom: 1px solid #e5e9ef;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  color: #6b7686;
+  display: flex;
+  justify-content: space-between;
+}
+
+.app-breadcrumb h1 {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #384151;
 }
 
 .app-main {
   flex: 1;
   min-width: 0;
-  background: #f4f6f9;
+  padding: 1.25rem;
 }
+
+/* ---- Widget cards (dashboard) ---- */
+
+.pn-dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 320px) 1fr 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .pn-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pn-widget {
+  background: #fff;
+  border-radius: 0.6rem;
+  box-shadow: 0 1px 3px rgba(20, 30, 50, 0.08);
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.pn-widget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid #eef1f5;
+}
+
+.pn-widget-title {
+  color: var(--pn-widget-title);
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.pn-widget-body {
+  padding: 0.75rem 0.9rem;
+  font-size: 0.85rem;
+  color: #384151;
+}
+
+.pn-widget-empty {
+  color: #9aa4b2;
+  font-style: italic;
+  font-size: 0.82rem;
+}
+
+.pn-widget-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.pn-widget-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px dashed #eef1f5;
+  padding-bottom: 0.5rem;
+}
+
+.pn-widget-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.pn-note-value {
+  font-weight: 700;
+  color: var(--pn-primary);
+}
+
+.pn-date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.9rem;
+  border-bottom: 1px solid #eef1f5;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #384151;
+}
+
+.pn-date-nav a {
+  color: var(--pn-primary);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+/* ---- Day timetable widget (vertical timeline) ---- */
+
+.pn-day-timeline {
+  position: relative;
+  padding: 0.75rem 0.9rem 1rem 3rem;
+}
+
+.pn-day-timeline-hour {
+  position: absolute;
+  left: 0;
+  width: 2.6rem;
+  font-size: 0.72rem;
+  color: #9aa4b2;
+  text-align: right;
+  padding-right: 0.4rem;
+}
+
+.pn-day-timeline-track {
+  position: relative;
+  border-left: 1px solid #eef1f5;
+}
+
+.pn-day-timeline-block {
+  position: absolute;
+  left: 0.4rem;
+  right: 0.2rem;
+  border-radius: 0.35rem;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.72rem;
+  line-height: 1.15;
+  overflow: hidden;
+  color: #2a2a2a;
+  border-left: 4px solid rgba(0, 0, 0, 0.15);
+}
+
+.pn-day-timeline-block .matiere {
+  font-weight: 700;
+}
+
+.pn-day-timeline-empty {
+  padding: 2rem 0;
+  text-align: center;
+  color: #9aa4b2;
+  font-size: 0.85rem;
+}
+
+/* ---- Legacy week grid (still used on the full emploi du temps page) ---- */
 
 .timetable-grid {
   display: grid;
@@ -59,5 +286,16 @@ body.auth-page {
   border-radius: 0.4rem;
   padding: 0.4rem 0.5rem;
   font-size: 0.8rem;
-  color: #fff;
+  color: #2a2a2a;
+}
+
+.app-footer {
+  background: #fff;
+  border-top: 1px solid #e5e9ef;
+  padding: 0.6rem 1rem;
+  font-size: 0.72rem;
+  color: #9aa4b2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }

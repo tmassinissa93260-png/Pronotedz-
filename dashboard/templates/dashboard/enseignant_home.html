@@ -1,21 +1,73 @@
 {% extends "base.html" %}
-{% block title %}Tableau de bord — Pronotedz{% endblock %}
-{% block page_title %}<h1 class="h4 mb-0">Bonjour {{ user.get_full_name }}</h1>{% endblock %}
+{% block title %}Page d'accueil — Pronotedz{% endblock %}
+{% block page_title %}Page d'accueil{% endblock %}
 
 {% block content %}
-  <h2 class="h6">Mes cours aujourd'hui ({{ today|date:"l d F" }})</h2>
-  <ul class="list-group mb-4">
-    {% for entry in entries %}
-      <li class="list-group-item d-flex justify-content-between">
-        <span>{{ entry.creneau.heure_debut|time:"H:i" }} - {{ entry.matiere }} — {{ entry.classe }} ({{ entry.salle }})</span>
-        <span>
-          <a href="{% url 'attendance:appel_seance' entry.pk %}" class="btn btn-sm btn-outline-primary">Appel</a>
-          <a href="{% url 'homework:cahier_seance' entry.pk %}" class="btn btn-sm btn-outline-secondary">Cahier de texte</a>
-        </span>
-      </li>
-    {% empty %}
-      <li class="list-group-item text-muted">Aucun cours aujourd'hui.</li>
-    {% endfor %}
-  </ul>
-  {% include "dashboard/_publications.html" %}
+<div class="pn-dashboard-grid">
+
+  <div>
+    {% include "timetable/_day_widget.html" %}
+  </div>
+
+  <div>
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">Mes cours du jour</p></div>
+      <div class="pn-widget-body">
+        {% if jour_widget.blocks %}
+          <ul class="pn-widget-list">
+            {% for b in jour_widget.blocks %}
+              <li>
+                <span>{{ b.entry.creneau.heure_debut|time:"H:i" }} — {{ b.entry.matiere }} — {{ b.entry.classe }}</span>
+                <span class="text-nowrap">
+                  <a href="{% url 'attendance:appel_seance' b.entry.pk %}" class="btn btn-sm btn-outline-primary">Appel</a>
+                  <a href="{% url 'homework:cahier_seance' b.entry.pk %}" class="btn btn-sm btn-outline-secondary">Cahier</a>
+                </span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="pn-widget-empty">Aucun cours ce jour.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">Actualités</p></div>
+      <div class="pn-widget-body">
+        {% if publications %}
+          <ul class="pn-widget-list">
+            {% for publication in publications %}
+              <li><span>{% if publication.epingle %}📌 {% endif %}{{ publication.titre }}</span></li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="pn-widget-empty">Aucune nouvelle information.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">Accès rapides</p></div>
+      <div class="pn-widget-body">
+        <ul class="pn-widget-list">
+          <li><a href="{% url 'grades:evaluation_liste' %}">Saisir des notes</a></li>
+          <li><a href="{% url 'vie_scolaire:observation_creer' %}">Ajouter une observation</a></li>
+          <li><a href="{% url 'rendezvous:mes_disponibilites' %}">Mes disponibilités RDV</a></li>
+          <li><a href="{% url 'ressources:nouvelle_reservation' %}">Réserver une ressource</a></li>
+          <li><a href="{% url 'documents:deposer' %}">Déposer un document</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">Discussions</p></div>
+      <div class="pn-widget-body">
+        <p class="pn-widget-empty"><a href="{% url 'messaging:boite_reception' %}">Accéder à ma messagerie</a></p>
+      </div>
+    </div>
+  </div>
+
+</div>
 {% endblock %}

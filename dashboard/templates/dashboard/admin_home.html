@@ -1,29 +1,55 @@
 {% extends "base.html" %}
-{% block title %}Tableau de bord — Pronotedz{% endblock %}
-{% block page_title %}<h1 class="h4 mb-0">Tableau de bord — Administration</h1>{% endblock %}
+{% block title %}Page d'accueil — Pronotedz{% endblock %}
+{% block page_title %}Page d'accueil{% endblock %}
 
 {% block content %}
   <p class="text-muted">Année scolaire : {{ annee|default:"aucune année active" }}</p>
-  <div class="row g-3">
-    <div class="col-md-4">
-      <div class="card"><div class="card-body">
-        <div class="text-muted small">Classes</div>
-        <div class="fs-3 fw-bold">{{ nb_classes }}</div>
-      </div></div>
+
+  <div class="pn-dashboard-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+    <div>
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">Établissement</p></div>
+        <div class="pn-widget-body">
+          <ul class="pn-widget-list">
+            <li><span>Classes</span><span class="pn-note-value">{{ nb_classes }}</span></li>
+            <li><span>Élèves</span><span class="pn-note-value">{{ nb_eleves }}</span></li>
+            <li><span>Enseignants</span><span class="pn-note-value">{{ nb_enseignants }}</span></li>
+          </ul>
+          <p class="mt-3 mb-0"><a href="{% url 'admin:index' %}" class="btn btn-primary btn-sm">Gérer l'établissement</a></p>
+        </div>
+      </div>
     </div>
-    <div class="col-md-4">
-      <div class="card"><div class="card-body">
-        <div class="text-muted small">Élèves</div>
-        <div class="fs-3 fw-bold">{{ nb_eleves }}</div>
-      </div></div>
+
+    <div>
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">Actualités</p></div>
+        <div class="pn-widget-body">
+          {% if publications %}
+            <ul class="pn-widget-list">
+              {% for publication in publications %}
+                <li><span>{% if publication.epingle %}📌 {% endif %}{{ publication.titre }}</span></li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="pn-widget-empty">Aucune nouvelle information.</p>
+          {% endif %}
+          <p class="mt-2 mb-0"><a href="{% url 'actualites:creer' %}" class="small">Publier une actualité</a></p>
+        </div>
+      </div>
     </div>
-    <div class="col-md-4">
-      <div class="card"><div class="card-body">
-        <div class="text-muted small">Enseignants</div>
-        <div class="fs-3 fw-bold">{{ nb_enseignants }}</div>
-      </div></div>
+
+    <div>
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">Accès rapides</p></div>
+        <div class="pn-widget-body">
+          <ul class="pn-widget-list">
+            <li><a href="{% url 'vie_scolaire:observation_liste' %}">Vie scolaire</a></li>
+            <li><a href="{% url 'documents:liste' %}">Documents</a></li>
+            <li><a href="{% url 'sondages:creer' %}">Créer un sondage</a></li>
+            <li><a href="{% url 'messaging:boite_reception' %}">Messagerie</a></li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
-  <p class="mt-4"><a href="{% url 'admin:index' %}" class="btn btn-primary">Gérer l'établissement</a></p>
-  {% include "dashboard/_publications.html" %}
 {% endblock %}

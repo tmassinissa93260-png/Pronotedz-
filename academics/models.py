@@ -100,7 +100,7 @@ class Filiere(models.Model):
 class Matiere(models.Model):
     nom = models.CharField(max_length=100)
     code = models.CharField(max_length=20, blank=True)
-    couleur = models.CharField(max_length=7, default="#2f5fa8", help_text="Couleur hex pour l'emploi du temps")
+    couleur = models.CharField(max_length=7, default="#b8b0e8", help_text="Couleur hex pour l'emploi du temps")
 
     class Meta:
         ordering = ["nom"]

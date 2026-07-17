@@ -31,3 +31,49 @@ def build_grid(entries_qs):
         lignes.append({"ordre": ordre, "heure_debut": heure_debut, "heure_fin": heure_fin, "cellules": cellules})
 
     return {"jours": jours, "lignes": lignes}
+
+
+def _minutes(t):
+    return t.hour * 60 + t.minute
+
+
+def build_day(entries_qs, date):
+    """Arrange one day's entries into a vertical timeline (top/height in %)
+    for the dashboard's day-widget, Pronote-style.
+    """
+    jour_semaine = CreneauHoraire.PYTHON_WEEKDAY_TO_JOUR.get(date.weekday())
+    if jour_semaine is None:
+        return {"blocks": [], "heures": [], "vide": True, "date": date}
+
+    entries = list(
+        entries_qs.filter(creneau__jour_semaine=jour_semaine)
+        .select_related("matiere", "enseignant__user", "salle", "creneau")
+        .order_by("creneau__ordre")
+    )
+    if not entries:
+        return {"blocks": [], "heures": [], "vide": True, "date": date}
+
+    debut_min = min(_minutes(e.creneau.heure_debut) for e in entries)
+    fin_max = max(_minutes(e.creneau.heure_fin) for e in entries)
+    total_minutes = fin_max - debut_min
+
+    blocks = []
+    for entry in entries:
+        start = _minutes(entry.creneau.heure_debut) - debut_min
+        duree = _minutes(entry.creneau.heure_fin) - _minutes(entry.creneau.heure_debut)
+        blocks.append(
+            {
+                "entry": entry,
+                "top": round(start / total_minutes * 100, 2),
+                "height": round(duree / total_minutes * 100, 2),
+            }
+        )
+
+    heures = []
+    heure = debut_min - (debut_min % 60)
+    while heure <= fin_max:
+        if debut_min <= heure <= fin_max:
+            heures.append({"label": f"{heure // 60:02d}h00", "top": round((heure - debut_min) / total_minutes * 100, 2)})
+        heure += 60
+
+    return {"blocks": blocks, "heures": heures, "vide": False, "date": date}

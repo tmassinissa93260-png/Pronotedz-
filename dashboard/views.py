@@ -8,8 +8,11 @@ from accounts.models import Eleve, Enseignant, Utilisateur
 from accounts.permissions import role_required
 from actualites.models import Publication
 from attendance.models import Absence
+from documents.models import Document
+from grades.models import Note
 from homework.models import Devoir
-from timetable.models import CreneauHoraire, EmploiDuTempsEntry
+from timetable.models import EmploiDuTempsEntry
+from timetable.services import build_day
 
 
 @login_required
@@ -23,13 +26,15 @@ def dispatch(request):
     return redirect(url_name)
 
 
-def _entries_du_jour(base_qs, date):
-    jour_semaine = CreneauHoraire.PYTHON_WEEKDAY_TO_JOUR.get(date.weekday())
-    if jour_semaine is None:
-        return base_qs.none()
-    return base_qs.filter(creneau__jour_semaine=jour_semaine).select_related(
-        "classe", "matiere", "creneau", "salle"
-    ).order_by("creneau__ordre")
+def _jour_context(request, entries_qs, extra_qs=""):
+    jour_str = request.GET.get("jour")
+    jour = datetime.date.fromisoformat(jour_str) if jour_str else datetime.date.today()
+    return {
+        "jour_widget": build_day(entries_qs, jour),
+        "jour_prev": (jour - datetime.timedelta(days=1)).isoformat(),
+        "jour_next": (jour + datetime.timedelta(days=1)).isoformat(),
+        "jour_extra_qs": extra_qs,
+    }
 
 
 @role_required(Utilisateur.Role.ADMIN)
@@ -47,53 +52,46 @@ def admin_home(request):
 
 @role_required(Utilisateur.Role.ENSEIGNANT)
 def enseignant_home(request):
-    today = datetime.date.today()
-    entries = _entries_du_jour(
-        EmploiDuTempsEntry.objects.filter(enseignant=request.user.enseignant), today
-    )
-    publications = Publication.visibles_pour(request.user.role)[:3]
-    return render(request, "dashboard/enseignant_home.html", {"entries": entries, "today": today, "publications": publications})
+    context = _jour_context(request, EmploiDuTempsEntry.objects.filter(enseignant=request.user.enseignant))
+    context["publications"] = Publication.visibles_pour(request.user.role)[:3]
+    return render(request, "dashboard/enseignant_home.html", context)
 
 
 @role_required(Utilisateur.Role.ELEVE)
 def eleve_home(request):
-    today = datetime.date.today()
     eleve = request.user.eleve
-    entries = _entries_du_jour(EmploiDuTempsEntry.objects.filter(classe=eleve.classe), today)
-    absences_recentes = Absence.objects.filter(eleve=eleve).select_related("seance")[:5]
-    devoirs_a_venir = Devoir.objects.filter(classe=eleve.classe, date_a_faire_pour__gte=today)[:5]
-    publications = Publication.visibles_pour(request.user.role)[:3]
-    return render(
-        request,
-        "dashboard/eleve_home.html",
+    context = _jour_context(request, EmploiDuTempsEntry.objects.filter(classe=eleve.classe))
+    context.update(
         {
-            "entries": entries, "today": today, "absences_recentes": absences_recentes,
-            "devoirs_a_venir": devoirs_a_venir, "eleve": eleve, "publications": publications,
-        },
+            "eleve": eleve,
+            "absences_recentes": Absence.objects.filter(eleve=eleve).select_related("seance__emploi_du_temps_entry__matiere")[:4],
+            "devoirs_a_venir": Devoir.objects.filter(classe=eleve.classe, date_a_faire_pour__gte=datetime.date.today()).select_related("matiere")[:4],
+            "notes_recentes": Note.objects.filter(eleve=eleve, valeur__isnull=False).select_related("evaluation__matiere").order_by("-evaluation__date_evaluation")[:4],
+            "documents_recents": Document.objects.filter(classe__isnull=True) | Document.objects.filter(classe=eleve.classe),
+            "publications": Publication.visibles_pour(request.user.role)[:3],
+        }
     )
+    context["documents_recents"] = context["documents_recents"].order_by("-date_depot")[:3]
+    return render(request, "dashboard/eleve_home.html", context)
 
 
 @role_required(Utilisateur.Role.PARENT)
 def parent_home(request):
-    today = datetime.date.today()
     enfants = request.user.parent.enfants.select_related("user", "classe").all()
     enfant_id = request.GET.get("enfant")
     enfant = get_object_or_404(enfants, pk=enfant_id) if enfant_id else enfants.first()
+    extra_qs = f"&enfant={enfant.pk}" if enfant else ""
 
-    entries = _entries_du_jour(EmploiDuTempsEntry.objects.filter(classe=enfant.classe), today) if enfant else []
-    absences_recentes = Absence.objects.filter(eleve=enfant).select_related("seance")[:5] if enfant else []
-    devoirs_a_venir = Devoir.objects.filter(classe=enfant.classe, date_a_faire_pour__gte=today)[:5] if enfant else []
-    publications = Publication.visibles_pour(request.user.role)[:3]
-    return render(
-        request,
-        "dashboard/parent_home.html",
+    entries_qs = EmploiDuTempsEntry.objects.filter(classe=enfant.classe) if enfant else EmploiDuTempsEntry.objects.none()
+    context = _jour_context(request, entries_qs, extra_qs=extra_qs)
+    context.update(
         {
-            "entries": entries,
-            "today": today,
-            "absences_recentes": absences_recentes,
-            "devoirs_a_venir": devoirs_a_venir,
             "enfants": enfants,
             "enfant": enfant,
-            "publications": publications,
-        },
+            "absences_recentes": Absence.objects.filter(eleve=enfant).select_related("seance__emploi_du_temps_entry__matiere")[:4] if enfant else [],
+            "devoirs_a_venir": Devoir.objects.filter(classe=enfant.classe, date_a_faire_pour__gte=datetime.date.today()).select_related("matiere")[:4] if enfant else [],
+            "notes_recentes": Note.objects.filter(eleve=enfant, valeur__isnull=False).select_related("evaluation__matiere").order_by("-evaluation__date_evaluation")[:4] if enfant else [],
+            "publications": Publication.visibles_pour(request.user.role)[:3],
+        }
     )
+    return render(request, "dashboard/parent_home.html", context)

@@ -1,0 +1,26 @@
+{% load l10n %}
+<div class="pn-widget">
+  <div class="pn-date-nav">
+    <a href="?jour={{ jour_prev }}{{ jour_extra_qs }}">‹</a>
+    <span>{{ jour_widget.date|date:"l d F" }}</span>
+    <a href="?jour={{ jour_next }}{{ jour_extra_qs }}">›</a>
+  </div>
+  {% if jour_widget.vide %}
+    <div class="pn-day-timeline-empty">Aucun cours ce jour.</div>
+  {% else %}
+    <div class="pn-day-timeline" style="height: 26rem;">
+      {% for h in jour_widget.heures %}
+        <div class="pn-day-timeline-hour" style="top: {{ h.top|unlocalize }}%;">{{ h.label }}</div>
+      {% endfor %}
+      <div class="pn-day-timeline-track" style="height: 100%;">
+        {% for b in jour_widget.blocks %}
+          <div class="pn-day-timeline-block" style="top: {{ b.top|unlocalize }}%; height: {{ b.height|unlocalize }}%; background-color: {{ b.entry.matiere.couleur }};">
+            <div class="matiere">{{ b.entry.matiere }}</div>
+            <div>{{ b.entry.enseignant.user.get_full_name }}</div>
+            <div>{{ b.entry.salle }}</div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+</div>

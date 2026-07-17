@@ -31,12 +31,12 @@ from vie_scolaire.models import Observation
 DEMO_PASSWORD = "Pronotedz2026!"
 
 MATIERES = [
-    ("Mathématiques", "MATH", "#2f5fa8"),
-    ("Physique-Chimie", "PHYS", "#c0392b"),
-    ("Français", "FR", "#27ae60"),
-    ("Arabe", "AR", "#8e44ad"),
-    ("Anglais", "ANG", "#e67e22"),
-    ("Histoire-Géographie", "HG", "#16a085"),
+    ("Mathématiques", "MATH", "#f3c9a3"),
+    ("Physique-Chimie", "PHYS", "#cba3d8"),
+    ("Français", "FR", "#b8b0e8"),
+    ("Arabe", "AR", "#a8d99a"),
+    ("Anglais", "ANG", "#e3d7ad"),
+    ("Histoire-Géographie", "HG", "#9adcdc"),
 ]
 
 COEFFICIENTS = {
