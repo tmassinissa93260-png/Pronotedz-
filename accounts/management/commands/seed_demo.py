@@ -16,10 +16,17 @@ from academics.models import (
     Trimestre,
 )
 from accounts.models import Eleve, Enseignant, Parent, PersonnelAdministratif, Utilisateur
+from actualites.models import Publication
 from attendance.models import Absence, Seance
+from documents.models import Document
 from grades.models import Evaluation, Note
 from homework.models import CahierDeTexte, Devoir
+from messaging.models import Conversation, Message
+from rendezvous.models import DisponibiliteRDV, RendezVous
+from ressources.models import Reservation, Ressource
+from sondages.models import ChoixReponse, QuestionSondage, Sondage
 from timetable.models import CreneauHoraire, EmploiDuTempsEntry
+from vie_scolaire.models import Observation
 
 DEMO_PASSWORD = "Pronotedz2026!"
 
@@ -74,13 +81,21 @@ class Command(BaseCommand):
 
         eleves_sciences = self._make_eleves(classe_sciences, "20260", 1, 6)
         eleves_lettres = self._make_eleves(classe_lettres, "20260", 7, 6)
-        self._make_parents(eleves_sciences, eleves_lettres)
+        parent_benali, parent_hamdi = self._make_parents(eleves_sciences, eleves_lettres)
 
         trimestre_actif = trimestres[0]
         self._make_notes(classe_sciences, matieres, enseignants, trimestre_actif, eleves_sciences)
         self._make_notes(classe_lettres, matieres, enseignants, trimestre_actif, eleves_lettres)
 
         self._make_absences_et_cahier(classe_sciences, annee)
+
+        self._make_messagerie(admin_user, enseignants, parent_benali)
+        self._make_vie_scolaire(eleves_sciences, enseignants)
+        self._make_actualites(admin_user)
+        self._make_rendezvous(enseignants, parent_benali, eleves_sciences)
+        self._make_ressources(enseignants)
+        self._make_documents(admin_user, enseignants, classe_sciences)
+        self._make_sondages(admin_user)
 
         self.stdout.write(self.style.SUCCESS("Jeu de données de démonstration créé."))
         self.stdout.write(f"Mot de passe commun à tous les comptes de démo : {DEMO_PASSWORD}")
@@ -232,6 +247,8 @@ class Command(BaseCommand):
         parent2 = Parent.objects.get_or_create(user=parent2_user)[0]
         parent2.enfants.add(eleves_sciences[1])
 
+        return parent1, parent2
+
     # -- Emploi du temps --------------------------------------------------
 
     def _make_emploi_du_temps(self, classe_sciences, classe_lettres, creneaux, matieres, enseignants, salles, annee):
@@ -283,3 +300,107 @@ class Command(BaseCommand):
             date_a_faire_pour=date_seance + datetime.timedelta(days=7),
             defaults={"consigne": "Exercices 3, 5 et 8 page 42 du manuel."},
         )
+
+    # -- Messagerie ---------------------------------------------------------
+
+    def _make_messagerie(self, admin_user, enseignants, parent_benali):
+        prof_maths = enseignants["Mathématiques"].user
+        conversation, created = Conversation.objects.get_or_create(
+            sujet="Réunion de rentrée", createur=admin_user,
+        )
+        if created:
+            conversation.participants.add(admin_user, prof_maths)
+            Message.objects.create(conversation=conversation, expediteur=admin_user, contenu="Bonjour, la réunion de rentrée aura lieu jeudi à 14h en salle des professeurs.")
+            Message.objects.create(conversation=conversation, expediteur=prof_maths, contenu="Bien reçu, merci !")
+
+        conversation2, created2 = Conversation.objects.get_or_create(
+            sujet="Question sur les devoirs", createur=parent_benali.user,
+        )
+        if created2:
+            conversation2.participants.add(parent_benali.user, prof_maths)
+            Message.objects.create(conversation=conversation2, expediteur=parent_benali.user, contenu="Bonjour, quels exercices pour la semaine prochaine ?")
+
+    # -- Vie scolaire ---------------------------------------------------------
+
+    def _make_vie_scolaire(self, eleves_sciences, enseignants):
+        Observation.objects.get_or_create(
+            eleve=eleves_sciences[2], type_observation=Observation.TypeObservation.ENCOURAGEMENT,
+            motif="Excellent travail", date=datetime.date(2025, 10, 10),
+            defaults={"description": "Participation active en classe.", "saisie_par": enseignants["Mathématiques"].user, "matiere": None},
+        )
+
+    # -- Actualités -----------------------------------------------------------
+
+    def _make_actualites(self, admin_user):
+        Publication.objects.get_or_create(
+            titre="Rentrée scolaire 2025-2026", auteur=admin_user,
+            defaults={"contenu": "Toute l'équipe pédagogique vous souhaite une excellente rentrée !", "audience": Publication.Audience.TOUS, "epingle": True},
+        )
+        Publication.objects.get_or_create(
+            titre="Réunion parents-professeurs", auteur=admin_user,
+            defaults={"contenu": "Une réunion parents-professeurs est organisée le mois prochain.", "audience": Publication.Audience.ELEVES_PARENTS},
+        )
+
+    # -- Rendez-vous ---------------------------------------------------------
+
+    def _make_rendezvous(self, enseignants, parent_benali, eleves_sciences):
+        prof_maths = enseignants["Mathématiques"]
+        dispo_libre = DisponibiliteRDV.objects.get_or_create(
+            enseignant=prof_maths, date=datetime.date(2026, 9, 15), heure_debut=datetime.time(17, 0),
+            defaults={"heure_fin": datetime.time(17, 20)},
+        )[0]
+        dispo_reservee = DisponibiliteRDV.objects.get_or_create(
+            enseignant=prof_maths, date=datetime.date(2026, 9, 15), heure_debut=datetime.time(17, 20),
+            defaults={"heure_fin": datetime.time(17, 40)},
+        )[0]
+        RendezVous.objects.get_or_create(
+            disponibilite=dispo_reservee, defaults={
+                "parent": parent_benali, "eleve_concerne": eleves_sciences[0], "motif": "Point sur les résultats du trimestre",
+            },
+        )
+
+    # -- Ressources -----------------------------------------------------------
+
+    def _make_ressources(self, enseignants):
+        videoprojecteur = Ressource.objects.get_or_create(nom="Vidéoprojecteur mobile", defaults={"type_ressource": Ressource.TypeRessource.MATERIEL})[0]
+        Ressource.objects.get_or_create(nom="Salle informatique", defaults={"type_ressource": Ressource.TypeRessource.SALLE})
+        creneau = CreneauHoraire.objects.filter(jour_semaine=CreneauHoraire.Jour.DIMANCHE, ordre=1).first()
+        if creneau:
+            Reservation.objects.get_or_create(
+                ressource=videoprojecteur, enseignant=enseignants["Histoire-Géographie"], date=datetime.date(2025, 10, 12), creneau=creneau,
+                defaults={"motif": "Projection d'un documentaire"},
+            )
+
+    # -- Documents ------------------------------------------------------------
+
+    def _make_documents(self, admin_user, enseignants, classe_sciences):
+        from django.core.files.base import ContentFile
+
+        Document.objects.get_or_create(
+            titre="Règlement intérieur", defaults={
+                "description": "Règlement intérieur de l'établissement.", "categorie": Document.Categorie.REGLEMENT,
+                "depose_par": admin_user, "classe": None,
+                "fichier": ContentFile(b"Reglement interieur (document de demonstration).", name="reglement_interieur.txt"),
+            },
+        )
+        Document.objects.get_or_create(
+            titre="Support de cours - Fonctions", classe=classe_sciences, defaults={
+                "description": "Support du chapitre sur les fonctions.", "categorie": Document.Categorie.SUPPORT_COURS,
+                "depose_par": enseignants["Mathématiques"].user,
+                "fichier": ContentFile(b"Support de cours sur les fonctions (document de demonstration).", name="support_fonctions.txt"),
+            },
+        )
+
+    # -- Sondages ---------------------------------------------------------
+
+    def _make_sondages(self, admin_user):
+        sondage, created = Sondage.objects.get_or_create(
+            titre="Satisfaction cantine scolaire", defaults={
+                "description": "Votre avis sur la cantine de l'établissement.", "audience": Sondage.Audience.TOUS,
+                "cree_par": admin_user,
+            },
+        )
+        if created:
+            question = QuestionSondage.objects.create(sondage=sondage, texte="Êtes-vous satisfait de la cantine ?")
+            for texte in ["Très satisfait", "Satisfait", "Peu satisfait", "Pas du tout satisfait"]:
+                ChoixReponse.objects.create(question=question, texte=texte)

@@ -28,12 +28,23 @@
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'appel_liste' %}active{% endif %}" href="{% url 'attendance:appel_liste' %}">Faire l'appel</a></li>
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'evaluation_liste' %}active{% endif %}" href="{% url 'grades:evaluation_liste' %}">Notes</a></li>
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'homework' %}active{% endif %}" href="{% url 'homework:cahier_liste' %}">Cahier de texte</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'observation_liste' or request.resolver_match.url_name == 'observation_creer' %}active{% endif %}" href="{% url 'vie_scolaire:observation_liste' %}">Vie scolaire</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'mes_disponibilites' %}active{% endif %}" href="{% url 'rendezvous:mes_disponibilites' %}">Rendez-vous</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'ressources' %}active{% endif %}" href="{% url 'ressources:mes_reservations' %}">Réservation ressources</a></li>
         {% endif %}
         {% if user.role == 'ELEVE' or user.role == 'PARENT' %}
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'bulletin' %}active{% endif %}" href="{% url 'grades:bulletin' %}">Mes notes / bulletin</a></li>
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'attendance' %}active{% endif %}" href="{% url 'attendance:historique' %}">Absences</a></li>
           <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'homework' %}active{% endif %}" href="{% url 'homework:cahier_liste' %}">Cahier de texte</a></li>
+          <li class="nav-item"><a class="nav-link {% if request.resolver_match.url_name == 'mes_observations' %}active{% endif %}" href="{% url 'vie_scolaire:mes_observations' %}">Vie scolaire</a></li>
         {% endif %}
+        {% if user.role == 'PARENT' %}
+          <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'rendezvous' %}active{% endif %}" href="{% url 'rendezvous:mes_rdv' %}">Rendez-vous</a></li>
+        {% endif %}
+        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'messaging' %}active{% endif %}" href="{% url 'messaging:boite_reception' %}">Messagerie</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'actualites' %}active{% endif %}" href="{% url 'actualites:liste' %}">Actualités</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'documents' %}active{% endif %}" href="{% url 'documents:liste' %}">Documents</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.resolver_match.namespace == 'sondages' %}active{% endif %}" href="{% url 'sondages:liste' %}">Sondages</a></li>
         {% if user.role == 'ADMIN' %}
           <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">Administration</a></li>
         {% endif %}

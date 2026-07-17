@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Vie scolaire — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Vie scolaire</h1>{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'vie_scolaire:observation_creer' %}" class="btn btn-primary btn-sm">Nouvelle observation</a></p>
+  <table class="table bg-white">
+    <thead><tr><th>Date</th><th>Élève</th><th>Type</th><th>Motif</th></tr></thead>
+    <tbody>
+      {% for observation in observations %}
+        <tr>
+          <td>{{ observation.date|date:"d/m/Y" }}</td>
+          <td>{{ observation.eleve.user.get_full_name }}</td>
+          <td>
+            {% if observation.type_observation == "SANCTION" %}<span class="badge bg-danger">{% elif observation.type_observation == "AVERTISSEMENT" %}<span class="badge bg-warning text-dark">{% elif observation.type_observation == "ENCOURAGEMENT" %}<span class="badge bg-success">{% else %}<span class="badge bg-secondary">{% endif %}
+              {{ observation.get_type_observation_display }}
+            </span>
+          </td>
+          <td>{{ observation.motif }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="text-muted text-center py-3">Aucune observation.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

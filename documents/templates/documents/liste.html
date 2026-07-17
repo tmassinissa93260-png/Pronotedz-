@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Documents — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Espace documents</h1>{% endblock %}
+
+{% block content %}
+  {% if user.role == "ADMIN" or user.role == "ENSEIGNANT" %}
+    <p><a href="{% url 'documents:deposer' %}" class="btn btn-primary btn-sm">Déposer un document</a></p>
+  {% endif %}
+
+  <table class="table bg-white">
+    <thead><tr><th>Titre</th><th>Catégorie</th><th>Classe</th><th>Déposé par</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+      {% for document in documents %}
+        <tr>
+          <td>{{ document.titre }}</td>
+          <td>{{ document.get_categorie_display }}</td>
+          <td>{{ document.classe|default:"Établissement" }}</td>
+          <td>{{ document.depose_par.get_full_name }}</td>
+          <td>{{ document.date_depot|date:"d/m/Y" }}</td>
+          <td>{% if document.fichier %}<a href="{{ document.fichier.url }}" class="btn btn-sm btn-outline-secondary">Télécharger</a>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="text-muted text-center py-3">Aucun document disponible.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from academics.models import AnneeScolaire, Classe
 from accounts.models import Eleve, Enseignant, Utilisateur
 from accounts.permissions import role_required
+from actualites.models import Publication
 from attendance.models import Absence
 from homework.models import Devoir
 from timetable.models import CreneauHoraire, EmploiDuTempsEntry
@@ -39,6 +40,7 @@ def admin_home(request):
         "nb_classes": Classe.objects.filter(annee_scolaire=annee).count() if annee else 0,
         "nb_eleves": Eleve.objects.filter(classe__annee_scolaire=annee).count() if annee else 0,
         "nb_enseignants": Enseignant.objects.count(),
+        "publications": Publication.visibles_pour(request.user.role)[:3],
     }
     return render(request, "dashboard/admin_home.html", context)
 
@@ -49,7 +51,8 @@ def enseignant_home(request):
     entries = _entries_du_jour(
         EmploiDuTempsEntry.objects.filter(enseignant=request.user.enseignant), today
     )
-    return render(request, "dashboard/enseignant_home.html", {"entries": entries, "today": today})
+    publications = Publication.visibles_pour(request.user.role)[:3]
+    return render(request, "dashboard/enseignant_home.html", {"entries": entries, "today": today, "publications": publications})
 
 
 @role_required(Utilisateur.Role.ELEVE)
@@ -59,10 +62,14 @@ def eleve_home(request):
     entries = _entries_du_jour(EmploiDuTempsEntry.objects.filter(classe=eleve.classe), today)
     absences_recentes = Absence.objects.filter(eleve=eleve).select_related("seance")[:5]
     devoirs_a_venir = Devoir.objects.filter(classe=eleve.classe, date_a_faire_pour__gte=today)[:5]
+    publications = Publication.visibles_pour(request.user.role)[:3]
     return render(
         request,
         "dashboard/eleve_home.html",
-        {"entries": entries, "today": today, "absences_recentes": absences_recentes, "devoirs_a_venir": devoirs_a_venir, "eleve": eleve},
+        {
+            "entries": entries, "today": today, "absences_recentes": absences_recentes,
+            "devoirs_a_venir": devoirs_a_venir, "eleve": eleve, "publications": publications,
+        },
     )
 
 
@@ -76,6 +83,7 @@ def parent_home(request):
     entries = _entries_du_jour(EmploiDuTempsEntry.objects.filter(classe=enfant.classe), today) if enfant else []
     absences_recentes = Absence.objects.filter(eleve=enfant).select_related("seance")[:5] if enfant else []
     devoirs_a_venir = Devoir.objects.filter(classe=enfant.classe, date_a_faire_pour__gte=today)[:5] if enfant else []
+    publications = Publication.visibles_pour(request.user.role)[:3]
     return render(
         request,
         "dashboard/parent_home.html",
@@ -86,5 +94,6 @@ def parent_home(request):
             "devoirs_a_venir": devoirs_a_venir,
             "enfants": enfants,
             "enfant": enfant,
+            "publications": publications,
         },
     )

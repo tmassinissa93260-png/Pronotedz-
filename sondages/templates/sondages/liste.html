@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Sondages — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Sondages</h1>{% endblock %}
+
+{% block content %}
+  {% if user.role == "ADMIN" %}
+    <p><a href="{% url 'sondages:creer' %}" class="btn btn-primary btn-sm">Nouveau sondage</a></p>
+  {% endif %}
+
+  <div class="list-group">
+    {% for sondage in sondages %}
+      <a href="{% url 'sondages:detail' sondage.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between">
+        <span>{{ sondage.titre }}</span>
+        <span>{% if sondage.est_ouvert %}<span class="badge bg-success">Ouvert</span>{% else %}<span class="badge bg-secondary">Clôturé</span>{% endif %}</span>
+      </a>
+    {% empty %}
+      <p class="text-muted">Aucun sondage disponible.</p>
+    {% endfor %}
+  </div>
+{% endblock %}

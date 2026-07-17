@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ conversation.sujet }} — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">{{ conversation.sujet }}</h1>{% endblock %}
+
+{% block content %}
+  <div class="mb-3">
+    {% for message in messages_liste %}
+      <div class="card mb-2 {% if message.expediteur == user %}border-primary{% endif %}">
+        <div class="card-body py-2">
+          <div class="small text-muted d-flex justify-content-between">
+            <span>{{ message.expediteur.get_full_name }}</span>
+            <span>{{ message.date_envoi|date:"d/m/Y H:i" }}</span>
+          </div>
+          <div>{{ message.contenu|linebreaksbr }}</div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="input-group">
+      <textarea name="contenu" class="form-control" rows="2" placeholder="Votre message..." required></textarea>
+      <button type="submit" class="btn btn-primary">Envoyer</button>
+    </div>
+  </form>
+{% endblock %}

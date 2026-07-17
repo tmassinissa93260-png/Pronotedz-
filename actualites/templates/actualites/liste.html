@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Actualités — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Actualités</h1>{% endblock %}
+
+{% block content %}
+  {% if user.role == "ADMIN" %}
+    <p><a href="{% url 'actualites:creer' %}" class="btn btn-primary btn-sm">Nouvelle publication</a></p>
+  {% endif %}
+
+  {% for publication in publications %}
+    <div class="card mb-3">
+      <div class="card-body">
+        <h2 class="h6 d-flex justify-content-between">
+          <span>{% if publication.epingle %}📌 {% endif %}{{ publication.titre }}</span>
+          <span class="small text-muted">{{ publication.date_publication|date:"d/m/Y H:i" }}</span>
+        </h2>
+        <p class="mb-0">{{ publication.contenu|linebreaksbr }}</p>
+      </div>
+    </div>
+  {% empty %}
+    <p class="text-muted">Aucune publication pour le moment.</p>
+  {% endfor %}
+{% endblock %}

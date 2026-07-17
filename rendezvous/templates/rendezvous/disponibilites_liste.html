@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Prendre rendez-vous — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Prendre rendez-vous avec un enseignant</h1>{% endblock %}
+
+{% block content %}
+  {% if enfants|length > 1 %}
+    <div class="mb-3 btn-group">
+      {% for enf in enfants %}
+        <a class="btn btn-sm btn-outline-primary {% if enf == enfant %}active{% endif %}" href="?enfant={{ enf.pk }}">{{ enf.user.get_full_name }}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <table class="table bg-white">
+    <thead><tr><th>Date</th><th>Horaire</th><th>Enseignant</th><th></th></tr></thead>
+    <tbody>
+      {% for dispo in disponibilites %}
+        <tr>
+          <td>{{ dispo.date|date:"d/m/Y" }}</td>
+          <td>{{ dispo.heure_debut|time:"H:i" }} - {{ dispo.heure_fin|time:"H:i" }}</td>
+          <td>{{ dispo.enseignant.user.get_full_name }}</td>
+          <td>
+            <form method="post" action="{% url 'rendezvous:reserver' dispo.pk %}" class="d-flex gap-1">
+              {% csrf_token %}
+              <input type="hidden" name="enfant" value="{{ enfant.pk }}">
+              <input type="text" name="motif" class="form-control form-control-sm" placeholder="Motif (optionnel)">
+              <button type="submit" class="btn btn-sm btn-primary text-nowrap">Réserver</button>
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="text-muted text-center py-3">Aucun créneau disponible actuellement.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

@@ -13,6 +13,13 @@ urlpatterns = [
     path("absences/", include("attendance.urls")),
     path("notes/", include("grades.urls")),
     path("cahier-de-texte/", include("homework.urls")),
+    path("messagerie/", include("messaging.urls")),
+    path("vie-scolaire/", include("vie_scolaire.urls")),
+    path("actualites/", include("actualites.urls")),
+    path("rendez-vous/", include("rendezvous.urls")),
+    path("ressources/", include("ressources.urls")),
+    path("documents/", include("documents.urls")),
+    path("sondages/", include("sondages.urls")),
     path("", dashboard_dispatch, name="home"),
 ]
 

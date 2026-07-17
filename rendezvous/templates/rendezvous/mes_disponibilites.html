@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Rendez-vous — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Mes créneaux de rendez-vous</h1>{% endblock %}
+
+{% block content %}
+  <form method="post" class="row g-2 mb-4 align-items-end">
+    {% csrf_token %}
+    <div class="col-auto">
+      <label class="form-label small">Date</label>
+      <input type="date" name="date" class="form-control form-control-sm" min="{{ today|date:'Y-m-d' }}" required>
+    </div>
+    <div class="col-auto">
+      <label class="form-label small">Heure début</label>
+      <input type="time" name="heure_debut" class="form-control form-control-sm" required>
+    </div>
+    <div class="col-auto">
+      <label class="form-label small">Heure fin</label>
+      <input type="time" name="heure_fin" class="form-control form-control-sm" required>
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-sm btn-primary">Ajouter le créneau</button>
+    </div>
+  </form>
+
+  <table class="table bg-white">
+    <thead><tr><th>Date</th><th>Horaire</th><th>Statut</th></tr></thead>
+    <tbody>
+      {% for dispo in disponibilites %}
+        <tr>
+          <td>{{ dispo.date|date:"d/m/Y" }}</td>
+          <td>{{ dispo.heure_debut|time:"H:i" }} - {{ dispo.heure_fin|time:"H:i" }}</td>
+          <td>
+            {% if dispo.est_reservee %}
+              <span class="badge bg-primary">Réservé par {{ dispo.rendez_vous.parent.user.get_full_name }} (au sujet de {{ dispo.rendez_vous.eleve_concerne.user.get_full_name }})</span>
+            {% else %}
+              <span class="badge bg-secondary">Libre</span>
+            {% endif %}
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3" class="text-muted text-center py-3">Aucun créneau proposé.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

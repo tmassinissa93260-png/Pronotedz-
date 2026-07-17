@@ -35,6 +35,13 @@ INSTALLED_APPS = [
     "grades",
     "homework",
     "dashboard",
+    "messaging",
+    "vie_scolaire",
+    "actualites",
+    "rendezvous",
+    "ressources",
+    "documents",
+    "sondages",
 ]
 
 MIDDLEWARE = [

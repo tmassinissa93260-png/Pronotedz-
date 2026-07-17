@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Nouveau message — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Nouveau message</h1>{% endblock %}
+
+{% block content %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Destinataire(s)</label>
+      <select name="destinataires" class="form-select" multiple size="6" required>
+        {% for contact in contacts %}
+          <option value="{{ contact.pk }}">{{ contact.get_full_name }} ({{ contact.get_role_display }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Sujet</label>
+      <input type="text" name="sujet" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Message</label>
+      <textarea name="contenu" class="form-control" rows="4" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Envoyer</button>
+  </form>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Réserver une ressource — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Réserver une salle ou du matériel — {{ date|date:"d/m/Y" }}</h1>{% endblock %}
+
+{% block content %}
+  <form method="get" class="mb-3 d-flex gap-2">
+    <input type="date" name="date" value="{{ date|date:'Y-m-d' }}" class="form-control form-control-sm w-auto">
+    <button class="btn btn-sm btn-outline-primary" type="submit">Voir cette date</button>
+  </form>
+
+  <form method="post" class="row g-2 mb-4 align-items-end">
+    {% csrf_token %}
+    <input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">
+    <div class="col-auto">
+      <label class="form-label small">Créneau</label>
+      <select name="creneau" class="form-select form-select-sm" required>
+        {% for creneau in creneaux %}
+          <option value="{{ creneau.pk }}">{{ creneau.heure_debut|time:"H:i" }} - {{ creneau.heure_fin|time:"H:i" }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label small">Ressource</label>
+      <select name="ressource" class="form-select form-select-sm" required>
+        {% for ressource in ressources %}
+          <option value="{{ ressource.pk }}">{{ ressource.nom }} ({{ ressource.get_type_ressource_display }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label small">Motif</label>
+      <input type="text" name="motif" class="form-control form-control-sm" placeholder="Optionnel">
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-sm btn-primary">Réserver</button>
+    </div>
+  </form>
+
+  <h2 class="h6">Réservations déjà en place ce jour</h2>
+  <table class="table bg-white">
+    <thead><tr><th>Créneau</th><th>Ressource</th><th>Enseignant</th><th>Motif</th></tr></thead>
+    <tbody>
+      {% for reservation in reservations_du_jour %}
+        <tr>
+          <td>{{ reservation.creneau.heure_debut|time:"H:i" }}</td>
+          <td>{{ reservation.ressource }}</td>
+          <td>{{ reservation.enseignant.user.get_full_name }}</td>
+          <td>{{ reservation.motif }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="4" class="text-muted text-center py-3">Aucune réservation ce jour.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

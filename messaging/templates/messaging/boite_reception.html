@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Messagerie — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Messagerie</h1>{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'messaging:nouvelle_conversation' %}" class="btn btn-primary btn-sm">Nouveau message</a></p>
+  <div class="list-group">
+    {% for conversation in conversations %}
+      <a href="{% url 'messaging:conversation_detail' conversation.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between">
+        <span>{{ conversation.sujet }}</span>
+        <span class="text-muted small">{{ conversation.dernier_message|date:"d/m/Y H:i" }}</span>
+      </a>
+    {% empty %}
+      <p class="text-muted">Aucune conversation.</p>
+    {% endfor %}
+  </div>
+{% endblock %}
