@@ -15,7 +15,7 @@ class MoyenneCalculationTests(TestCase):
     def setUpTestData(cls):
         annee = AnneeScolaire.objects.create(libelle="2025-2026", date_debut=datetime.date(2025, 9, 1), date_fin=datetime.date(2026, 6, 30))
         cls.trimestre = Trimestre.objects.create(annee_scolaire=annee, numero=1, date_debut=datetime.date(2025, 9, 1), date_fin=datetime.date(2025, 12, 19))
-        niveau = Niveau.objects.create(libelle="1AS", cycle=Niveau.Cycle.LYCEE, ordre=1)
+        niveau = Niveau.objects.create(libelle="1AS", cycle=Niveau.Cycle.SECONDAIRE, ordre=1)
         cls.classe = Classe.objects.create(libelle="Test Classe", niveau=niveau, annee_scolaire=annee)
 
         cls.maths = Matiere.objects.create(nom="Mathématiques")

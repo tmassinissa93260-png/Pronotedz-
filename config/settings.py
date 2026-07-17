@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     "ressources",
     "documents",
     "sondages",
+    "qcm",
 ]
 
 MIDDLEWARE = [

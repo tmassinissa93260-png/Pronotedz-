@@ -33,6 +33,24 @@
             <div class="small text-muted">Pour le {{ devoir.date_a_faire_pour|date:"d/m/Y" }} — {{ devoir.matiere }}</div>
             <div>{{ devoir.consigne }}</div>
             {% if devoir.piece_jointe %}<a href="{{ devoir.piece_jointe.url }}">📎 pièce jointe</a>{% endif %}
+            {% if eleve and user.role == "ELEVE" %}
+              <div class="mt-2">
+                {% if devoir.mon_rendu %}
+                  {% if devoir.mon_rendu.est_corrige %}
+                    <span class="badge bg-success">Corrigé — {{ devoir.mon_rendu.note_sur_20 }}/20</span>
+                  {% else %}
+                    <span class="badge bg-primary">Déposé le {{ devoir.mon_rendu.date_soumission|date:"d/m/Y" }}</span>
+                  {% endif %}
+                  {% if devoir.est_ouvert %}
+                    <a href="{% url 'homework:devoir_soumettre' devoir.pk %}" class="small ms-1">Remplacer</a>
+                  {% endif %}
+                {% elif devoir.est_ouvert %}
+                  <a href="{% url 'homework:devoir_soumettre' devoir.pk %}" class="btn btn-sm btn-outline-primary">Déposer mon devoir</a>
+                {% else %}
+                  <span class="badge bg-secondary">Date limite dépassée</span>
+                {% endif %}
+              </div>
+            {% endif %}
           </li>
         {% empty %}
           <li class="list-group-item text-muted">Aucun devoir enregistré.</li>

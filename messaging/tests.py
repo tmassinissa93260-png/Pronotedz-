@@ -42,7 +42,7 @@ class ContactsAutorisesTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         annee = AnneeScolaire.objects.create(libelle="2025-2026", date_debut=datetime.date(2025, 9, 1), date_fin=datetime.date(2026, 6, 30))
-        niveau = Niveau.objects.create(libelle="1AS", cycle=Niveau.Cycle.LYCEE, ordre=1)
+        niveau = Niveau.objects.create(libelle="1AS", cycle=Niveau.Cycle.SECONDAIRE, ordre=1)
         cls.classe_a = Classe.objects.create(libelle="Classe A", niveau=niveau, annee_scolaire=annee)
         cls.classe_b = Classe.objects.create(libelle="Classe B", niveau=niveau, annee_scolaire=annee)
 

@@ -22,6 +22,7 @@ from documents.models import Document
 from grades.models import Evaluation, Note
 from homework.models import CahierDeTexte, Devoir
 from messaging.models import Conversation, Message
+from qcm.models import ChoixQCM, QCM, QuestionQCM
 from rendezvous.models import DisponibiliteRDV, RendezVous
 from ressources.models import Reservation, Ressource
 from sondages.models import ChoixReponse, QuestionSondage, Sondage
@@ -56,7 +57,8 @@ class Command(BaseCommand):
         etablissement.annee_scolaire_courante = annee
         etablissement.save()
 
-        niveau = Niveau.objects.get_or_create(libelle="1AS", defaults={"cycle": Niveau.Cycle.LYCEE, "ordre": 1})[0]
+        tous_niveaux = self._make_niveaux()
+        niveau = tous_niveaux["1AS"]
         filiere_sciences = Filiere.objects.get_or_create(libelle="Sciences")[0]
         filiere_lettres = Filiere.objects.get_or_create(libelle="Lettres et Philosophie")[0]
 
@@ -96,6 +98,7 @@ class Command(BaseCommand):
         self._make_ressources(enseignants)
         self._make_documents(admin_user, enseignants, classe_sciences)
         self._make_sondages(admin_user)
+        self._make_qcm(classe_sciences, matieres, enseignants)
 
         self.stdout.write(self.style.SUCCESS("Jeu de données de démonstration créé."))
         self.stdout.write(f"Mot de passe commun à tous les comptes de démo : {DEMO_PASSWORD}")
@@ -146,6 +149,21 @@ class Command(BaseCommand):
         return trimestres
 
     # -- Structure pédagogique ---------------------------------------------
+
+    def _make_niveaux(self):
+        """Crée les niveaux de tout le système éducatif algérien (primaire,
+        moyen, secondaire) même si seul 1AS est utilisé pour les classes de
+        démonstration — permet à l'admin d'utiliser les autres directement.
+        """
+        specs = [
+            *[(f"{i}AP", Niveau.Cycle.PRIMAIRE, i) for i in range(1, 6)],
+            *[(f"{i}AM", Niveau.Cycle.MOYEN, 5 + i) for i in range(1, 5)],
+            *[(f"{i}AS", Niveau.Cycle.SECONDAIRE, 9 + i) for i in range(1, 4)],
+        ]
+        niveaux = {}
+        for libelle, cycle, ordre in specs:
+            niveaux[libelle] = Niveau.objects.get_or_create(libelle=libelle, defaults={"cycle": cycle, "ordre": ordre})[0]
+        return niveaux
 
     def _make_matieres(self):
         matieres = {}
@@ -404,3 +422,22 @@ class Command(BaseCommand):
             question = QuestionSondage.objects.create(sondage=sondage, texte="Êtes-vous satisfait de la cantine ?")
             for texte in ["Très satisfait", "Satisfait", "Peu satisfait", "Pas du tout satisfait"]:
                 ChoixReponse.objects.create(question=question, texte=texte)
+
+    # -- QCM ----------------------------------------------------------------
+
+    def _make_qcm(self, classe_sciences, matieres, enseignants):
+        qcm, created = QCM.objects.get_or_create(
+            titre="Quiz de révision — Fonctions", classe=classe_sciences, matiere=matieres["Mathématiques"],
+            defaults={"enseignant": enseignants["Mathématiques"], "description": "Un petit quiz pour réviser le chapitre."},
+        )
+        if not created:
+            return
+        q1 = QuestionQCM.objects.create(qcm=qcm, texte="Quelle est la forme générale d'une fonction affine ?", ordre=1)
+        ChoixQCM.objects.create(question=q1, texte="f(x) = ax + b", est_correct=True)
+        ChoixQCM.objects.create(question=q1, texte="f(x) = ax²", est_correct=False)
+        ChoixQCM.objects.create(question=q1, texte="f(x) = a/x", est_correct=False)
+
+        q2 = QuestionQCM.objects.create(qcm=qcm, texte="Une fonction constante a pour coefficient directeur :", ordre=2)
+        ChoixQCM.objects.create(question=q2, texte="1", est_correct=False)
+        ChoixQCM.objects.create(question=q2, texte="0", est_correct=True)
+        ChoixQCM.objects.create(question=q2, texte="Cela dépend de x", est_correct=False)

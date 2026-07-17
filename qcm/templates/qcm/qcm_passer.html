@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ qcm.titre }} — Pronotedz{% endblock %}
+{% block page_title %}{{ qcm.titre }}{% endblock %}
+
+{% block content %}
+  <p class="text-muted">{{ qcm.description }}</p>
+
+  {% if not qcm.est_ouvert %}
+    <p class="text-danger">Ce QCM n'est plus ouvert.</p>
+  {% else %}
+    <form method="post">
+      {% csrf_token %}
+      {% for question in questions %}
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">{{ forloop.counter }}. {{ question.texte }}</p></div>
+          <div class="pn-widget-body">
+            {% for choix in question.choix.all %}
+              <div class="form-check">
+                <input type="radio" name="question_{{ question.pk }}" value="{{ choix.pk }}" class="form-check-input" id="choix-{{ choix.pk }}" required>
+                <label class="form-check-label" for="choix-{{ choix.pk }}">{{ choix.texte }}</label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">Valider mes réponses</button>
+    </form>
+  {% endif %}
+{% endblock %}

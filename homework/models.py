@@ -30,3 +30,33 @@ class Devoir(models.Model):
 
     def __str__(self):
         return f"{self.matiere} — {self.classe} — pour le {self.date_a_faire_pour}"
+
+    @property
+    def est_ouvert(self):
+        import datetime
+
+        return datetime.date.today() <= self.date_a_faire_pour
+
+
+class RenduDevoir(models.Model):
+    devoir = models.ForeignKey(Devoir, on_delete=models.CASCADE, related_name="rendus")
+    eleve = models.ForeignKey("accounts.Eleve", on_delete=models.CASCADE, related_name="devoirs_rendus")
+    fichier = models.FileField(upload_to="rendus_devoirs/")
+    date_soumission = models.DateTimeField(auto_now_add=True)
+    note_sur_20 = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    commentaire_correction = models.TextField(blank=True)
+    corrige_par = models.ForeignKey("accounts.Utilisateur", on_delete=models.SET_NULL, null=True, blank=True, related_name="rendus_corriges")
+    corrige_le = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Devoir rendu"
+        verbose_name_plural = "Devoirs rendus"
+        unique_together = ("devoir", "eleve")
+        ordering = ["-date_soumission"]
+
+    def __str__(self):
+        return f"{self.eleve} — {self.devoir}"
+
+    @property
+    def est_corrige(self):
+        return self.corrige_le is not None

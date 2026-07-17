@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Déposer un devoir — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Déposer mon devoir — {{ devoir.matiere }}</h1>{% endblock %}
+
+{% block content %}
+  <p class="text-muted">À rendre pour le {{ devoir.date_a_faire_pour|date:"d/m/Y" }}</p>
+  <p>{{ devoir.consigne }}</p>
+
+  {% if rendu %}
+    <div class="alert alert-info">
+      Vous avez déjà déposé un fichier le {{ rendu.date_soumission|date:"d/m/Y H:i" }}
+      {% if rendu.est_corrige %} — corrigé : <strong>{{ rendu.note_sur_20 }}/20</strong>{% if rendu.commentaire_correction %} — {{ rendu.commentaire_correction }}{% endif %}{% endif %}.
+      <a href="{{ rendu.fichier.url }}">Voir le fichier déposé</a>
+    </div>
+  {% endif %}
+
+  {% if devoir.est_ouvert %}
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Fichier ou photo</label>
+        <input type="file" name="fichier" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">{% if rendu %}Remplacer mon dépôt{% else %}Déposer{% endif %}</button>
+    </form>
+  {% else %}
+    <p class="text-danger">La date limite est dépassée, le dépôt n'est plus possible.</p>
+  {% endif %}
+{% endblock %}

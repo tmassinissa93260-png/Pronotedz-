@@ -37,6 +37,7 @@
         <a class="{% if request.resolver_match.url_name == 'appel_liste' or request.resolver_match.url_name == 'appel_seance' %}active{% endif %}" href="{% url 'attendance:appel_liste' %}">Appel</a>
         <a class="{% if request.resolver_match.url_name == 'evaluation_liste' or request.resolver_match.url_name == 'saisie_notes' %}active{% endif %}" href="{% url 'grades:evaluation_liste' %}">Notes</a>
         <a class="{% if request.resolver_match.url_name == 'observation_liste' or request.resolver_match.url_name == 'observation_creer' %}active{% endif %}" href="{% url 'vie_scolaire:observation_liste' %}">Vie scolaire</a>
+        <a class="{% if request.resolver_match.namespace == 'qcm' %}active{% endif %}" href="{% url 'qcm:qcm_liste' %}">QCM</a>
         <a class="{% if request.resolver_match.url_name == 'mes_disponibilites' %}active{% endif %}" href="{% url 'rendezvous:mes_disponibilites' %}">Rendez-vous</a>
         <a class="{% if request.resolver_match.namespace == 'ressources' %}active{% endif %}" href="{% url 'ressources:mes_reservations' %}">Ressources</a>
       {% endif %}
@@ -44,6 +45,9 @@
       {% if user.role == 'ELEVE' or user.role == 'PARENT' %}
         <a class="{% if request.resolver_match.url_name == 'bulletin' %}active{% endif %}" href="{% url 'grades:bulletin' %}">Notes / bulletin</a>
         <a class="{% if request.resolver_match.namespace == 'attendance' %}active{% endif %}" href="{% url 'attendance:historique' %}">Vie scolaire</a>
+        {% if user.role == 'ELEVE' %}
+          <a class="{% if request.resolver_match.namespace == 'qcm' %}active{% endif %}" href="{% url 'qcm:qcm_liste' %}">QCM</a>
+        {% endif %}
       {% endif %}
 
       {% if user.role == 'PARENT' %}

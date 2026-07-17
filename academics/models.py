@@ -3,7 +3,8 @@ from django.db import models
 
 class Etablissement(models.Model):
     class TypeEtablissement(models.TextChoices):
-        COLLEGE = "COLLEGE", "Collège"
+        PRIMAIRE = "PRIMAIRE", "École primaire"
+        COLLEGE = "COLLEGE", "Collège (CEM)"
         LYCEE = "LYCEE", "Lycée"
 
     nom = models.CharField(max_length=200)
@@ -76,8 +77,9 @@ class Trimestre(models.Model):
 
 class Niveau(models.Model):
     class Cycle(models.TextChoices):
-        COLLEGE = "COLLEGE", "Collège"
-        LYCEE = "LYCEE", "Lycée"
+        PRIMAIRE = "PRIMAIRE", "Primaire"
+        MOYEN = "MOYEN", "Moyen"
+        SECONDAIRE = "SECONDAIRE", "Secondaire"
 
     libelle = models.CharField(max_length=50, help_text='Ex: "1AS", "4AM"')
     cycle = models.CharField(max_length=10, choices=Cycle.choices)

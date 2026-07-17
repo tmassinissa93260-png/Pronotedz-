@@ -20,6 +20,7 @@ urlpatterns = [
     path("ressources/", include("ressources.urls")),
     path("documents/", include("documents.urls")),
     path("sondages/", include("sondages.urls")),
+    path("qcm/", include("qcm.urls")),
     path("", dashboard_dispatch, name="home"),
 ]
 

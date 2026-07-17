@@ -2,13 +2,14 @@ import datetime
 
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from accounts.models import Utilisateur
 from accounts.permissions import role_required
 from attendance.models import Seance
 from timetable.models import CreneauHoraire, EmploiDuTempsEntry
 
-from .models import CahierDeTexte, Devoir
+from .models import CahierDeTexte, Devoir, RenduDevoir
 
 
 @role_required(Utilisateur.Role.ENSEIGNANT)
@@ -84,10 +85,60 @@ def cahier_classe(request):
         if classe
         else CahierDeTexte.objects.none()
     )
-    devoirs = Devoir.objects.filter(classe=classe).select_related("matiere") if classe else Devoir.objects.none()
+    devoirs = list(Devoir.objects.filter(classe=classe).select_related("matiere")) if classe else []
+
+    if user.role == user.Role.ELEVE:
+        mes_rendus = {r.devoir_id: r for r in RenduDevoir.objects.filter(eleve=eleve, devoir__in=devoirs)}
+        for devoir in devoirs:
+            devoir.mon_rendu = mes_rendus.get(devoir.pk)
 
     return render(
         request,
         "homework/cahier_liste.html",
         {"cahiers": cahiers, "devoirs": devoirs, "eleve": eleve, "enfants": enfants},
     )
+
+
+@role_required(Utilisateur.Role.ELEVE)
+def devoir_soumettre(request, devoir_id):
+    devoir = get_object_or_404(Devoir, pk=devoir_id, classe=request.user.eleve.classe)
+    rendu = RenduDevoir.objects.filter(devoir=devoir, eleve=request.user.eleve).first()
+
+    if request.method == "POST":
+        if not devoir.est_ouvert:
+            messages.error(request, "La date limite de ce devoir est dépassée, le dépôt est bloqué.")
+        else:
+            fichier = request.FILES.get("fichier")
+            if fichier:
+                RenduDevoir.objects.update_or_create(
+                    devoir=devoir, eleve=request.user.eleve, defaults={"fichier": fichier}
+                )
+                messages.success(request, "Devoir déposé avec succès.")
+            else:
+                messages.error(request, "Merci de joindre un fichier.")
+        return redirect("homework:cahier_liste")
+
+    return render(request, "homework/devoir_soumettre.html", {"devoir": devoir, "rendu": rendu})
+
+
+@role_required(Utilisateur.Role.ENSEIGNANT)
+def devoir_rendus(request, devoir_id):
+    devoir = get_object_or_404(Devoir, pk=devoir_id, enseignant=request.user.enseignant)
+    rendus = RenduDevoir.objects.filter(devoir=devoir).select_related("eleve__user")
+    return render(request, "homework/devoir_rendus.html", {"devoir": devoir, "rendus": rendus})
+
+
+@role_required(Utilisateur.Role.ENSEIGNANT)
+def rendu_corriger(request, rendu_id):
+    rendu = get_object_or_404(RenduDevoir, pk=rendu_id, devoir__enseignant=request.user.enseignant)
+
+    if request.method == "POST":
+        rendu.note_sur_20 = request.POST.get("note_sur_20") or None
+        rendu.commentaire_correction = request.POST.get("commentaire_correction", "").strip()
+        rendu.corrige_par = request.user
+        rendu.corrige_le = timezone.now()
+        rendu.save()
+        messages.success(request, "Correction enregistrée.")
+        return redirect("homework:devoir_rendus", devoir_id=rendu.devoir_id)
+
+    return render(request, "homework/rendu_corriger.html", {"rendu": rendu})

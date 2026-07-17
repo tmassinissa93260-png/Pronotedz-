@@ -34,9 +34,12 @@
     <h2 class="h6 mt-4">Devoirs déjà donnés pour cette séance</h2>
     <ul class="list-group">
       {% for devoir in devoirs %}
-        <li class="list-group-item">
-          Pour le {{ devoir.date_a_faire_pour|date:"d/m/Y" }} — {{ devoir.consigne }}
-          {% if devoir.piece_jointe %}<a href="{{ devoir.piece_jointe.url }}" class="ms-2">📎 pièce jointe</a>{% endif %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <span>
+            Pour le {{ devoir.date_a_faire_pour|date:"d/m/Y" }} — {{ devoir.consigne }}
+            {% if devoir.piece_jointe %}<a href="{{ devoir.piece_jointe.url }}" class="ms-2">📎 pièce jointe</a>{% endif %}
+          </span>
+          <a href="{% url 'homework:devoir_rendus' devoir.pk %}" class="btn btn-sm btn-outline-secondary text-nowrap">Voir les rendus</a>
         </li>
       {% endfor %}
     </ul>

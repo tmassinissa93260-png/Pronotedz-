@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Nouveau QCM — Pronotedz{% endblock %}
+{% block page_title %}Nouveau QCM{% endblock %}
+
+{% block content %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Titre</label>
+      <input type="text" name="titre" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Description (optionnel)</label>
+      <textarea name="description" class="form-control" rows="2"></textarea>
+    </div>
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Classe</label>
+        <select name="classe" class="form-select" required>
+          {% for classe in classes %}<option value="{{ classe.pk }}">{{ classe }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Matière</label>
+        <select name="matiere" class="form-select" required>
+          {% for matiere in matieres %}<option value="{{ matiere.pk }}">{{ matiere }}</option>{% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Date limite (optionnel)</label>
+      <input type="datetime-local" name="date_limite" class="form-control w-auto">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Questions</label>
+      <p class="small text-muted mb-1">
+        Un bloc par question, séparé par une ligne vide. Première ligne = la question, lignes suivantes = les choix.
+        Préfixez d'une <code>*</code> le(s) choix correct(s).
+      </p>
+      <textarea name="questions_brutes" class="form-control" rows="12" required placeholder="La capitale de l'Algérie est ?
+Oran
+* Alger
+Constantine
+
+2 + 2 = ?
+3
+* 4
+5"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Créer le QCM</button>
+  </form>
+{% endblock %}

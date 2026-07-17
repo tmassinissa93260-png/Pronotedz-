@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}QCM — Pronotedz{% endblock %}
+{% block page_title %}Mes QCM{% endblock %}
+
+{% block content %}
+  <div class="list-group">
+    {% for qcm in qcms %}
+      <a href="{% url 'qcm:qcm_passer' qcm.pk %}" class="list-group-item list-group-item-action d-flex justify-content-between">
+        <span>{{ qcm.titre }} — {{ qcm.matiere }}</span>
+        <span>
+          {% if qcm.ma_tentative.est_soumise %}
+            <span class="badge bg-success">Terminé — {{ qcm.ma_tentative.score }}/{{ qcm.total_points }}</span>
+          {% elif qcm.est_ouvert %}
+            <span class="badge bg-primary">À faire</span>
+          {% else %}
+            <span class="badge bg-secondary">Fermé</span>
+          {% endif %}
+        </span>
+      </a>
+    {% empty %}
+      <p class="text-muted">Aucun QCM assigné.</p>
+    {% endfor %}
+  </div>
+{% endblock %}
