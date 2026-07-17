@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Emploi du temps — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Emploi du temps{% if classe %} — {{ classe }}{% endif %}</h1>{% endblock %}
+
+{% block content %}
+  {% if enfants and enfants|length > 1 %}
+    <div class="mb-3">
+      <div class="btn-group">
+        {% for enfant in enfants %}
+          <a class="btn btn-sm btn-outline-primary {% if enfant.classe == classe %}active{% endif %}"
+             href="?enfant={{ enfant.pk }}">{{ enfant.user.get_full_name }}</a>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% if classes and classes|length > 1 %}
+    <div class="mb-3">
+      <select class="form-select form-select-sm w-auto" onchange="window.location='?classe='+this.value">
+        {% for c in classes %}
+          <option value="{{ c.pk }}" {% if c == classe %}selected{% endif %}>{{ c }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  {% endif %}
+
+  <div class="table-responsive">
+    <table class="table table-bordered bg-white align-middle">
+      <thead>
+        <tr>
+          <th style="width:110px;">Horaire</th>
+          {% for jour_val, jour_label in grid.jours %}
+            <th>{{ jour_label }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for ligne in grid.lignes %}
+          <tr>
+            <td class="small text-muted">
+              {% if ligne.heure_debut %}{{ ligne.heure_debut|time:"H:i" }} - {{ ligne.heure_fin|time:"H:i" }}{% endif %}
+            </td>
+            {% for entry in ligne.cellules %}
+              <td>
+                {% if entry %}
+                  <div class="timetable-cell" style="background-color: {{ entry.matiere.couleur }};">
+                    <div class="fw-semibold">{{ entry.matiere }}</div>
+                    <div>{{ entry.enseignant.user.get_full_name }}</div>
+                    <div>{{ entry.salle }}</div>
+                  </div>
+                {% endif %}
+              </td>
+            {% endfor %}
+          </tr>
+        {% empty %}
+          <tr><td colspan="10" class="text-muted text-center py-4">Aucun emploi du temps disponible.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

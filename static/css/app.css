@@ -1,0 +1,63 @@
+:root {
+  --pn-primary: #2f5fa8;
+  --pn-sidebar-bg: #1c2b45;
+}
+
+body.auth-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1c2b45 0%, #2f5fa8 100%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  border: none;
+  border-radius: 1rem;
+}
+
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.app-sidebar {
+  width: 240px;
+  background: var(--pn-sidebar-bg);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.app-sidebar .nav-link {
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.app-sidebar .nav-link.active,
+.app-sidebar .nav-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.app-topbar {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  background: #f4f6f9;
+}
+
+.timetable-grid {
+  display: grid;
+  gap: 2px;
+}
+
+.timetable-cell {
+  border-radius: 0.4rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.8rem;
+  color: #fff;
+}

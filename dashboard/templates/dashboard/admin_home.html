@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Tableau de bord — Administration</h1>{% endblock %}
+
+{% block content %}
+  <p class="text-muted">Année scolaire : {{ annee|default:"aucune année active" }}</p>
+  <div class="row g-3">
+    <div class="col-md-4">
+      <div class="card"><div class="card-body">
+        <div class="text-muted small">Classes</div>
+        <div class="fs-3 fw-bold">{{ nb_classes }}</div>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card"><div class="card-body">
+        <div class="text-muted small">Élèves</div>
+        <div class="fs-3 fw-bold">{{ nb_eleves }}</div>
+      </div></div>
+    </div>
+    <div class="col-md-4">
+      <div class="card"><div class="card-body">
+        <div class="text-muted small">Enseignants</div>
+        <div class="fs-3 fw-bold">{{ nb_enseignants }}</div>
+      </div></div>
+    </div>
+  </div>
+  <p class="mt-4"><a href="{% url 'admin:index' %}" class="btn btn-primary">Gérer l'établissement</a></p>
+{% endblock %}

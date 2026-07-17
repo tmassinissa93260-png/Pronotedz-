@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Appel — {{ entry.classe }}{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Appel — {{ entry.matiere }} — {{ entry.classe }} ({{ date|date:"d/m/Y" }})</h1>{% endblock %}
+
+{% block content %}
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">
+    <table class="table bg-white">
+      <thead><tr><th>Élève</th><th class="text-center">Absent</th></tr></thead>
+      <tbody>
+        {% for eleve in eleves %}
+          <tr>
+            <td>{{ eleve.user.get_full_name }}</td>
+            <td class="text-center">
+              <input type="checkbox" name="absent" value="{{ eleve.pk }}" {% if eleve.pk in absents_actuels %}checked{% endif %}>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-primary">Enregistrer l'appel</button>
+  </form>
+{% endblock %}

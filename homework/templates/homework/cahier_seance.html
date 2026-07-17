@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Cahier de texte — {{ entry.classe }}{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">{{ entry.matiere }} — {{ entry.classe }} ({{ date|date:"d/m/Y" }})</h1>{% endblock %}
+
+{% block content %}
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">
+
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Contenu de la séance</label>
+      <textarea name="contenu" class="form-control" rows="4">{{ cahier.contenu|default:"" }}</textarea>
+    </div>
+
+    <hr>
+    <h2 class="h6">Ajouter un devoir</h2>
+    <div class="mb-3">
+      <label class="form-label">Consigne</label>
+      <textarea name="consigne" class="form-control" rows="3"></textarea>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">À faire pour le</label>
+      <input type="date" name="date_a_faire_pour" class="form-control w-auto">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Enregistrer</button>
+  </form>
+
+  {% if devoirs %}
+    <h2 class="h6 mt-4">Devoirs déjà donnés pour cette séance</h2>
+    <ul class="list-group">
+      {% for devoir in devoirs %}
+        <li class="list-group-item">Pour le {{ devoir.date_a_faire_pour|date:"d/m/Y" }} — {{ devoir.consigne }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endblock %}

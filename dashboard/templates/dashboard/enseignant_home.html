@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Bonjour {{ user.get_full_name }}</h1>{% endblock %}
+
+{% block content %}
+  <h2 class="h6">Mes cours aujourd'hui ({{ today|date:"l d F" }})</h2>
+  <ul class="list-group mb-4">
+    {% for entry in entries %}
+      <li class="list-group-item d-flex justify-content-between">
+        <span>{{ entry.creneau.heure_debut|time:"H:i" }} - {{ entry.matiere }} — {{ entry.classe }} ({{ entry.salle }})</span>
+        <span>
+          <a href="{% url 'attendance:appel_seance' entry.pk %}" class="btn btn-sm btn-outline-primary">Appel</a>
+          <a href="{% url 'homework:cahier_seance' entry.pk %}" class="btn btn-sm btn-outline-secondary">Cahier de texte</a>
+        </span>
+      </li>
+    {% empty %}
+      <li class="list-group-item text-muted">Aucun cours aujourd'hui.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
