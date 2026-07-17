@@ -7,6 +7,9 @@ class Publication(models.Model):
         ENSEIGNANTS = "ENSEIGNANTS", "Enseignants"
         ELEVES_PARENTS = "ELEVES_PARENTS", "Élèves et parents"
 
+    etablissement = models.ForeignKey(
+        "academics.Etablissement", on_delete=models.CASCADE, related_name="publications", null=True, blank=True
+    )
     titre = models.CharField(max_length=200)
     contenu = models.TextField()
     auteur = models.ForeignKey("accounts.Utilisateur", on_delete=models.SET_NULL, null=True, related_name="publications")
@@ -21,24 +24,26 @@ class Publication(models.Model):
         return self.titre
 
     @staticmethod
-    def visibles_pour(role):
+    def visibles_pour(user):
         from accounts.models import Utilisateur
 
-        if role == Utilisateur.Role.ADMIN:
-            return Publication.objects.all()
-        if role == Utilisateur.Role.ENSEIGNANT:
-            return Publication.objects.filter(audience__in=[Publication.Audience.TOUS, Publication.Audience.ENSEIGNANTS])
-        return Publication.objects.filter(audience__in=[Publication.Audience.TOUS, Publication.Audience.ELEVES_PARENTS])
+        qs = Publication.objects.filter(etablissement=user.etablissement)
+        if user.role == Utilisateur.Role.ADMIN:
+            return qs
+        if user.role == Utilisateur.Role.ENSEIGNANT:
+            return qs.filter(audience__in=[Publication.Audience.TOUS, Publication.Audience.ENSEIGNANTS])
+        return qs.filter(audience__in=[Publication.Audience.TOUS, Publication.Audience.ELEVES_PARENTS])
 
     def destinataires(self):
         """Utilisateur queryset matching this publication's target audience."""
         from accounts.models import Utilisateur
 
+        qs = Utilisateur.objects.filter(etablissement=self.etablissement)
         if self.audience == self.Audience.ENSEIGNANTS:
-            return Utilisateur.objects.filter(role=Utilisateur.Role.ENSEIGNANT)
+            return qs.filter(role=Utilisateur.Role.ENSEIGNANT)
         if self.audience == self.Audience.ELEVES_PARENTS:
-            return Utilisateur.objects.filter(role__in=[Utilisateur.Role.ELEVE, Utilisateur.Role.PARENT])
-        return Utilisateur.objects.exclude(pk=self.auteur_id)
+            return qs.filter(role__in=[Utilisateur.Role.ELEVE, Utilisateur.Role.PARENT])
+        return qs.exclude(pk=self.auteur_id)
 
 
 class LectureAccusee(models.Model):

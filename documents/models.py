@@ -8,6 +8,9 @@ class Document(models.Model):
         ADMINISTRATIF = "ADMINISTRATIF", "Administratif"
         AUTRE = "AUTRE", "Autre"
 
+    etablissement = models.ForeignKey(
+        "academics.Etablissement", on_delete=models.CASCADE, related_name="documents", null=True, blank=True
+    )
     titre = models.CharField(max_length=200)
     fichier = models.FileField(upload_to="documents/")
     description = models.CharField(max_length=255, blank=True)

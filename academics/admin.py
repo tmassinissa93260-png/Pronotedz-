@@ -1,5 +1,6 @@
 from django.contrib import admin
 
+from .admin_mixins import EtablissementScopedAdmin
 from .models import (
     AnneeScolaire,
     Classe,
@@ -17,8 +18,15 @@ from .models import (
 class EtablissementAdmin(admin.ModelAdmin):
     list_display = ("nom", "wilaya", "type_etablissement", "annee_scolaire_courante")
 
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        etablissement = getattr(request.user, "etablissement", None)
+        return qs.filter(pk=etablissement.pk) if etablissement else qs.none()
+
     def has_add_permission(self, request):
-        return not Etablissement.objects.exists()
+        # Only a platform operator with no établissement of their own may
+        # create new schools; a school admin manages exactly one.
+        return request.user.is_superuser and request.user.etablissement_id is None
 
 
 class TrimestreInline(admin.TabularInline):
@@ -27,7 +35,7 @@ class TrimestreInline(admin.TabularInline):
 
 
 @admin.register(AnneeScolaire)
-class AnneeScolaireAdmin(admin.ModelAdmin):
+class AnneeScolaireAdmin(EtablissementScopedAdmin, admin.ModelAdmin):
     list_display = ("libelle", "date_debut", "date_fin", "est_active")
     inlines = [TrimestreInline]
 
@@ -56,13 +64,14 @@ class MatiereAdmin(admin.ModelAdmin):
 
 
 @admin.register(Salle)
-class SalleAdmin(admin.ModelAdmin):
+class SalleAdmin(EtablissementScopedAdmin, admin.ModelAdmin):
     list_display = ("nom", "capacite", "type_salle")
     search_fields = ("nom",)
 
 
 @admin.register(Classe)
-class ClasseAdmin(admin.ModelAdmin):
+class ClasseAdmin(EtablissementScopedAdmin, admin.ModelAdmin):
+    etablissement_lookup = "annee_scolaire__etablissement"
     list_display = ("libelle", "niveau", "filiere", "annee_scolaire", "professeur_principal")
     list_filter = ("niveau", "annee_scolaire")
     search_fields = ("libelle",)

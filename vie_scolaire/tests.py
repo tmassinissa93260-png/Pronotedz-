@@ -21,3 +21,9 @@ class ObservationScopingTests(TestCase):
         self.assertTrue(self.client.login(username="prof.mathématiques", password=DEMO_PASSWORD))
         response = self.client.get("/vie-scolaire/")
         self.assertContains(response, "Excellent travail")
+
+    def test_admin_creer_form_only_lists_classes_of_their_own_etablissement(self):
+        self.assertTrue(self.client.login(username="admin.oran", password=DEMO_PASSWORD))
+        response = self.client.get("/vie-scolaire/nouvelle/")
+        classes = list(response.context["classes"])
+        self.assertEqual([c.libelle for c in classes], ["1AM 1"])

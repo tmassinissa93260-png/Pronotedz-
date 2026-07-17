@@ -11,14 +11,20 @@ class PublicationVisibilityTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         call_command("seed_demo")
-        Publication.objects.create(titre="Note de service internes", contenu="...", audience=Publication.Audience.ENSEIGNANTS)
+        admin = Utilisateur.objects.get(username="admin.direction")
+        Publication.objects.create(
+            titre="Note de service internes", contenu="...", audience=Publication.Audience.ENSEIGNANTS,
+            etablissement=admin.etablissement,
+        )
 
     def test_enseignants_only_publication_hidden_from_eleves(self):
-        visibles = Publication.visibles_pour(Utilisateur.Role.ELEVE)
+        eleve = Utilisateur.objects.get(username="eleve.202600001")
+        visibles = Publication.visibles_pour(eleve)
         self.assertFalse(visibles.filter(titre="Note de service internes").exists())
 
     def test_enseignants_only_publication_visible_to_enseignants(self):
-        visibles = Publication.visibles_pour(Utilisateur.Role.ENSEIGNANT)
+        enseignant = Utilisateur.objects.get(username="prof.mathématiques")
+        visibles = Publication.visibles_pour(enseignant)
         self.assertTrue(visibles.filter(titre="Note de service internes").exists())
 
     def test_liste_view_loads_for_every_role(self):
@@ -28,13 +34,19 @@ class PublicationVisibilityTests(TestCase):
             self.assertEqual(response.status_code, 200)
             self.client.logout()
 
+    def test_publication_not_visible_to_another_etablissement(self):
+        self.assertTrue(self.client.login(username="admin.oran", password=DEMO_PASSWORD))
+        response = self.client.get("/actualites/")
+        self.assertNotContains(response, "Note de service internes")
+
 
 class LectureAccuseeTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         call_command("seed_demo")
+        admin = Utilisateur.objects.get(username="admin.direction")
         cls.publication = Publication.objects.create(
-            titre="Rentrée", contenu="...", audience=Publication.Audience.TOUS
+            titre="Rentrée", contenu="...", audience=Publication.Audience.TOUS, etablissement=admin.etablissement,
         )
 
     def test_marquer_lu_creates_accuse_and_redirects(self):

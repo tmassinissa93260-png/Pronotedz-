@@ -8,6 +8,9 @@ class Sondage(models.Model):
         ELEVES = "ELEVES", "Élèves"
         PARENTS = "PARENTS", "Parents"
 
+    etablissement = models.ForeignKey(
+        "academics.Etablissement", on_delete=models.CASCADE, related_name="sondages", null=True, blank=True
+    )
     titre = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     cree_par = models.ForeignKey("accounts.Utilisateur", on_delete=models.SET_NULL, null=True, related_name="sondages_crees")
@@ -28,17 +31,17 @@ class Sondage(models.Model):
         return self.date_cloture is None or self.date_cloture >= datetime.date.today()
 
     @staticmethod
-    def visibles_pour(role):
+    def visibles_pour(user):
         from accounts.models import Utilisateur
 
         audiences = [Sondage.Audience.TOUS]
-        if role == Utilisateur.Role.ENSEIGNANT:
+        if user.role == Utilisateur.Role.ENSEIGNANT:
             audiences.append(Sondage.Audience.ENSEIGNANTS)
-        elif role == Utilisateur.Role.ELEVE:
+        elif user.role == Utilisateur.Role.ELEVE:
             audiences.append(Sondage.Audience.ELEVES)
-        elif role == Utilisateur.Role.PARENT:
+        elif user.role == Utilisateur.Role.PARENT:
             audiences.append(Sondage.Audience.PARENTS)
-        return Sondage.objects.filter(audience__in=audiences)
+        return Sondage.objects.filter(etablissement=user.etablissement, audience__in=audiences)
 
 
 class QuestionSondage(models.Model):

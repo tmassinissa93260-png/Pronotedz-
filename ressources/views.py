@@ -17,9 +17,11 @@ def nouvelle_reservation(request):
     jour_semaine = CreneauHoraire.PYTHON_WEEKDAY_TO_JOUR.get(date.weekday())
     creneaux = CreneauHoraire.objects.filter(jour_semaine=jour_semaine).order_by("ordre") if jour_semaine is not None else CreneauHoraire.objects.none()
 
+    ressources_etablissement = Ressource.objects.filter(etablissement=request.user.etablissement)
+
     if request.method == "POST":
         creneau = get_object_or_404(creneaux, pk=request.POST.get("creneau"))
-        ressource = get_object_or_404(Ressource, pk=request.POST.get("ressource"))
+        ressource = get_object_or_404(ressources_etablissement, pk=request.POST.get("ressource"))
         if Reservation.objects.filter(ressource=ressource, date=date, creneau=creneau).exists():
             messages.error(request, "Cette ressource est déjà réservée sur ce créneau.")
         else:
@@ -30,8 +32,10 @@ def nouvelle_reservation(request):
             messages.success(request, "Réservation confirmée.")
         return redirect(f"{request.path}?date={date.isoformat()}")
 
-    ressources = Ressource.objects.all()
-    reservations_du_jour = Reservation.objects.filter(date=date).select_related("ressource", "creneau", "enseignant__user")
+    ressources = ressources_etablissement
+    reservations_du_jour = Reservation.objects.filter(
+        date=date, ressource__etablissement=request.user.etablissement
+    ).select_related("ressource", "creneau", "enseignant__user")
     return render(
         request,
         "ressources/nouvelle_reservation.html",

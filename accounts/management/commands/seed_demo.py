@@ -52,8 +52,13 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        self._seed_etablissement_principal()
+        self._seed_deuxieme_etablissement()
+        self.stdout.write(self.style.SUCCESS("Jeu de données de démonstration créé."))
+
+    def _seed_etablissement_principal(self):
         etablissement = self._make_etablissement()
-        annee = self._make_annee_scolaire()
+        annee = self._make_annee_scolaire(etablissement)
         trimestres = self._make_trimestres(annee)
         etablissement.annee_scolaire_courante = annee
         etablissement.save()
@@ -65,10 +70,10 @@ class Command(BaseCommand):
 
         matieres = self._make_matieres()
         self._make_coefficients(matieres, niveau, filiere_sciences, filiere_lettres)
-        salles = self._make_salles()
+        salles = self._make_salles(etablissement)
 
-        admin_user = self._make_admin()
-        enseignants = self._make_enseignants(matieres)
+        admin_user = self._make_admin(etablissement)
+        enseignants = self._make_enseignants(matieres, etablissement)
 
         classe_sciences = Classe.objects.get_or_create(
             libelle="1AS Sciences 1", niveau=niveau, filiere=filiere_sciences, annee_scolaire=annee,
@@ -82,9 +87,9 @@ class Command(BaseCommand):
         creneaux = self._make_creneaux()
         self._make_emploi_du_temps(classe_sciences, classe_lettres, creneaux, matieres, enseignants, salles, annee)
 
-        eleves_sciences = self._make_eleves(classe_sciences, "20260", 1, 6)
-        eleves_lettres = self._make_eleves(classe_lettres, "20260", 7, 6)
-        parent_benali, parent_hamdi = self._make_parents(eleves_sciences, eleves_lettres)
+        eleves_sciences = self._make_eleves(classe_sciences, "20260", 1, 6, etablissement)
+        eleves_lettres = self._make_eleves(classe_lettres, "20260", 7, 6, etablissement)
+        parent_benali, parent_hamdi = self._make_parents(eleves_sciences, eleves_lettres, etablissement)
 
         trimestre_actif = trimestres[0]
         self._make_notes(classe_sciences, matieres, enseignants, trimestre_actif, eleves_sciences)
@@ -94,24 +99,58 @@ class Command(BaseCommand):
 
         self._make_messagerie(admin_user, enseignants, parent_benali)
         self._make_vie_scolaire(eleves_sciences, enseignants)
-        self._make_actualites(admin_user)
+        self._make_actualites(admin_user, etablissement)
         self._make_rendezvous(enseignants, parent_benali, eleves_sciences)
-        self._make_ressources(enseignants)
-        self._make_documents(admin_user, enseignants, classe_sciences)
-        self._make_sondages(admin_user)
+        self._make_ressources(enseignants, etablissement)
+        self._make_documents(admin_user, enseignants, classe_sciences, etablissement)
+        self._make_sondages(admin_user, etablissement)
         self._make_qcm(classe_sciences, matieres, enseignants)
         self._make_notifications(eleves_sciences, parent_benali)
 
-        self.stdout.write(self.style.SUCCESS("Jeu de données de démonstration créé."))
         self.stdout.write(f"Mot de passe commun à tous les comptes de démo : {DEMO_PASSWORD}")
         self.stdout.write(f"Admin : {admin_user.username}")
         self.stdout.write("Enseignants : " + ", ".join(e.user.username for e in enseignants.values()))
         self.stdout.write("Élèves : " + ", ".join(e.user.username for e in eleves_sciences + eleves_lettres))
 
+    def _seed_deuxieme_etablissement(self):
+        """Un second établissement isolé, avec ses propres comptes/classe/année,
+        pour prouver — et tester — que les données ne fuient pas entre écoles.
+        """
+        etablissement = Etablissement.objects.get_or_create(
+            nom="Collège El Amir Abdelkader",
+            defaults={
+                "code": "CEM-ALG-002", "adresse": "5 avenue Amirouche", "wilaya": "Oran", "commune": "Es Sénia",
+                "telephone": "041 00 00 00", "email": "contact@amir-abdelkader-demo.dz",
+                "type_etablissement": Etablissement.TypeEtablissement.COLLEGE,
+            },
+        )[0]
+        annee = self._make_annee_scolaire(etablissement)
+        etablissement.annee_scolaire_courante = annee
+        etablissement.save()
+
+        tous_niveaux = self._make_niveaux()
+        niveau = tous_niveaux["1AM"]
+
+        admin_user = self._make_admin_secondaire(etablissement)
+        enseignant_user = self._make_user("prof.chimie2", "Nassima", "Brahimi", Utilisateur.Role.ENSEIGNANT, etablissement)
+        enseignant_user.is_staff = True
+        enseignant_user.save()
+        enseignant = Enseignant.objects.get_or_create(user=enseignant_user)[0]
+
+        classe = Classe.objects.get_or_create(
+            libelle="1AM 1", niveau=niveau, annee_scolaire=annee,
+            defaults={"professeur_principal": enseignant},
+        )[0]
+
+        eleves = self._make_eleves(classe, "20261", 1, 3, etablissement)
+        self._make_parents_secondaire(eleves, etablissement)
+
+        self.stdout.write(f"Second établissement (isolation) — Admin : {admin_user.username}")
+
     # -- Établissement / année / trimestres -------------------------------
 
     def _make_etablissement(self):
-        etablissement = Etablissement.objects.first()
+        etablissement = Etablissement.objects.exclude(nom="Collège El Amir Abdelkader").first()
         if not etablissement:
             etablissement = Etablissement.objects.create(
                 nom="Lycée Ibn Khaldoun",
@@ -125,8 +164,9 @@ class Command(BaseCommand):
             )
         return etablissement
 
-    def _make_annee_scolaire(self):
+    def _make_annee_scolaire(self, etablissement):
         return AnneeScolaire.objects.get_or_create(
+            etablissement=etablissement,
             libelle="2025-2026",
             defaults={
                 "date_debut": datetime.date(2025, 9, 1),
@@ -181,11 +221,13 @@ class Command(BaseCommand):
                     defaults={"coefficient": coefficient},
                 )
 
-    def _make_salles(self):
+    def _make_salles(self, etablissement):
         return {
-            "Salle 1": Salle.objects.get_or_create(nom="Salle 1")[0],
-            "Salle 2": Salle.objects.get_or_create(nom="Salle 2")[0],
-            "Labo Physique": Salle.objects.get_or_create(nom="Labo Physique", defaults={"type_salle": "labo"})[0],
+            "Salle 1": Salle.objects.get_or_create(nom="Salle 1", etablissement=etablissement)[0],
+            "Salle 2": Salle.objects.get_or_create(nom="Salle 2", etablissement=etablissement)[0],
+            "Labo Physique": Salle.objects.get_or_create(
+                nom="Labo Physique", etablissement=etablissement, defaults={"type_salle": "labo"}
+            )[0],
         }
 
     def _make_creneaux(self):
@@ -208,25 +250,33 @@ class Command(BaseCommand):
 
     # -- Comptes --------------------------------------------------------
 
-    def _make_user(self, username, first_name, last_name, role):
+    def _make_user(self, username, first_name, last_name, role, etablissement):
         user, created = Utilisateur.objects.get_or_create(
             username=username,
             defaults={
                 "first_name": first_name, "last_name": last_name, "role": role,
-                "password": make_password(DEMO_PASSWORD),
+                "password": make_password(DEMO_PASSWORD), "etablissement": etablissement,
             },
         )
         return user
 
-    def _make_admin(self):
-        user = self._make_user("admin.direction", "Karim", "Belaid", Utilisateur.Role.ADMIN)
+    def _make_admin(self, etablissement):
+        user = self._make_user("admin.direction", "Karim", "Belaid", Utilisateur.Role.ADMIN, etablissement)
         user.is_staff = True
         user.is_superuser = True
         user.save()
         PersonnelAdministratif.objects.get_or_create(user=user, defaults={"fonction": PersonnelAdministratif.Fonction.DIRECTEUR})
         return user
 
-    def _make_enseignants(self, matieres):
+    def _make_admin_secondaire(self, etablissement):
+        user = self._make_user("admin.oran", "Houria", "Bensalem", Utilisateur.Role.ADMIN, etablissement)
+        user.is_staff = True
+        user.is_superuser = True
+        user.save()
+        PersonnelAdministratif.objects.get_or_create(user=user, defaults={"fonction": PersonnelAdministratif.Fonction.DIRECTEUR})
+        return user
+
+    def _make_enseignants(self, matieres, etablissement):
         noms = {
             "Mathématiques": ("Yacine", "Chérif"), "Physique-Chimie": ("Amel", "Ferhat"),
             "Français": ("Sofiane", "Boudiaf"), "Arabe": ("Nadia", "Zerrouki"),
@@ -235,7 +285,7 @@ class Command(BaseCommand):
         enseignants = {}
         for nom_matiere, (prenom, nom) in noms.items():
             username = f"prof.{nom_matiere.lower().split('-')[0]}"
-            user = self._make_user(username, prenom, nom, Utilisateur.Role.ENSEIGNANT)
+            user = self._make_user(username, prenom, nom, Utilisateur.Role.ENSEIGNANT, etablissement)
             user.is_staff = True
             user.save()
             enseignant = Enseignant.objects.get_or_create(user=user)[0]
@@ -243,7 +293,7 @@ class Command(BaseCommand):
             enseignants[nom_matiere] = enseignant
         return enseignants
 
-    def _make_eleves(self, classe, prefix, start_index, count):
+    def _make_eleves(self, classe, prefix, start_index, count, etablissement):
         prenoms = ["Amina", "Yanis", "Sarah", "Mohamed", "Lina", "Adam", "Rania", "Bilal", "Nour", "Ilyes", "Maya", "Rayan"]
         eleves = []
         for i in range(count):
@@ -251,23 +301,29 @@ class Command(BaseCommand):
             matricule = f"{prefix}{index:04d}"
             username = f"eleve.{matricule}"
             prenom = prenoms[(index - 1) % len(prenoms)]
-            user = self._make_user(username, prenom, f"Élève{index}", Utilisateur.Role.ELEVE)
+            user = self._make_user(username, prenom, f"Élève{index}", Utilisateur.Role.ELEVE, etablissement)
             eleve = Eleve.objects.get_or_create(
                 user=user, defaults={"classe": classe, "matricule": matricule, "sexe": Eleve.Sexe.M if i % 2 == 0 else Eleve.Sexe.F},
             )[0]
             eleves.append(eleve)
         return eleves
 
-    def _make_parents(self, eleves_sciences, eleves_lettres):
-        parent1_user = self._make_user("parent.benali", "Farid", "Benali", Utilisateur.Role.PARENT)
+    def _make_parents(self, eleves_sciences, eleves_lettres, etablissement):
+        parent1_user = self._make_user("parent.benali", "Farid", "Benali", Utilisateur.Role.PARENT, etablissement)
         parent1 = Parent.objects.get_or_create(user=parent1_user)[0]
         parent1.enfants.add(eleves_sciences[0], eleves_lettres[0])
 
-        parent2_user = self._make_user("parent.hamdi", "Samira", "Hamdi", Utilisateur.Role.PARENT)
+        parent2_user = self._make_user("parent.hamdi", "Samira", "Hamdi", Utilisateur.Role.PARENT, etablissement)
         parent2 = Parent.objects.get_or_create(user=parent2_user)[0]
         parent2.enfants.add(eleves_sciences[1])
 
         return parent1, parent2
+
+    def _make_parents_secondaire(self, eleves, etablissement):
+        parent_user = self._make_user("parent.oran", "Kader", "Boumediene", Utilisateur.Role.PARENT, etablissement)
+        parent = Parent.objects.get_or_create(user=parent_user)[0]
+        parent.enfants.add(eleves[0])
+        return parent
 
     # -- Emploi du temps --------------------------------------------------
 
@@ -351,14 +407,14 @@ class Command(BaseCommand):
 
     # -- Actualités -----------------------------------------------------------
 
-    def _make_actualites(self, admin_user):
+    def _make_actualites(self, admin_user, etablissement):
         Publication.objects.get_or_create(
-            titre="Rentrée scolaire 2025-2026", auteur=admin_user,
-            defaults={"contenu": "Toute l'équipe pédagogique vous souhaite une excellente rentrée !", "audience": Publication.Audience.TOUS, "epingle": True},
+            titre="Rentrée scolaire 2025-2026", etablissement=etablissement,
+            defaults={"auteur": admin_user, "contenu": "Toute l'équipe pédagogique vous souhaite une excellente rentrée !", "audience": Publication.Audience.TOUS, "epingle": True},
         )
         Publication.objects.get_or_create(
-            titre="Réunion parents-professeurs", auteur=admin_user,
-            defaults={"contenu": "Une réunion parents-professeurs est organisée le mois prochain.", "audience": Publication.Audience.ELEVES_PARENTS},
+            titre="Réunion parents-professeurs", etablissement=etablissement,
+            defaults={"auteur": admin_user, "contenu": "Une réunion parents-professeurs est organisée le mois prochain.", "audience": Publication.Audience.ELEVES_PARENTS},
         )
 
     # -- Rendez-vous ---------------------------------------------------------
@@ -381,9 +437,13 @@ class Command(BaseCommand):
 
     # -- Ressources -----------------------------------------------------------
 
-    def _make_ressources(self, enseignants):
-        videoprojecteur = Ressource.objects.get_or_create(nom="Vidéoprojecteur mobile", defaults={"type_ressource": Ressource.TypeRessource.MATERIEL})[0]
-        Ressource.objects.get_or_create(nom="Salle informatique", defaults={"type_ressource": Ressource.TypeRessource.SALLE})
+    def _make_ressources(self, enseignants, etablissement):
+        videoprojecteur = Ressource.objects.get_or_create(
+            nom="Vidéoprojecteur mobile", etablissement=etablissement, defaults={"type_ressource": Ressource.TypeRessource.MATERIEL}
+        )[0]
+        Ressource.objects.get_or_create(
+            nom="Salle informatique", etablissement=etablissement, defaults={"type_ressource": Ressource.TypeRessource.SALLE}
+        )
         creneau = CreneauHoraire.objects.filter(jour_semaine=CreneauHoraire.Jour.DIMANCHE, ordre=1).first()
         if creneau:
             Reservation.objects.get_or_create(
@@ -393,18 +453,18 @@ class Command(BaseCommand):
 
     # -- Documents ------------------------------------------------------------
 
-    def _make_documents(self, admin_user, enseignants, classe_sciences):
+    def _make_documents(self, admin_user, enseignants, classe_sciences, etablissement):
         from django.core.files.base import ContentFile
 
         Document.objects.get_or_create(
-            titre="Règlement intérieur", defaults={
+            titre="Règlement intérieur", etablissement=etablissement, defaults={
                 "description": "Règlement intérieur de l'établissement.", "categorie": Document.Categorie.REGLEMENT,
                 "depose_par": admin_user, "classe": None,
                 "fichier": ContentFile(b"Reglement interieur (document de demonstration).", name="reglement_interieur.txt"),
             },
         )
         Document.objects.get_or_create(
-            titre="Support de cours - Fonctions", classe=classe_sciences, defaults={
+            titre="Support de cours - Fonctions", classe=classe_sciences, etablissement=etablissement, defaults={
                 "description": "Support du chapitre sur les fonctions.", "categorie": Document.Categorie.SUPPORT_COURS,
                 "depose_par": enseignants["Mathématiques"].user,
                 "fichier": ContentFile(b"Support de cours sur les fonctions (document de demonstration).", name="support_fonctions.txt"),
@@ -413,9 +473,9 @@ class Command(BaseCommand):
 
     # -- Sondages ---------------------------------------------------------
 
-    def _make_sondages(self, admin_user):
+    def _make_sondages(self, admin_user, etablissement):
         sondage, created = Sondage.objects.get_or_create(
-            titre="Satisfaction cantine scolaire", defaults={
+            titre="Satisfaction cantine scolaire", etablissement=etablissement, defaults={
                 "description": "Votre avis sur la cantine de l'établissement.", "audience": Sondage.Audience.TOUS,
                 "cree_par": admin_user,
             },

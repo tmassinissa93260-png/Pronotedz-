@@ -26,3 +26,8 @@ class DocumentVisibilityTests(TestCase):
         self.assertTrue(self.client.login(username="eleve.202600001", password=DEMO_PASSWORD))  # 1AS Sciences 1
         response = self.client.get("/documents/")
         self.assertContains(response, "Support de cours - Fonctions")
+
+    def test_admin_of_another_etablissement_does_not_see_etablissement_wide_document(self):
+        self.assertTrue(self.client.login(username="admin.oran", password=DEMO_PASSWORD))
+        response = self.client.get("/documents/")
+        self.assertNotContains(response, "Règlement intérieur")

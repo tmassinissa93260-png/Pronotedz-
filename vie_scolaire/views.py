@@ -13,7 +13,7 @@ from .models import Observation
 
 def _classes_visibles(user):
     if user.role == Utilisateur.Role.ADMIN:
-        return Classe.objects.all()
+        return Classe.objects.filter(annee_scolaire__etablissement=user.etablissement)
     return classes_enseignees(user.enseignant)
 
 

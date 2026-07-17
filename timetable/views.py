@@ -8,14 +8,14 @@ from .models import EmploiDuTempsEntry
 from .services import build_grid
 
 
-def _annee_active():
-    return AnneeScolaire.objects.filter(est_active=True).first()
+def _annee_active(user):
+    return AnneeScolaire.objects.filter(etablissement=user.etablissement, est_active=True).first()
 
 
 @login_required
 def mon_emploi_du_temps(request):
     user = request.user
-    annee = _annee_active()
+    annee = _annee_active(user)
     classe = None
 
     if user.role == user.Role.ELEVE:

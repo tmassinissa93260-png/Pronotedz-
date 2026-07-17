@@ -6,6 +6,9 @@ class Ressource(models.Model):
         SALLE = "SALLE", "Salle"
         MATERIEL = "MATERIEL", "Matériel"
 
+    etablissement = models.ForeignKey(
+        "academics.Etablissement", on_delete=models.CASCADE, related_name="ressources", null=True, blank=True
+    )
     nom = models.CharField(max_length=100)
     type_ressource = models.CharField(max_length=10, choices=TypeRessource.choices)
     description = models.CharField(max_length=255, blank=True)

@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
+from academics.admin_mixins import EtablissementScopedAdmin
+
 from .models import Enseignant, Eleve, Parent, PersonnelAdministratif, Utilisateur
 
 
@@ -21,7 +23,7 @@ class EleveInline(admin.StackedInline):
 
 
 @admin.register(Utilisateur)
-class UtilisateurAdmin(UserAdmin):
+class UtilisateurAdmin(EtablissementScopedAdmin, UserAdmin):
     list_display = (
         "username",
         "first_name",
@@ -49,14 +51,16 @@ class UtilisateurAdmin(UserAdmin):
 
 
 @admin.register(Parent)
-class ParentAdmin(admin.ModelAdmin):
+class ParentAdmin(EtablissementScopedAdmin, admin.ModelAdmin):
+    etablissement_lookup = "user__etablissement"
     list_display = ("user",)
     filter_horizontal = ("enfants",)
     autocomplete_fields = ("user",)
 
 
 @admin.register(Eleve)
-class EleveAdmin(admin.ModelAdmin):
+class EleveAdmin(EtablissementScopedAdmin, admin.ModelAdmin):
+    etablissement_lookup = "user__etablissement"
     list_display = ("user", "matricule", "classe")
     list_filter = ("classe",)
     search_fields = ("matricule", "user__first_name", "user__last_name")
@@ -64,7 +68,8 @@ class EleveAdmin(admin.ModelAdmin):
 
 
 @admin.register(Enseignant)
-class EnseignantAdmin(admin.ModelAdmin):
+class EnseignantAdmin(EtablissementScopedAdmin, admin.ModelAdmin):
+    etablissement_lookup = "user__etablissement"
     list_display = ("user", "civilite")
     filter_horizontal = ("matieres_enseignees",)
     autocomplete_fields = ("user",)

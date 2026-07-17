@@ -37,18 +37,19 @@ def import_csv(request):
     if request.method == "POST":
         type_import = request.POST.get("type_import")
         fichier = request.FILES.get("fichier")
-        annee = AnneeScolaire.objects.filter(est_active=True).first()
+        etablissement = request.user.etablissement
+        annee = AnneeScolaire.objects.filter(etablissement=etablissement, est_active=True).first()
 
         if not fichier:
             messages.error(request, "Merci de sélectionner un fichier CSV.")
         elif type_import == "eleves":
-            nb_crees, erreurs, comptes = importer_eleves(fichier, annee)
+            nb_crees, erreurs, comptes = importer_eleves(fichier, annee, etablissement)
             resultat = {"nb_crees": nb_crees, "erreurs": erreurs, "comptes": comptes}
         elif type_import == "enseignants":
-            nb_crees, erreurs, comptes = importer_enseignants(fichier)
+            nb_crees, erreurs, comptes = importer_enseignants(fichier, etablissement)
             resultat = {"nb_crees": nb_crees, "erreurs": erreurs, "comptes": comptes}
         elif type_import == "parents":
-            nb_crees, erreurs, comptes = importer_parents(fichier)
+            nb_crees, erreurs, comptes = importer_parents(fichier, etablissement)
             resultat = {"nb_crees": nb_crees, "erreurs": erreurs, "comptes": comptes}
 
     return render(request, "accounts/import_csv.html", {"resultat": resultat})

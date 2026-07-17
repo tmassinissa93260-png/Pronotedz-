@@ -28,7 +28,7 @@ def _lire_csv(fichier):
     return csv.DictReader(io.TextIOWrapper(fichier, encoding="utf-8-sig"))
 
 
-def importer_eleves(fichier, annee_scolaire):
+def importer_eleves(fichier, annee_scolaire, etablissement):
     """Colonnes attendues : nom, prenom, matricule, classe."""
     nb_crees = 0
     erreurs = []
@@ -54,7 +54,7 @@ def importer_eleves(fichier, annee_scolaire):
         mot_de_passe = generer_mot_de_passe_temporaire()
         user = Utilisateur.objects.create(
             username=username, first_name=prenom, last_name=nom, role=Utilisateur.Role.ELEVE,
-            password=make_password(mot_de_passe), must_change_password=True,
+            password=make_password(mot_de_passe), must_change_password=True, etablissement=etablissement,
         )
         Eleve.objects.create(user=user, classe=classe, matricule=matricule)
         comptes.append({"nom_complet": f"{prenom} {nom}", "username": username, "mot_de_passe": mot_de_passe})
@@ -62,7 +62,7 @@ def importer_eleves(fichier, annee_scolaire):
     return nb_crees, erreurs, comptes
 
 
-def importer_enseignants(fichier):
+def importer_enseignants(fichier, etablissement):
     """Colonnes attendues : nom, prenom, matieres (séparées par ';')."""
     nb_crees = 0
     erreurs = []
@@ -79,7 +79,7 @@ def importer_enseignants(fichier):
         mot_de_passe = generer_mot_de_passe_temporaire()
         user = Utilisateur.objects.create(
             username=username, first_name=prenom, last_name=nom, role=Utilisateur.Role.ENSEIGNANT,
-            password=make_password(mot_de_passe), must_change_password=True,
+            password=make_password(mot_de_passe), must_change_password=True, etablissement=etablissement,
         )
         enseignant = Enseignant.objects.create(user=user)
         for nom_matiere in [m.strip() for m in matieres_brutes.split(";") if m.strip()]:
@@ -93,7 +93,7 @@ def importer_enseignants(fichier):
     return nb_crees, erreurs, comptes
 
 
-def importer_parents(fichier):
+def importer_parents(fichier, etablissement):
     """Colonnes attendues : nom, prenom, matricules_enfants (séparés par ';')."""
     nb_crees = 0
     erreurs = []
@@ -108,7 +108,7 @@ def importer_parents(fichier):
 
         enfants = []
         for matricule in [m.strip() for m in matricules_bruts.split(";") if m.strip()]:
-            eleve = Eleve.objects.filter(matricule=matricule).first()
+            eleve = Eleve.objects.filter(matricule=matricule, user__etablissement=etablissement).first()
             if eleve:
                 enfants.append(eleve)
             else:
@@ -122,7 +122,7 @@ def importer_parents(fichier):
         mot_de_passe = generer_mot_de_passe_temporaire()
         user = Utilisateur.objects.create(
             username=username, first_name=prenom, last_name=nom, role=Utilisateur.Role.PARENT,
-            password=make_password(mot_de_passe), must_change_password=True,
+            password=make_password(mot_de_passe), must_change_password=True, etablissement=etablissement,
         )
         parent = Parent.objects.create(user=user)
         parent.enfants.add(*enfants)

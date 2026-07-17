@@ -6,8 +6,6 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import cm
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-from academics.models import Etablissement
-
 
 def generer_bulletin_pdf(eleve, trimestre, contexte):
     """Renders a trimestre report card to a PDF (in-memory buffer)."""
@@ -16,7 +14,7 @@ def generer_bulletin_pdf(eleve, trimestre, contexte):
     styles = getSampleStyleSheet()
     elements = []
 
-    etablissement = Etablissement.get_solo()
+    etablissement = eleve.classe.annee_scolaire.etablissement
     elements.append(Paragraph(etablissement.nom if etablissement else "Établissement", styles["Title"]))
     elements.append(Paragraph(f"Bulletin — {trimestre}", styles["Heading2"]))
     elements.append(Spacer(1, 0.3 * cm))

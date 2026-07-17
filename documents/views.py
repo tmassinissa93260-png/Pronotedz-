@@ -10,8 +10,8 @@ from accounts.permissions import role_required
 from .models import Document
 
 
-def _visibles_pour_classes(classes):
-    return Document.objects.filter(Q(classe__isnull=True) | Q(classe__in=classes))
+def _visibles_pour_classes(user, classes):
+    return Document.objects.filter(etablissement=user.etablissement).filter(Q(classe__isnull=True) | Q(classe__in=classes))
 
 
 @role_required(Utilisateur.Role.ADMIN, Utilisateur.Role.ENSEIGNANT, Utilisateur.Role.ELEVE, Utilisateur.Role.PARENT)
@@ -19,14 +19,14 @@ def liste(request):
     user = request.user
 
     if user.role == Utilisateur.Role.ADMIN:
-        documents = Document.objects.all()
+        documents = Document.objects.filter(etablissement=user.etablissement)
     elif user.role == Utilisateur.Role.ENSEIGNANT:
-        documents = _visibles_pour_classes(classes_enseignees(user.enseignant))
+        documents = _visibles_pour_classes(user, classes_enseignees(user.enseignant))
     elif user.role == Utilisateur.Role.ELEVE:
-        documents = _visibles_pour_classes([user.eleve.classe])
+        documents = _visibles_pour_classes(user, [user.eleve.classe])
     else:
         enfants = user.parent.enfants.select_related("classe").all()
-        documents = _visibles_pour_classes([enfant.classe for enfant in enfants])
+        documents = _visibles_pour_classes(user, [enfant.classe for enfant in enfants])
 
     documents = documents.select_related("classe", "depose_par").order_by("-date_depot")
     return render(request, "documents/liste.html", {"documents": documents})
@@ -35,7 +35,11 @@ def liste(request):
 @role_required(Utilisateur.Role.ADMIN, Utilisateur.Role.ENSEIGNANT)
 def deposer(request):
     user = request.user
-    classes = Classe.objects.all() if user.role == Utilisateur.Role.ADMIN else classes_enseignees(user.enseignant)
+    classes = (
+        Classe.objects.filter(annee_scolaire__etablissement=user.etablissement)
+        if user.role == Utilisateur.Role.ADMIN
+        else classes_enseignees(user.enseignant)
+    )
 
     if request.method == "POST":
         classe_id = request.POST.get("classe")
@@ -50,6 +54,7 @@ def deposer(request):
                 categorie=request.POST.get("categorie"),
                 classe=classe,
                 depose_par=user,
+                etablissement=user.etablissement,
             )
             messages.success(request, "Document déposé.")
             return redirect("documents:liste")

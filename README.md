@@ -22,6 +22,9 @@ inspirée de Pronote, pour l'administration, les enseignants, les élèves et le
 - Accusés de lecture sur les actualités (suivi par publication côté admin)
 - Import CSV des comptes élèves/enseignants/parents
 - Mode sombre/clair et interface bilingue français/arabe avec bascule RTL
+- Multi-tenant réel : plusieurs établissements totalement isolés dans la
+  même base (chaque compte, classe, année scolaire, actualité, sondage...
+  est rattaché à un seul établissement, y compris dans Django admin)
 
 ## Stack
 
@@ -80,6 +83,12 @@ Après `python manage.py seed_demo`, mot de passe commun : **`Pronotedz2026!`**
 | Parent (2 enfants) | `parent.benali` |
 
 Voir la sortie de la commande `seed_demo` pour la liste complète des comptes créés.
+
+`seed_demo` crée aussi un **second établissement** isolé (Collège El Amir
+Abdelkader, admin `admin.oran`) avec sa propre année scolaire, classe et
+comptes — pour démontrer et tester que rien ne fuite d'un établissement à
+l'autre (dashboard, messagerie, actualités, sondages, import CSV, et
+Django admin).
 
 ## Langue et RTL
 

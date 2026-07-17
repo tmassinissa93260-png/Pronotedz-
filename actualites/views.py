@@ -12,7 +12,7 @@ from .models import LectureAccusee, Publication
 
 @login_required
 def liste(request):
-    publications = list(Publication.visibles_pour(request.user.role))
+    publications = list(Publication.visibles_pour(request.user))
     lues_ids = set(
         LectureAccusee.objects.filter(utilisateur=request.user, publication__in=publications).values_list(
             "publication_id", flat=True
@@ -25,14 +25,14 @@ def liste(request):
 
 @login_required
 def marquer_lu(request, publication_id):
-    publication = get_object_or_404(Publication.visibles_pour(request.user.role), pk=publication_id)
+    publication = get_object_or_404(Publication.visibles_pour(request.user), pk=publication_id)
     LectureAccusee.objects.get_or_create(publication=publication, utilisateur=request.user)
     return redirect("actualites:liste")
 
 
 @role_required(Utilisateur.Role.ADMIN)
 def suivi_lecture(request, publication_id):
-    publication = get_object_or_404(Publication, pk=publication_id)
+    publication = get_object_or_404(Publication, pk=publication_id, etablissement=request.user.etablissement)
     destinataires = list(publication.destinataires().select_related())
     lues_ids = set(
         LectureAccusee.objects.filter(publication=publication).values_list("utilisateur_id", flat=True)
@@ -55,6 +55,7 @@ def creer(request):
             audience=request.POST.get("audience"),
             epingle=bool(request.POST.get("epingle")),
             auteur=request.user,
+            etablissement=request.user.etablissement,
         )
         notifier_plusieurs(
             publication.destinataires(),

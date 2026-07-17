@@ -28,13 +28,12 @@ class Etablissement(models.Model):
     def __str__(self):
         return self.nom
 
-    @classmethod
-    def get_solo(cls):
-        return cls.objects.first()
-
 
 class AnneeScolaire(models.Model):
-    libelle = models.CharField(max_length=20, unique=True, help_text='Ex: "2025-2026"')
+    etablissement = models.ForeignKey(
+        Etablissement, on_delete=models.CASCADE, related_name="annees_scolaires", null=True, blank=True
+    )
+    libelle = models.CharField(max_length=20, help_text='Ex: "2025-2026"')
     date_debut = models.DateField()
     date_fin = models.DateField()
     est_active = models.BooleanField(default=False)
@@ -43,6 +42,7 @@ class AnneeScolaire(models.Model):
         verbose_name = "Année scolaire"
         verbose_name_plural = "Années scolaires"
         ordering = ["-date_debut"]
+        unique_together = ("etablissement", "libelle")
 
     def __str__(self):
         return self.libelle
@@ -50,7 +50,7 @@ class AnneeScolaire(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if self.est_active:
-            AnneeScolaire.objects.exclude(pk=self.pk).update(est_active=False)
+            AnneeScolaire.objects.filter(etablissement=self.etablissement).exclude(pk=self.pk).update(est_active=False)
 
 
 class Trimestre(models.Model):
@@ -127,6 +127,9 @@ class CoefficientMatiere(models.Model):
 
 
 class Salle(models.Model):
+    etablissement = models.ForeignKey(
+        Etablissement, on_delete=models.CASCADE, related_name="salles", null=True, blank=True
+    )
     nom = models.CharField(max_length=50)
     capacite = models.PositiveSmallIntegerField(null=True, blank=True)
     type_salle = models.CharField(max_length=50, blank=True)

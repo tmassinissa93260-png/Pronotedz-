@@ -41,3 +41,13 @@ class SondageVoteTests(TestCase):
 
         response = self.client.get(f"/sondages/{sondage.pk}/")
         self.assertContains(response, "vote")
+
+    def test_sondage_not_visible_to_another_etablissement(self):
+        sondage = Sondage.objects.get(titre="Satisfaction cantine scolaire")
+        self.assertTrue(self.client.login(username="admin.oran", password=DEMO_PASSWORD))
+
+        response = self.client.get("/sondages/")
+        self.assertNotContains(response, "Satisfaction cantine scolaire")
+
+        response = self.client.get(f"/sondages/{sondage.pk}/")
+        self.assertEqual(response.status_code, 404)

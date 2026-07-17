@@ -11,13 +11,13 @@ from .models import ChoixReponse, QuestionSondage, ReponseUtilisateur, Sondage
 
 @login_required
 def liste(request):
-    sondages = Sondage.visibles_pour(request.user.role)
+    sondages = Sondage.visibles_pour(request.user)
     return render(request, "sondages/liste.html", {"sondages": sondages})
 
 
 @login_required
 def detail(request, sondage_id):
-    sondage = get_object_or_404(Sondage.visibles_pour(request.user.role), pk=sondage_id)
+    sondage = get_object_or_404(Sondage.visibles_pour(request.user), pk=sondage_id)
     questions = sondage.questions.prefetch_related("choix")
     deja_vote = ReponseUtilisateur.objects.filter(question__sondage=sondage, utilisateur=request.user).exists()
 
@@ -52,6 +52,7 @@ def creer(request):
             audience=request.POST.get("audience"),
             date_cloture=request.POST.get("date_cloture") or None,
             cree_par=request.user,
+            etablissement=request.user.etablissement,
         )
         question = QuestionSondage.objects.create(sondage=sondage, texte=request.POST.get("question", "").strip())
         options = [ligne.strip() for ligne in request.POST.get("choix", "").splitlines() if ligne.strip()]

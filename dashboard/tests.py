@@ -59,8 +59,13 @@ class AdminDashboardStatsTests(TestCase):
 
         self.assertTrue(self.client.login(username=username, password=DEMO_PASSWORD))
 
+    def _classe_lycee_ibn_khaldoun(self):
+        return Classe.objects.filter(
+            eleves__isnull=False, annee_scolaire__etablissement__nom="Lycée Ibn Khaldoun"
+        ).distinct().first()
+
     def test_absenteeism_rate_reflects_absences_marked_today(self):
-        classe = Classe.objects.filter(eleves__isnull=False).distinct().first()
+        classe = self._classe_lycee_ibn_khaldoun()
         entry = EmploiDuTempsEntry.objects.filter(classe=classe).first()
         seance = Seance.get_or_create_for(entry, datetime.date.today())
         eleve = classe.eleves.first()
@@ -74,14 +79,13 @@ class AdminDashboardStatsTests(TestCase):
         self.assertGreater(response.context["taux_absenteisme"], 0)
 
     def test_recent_activity_only_shows_published_evaluations(self):
-        from academics.models import Matiere, Trimestre
-        from accounts.models import Enseignant
+        from academics.models import Trimestre
         from grades.models import Evaluation
 
-        classe = Classe.objects.filter(eleves__isnull=False).distinct().first()
+        classe = self._classe_lycee_ibn_khaldoun()
         trimestre = Trimestre.objects.filter(annee_scolaire=classe.annee_scolaire).first()
-        matiere = Matiere.objects.first()
-        enseignant = Enseignant.objects.first()
+        matiere = classe.emploi_du_temps.first().matiere
+        enseignant = classe.emploi_du_temps.first().enseignant
         Evaluation.objects.create(
             classe=classe, matiere=matiere, enseignant=enseignant, trimestre=trimestre,
             titre="Interro non publiée", date_evaluation=datetime.date.today(), publie=False,

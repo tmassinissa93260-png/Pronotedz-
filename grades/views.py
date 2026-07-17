@@ -109,10 +109,16 @@ def _donnees_bulletin(eleve, trimestre):
     }
 
 
+def _trimestre_actif_pour(eleve):
+    if not eleve:
+        return None
+    return Trimestre.objects.filter(annee_scolaire=eleve.classe.annee_scolaire, est_actif=True).first()
+
+
 @role_required(Utilisateur.Role.ELEVE, Utilisateur.Role.PARENT)
 def bulletin(request):
     eleve, enfants = _resoudre_eleve(request)
-    trimestre = Trimestre.objects.filter(est_actif=True).first()
+    trimestre = _trimestre_actif_pour(eleve)
     contexte = _donnees_bulletin(eleve, trimestre)
     contexte.update({"eleve": eleve, "enfants": enfants, "trimestre": trimestre})
     return render(request, "grades/bulletin.html", contexte)
@@ -123,7 +129,7 @@ def bulletin_pdf(request):
     from .pdf import generer_bulletin_pdf
 
     eleve, enfants = _resoudre_eleve(request)
-    trimestre = Trimestre.objects.filter(est_actif=True).first()
+    trimestre = _trimestre_actif_pour(eleve)
     if not eleve or not trimestre:
         messages.error(request, "Aucun bulletin disponible pour le moment.")
         return redirect("grades:bulletin")
