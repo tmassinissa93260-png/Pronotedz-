@@ -17,7 +17,7 @@
     <p><a href="{% url 'grades:bulletin_pdf' %}{% if enfants %}?enfant={{ eleve.pk }}{% endif %}" class="btn btn-outline-primary btn-sm">📄 Télécharger le bulletin PDF</a></p>
 
     <div class="table-responsive">
-      <table class="table bg-white">
+      <table class="table pn-surface">
         <thead><tr><th>Matière</th><th>Coef.</th><th>Ma moyenne</th><th>Moy. classe</th><th>Min</th><th>Max</th><th>Appréciation</th></tr></thead>
         <tbody>
           {% for ligne in lignes %}

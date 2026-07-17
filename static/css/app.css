@@ -4,6 +4,42 @@
   --pn-tab-active: #2f5fa8;
   --pn-page-bg: #eef1f5;
   --pn-widget-title: #2f5fa8;
+
+  --pn-surface: #ffffff;
+  --pn-surface-alt: #f7f9fb;
+  --pn-border: #e5e9ef;
+  --pn-border-soft: #eef1f5;
+  --pn-text: #384151;
+  --pn-text-muted: #9aa4b2;
+  --pn-tab-text: #4a5568;
+}
+
+:root[data-theme="dark"] {
+  --pn-page-bg: #12192b;
+  --pn-surface: #1c2537;
+  --pn-surface-alt: #182131;
+  --pn-border: #2c3648;
+  --pn-border-soft: #29334a;
+  --pn-text: #dbe1ea;
+  --pn-text-muted: #8993a6;
+  --pn-tab-text: #b6bfcf;
+  --pn-widget-title: #7fa6e0;
+  --pn-tab-active: #7fa6e0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --pn-page-bg: #12192b;
+    --pn-surface: #1c2537;
+    --pn-surface-alt: #182131;
+    --pn-border: #2c3648;
+    --pn-border-soft: #29334a;
+    --pn-text: #dbe1ea;
+    --pn-text-muted: #8993a6;
+    --pn-tab-text: #b6bfcf;
+    --pn-widget-title: #7fa6e0;
+    --pn-tab-active: #7fa6e0;
+  }
 }
 
 /* ---- Auth page ---- */
@@ -80,8 +116,8 @@ body.auth-page {
 }
 
 .app-tabs {
-  background: #fff;
-  border-bottom: 1px solid #dfe3e9;
+  background: var(--pn-surface);
+  border-bottom: 1px solid var(--pn-border);
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -95,7 +131,7 @@ body.auth-page {
   gap: 0.35rem;
   padding: 0.7rem 0.85rem;
   font-size: 0.85rem;
-  color: #4a5568;
+  color: var(--pn-tab-text);
   text-decoration: none;
   border-bottom: 3px solid transparent;
   white-space: nowrap;
@@ -112,11 +148,11 @@ body.auth-page {
 }
 
 .app-breadcrumb {
-  background: #f7f9fb;
-  border-bottom: 1px solid #e5e9ef;
+  background: var(--pn-surface-alt);
+  border-bottom: 1px solid var(--pn-border);
   padding: 0.5rem 1rem;
   font-size: 0.8rem;
-  color: #6b7686;
+  color: var(--pn-text-muted);
   display: flex;
   justify-content: space-between;
 }
@@ -125,7 +161,7 @@ body.auth-page {
   margin: 0;
   font-size: 0.8rem;
   font-weight: 600;
-  color: #384151;
+  color: var(--pn-text);
 }
 
 .app-main {
@@ -150,7 +186,7 @@ body.auth-page {
 }
 
 .pn-widget {
-  background: #fff;
+  background: var(--pn-surface);
   border-radius: 0.6rem;
   box-shadow: 0 1px 3px rgba(20, 30, 50, 0.08);
   margin-bottom: 1rem;
@@ -162,7 +198,7 @@ body.auth-page {
   justify-content: space-between;
   align-items: center;
   padding: 0.6rem 0.9rem;
-  border-bottom: 1px solid #eef1f5;
+  border-bottom: 1px solid var(--pn-border-soft);
 }
 
 .pn-widget-title {
@@ -175,11 +211,11 @@ body.auth-page {
 .pn-widget-body {
   padding: 0.75rem 0.9rem;
   font-size: 0.85rem;
-  color: #384151;
+  color: var(--pn-text);
 }
 
 .pn-widget-empty {
-  color: #9aa4b2;
+  color: var(--pn-text-muted);
   font-style: italic;
   font-size: 0.82rem;
 }
@@ -197,7 +233,7 @@ body.auth-page {
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
-  border-bottom: 1px dashed #eef1f5;
+  border-bottom: 1px dashed var(--pn-border-soft);
   padding-bottom: 0.5rem;
 }
 
@@ -217,10 +253,10 @@ body.auth-page {
   justify-content: center;
   gap: 0.75rem;
   padding: 0.5rem 0.9rem;
-  border-bottom: 1px solid #eef1f5;
+  border-bottom: 1px solid var(--pn-border-soft);
   font-size: 0.85rem;
   font-weight: 600;
-  color: #384151;
+  color: var(--pn-text);
 }
 
 .pn-date-nav a {
@@ -241,14 +277,14 @@ body.auth-page {
   left: 0;
   width: 2.6rem;
   font-size: 0.72rem;
-  color: #9aa4b2;
+  color: var(--pn-text-muted);
   text-align: right;
   padding-right: 0.4rem;
 }
 
 .pn-day-timeline-track {
   position: relative;
-  border-left: 1px solid #eef1f5;
+  border-left: 1px solid var(--pn-border-soft);
 }
 
 .pn-day-timeline-block {
@@ -271,7 +307,7 @@ body.auth-page {
 .pn-day-timeline-empty {
   padding: 2rem 0;
   text-align: center;
-  color: #9aa4b2;
+  color: var(--pn-text-muted);
   font-size: 0.85rem;
 }
 
@@ -289,12 +325,17 @@ body.auth-page {
   color: #2a2a2a;
 }
 
+.pn-surface {
+  background: var(--pn-surface) !important;
+  color: var(--pn-text);
+}
+
 .app-footer {
-  background: #fff;
-  border-top: 1px solid #e5e9ef;
+  background: var(--pn-surface);
+  border-top: 1px solid var(--pn-border);
   padding: 0.6rem 1rem;
   font-size: 0.72rem;
-  color: #9aa4b2;
+  color: var(--pn-text-muted);
   display: flex;
   justify-content: space-between;
   align-items: center;

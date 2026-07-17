@@ -6,7 +6,7 @@
   <form method="post">
     {% csrf_token %}
     <input type="hidden" name="date" value="{{ date|date:'Y-m-d' }}">
-    <table class="table bg-white">
+    <table class="table pn-surface">
       <thead><tr><th>Élève</th><th class="text-center">Absent</th></tr></thead>
       <tbody>
         {% for eleve in eleves %}

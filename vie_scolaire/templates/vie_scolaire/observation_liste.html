@@ -4,7 +4,7 @@
 
 {% block content %}
   <p><a href="{% url 'vie_scolaire:observation_creer' %}" class="btn btn-primary btn-sm">Nouvelle observation</a></p>
-  <table class="table bg-white">
+  <table class="table pn-surface">
     <thead><tr><th>Date</th><th>Élève</th><th>Type</th><th>Motif</th></tr></thead>
     <tbody>
       {% for observation in observations %}

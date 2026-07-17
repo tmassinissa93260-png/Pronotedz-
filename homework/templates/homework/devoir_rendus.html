@@ -5,7 +5,7 @@
 {% block content %}
   <p class="text-muted">Consigne : {{ devoir.consigne }} — à rendre pour le {{ devoir.date_a_faire_pour|date:"d/m/Y" }}</p>
 
-  <table class="table bg-white">
+  <table class="table pn-surface">
     <thead><tr><th>Élève</th><th>Déposé le</th><th>Fichier</th><th>Note</th><th></th></tr></thead>
     <tbody>
       {% for rendu in rendus %}

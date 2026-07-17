@@ -4,7 +4,7 @@
 
 {% block content %}
   <p><a href="{% url 'ressources:nouvelle_reservation' %}" class="btn btn-primary btn-sm">Nouvelle réservation</a></p>
-  <table class="table bg-white">
+  <table class="table pn-surface">
     <thead><tr><th>Date</th><th>Créneau</th><th>Ressource</th><th>Motif</th><th></th></tr></thead>
     <tbody>
       {% for reservation in reservations %}

@@ -7,7 +7,7 @@
     <p><a href="{% url 'documents:deposer' %}" class="btn btn-primary btn-sm">Déposer un document</a></p>
   {% endif %}
 
-  <table class="table bg-white">
+  <table class="table pn-surface">
     <thead><tr><th>Titre</th><th>Catégorie</th><th>Classe</th><th>Déposé par</th><th>Date</th><th></th></tr></thead>
     <tbody>
       {% for document in documents %}

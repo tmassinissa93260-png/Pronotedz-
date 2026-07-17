@@ -4,7 +4,7 @@
 
 {% block content %}
   <p><a href="{% url 'rendezvous:disponibilites_liste' %}" class="btn btn-primary btn-sm">Prendre un nouveau rendez-vous</a></p>
-  <table class="table bg-white">
+  <table class="table pn-surface">
     <thead><tr><th>Date</th><th>Horaire</th><th>Enseignant</th><th>Concernant</th><th>Motif</th><th></th></tr></thead>
     <tbody>
       {% for r in rdv %}

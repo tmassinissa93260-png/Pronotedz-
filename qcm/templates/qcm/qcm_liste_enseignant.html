@@ -4,7 +4,7 @@
 
 {% block content %}
   <p><a href="{% url 'qcm:qcm_creer' %}" class="btn btn-primary btn-sm">Nouveau QCM</a></p>
-  <table class="table bg-white">
+  <table class="table pn-surface">
     <thead><tr><th>Titre</th><th>Classe</th><th>Matière</th><th>Questions</th><th></th></tr></thead>
     <tbody>
       {% for qcm in qcms %}

@@ -7,6 +7,14 @@
   <title>{% block title %}Pronotedz{% endblock %}</title>
   <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
   <link href="{% static 'css/app.css' %}" rel="stylesheet">
+  <script>
+    (function () {
+      var theme = localStorage.getItem("pronotedz-theme")
+        || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-bs-theme", theme);
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
 </head>
 <body>
   <div class="app-shell">
@@ -21,6 +29,7 @@
           <div class="text-white-50">Espace {{ user.get_role_display }}</div>
         </div>
         <div class="app-user-avatar">{{ user.first_name|slice:":1"|upper }}{{ user.last_name|slice:":1"|upper }}</div>
+        <button type="button" id="theme-toggle" class="btn btn-sm btn-outline-light" title="Changer de thème">🌓</button>
         <form method="post" action="{% url 'logout' %}" class="d-inline">
           {% csrf_token %}
           <button type="submit" class="btn btn-sm btn-outline-light" title="Déconnexion">⏻</button>
@@ -83,5 +92,6 @@
     </footer>
   </div>
   <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <script src="{% static 'js/app.js' %}"></script>
 </body>
 </html>
