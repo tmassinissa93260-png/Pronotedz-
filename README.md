@@ -1,8 +1,20 @@
 # Pronotedz
 
 Plateforme de gestion scolaire pour les établissements algériens (collège/lycée),
-inspirée de Pronote : emploi du temps, absences/retards, notes/bulletins et
-cahier de texte, pour l'administration, les enseignants, les élèves et les parents.
+inspirée de Pronote, pour l'administration, les enseignants, les élèves et les parents.
+
+## Fonctionnalités
+
+- Emploi du temps, absences/retards (avec justificatifs), notes/bulletins,
+  cahier de texte/devoirs
+- Messagerie interne (scopée : un enseignant ne peut contacter que les
+  élèves/parents des classes qu'il enseigne réellement)
+- Vie scolaire (observations, encouragements, avertissements, sanctions)
+- Actualités / kiosque de l'établissement
+- Prise de rendez-vous parents-professeurs
+- Réservation de salles/matériel
+- Espace documents partagés (par classe ou établissement entier)
+- Sondages/enquêtes
 
 ## Stack
 
@@ -46,4 +58,6 @@ python manage.py test
 
 Couvre : le calcul des moyennes/bulletins, le scoping des permissions (un
 parent ne peut pas accéder aux données d'un enfant qui n'est pas le sien via
-manipulation d'URL), et un test de fumée par tableau de bord/rôle.
+manipulation d'URL, un enseignant ne peut pas contacter les élèves d'une
+classe qu'il n'enseigne pas, les doubles réservations sont bloquées), et un
+test de fumée par tableau de bord/rôle.
