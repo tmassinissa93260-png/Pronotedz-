@@ -7,7 +7,7 @@ from academics.models import AnneeScolaire, Classe, CoefficientMatiere, Matiere,
 from accounts.models import Eleve, Enseignant, Utilisateur
 
 from .models import Evaluation, Note
-from .services import moyenne_generale, moyenne_matiere
+from .services import moyenne_generale, moyenne_matiere, statistiques_classe_matiere
 
 
 class MoyenneCalculationTests(TestCase):
@@ -72,6 +72,23 @@ class MoyenneCalculationTests(TestCase):
     def test_moyenne_matiere_returns_none_without_notes(self):
         self.assertIsNone(moyenne_matiere(self.eleve, self.maths, self.trimestre))
 
+    def test_statistiques_classe_matiere_computes_moyenne_min_max(self):
+        eleve2_user = Utilisateur.objects.create_user(username="eleve2.test", role=Utilisateur.Role.ELEVE)
+        eleve2 = Eleve.objects.create(user=eleve2_user, classe=self.classe, matricule="T002")
+
+        evaluation = self._make_evaluation(self.maths, "Devoir", coefficient=1)
+        Note.objects.create(evaluation=evaluation, eleve=self.eleve, valeur=Decimal("10"))
+        Note.objects.create(evaluation=evaluation, eleve=eleve2, valeur=Decimal("18"))
+
+        stats = statistiques_classe_matiere(self.classe, self.maths, self.trimestre)
+
+        self.assertEqual(stats["moyenne"], Decimal("14.00"))
+        self.assertEqual(stats["min"], Decimal("10.00"))
+        self.assertEqual(stats["max"], Decimal("18.00"))
+
+    def test_statistiques_classe_matiere_returns_none_without_any_grades(self):
+        self.assertIsNone(statistiques_classe_matiere(self.classe, self.francais, self.trimestre))
+
 
 class BulletinScopingTests(TestCase):
     """A parent must never be able to view another family's child's bulletin via URL manipulation."""
@@ -90,3 +107,22 @@ class BulletinScopingTests(TestCase):
 
         response = self.client.get(f"/notes/bulletin/?enfant={autre_enfant.pk}")
         self.assertEqual(response.status_code, 404)
+
+    def test_parent_cannot_download_other_parents_child_bulletin_pdf(self):
+        from accounts.management.commands.seed_demo import DEMO_PASSWORD
+
+        self.assertTrue(self.client.login(username="parent.hamdi", password=DEMO_PASSWORD))
+        autre_enfant = Eleve.objects.get(matricule="202600001")
+
+        response = self.client.get(f"/notes/bulletin/pdf/?enfant={autre_enfant.pk}")
+        self.assertEqual(response.status_code, 404)
+
+    def test_student_can_download_own_bulletin_pdf(self):
+        from accounts.management.commands.seed_demo import DEMO_PASSWORD
+
+        self.assertTrue(self.client.login(username="eleve.202600001", password=DEMO_PASSWORD))
+        response = self.client.get("/notes/bulletin/pdf/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertTrue(response.content.startswith(b"%PDF"))

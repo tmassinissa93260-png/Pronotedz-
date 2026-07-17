@@ -1,12 +1,13 @@
 from django.contrib import messages
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from academics.models import Matiere, Trimestre
 from accounts.models import Utilisateur
 from accounts.permissions import role_required
 
-from .models import Evaluation, Note
-from .services import moyenne_generale, moyenne_matiere, rang_classe
+from .models import AppreciationGenerale, AppreciationMatiere, Evaluation, Note
+from .services import moyenne_generale, moyenne_matiere, rang_classe, statistiques_classe_matiere
 
 
 @role_required(Utilisateur.Role.ENSEIGNANT)
@@ -39,20 +40,17 @@ def saisie_notes(request, evaluation_id):
     )
 
 
-@role_required(Utilisateur.Role.ELEVE, Utilisateur.Role.PARENT)
-def bulletin(request):
+def _resoudre_eleve(request):
     user = request.user
-    eleve = None
-    enfants = None
-
     if user.role == user.Role.ELEVE:
-        eleve = user.eleve
-    else:
-        enfants = user.parent.enfants.select_related("user").all()
-        enfant_id = request.GET.get("enfant")
-        eleve = get_object_or_404(enfants, pk=enfant_id) if enfant_id else enfants.first()
+        return user.eleve, None
+    enfants = user.parent.enfants.select_related("user").all()
+    enfant_id = request.GET.get("enfant")
+    eleve = get_object_or_404(enfants, pk=enfant_id) if enfant_id else enfants.first()
+    return eleve, enfants
 
-    trimestre = Trimestre.objects.filter(est_actif=True).first()
+
+def _donnees_bulletin(eleve, trimestre):
     lignes = []
     moyenne_gen = None
     rang, effectif = None, 0
@@ -61,27 +59,58 @@ def bulletin(request):
         matieres = Matiere.objects.filter(
             evaluations__classe=eleve.classe, evaluations__trimestre=trimestre
         ).distinct()
+        appreciations = {
+            a.matiere_id: a.texte
+            for a in AppreciationMatiere.objects.filter(eleve=eleve, trimestre=trimestre)
+        }
         for matiere in matieres:
             lignes.append(
                 {
                     "matiere": matiere,
                     "moyenne": moyenne_matiere(eleve, matiere, trimestre),
                     "coefficient": eleve.classe.coefficient_pour(matiere),
+                    "stats_classe": statistiques_classe_matiere(eleve.classe, matiere, trimestre),
+                    "appreciation": appreciations.get(matiere.pk, ""),
                 }
             )
         moyenne_gen = moyenne_generale(eleve, trimestre)
         rang, effectif = rang_classe(eleve, trimestre)
 
-    return render(
-        request,
-        "grades/bulletin.html",
-        {
-            "eleve": eleve,
-            "enfants": enfants,
-            "trimestre": trimestre,
-            "lignes": lignes,
-            "moyenne_generale": moyenne_gen,
-            "rang": rang,
-            "effectif": effectif,
-        },
+    appreciation_generale = (
+        AppreciationGenerale.objects.filter(eleve=eleve, trimestre=trimestre).first() if eleve and trimestre else None
     )
+
+    return {
+        "lignes": lignes,
+        "moyenne_generale": moyenne_gen,
+        "rang": rang,
+        "effectif": effectif,
+        "appreciation_generale": appreciation_generale,
+    }
+
+
+@role_required(Utilisateur.Role.ELEVE, Utilisateur.Role.PARENT)
+def bulletin(request):
+    eleve, enfants = _resoudre_eleve(request)
+    trimestre = Trimestre.objects.filter(est_actif=True).first()
+    contexte = _donnees_bulletin(eleve, trimestre)
+    contexte.update({"eleve": eleve, "enfants": enfants, "trimestre": trimestre})
+    return render(request, "grades/bulletin.html", contexte)
+
+
+@role_required(Utilisateur.Role.ELEVE, Utilisateur.Role.PARENT)
+def bulletin_pdf(request):
+    from .pdf import generer_bulletin_pdf
+
+    eleve, enfants = _resoudre_eleve(request)
+    trimestre = Trimestre.objects.filter(est_actif=True).first()
+    if not eleve or not trimestre:
+        messages.error(request, "Aucun bulletin disponible pour le moment.")
+        return redirect("grades:bulletin")
+
+    contexte = _donnees_bulletin(eleve, trimestre)
+    pdf_buffer = generer_bulletin_pdf(eleve, trimestre, contexte)
+
+    response = HttpResponse(pdf_buffer.getvalue(), content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="bulletin_{eleve.matricule}_{trimestre.numero}.pdf"'
+    return response

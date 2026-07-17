@@ -52,6 +52,24 @@ def moyenne_generale(eleve, trimestre):
     return round(total_pondere / total_coefficients, 2)
 
 
+def statistiques_classe_matiere(classe, matiere, trimestre):
+    """Moyenne, min et max de la classe pour une matière/trimestre donnés.
+
+    Returns a dict {moyenne, min, max} or None if no student has a grade yet.
+    """
+    moyennes = [
+        m for m in (moyenne_matiere(eleve, matiere, trimestre) for eleve in classe.eleves.all())
+        if m is not None
+    ]
+    if not moyennes:
+        return None
+    return {
+        "moyenne": round(sum(moyennes) / len(moyennes), 2),
+        "min": min(moyennes),
+        "max": max(moyennes),
+    }
+
+
 def rang_classe(eleve, trimestre):
     """1-based rank of eleve's moyenne_generale among their classmates, or None."""
     classe = eleve.classe
