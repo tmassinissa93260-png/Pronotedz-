@@ -29,6 +29,7 @@ urlpatterns = [
     path("decrochage/", include("decrochage.urls")),
     path("revisions/", include("revisions.urls")),
     path("rapport-parent/", include("rapport_parent.urls")),
+    path("finance/", include("finance.urls")),
     path("", include("pwa.urls")),
     path("", dashboard_dispatch, name="home"),
 ]

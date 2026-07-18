@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Créer un frais — Pronotedz{% endblock %}
+{% block page_title %}Créer un frais de scolarité{% endblock %}
+
+{% block content %}
+  <div class="pn-widget" style="max-width: 560px;">
+    <div class="pn-widget-header"><p class="pn-widget-title">Nouveau frais</p></div>
+    <div class="pn-widget-body">
+      <p class="text-muted small">Une facture sera automatiquement générée pour chaque élève du niveau choisi.</p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-2">
+          <label class="form-label">Libellé</label>
+          <input type="text" name="libelle" class="form-control" placeholder='Ex: "Trimestre 1"' required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Niveau</label>
+          <select name="niveau" class="form-select" required>
+            {% for niveau in niveaux %}
+              <option value="{{ niveau.pk }}">{{ niveau }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Année scolaire</label>
+          <select name="annee_scolaire" class="form-select" required>
+            {% for annee in annees %}
+              <option value="{{ annee.pk }}" {% if annee.est_active %}selected{% endif %}>{{ annee }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-2">
+          <label class="form-label">Montant (DA)</label>
+          <input type="number" step="0.01" min="0" name="montant" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Date d'échéance</label>
+          <input type="date" name="date_echeance" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">Créer et générer les factures</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}

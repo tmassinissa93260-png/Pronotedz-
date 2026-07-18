@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Scolarité — Pronotedz{% endblock %}
+{% block page_title %}Frais de scolarité{% endblock %}
+
+{% block content %}
+  {% if enfants %}
+    <form method="get" class="mb-3" style="max-width: 320px;">
+      <select name="enfant" class="form-select form-select-sm" onchange="this.form.submit()">
+        {% for enfant in enfants %}
+          <option value="{{ enfant.pk }}" {% if enfant.pk == eleve.pk %}selected{% endif %}>{{ enfant.user.get_full_name }}</option>
+        {% endfor %}
+      </select>
+    </form>
+  {% endif %}
+
+  {% if not eleve %}
+    <p class="pn-widget-empty">Aucun élève associé à ce compte.</p>
+  {% else %}
+    <table class="table pn-surface">
+      <thead><tr><th>Frais</th><th>Échéance</th><th>Montant</th><th>Payé</th><th>Restant</th><th>Statut</th></tr></thead>
+      <tbody>
+        {% for facture in factures %}
+          <tr>
+            <td>{{ facture.frais.libelle }}</td>
+            <td>{{ facture.frais.date_echeance|date:"d/m/Y" }}</td>
+            <td>{{ facture.montant }} DA</td>
+            <td>{{ facture.montant_paye }} DA</td>
+            <td>{{ facture.montant_restant }} DA</td>
+            <td>
+              <span class="badge
+                {% if facture.statut == 'PAYEE' %}bg-success
+                {% elif facture.statut == 'EN_RETARD' %}bg-danger
+                {% elif facture.statut == 'PARTIELLEMENT_PAYEE' %}bg-warning text-dark
+                {% else %}bg-secondary{% endif %}">{{ facture.get_statut_display }}</span>
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="6" class="text-muted text-center py-3">Aucun frais de scolarité enregistré.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}

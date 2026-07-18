@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     "revisions",
     "rapport_parent",
     "pwa",
+    "finance",
 ]
 
 MIDDLEWARE = [

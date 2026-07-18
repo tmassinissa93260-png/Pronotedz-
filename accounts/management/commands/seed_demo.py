@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 
 from django.contrib.auth.hashers import make_password
 from django.core.management.base import BaseCommand
@@ -20,6 +21,8 @@ from actualites.models import Publication
 from admissions.models import Candidature
 from attendance.models import Absence, Seance
 from documents.models import Document
+from finance.models import Facture, FraisScolarite, Paiement
+from finance.services import enregistrer_paiement, generer_factures, recalculer_statut
 from grades.models import Evaluation, Note
 from homework.models import CahierDeTexte, Devoir
 from messaging.models import Conversation, Message
@@ -110,6 +113,7 @@ class Command(BaseCommand):
         self._make_notifications(eleves_sciences, parent_benali)
         self._make_candidatures(etablissement, tous_niveaux)
         self._make_revisions_bac(etablissement, annee, tous_niveaux, filiere_sciences, matieres)
+        self._make_finance(niveau, annee, eleves_sciences, eleves_lettres, admin_user)
 
         self.stdout.write(f"Mot de passe commun à tous les comptes de démo : {DEMO_PASSWORD}")
         self.stdout.write(f"Admin : {admin_user.username}")
@@ -590,3 +594,39 @@ class Command(BaseCommand):
             ProgressionChapitre.objects.get_or_create(
                 eleve=eleve_examen, chapitre=premier_chapitre, defaults={"statut": ProgressionChapitre.Statut.MAITRISE},
             )
+
+    # -- Finances ----------------------------------------------------------
+
+    def _make_finance(self, niveau, annee, eleves_sciences, eleves_lettres, admin_user):
+        aujourdhui = datetime.date.today()
+        frais_inscription = FraisScolarite.objects.get_or_create(
+            annee_scolaire=annee, niveau=niveau, libelle="Frais d'inscription 2025-2026",
+            defaults={"montant": Decimal("8000"), "date_echeance": aujourdhui - datetime.timedelta(days=200)},
+        )[0]
+        frais_trimestre1 = FraisScolarite.objects.get_or_create(
+            annee_scolaire=annee, niveau=niveau, libelle="Trimestre 1",
+            defaults={"montant": Decimal("5000"), "date_echeance": aujourdhui - datetime.timedelta(days=30)},
+        )[0]
+        frais_trimestre2 = FraisScolarite.objects.get_or_create(
+            annee_scolaire=annee, niveau=niveau, libelle="Trimestre 2",
+            defaults={"montant": Decimal("5000"), "date_echeance": aujourdhui + datetime.timedelta(days=60)},
+        )[0]
+        for frais in (frais_inscription, frais_trimestre1, frais_trimestre2):
+            generer_factures(frais)
+
+        eleves = eleves_sciences + eleves_lettres
+
+        facture_payee = Facture.objects.get(eleve=eleves[0], frais=frais_inscription)
+        enregistrer_paiement(
+            facture_payee, facture_payee.montant, aujourdhui - datetime.timedelta(days=195),
+            Paiement.Mode.ESPECES, "", admin_user,
+        )
+
+        facture_partielle = Facture.objects.get(eleve=eleves[1], frais=frais_inscription)
+        enregistrer_paiement(
+            facture_partielle, Decimal("3000"), aujourdhui - datetime.timedelta(days=190),
+            Paiement.Mode.VIREMENT, "VIR-2025-014", admin_user,
+        )
+
+        for eleve in eleves[2:]:
+            recalculer_statut(Facture.objects.get(eleve=eleve, frais=frais_inscription))

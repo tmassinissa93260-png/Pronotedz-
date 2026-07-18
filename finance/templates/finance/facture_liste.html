@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Factures — Pronotedz{% endblock %}
+{% block page_title %}Factures{% endblock %}
+
+{% block content %}
+  <form method="get" class="row g-2 mb-3" style="max-width: 640px;">
+    <div class="col-auto">
+      <select name="classe" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">Toutes les classes</option>
+        {% for classe in classes %}
+          <option value="{{ classe.pk }}" {% if classe_id == classe.pk|stringformat:"s" %}selected{% endif %}>{{ classe }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-auto">
+      <select name="statut" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="">Tous les statuts</option>
+        {% for value, label in statuts %}
+          <option value="{{ value }}" {% if statut == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+
+  <table class="table pn-surface">
+    <thead><tr><th>Élève</th><th>Classe</th><th>Frais</th><th>Montant</th><th>Restant</th><th>Statut</th><th></th></tr></thead>
+    <tbody>
+      {% for facture in factures %}
+        <tr>
+          <td>{{ facture.eleve.user.get_full_name }}</td>
+          <td>{{ facture.eleve.classe }}</td>
+          <td>{{ facture.frais.libelle }}</td>
+          <td>{{ facture.montant }} DA</td>
+          <td>{{ facture.montant_restant }} DA</td>
+          <td>
+            <span class="badge
+              {% if facture.statut == 'PAYEE' %}bg-success
+              {% elif facture.statut == 'EN_RETARD' %}bg-danger
+              {% elif facture.statut == 'PARTIELLEMENT_PAYEE' %}bg-warning text-dark
+              {% else %}bg-secondary{% endif %}">{{ facture.get_statut_display }}</span>
+          </td>
+          <td><a href="{% url 'finance:facture_detail' facture.pk %}" class="btn btn-sm btn-outline-secondary">Détail</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="7" class="text-muted text-center py-3">Aucune facture.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
