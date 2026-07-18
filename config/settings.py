@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     "sondages",
     "qcm",
     "notifications",
+    "admissions",
+    "assistant_ia",
 ]
 
 MIDDLEWARE = [
@@ -127,6 +129,13 @@ EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="no-reply@pronotedz.dz")
+
+# AI features (assistant élève, générateur de QCM, appréciations assistées).
+# Left empty by default — every AI-backed service degrades gracefully to an
+# explanatory message instead of erroring when no key is configured. Token
+# spend is additionally capped per établissement via assistant_ia.BudgetIA.
+ANTHROPIC_API_KEY = env("ANTHROPIC_API_KEY", default="")
+ANTHROPIC_MODEL = env("ANTHROPIC_MODEL", default="claude-opus-4-8")
 
 # Internationalization
 LANGUAGE_CODE = "fr"

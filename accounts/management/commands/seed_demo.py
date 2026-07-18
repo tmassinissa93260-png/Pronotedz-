@@ -17,6 +17,7 @@ from academics.models import (
 )
 from accounts.models import Eleve, Enseignant, Parent, PersonnelAdministratif, Utilisateur
 from actualites.models import Publication
+from admissions.models import Candidature
 from attendance.models import Absence, Seance
 from documents.models import Document
 from grades.models import Evaluation, Note
@@ -106,6 +107,7 @@ class Command(BaseCommand):
         self._make_sondages(admin_user, etablissement)
         self._make_qcm(classe_sciences, matieres, enseignants)
         self._make_notifications(eleves_sciences, parent_benali)
+        self._make_candidatures(etablissement, tous_niveaux)
 
         self.stdout.write(f"Mot de passe commun à tous les comptes de démo : {DEMO_PASSWORD}")
         self.stdout.write(f"Admin : {admin_user.username}")
@@ -524,3 +526,22 @@ class Command(BaseCommand):
             destinataire=parent_benali.user, titre="Rentrée scolaire 2025-2026",
             defaults={"type_notification": Notification.Type.INFO, "contenu": "Toute l'équipe pédagogique vous souhaite une excellente rentrée !", "lien": "/actualites/"},
         )
+
+    # -- Admissions -----------------------------------------------------------
+
+    def _make_candidatures(self, etablissement, tous_niveaux):
+        candidatures = [
+            ("Cherif", "Amine", "1AS", "Nadia Cherif", "0555222333", "nadia.cherif@example.com", Candidature.Statut.RECU),
+            ("Boudiaf", "Lina", "1AM", "Karim Boudiaf", "0555333444", "karim.boudiaf@example.com", Candidature.Statut.EN_EXAMEN),
+            ("Meziane", "Adam", "1AS", "Sabrina Meziane", "0555444555", "sabrina.meziane@example.com", Candidature.Statut.ACCEPTE),
+            ("Hamdi", "Nour", "1AP", "Youcef Hamdi", "0555555666", "youcef.hamdi@example.com", Candidature.Statut.LISTE_ATTENTE),
+            ("Zerrouki", "Ilyes", "1AM", "Amel Zerrouki", "0555666777", "amel.zerrouki@example.com", Candidature.Statut.REFUSE),
+        ]
+        for nom, prenom, niveau_libelle, nom_parent, telephone, email, statut in candidatures:
+            Candidature.objects.get_or_create(
+                etablissement=etablissement, nom=nom, prenom=prenom,
+                defaults={
+                    "niveau_souhaite": tous_niveaux[niveau_libelle], "nom_parent": nom_parent,
+                    "telephone_parent": telephone, "email_parent": email, "statut": statut,
+                },
+            )

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Admissions — Pronotedz{% endblock %}
+{% block page_title %}Admissions{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'admissions:portail_liens' %}" class="small">Voir le lien public de candidature</a></p>
+
+  <div class="mb-3 btn-group flex-wrap">
+    <a class="btn btn-sm btn-outline-primary {% if not statut_filtre %}active{% endif %}" href="?">Toutes</a>
+    {% for value, label in statuts %}
+      <a class="btn btn-sm btn-outline-primary {% if statut_filtre == value %}active{% endif %}" href="?statut={{ value }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  <table class="table pn-surface">
+    <thead><tr><th>Référence</th><th>Candidat</th><th>Niveau</th><th>Statut</th><th>Reçue le</th></tr></thead>
+    <tbody>
+      {% for candidature in candidatures %}
+        <tr>
+          <td><a href="{% url 'admissions:candidature_detail' candidature.pk %}">{{ candidature.reference }}</a></td>
+          <td>{{ candidature.nom_complet }}</td>
+          <td>{{ candidature.niveau_souhaite }}</td>
+          <td><span class="badge bg-secondary">{{ candidature.get_statut_display }}</span></td>
+          <td>{{ candidature.date_soumission|date:"d/m/Y" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-muted text-center py-3">Aucune candidature.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Compte créé — Pronotedz{% endblock %}
+{% block page_title %}Compte élève créé{% endblock %}
+
+{% block content %}
+  <div class="pn-widget">
+    <div class="pn-widget-header"><p class="pn-widget-title">Compte créé pour {{ candidature.nom_complet }}</p></div>
+    <div class="pn-widget-body">
+      <p>Le compte élève a été créé avec succès. Communiquez ces identifiants à la famille :</p>
+      <ul class="pn-widget-list">
+        <li><span>Identifiant</span><span class="pn-note-value">{{ username }}</span></li>
+        <li><span>Mot de passe temporaire</span><span class="pn-note-value">{{ mot_de_passe }}</span></li>
+      </ul>
+      <p class="text-muted small mt-2">L'élève devra changer ce mot de passe à sa première connexion.</p>
+      <a href="{% url 'admissions:candidature_detail' candidature.pk %}" class="btn btn-outline-primary btn-sm">Retour au dossier</a>
+    </div>
+  </div>
+{% endblock %}

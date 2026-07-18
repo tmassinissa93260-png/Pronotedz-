@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.text import slugify
 
 
 class Etablissement(models.Model):
@@ -8,6 +9,7 @@ class Etablissement(models.Model):
         LYCEE = "LYCEE", "Lycée"
 
     nom = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=220, unique=True, blank=True, help_text="Utilisé dans les URLs publiques (candidature, portail vitrine).")
     code = models.CharField(max_length=30, blank=True)
     adresse = models.CharField(max_length=255, blank=True)
     wilaya = models.CharField(max_length=100, blank=True)
@@ -27,6 +29,17 @@ class Etablissement(models.Model):
 
     def __str__(self):
         return self.nom
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(self.nom) or "etablissement"
+            slug = base
+            suffixe = 1
+            while Etablissement.objects.exclude(pk=self.pk).filter(slug=slug).exists():
+                suffixe += 1
+                slug = f"{base}-{suffixe}"
+            self.slug = slug
+        super().save(*args, **kwargs)
 
 
 class AnneeScolaire(models.Model):

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Assistant IA — Pronotedz{% endblock %}
+{% block page_title %}Assistant IA{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'assistant_ia:conversation_nouvelle' %}" class="btn btn-primary btn-sm">Nouvelle conversation</a></p>
+
+  <div class="pn-widget">
+    <div class="pn-widget-header"><p class="pn-widget-title">Mes conversations</p></div>
+    <div class="pn-widget-body">
+      {% if conversations %}
+        <ul class="pn-widget-list">
+          {% for conversation in conversations %}
+            <li><a href="{% url 'assistant_ia:conversation_detail' conversation.pk %}">{{ conversation.titre }}</a><span class="small text-muted">{{ conversation.date_creation|date:"d/m/Y H:i" }}</span></li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="pn-widget-empty">Aucune conversation pour le moment.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

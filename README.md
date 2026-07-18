@@ -104,6 +104,23 @@ python manage.py makemessages -l fr -l ar --no-location \
 python manage.py compilemessages
 ```
 
+## Fonctionnalités IA (optionnel)
+
+L'assistant IA élève (et les futurs générateur de QCM / appréciations assistées)
+utilisent l'API Claude d'Anthropic. Sans clé configurée, ces fonctionnalités
+affichent un message explicatif au lieu de planter — l'application entière
+fonctionne normalement sans elles.
+
+Pour les activer, définissez dans `.env` :
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+ANTHROPIC_MODEL=claude-opus-4-8   # optionnel, valeur par défaut
+```
+
+Chaque établissement a un budget mensuel de tokens configurable par l'admin
+(modèle `BudgetIA`, visible dans `/admin/`) pour maîtriser les coûts API.
+
 ## Tests
 
 ```bash

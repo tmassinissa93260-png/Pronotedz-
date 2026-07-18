@@ -24,6 +24,8 @@ urlpatterns = [
     path("sondages/", include("sondages.urls")),
     path("qcm/", include("qcm.urls")),
     path("notifications/", include("notifications.urls")),
+    path("admissions/", include("admissions.urls")),
+    path("assistant-ia/", include("assistant_ia.urls")),
     path("", dashboard_dispatch, name="home"),
 ]
 

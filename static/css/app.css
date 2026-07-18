@@ -352,3 +352,40 @@ body.auth-page {
   padding-right: 0;
   padding-left: 0.4rem;
 }
+
+/* ---- Public-facing pages (admissions, portail vitrine) ---- */
+
+.public-header {
+  background: #0b1d3a;
+  color: #fff;
+  padding: 0.9rem 1.5rem;
+}
+
+.public-header-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.1rem;
+}
+
+.public-main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+.public-footer {
+  text-align: center;
+  padding: 1.2rem;
+  color: var(--pn-text-muted);
+  font-size: 0.8rem;
+}
+
+.public-card {
+  background: var(--pn-surface);
+  border: 1px solid var(--pn-border);
+  border-radius: 0.6rem;
+  padding: 1.75rem;
+}

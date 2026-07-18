@@ -88,6 +88,7 @@
         <a class="{% if request.resolver_match.namespace == 'attendance' %}active{% endif %}" href="{% url 'attendance:historique' %}">{% translate "Vie scolaire" %}</a>
         {% if user.role == 'ELEVE' %}
           <a class="{% if request.resolver_match.namespace == 'qcm' %}active{% endif %}" href="{% url 'qcm:qcm_liste' %}">{% translate "QCM" %}</a>
+          <a class="{% if request.resolver_match.namespace == 'assistant_ia' %}active{% endif %}" href="{% url 'assistant_ia:conversation_liste' %}">🤖 {% translate "Assistant IA" %}</a>
         {% endif %}
       {% endif %}
 
@@ -100,6 +101,7 @@
       <a class="{% if request.resolver_match.namespace == 'documents' %}active{% endif %}" href="{% url 'documents:liste' %}">{% translate "Documents" %}</a>
       <a class="{% if request.resolver_match.namespace == 'sondages' %}active{% endif %}" href="{% url 'sondages:liste' %}">{% translate "Sondages" %}</a>
       {% if user.role == 'ADMIN' %}
+        <a class="{% if request.resolver_match.namespace == 'admissions' %}active{% endif %}" href="{% url 'admissions:candidature_liste' %}">{% translate "Admissions" %}</a>
         <a href="{% url 'admin:index' %}">{% translate "Administration" %}</a>
       {% endif %}
     </nav>

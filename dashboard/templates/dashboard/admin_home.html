@@ -59,6 +59,7 @@
         <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Accès rapides" %}</p></div>
         <div class="pn-widget-body">
           <ul class="pn-widget-list">
+            <li><a href="{% url 'admissions:candidature_liste' %}">{% translate "Admissions" %}</a></li>
             <li><a href="{% url 'import_csv' %}">{% translate "Importer des comptes (CSV)" %}</a></li>
             <li><a href="{% url 'vie_scolaire:observation_liste' %}">{% translate "Vie scolaire" %}</a></li>
             <li><a href="{% url 'documents:liste' %}">{% translate "Documents" %}</a></li>

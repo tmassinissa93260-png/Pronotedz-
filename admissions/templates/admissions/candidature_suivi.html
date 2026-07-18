@@ -1,0 +1,32 @@
+{% extends "public_base.html" %}
+{% block title %}Suivre ma candidature{% endblock %}
+
+{% block content %}
+  <div class="public-card">
+    <h1 class="h4 mb-3">Suivre ma candidature</h1>
+    <form method="post" class="row g-2">
+      {% csrf_token %}
+      <div class="col-md-6">
+        <label class="form-label">Référence</label>
+        <input type="text" name="reference" class="form-control" placeholder="CAND-XXXXXXXX" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Email utilisé lors de la candidature</label>
+        <input type="email" name="email" class="form-control" required>
+      </div>
+      <div class="col-12">
+        <button type="submit" class="btn btn-primary mt-2">Rechercher</button>
+      </div>
+    </form>
+
+    {% if recherche %}
+      <hr>
+      {% if candidature %}
+        <p><strong>{{ candidature.nom_complet }}</strong> — {{ candidature.niveau_souhaite }}</p>
+        <p>Statut actuel : <span class="badge bg-primary">{{ candidature.get_statut_display }}</span></p>
+      {% else %}
+        <p class="text-muted">Aucune candidature trouvée avec ces informations.</p>
+      {% endif %}
+    {% endif %}
+  </div>
+{% endblock %}

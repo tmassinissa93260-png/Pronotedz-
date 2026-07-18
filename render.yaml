@@ -22,3 +22,5 @@ services:
         fromDatabase:
           name: pronotedz-db
           property: connectionString
+      - key: ANTHROPIC_API_KEY
+        sync: false
