@@ -10,4 +10,5 @@ urlpatterns = [
     path("evaluations/<int:evaluation_id>/publier/", views.publier_evaluation, name="publier_evaluation"),
     path("bulletin/", views.bulletin, name="bulletin"),
     path("bulletin/pdf/", views.bulletin_pdf, name="bulletin_pdf"),
+    path("appreciations/", views.saisie_appreciations, name="saisie_appreciations"),
 ]

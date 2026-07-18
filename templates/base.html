@@ -77,6 +77,7 @@
       {% if user.role == 'ENSEIGNANT' %}
         <a class="{% if request.resolver_match.url_name == 'appel_liste' or request.resolver_match.url_name == 'appel_seance' %}active{% endif %}" href="{% url 'attendance:appel_liste' %}">{% translate "Appel" %}</a>
         <a class="{% if request.resolver_match.url_name == 'evaluation_liste' or request.resolver_match.url_name == 'saisie_notes' %}active{% endif %}" href="{% url 'grades:evaluation_liste' %}">{% translate "Notes" %}</a>
+        <a class="{% if request.resolver_match.url_name == 'saisie_appreciations' %}active{% endif %}" href="{% url 'grades:saisie_appreciations' %}">{% translate "Appréciations" %}</a>
         <a class="{% if request.resolver_match.url_name == 'observation_liste' or request.resolver_match.url_name == 'observation_creer' %}active{% endif %}" href="{% url 'vie_scolaire:observation_liste' %}">{% translate "Vie scolaire" %}</a>
         <a class="{% if request.resolver_match.namespace == 'qcm' %}active{% endif %}" href="{% url 'qcm:qcm_liste' %}">{% translate "QCM" %}</a>
         <a class="{% if request.resolver_match.url_name == 'mes_disponibilites' %}active{% endif %}" href="{% url 'rendezvous:mes_disponibilites' %}">{% translate "Rendez-vous" %}</a>

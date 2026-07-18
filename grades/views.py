@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from academics.models import Matiere, Trimestre
+from accounts.contacts import classes_enseignees
 from accounts.models import Utilisateur
 from accounts.permissions import role_required
 from notifications.models import Notification
@@ -10,6 +11,7 @@ from notifications.services import notifier
 
 from .models import AppreciationGenerale, AppreciationMatiere, Evaluation, Note
 from .services import moyenne_generale, moyenne_matiere, rang_classe, statistiques_classe_matiere
+from .services_ia import generer_appreciation
 
 
 @role_required(Utilisateur.Role.ENSEIGNANT)
@@ -140,3 +142,85 @@ def bulletin_pdf(request):
     response = HttpResponse(pdf_buffer.getvalue(), content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="bulletin_{eleve.matricule}_{trimestre.numero}.pdf"'
     return response
+
+
+@role_required(Utilisateur.Role.ENSEIGNANT)
+def saisie_appreciations(request):
+    classes = classes_enseignees(request.user.enseignant)
+    matieres = request.user.enseignant.matieres_enseignees.all()
+
+    if request.method == "POST":
+        classe = get_object_or_404(classes, pk=request.POST.get("classe"))
+        matiere = get_object_or_404(matieres, pk=request.POST.get("matiere"))
+        trimestre = get_object_or_404(classe.annee_scolaire.trimestres, pk=request.POST.get("trimestre"))
+        action = request.POST.get("action", "enregistrer")
+        redirection = redirect(f"{request.path}?classe={classe.pk}&matiere={matiere.pk}&trimestre={trimestre.pk}")
+
+        if action == "generer_tout":
+            deja_generees = set(
+                AppreciationMatiere.objects.filter(matiere=matiere, trimestre=trimestre, eleve__classe=classe)
+                .exclude(texte="")
+                .values_list("eleve_id", flat=True)
+            )
+            for eleve in classe.eleves.exclude(pk__in=deja_generees):
+                texte, erreur = generer_appreciation(request.user.etablissement, eleve, matiere, trimestre)
+                if erreur:
+                    messages.error(request, erreur)
+                    break
+                AppreciationMatiere.objects.update_or_create(
+                    eleve=eleve, matiere=matiere, trimestre=trimestre,
+                    defaults={"texte": texte, "enseignant": request.user.enseignant},
+                )
+            else:
+                messages.success(request, "Appréciations générées — relisez-les avant de les enregistrer.")
+            return redirection
+
+        if action.startswith("generer_"):
+            eleve = get_object_or_404(classe.eleves, pk=action.removeprefix("generer_"))
+            texte, erreur = generer_appreciation(request.user.etablissement, eleve, matiere, trimestre)
+            if erreur:
+                messages.error(request, erreur)
+            else:
+                AppreciationMatiere.objects.update_or_create(
+                    eleve=eleve, matiere=matiere, trimestre=trimestre,
+                    defaults={"texte": texte, "enseignant": request.user.enseignant},
+                )
+            return redirection
+
+        for eleve in classe.eleves.all():
+            texte = request.POST.get(f"appreciation_{eleve.pk}", "").strip()
+            AppreciationMatiere.objects.update_or_create(
+                eleve=eleve, matiere=matiere, trimestre=trimestre,
+                defaults={"texte": texte, "enseignant": request.user.enseignant},
+            )
+        messages.success(request, "Appréciations enregistrées.")
+        return redirection
+
+    classe = classes.filter(pk=request.GET.get("classe")).first() or classes.first()
+    matiere = matieres.filter(pk=request.GET.get("matiere")).first() or matieres.first()
+    trimestre = None
+    eleves_ctx = []
+    if classe:
+        trimestre = (
+            classe.annee_scolaire.trimestres.filter(pk=request.GET.get("trimestre")).first()
+            or classe.annee_scolaire.trimestres.filter(est_actif=True).first()
+        )
+    if classe and matiere and trimestre:
+        appreciations = {
+            a.eleve_id: a.texte
+            for a in AppreciationMatiere.objects.filter(eleve__classe=classe, matiere=matiere, trimestre=trimestre)
+        }
+        for eleve in classe.eleves.select_related("user").order_by("user__last_name"):
+            eleves_ctx.append({
+                "eleve": eleve,
+                "moyenne": moyenne_matiere(eleve, matiere, trimestre),
+                "appreciation": appreciations.get(eleve.pk, ""),
+            })
+
+    return render(
+        request, "grades/saisie_appreciations.html",
+        {
+            "classes": classes, "matieres": matieres, "classe": classe, "matiere": matiere,
+            "trimestre": trimestre, "eleves_ctx": eleves_ctx,
+        },
+    )

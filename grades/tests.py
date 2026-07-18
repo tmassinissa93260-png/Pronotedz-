@@ -1,13 +1,17 @@
 import datetime
 from decimal import Decimal
+from types import SimpleNamespace
+from unittest.mock import patch
 
-from django.test import TestCase
+from django.core.management import call_command
+from django.test import TestCase, override_settings
 
 from academics.models import AnneeScolaire, Classe, CoefficientMatiere, Matiere, Niveau, Trimestre
 from accounts.models import Eleve, Enseignant, Utilisateur
 
-from .models import Evaluation, Note
+from .models import AppreciationMatiere, Evaluation, Note
 from .services import moyenne_generale, moyenne_matiere, statistiques_classe_matiere
+from .services_ia import generer_appreciation
 
 
 class MoyenneCalculationTests(TestCase):
@@ -126,3 +130,98 @@ class BulletinScopingTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
         self.assertTrue(response.content.startswith(b"%PDF"))
+
+
+def _fake_appreciation_response(texte="Élève sérieux, continuez ainsi.", input_tokens=30, output_tokens=40):
+    return SimpleNamespace(
+        content=[SimpleNamespace(type="text", text=texte)],
+        usage=SimpleNamespace(input_tokens=input_tokens, output_tokens=output_tokens),
+    )
+
+
+class AppreciationIATests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo")
+
+    def test_without_api_key_returns_graceful_error(self):
+        eleve = Eleve.objects.get(matricule="202600001")
+        matiere = Matiere.objects.get(nom="Mathématiques")
+        trimestre = eleve.classe.annee_scolaire.trimestres.first()
+        with override_settings(ANTHROPIC_API_KEY=""):
+            texte, erreur = generer_appreciation(eleve.user.etablissement, eleve, matiere, trimestre)
+        self.assertEqual(texte, "")
+        self.assertIn("configuré", erreur)
+
+    @override_settings(ANTHROPIC_API_KEY="fake-key-for-tests")
+    @patch("assistant_ia.services._client")
+    def test_successful_generation_returns_text(self, mock_client_factory):
+        mock_client_factory.return_value.messages.create.return_value = _fake_appreciation_response()
+        eleve = Eleve.objects.get(matricule="202600001")
+        matiere = Matiere.objects.get(nom="Mathématiques")
+        trimestre = eleve.classe.annee_scolaire.trimestres.first()
+
+        texte, erreur = generer_appreciation(eleve.user.etablissement, eleve, matiere, trimestre)
+
+        self.assertIsNone(erreur)
+        self.assertEqual(texte, "Élève sérieux, continuez ainsi.")
+
+    @override_settings(ANTHROPIC_API_KEY="fake-key-for-tests")
+    @patch("assistant_ia.services._client")
+    def test_view_generer_pour_un_eleve_saves_appreciation(self, mock_client_factory):
+        from accounts.management.commands.seed_demo import DEMO_PASSWORD
+
+        mock_client_factory.return_value.messages.create.return_value = _fake_appreciation_response()
+        eleve = Eleve.objects.get(matricule="202600001")
+        matiere = Matiere.objects.get(nom="Mathématiques")
+        trimestre = eleve.classe.annee_scolaire.trimestres.first()
+
+        self.assertTrue(self.client.login(username="prof.mathématiques", password=DEMO_PASSWORD))
+        response = self.client.post(
+            "/notes/appreciations/",
+            {
+                "classe": eleve.classe.pk, "matiere": matiere.pk, "trimestre": trimestre.pk,
+                "action": f"generer_{eleve.pk}",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        appreciation = AppreciationMatiere.objects.get(eleve=eleve, matiere=matiere, trimestre=trimestre)
+        self.assertEqual(appreciation.texte, "Élève sérieux, continuez ainsi.")
+
+    def test_manual_save_persists_without_calling_ai(self):
+        from accounts.management.commands.seed_demo import DEMO_PASSWORD
+
+        eleve = Eleve.objects.get(matricule="202600001")
+        matiere = Matiere.objects.get(nom="Mathématiques")
+        trimestre = eleve.classe.annee_scolaire.trimestres.first()
+
+        self.assertTrue(self.client.login(username="prof.mathématiques", password=DEMO_PASSWORD))
+        response = self.client.post(
+            "/notes/appreciations/",
+            {
+                "classe": eleve.classe.pk, "matiere": matiere.pk, "trimestre": trimestre.pk,
+                "action": "enregistrer", f"appreciation_{eleve.pk}": "Rédigée manuellement par le professeur.",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        appreciation = AppreciationMatiere.objects.get(eleve=eleve, matiere=matiere, trimestre=trimestre)
+        self.assertEqual(appreciation.texte, "Rédigée manuellement par le professeur.")
+
+    def test_teacher_cannot_edit_appreciations_for_a_matiere_they_do_not_teach(self):
+        from accounts.management.commands.seed_demo import DEMO_PASSWORD
+
+        eleve = Eleve.objects.get(matricule="202600001")
+        matiere_arabe = Matiere.objects.get(nom="Arabe")
+        prof_maths = Enseignant.objects.get(user__username="prof.mathématiques")
+        self.assertNotIn(matiere_arabe, prof_maths.matieres_enseignees.all())
+        trimestre = eleve.classe.annee_scolaire.trimestres.first()
+
+        self.assertTrue(self.client.login(username="prof.mathématiques", password=DEMO_PASSWORD))
+        response = self.client.post(
+            "/notes/appreciations/",
+            {
+                "classe": eleve.classe.pk, "matiere": matiere_arabe.pk, "trimestre": trimestre.pk,
+                "action": "enregistrer", f"appreciation_{eleve.pk}": "Ne devrait pas être enregistré.",
+            },
+        )
+        self.assertEqual(response.status_code, 404)
