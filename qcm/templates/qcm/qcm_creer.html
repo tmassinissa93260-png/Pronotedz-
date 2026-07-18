@@ -3,11 +3,24 @@
 {% block page_title %}Nouveau QCM{% endblock %}
 
 {% block content %}
+  <div class="pn-widget mb-3">
+    <div class="pn-widget-header"><p class="pn-widget-title">🤖 Générer un QCM par IA</p></div>
+    <div class="pn-widget-body">
+      <form method="post" action="{% url 'qcm:qcm_generer_ia' %}">
+        {% csrf_token %}
+        <label class="form-label">Collez le contenu de votre cours</label>
+        <textarea name="contenu_cours" class="form-control mb-2" rows="6" placeholder="Collez ici le contenu du cours ou du chapitre..."></textarea>
+        <button type="submit" class="btn btn-outline-primary btn-sm">Générer 10 questions</button>
+        <p class="small text-muted mt-2 mb-0">Les questions générées apparaîtront ci-dessous — relisez-les et modifiez-les avant d'enregistrer le QCM.</p>
+      </form>
+    </div>
+  </div>
+
   <form method="post">
     {% csrf_token %}
     <div class="mb-3">
       <label class="form-label">Titre</label>
-      <input type="text" name="titre" class="form-control" required>
+      <input type="text" name="titre" class="form-control" value="{{ titre_saisi }}" required>
     </div>
     <div class="mb-3">
       <label class="form-label">Description (optionnel)</label>
@@ -45,7 +58,7 @@ Constantine
 2 + 2 = ?
 3
 * 4
-5"></textarea>
+5">{{ questions_brutes_generees }}</textarea>
     </div>
     <button type="submit" class="btn btn-primary">Créer le QCM</button>
   </form>

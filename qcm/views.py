@@ -7,6 +7,7 @@ from accounts.permissions import role_required
 
 from .models import ChoixQCM, QCM, QuestionQCM, TentativeQCM
 from .services import parse_questions
+from .services_ia import generer_qcm_brut
 
 
 @role_required(Utilisateur.Role.ENSEIGNANT)
@@ -44,6 +45,30 @@ def qcm_creer(request):
             return redirect("qcm:qcm_liste_enseignant")
 
     return render(request, "qcm/qcm_creer.html", {"classes": classes, "matieres": matieres})
+
+
+@role_required(Utilisateur.Role.ENSEIGNANT)
+def qcm_generer_ia(request):
+    classes = classes_enseignees(request.user.enseignant)
+    matieres = request.user.enseignant.matieres_enseignees.all()
+    contexte = {"classes": classes, "matieres": matieres, "titre_saisi": request.POST.get("titre", "")}
+
+    if request.method == "POST":
+        contenu_cours = request.POST.get("contenu_cours", "").strip()
+        if not contenu_cours:
+            messages.error(request, "Collez le contenu du cours à partir duquel générer le QCM.")
+        else:
+            etablissement = request.user.etablissement
+            questions_brutes, erreur = generer_qcm_brut(etablissement, contenu_cours)
+            if erreur:
+                messages.error(request, erreur)
+            elif not parse_questions(questions_brutes):
+                messages.error(request, "L'IA n'a pas produit de questions exploitables. Réessayez ou saisissez-les manuellement.")
+            else:
+                contexte["questions_brutes_generees"] = questions_brutes
+                messages.success(request, "QCM généré — relisez et modifiez les questions avant de les enregistrer.")
+
+    return render(request, "qcm/qcm_creer.html", contexte)
 
 
 @role_required(Utilisateur.Role.ENSEIGNANT)

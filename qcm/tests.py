@@ -1,11 +1,15 @@
+from types import SimpleNamespace
+from unittest.mock import patch
+
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from accounts.management.commands.seed_demo import DEMO_PASSWORD
-from accounts.models import Eleve
+from accounts.models import Eleve, Utilisateur
 
 from .models import QCM, TentativeQCM
 from .services import parse_questions
+from .services_ia import generer_qcm_brut
 
 
 class ParseQuestionsTests(TestCase):
@@ -79,3 +83,59 @@ class QCMScopingTests(TestCase):
 
         tentative = TentativeQCM.objects.get(qcm=qcm, eleve__matricule="202600001")
         self.assertEqual(tentative.score, qcm.total_points)
+
+
+def _fake_response(texte, input_tokens=50, output_tokens=200):
+    return SimpleNamespace(
+        content=[SimpleNamespace(type="text", text=texte)],
+        usage=SimpleNamespace(input_tokens=input_tokens, output_tokens=output_tokens),
+    )
+
+
+QCM_GENERE_VALIDE = (
+    "Combien font 2+2 ?\n3\n*4\n5\n\n"
+    "Capitale de l'Algérie ?\nOran\n*Alger\nConstantine"
+)
+
+
+class QCMGenerationIATests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo")
+
+    def test_without_api_key_returns_graceful_error(self):
+        etablissement = Utilisateur.objects.get(username="prof.mathématiques").etablissement
+        with override_settings(ANTHROPIC_API_KEY=""):
+            texte, erreur = generer_qcm_brut(etablissement, "Le théorème de Pythagore...")
+        self.assertEqual(texte, "")
+        self.assertIn("configuré", erreur)
+
+    @override_settings(ANTHROPIC_API_KEY="fake-key-for-tests")
+    @patch("assistant_ia.services._client")
+    def test_successful_generation_returns_parseable_text(self, mock_client_factory):
+        mock_client_factory.return_value.messages.create.return_value = _fake_response(QCM_GENERE_VALIDE)
+        etablissement = Utilisateur.objects.get(username="prof.mathématiques").etablissement
+
+        texte, erreur = generer_qcm_brut(etablissement, "Contenu du cours de maths...")
+
+        self.assertIsNone(erreur)
+        questions = parse_questions(texte)
+        self.assertEqual(len(questions), 2)
+
+    @override_settings(ANTHROPIC_API_KEY="fake-key-for-tests")
+    @patch("assistant_ia.services._client")
+    def test_generation_view_prefills_textarea_and_does_not_save_qcm(self, mock_client_factory):
+        mock_client_factory.return_value.messages.create.return_value = _fake_response(QCM_GENERE_VALIDE)
+        self.assertTrue(self.client.login(username="prof.mathématiques", password=DEMO_PASSWORD))
+
+        nb_qcm_avant = QCM.objects.count()
+        response = self.client.post("/qcm/nouveau/generer-ia/", {"contenu_cours": "Fonctions affines et linéaires"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Alger")
+        self.assertEqual(QCM.objects.count(), nb_qcm_avant)
+
+    def test_non_teacher_cannot_access_generation_endpoint(self):
+        self.assertTrue(self.client.login(username="eleve.202600001", password=DEMO_PASSWORD))
+        response = self.client.post("/qcm/nouveau/generer-ia/", {"contenu_cours": "test"})
+        self.assertEqual(response.status_code, 403)
