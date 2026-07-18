@@ -11,6 +11,7 @@ from academics.models import (
     CoefficientMatiere,
     Etablissement,
     Filiere,
+    GroupeScolaire,
     Matiere,
     Niveau,
     Salle,
@@ -57,8 +58,9 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
-        self._seed_etablissement_principal()
-        self._seed_deuxieme_etablissement()
+        etablissement_principal, admin_principal = self._seed_etablissement_principal()
+        etablissement_secondaire, _ = self._seed_deuxieme_etablissement()
+        self._make_groupe_scolaire(etablissement_principal, etablissement_secondaire, admin_principal)
         self.stdout.write(self.style.SUCCESS("Jeu de données de démonstration créé."))
 
     def _seed_etablissement_principal(self):
@@ -120,6 +122,8 @@ class Command(BaseCommand):
         self.stdout.write("Enseignants : " + ", ".join(e.user.username for e in enseignants.values()))
         self.stdout.write("Élèves : " + ", ".join(e.user.username for e in eleves_sciences + eleves_lettres))
 
+        return etablissement, admin_user
+
     def _seed_deuxieme_etablissement(self):
         """Un second établissement isolé, avec ses propres comptes/classe/année,
         pour prouver — et tester — que les données ne fuient pas entre écoles.
@@ -154,6 +158,20 @@ class Command(BaseCommand):
         self._make_parents_secondaire(eleves, etablissement)
 
         self.stdout.write(f"Second établissement (isolation) — Admin : {admin_user.username}")
+
+        return etablissement, admin_user
+
+    def _make_groupe_scolaire(self, etablissement_principal, etablissement_secondaire, admin_principal):
+        """Regroupe les deux établissements de démo sous un même groupe
+        scolaire pour illustrer le tableau de bord consolidé multi-campus,
+        géré par l'admin du campus principal."""
+        groupe = GroupeScolaire.objects.get_or_create(
+            nom="Groupe scolaire El Fajr Éducation", defaults={"code": "GSEF"},
+        )[0]
+        Etablissement.objects.filter(pk__in=[etablissement_principal.pk, etablissement_secondaire.pk]).update(groupe=groupe)
+        admin_principal.groupe_gere = groupe
+        admin_principal.save(update_fields=["groupe_gere"])
+        return groupe
 
     # -- Établissement / année / trimestres -------------------------------
 

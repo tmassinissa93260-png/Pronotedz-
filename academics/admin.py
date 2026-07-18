@@ -7,6 +7,7 @@ from .models import (
     CoefficientMatiere,
     Etablissement,
     Filiere,
+    GroupeScolaire,
     Matiere,
     Niveau,
     Salle,
@@ -14,9 +15,16 @@ from .models import (
 )
 
 
+@admin.register(GroupeScolaire)
+class GroupeScolaireAdmin(admin.ModelAdmin):
+    list_display = ("nom", "code")
+    search_fields = ("nom", "code")
+
+
 @admin.register(Etablissement)
 class EtablissementAdmin(admin.ModelAdmin):
-    list_display = ("nom", "wilaya", "type_etablissement", "annee_scolaire_courante")
+    list_display = ("nom", "wilaya", "type_etablissement", "groupe", "annee_scolaire_courante")
+    list_filter = ("groupe",)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

@@ -36,7 +36,7 @@ class UtilisateurAdmin(EtablissementScopedAdmin, UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
         (
             "Pronotedz",
-            {"fields": ("role", "telephone", "photo", "must_change_password")},
+            {"fields": ("role", "telephone", "photo", "must_change_password", "groupe_gere")},
         ),
     )
 

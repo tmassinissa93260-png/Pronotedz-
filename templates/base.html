@@ -120,6 +120,9 @@
         <a class="{% if request.resolver_match.namespace == 'decrochage' %}active{% endif %}" href="{% url 'decrochage:alerte_liste' %}">⚠️ {% translate "Décrochage" %}</a>
         <a class="{% if request.resolver_match.namespace == 'finance' %}active{% endif %}" href="{% url 'finance:tableau_bord' %}">💰 {% translate "Finances" %}</a>
         <a class="{% if request.resolver_match.url_name == 'remplacements_jour' or request.resolver_match.url_name == 'remplacement_assigner' %}active{% endif %}" href="{% url 'timetable:remplacements_jour' %}">🔁 {% translate "Remplacements" %}</a>
+        {% if user.groupe_gere_id %}
+          <a class="{% if request.resolver_match.url_name == 'groupe_tableau_bord' %}active{% endif %}" href="{% url 'academics:groupe_tableau_bord' %}">🏫 {% translate "Groupe scolaire" %}</a>
+        {% endif %}
         <a href="{% url 'admin:index' %}">{% translate "Administration" %}</a>
       {% endif %}
     </nav>

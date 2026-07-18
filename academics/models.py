@@ -2,6 +2,22 @@ from django.db import models
 from django.utils.text import slugify
 
 
+class GroupeScolaire(models.Model):
+    """A holding company / group operating several établissements (campuses)
+    under one brand — distinct from a single Etablissement, which remains
+    the tenant-isolation boundary for day-to-day data (classes, notes...)."""
+
+    nom = models.CharField(max_length=200)
+    code = models.CharField(max_length=30, blank=True)
+
+    class Meta:
+        verbose_name = "Groupe scolaire"
+        verbose_name_plural = "Groupes scolaires"
+
+    def __str__(self):
+        return self.nom
+
+
 class Etablissement(models.Model):
     class TypeEtablissement(models.TextChoices):
         PRIMAIRE = "PRIMAIRE", "École primaire"
@@ -22,6 +38,10 @@ class Etablissement(models.Model):
     )
     annee_scolaire_courante = models.ForeignKey(
         "AnneeScolaire", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
+    )
+    groupe = models.ForeignKey(
+        GroupeScolaire, on_delete=models.SET_NULL, null=True, blank=True, related_name="etablissements",
+        help_text="Groupe scolaire auquel appartient ce campus, le cas échéant.",
     )
 
     class Meta:

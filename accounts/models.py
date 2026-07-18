@@ -17,6 +17,10 @@ class Utilisateur(AbstractUser):
     etablissement = models.ForeignKey(
         "academics.Etablissement", on_delete=models.CASCADE, related_name="utilisateurs", null=True, blank=True
     )
+    groupe_gere = models.ForeignKey(
+        "academics.GroupeScolaire", on_delete=models.SET_NULL, null=True, blank=True, related_name="administrateurs",
+        help_text="Si renseigné, cet administrateur voit le tableau de bord consolidé de tous les campus du groupe.",
+    )
     telephone = models.CharField(max_length=20, blank=True)
     photo = models.ImageField(upload_to="photos/", blank=True, null=True)
     must_change_password = models.BooleanField(default=False)
