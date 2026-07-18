@@ -7,6 +7,7 @@ class Notification(models.Model):
         NOTE = "NOTE", "Note publiée"
         MESSAGE = "MESSAGE", "Message reçu"
         INFO = "INFO", "Information établissement"
+        DECROCHAGE = "DECROCHAGE", "Alerte décrochage"
         AUTRE = "AUTRE", "Autre"
 
     destinataire = models.ForeignKey("accounts.Utilisateur", on_delete=models.CASCADE, related_name="notifications")

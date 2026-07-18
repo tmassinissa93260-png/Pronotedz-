@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Alerte décrochage — Pronotedz{% endblock %}
+{% block page_title %}Alerte — {{ alerte.eleve.user.get_full_name }}{% endblock %}
+
+{% block content %}
+  <div class="pn-dashboard-grid" style="grid-template-columns: 1.3fr 1fr;">
+    <div>
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">Signaux détectés</p></div>
+        <div class="pn-widget-body">
+          <p>Score de risque : <span class="badge {% if alerte.score_risque >= 6 %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{ alerte.score_risque }}</span></p>
+          <ul class="pn-widget-list">
+            {% for signal in alerte.signaux %}
+              <li><span>{{ signal.description }}</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">Recommandations</p></div>
+        <div class="pn-widget-body">
+          <ul class="pn-widget-list">
+            {% for recommandation in recommandations %}
+              <li><span>{{ recommandation }}</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">Suivi</p></div>
+        <div class="pn-widget-body">
+          <form method="post">
+            {% csrf_token %}
+            <label class="form-label">Statut</label>
+            <select name="statut" class="form-select mb-2">
+              {% for value, label in statuts %}
+                <option value="{{ value }}" {% if value == alerte.statut %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <label class="form-label">Notes de suivi</label>
+            <textarea name="notes_suivi" class="form-control mb-2" rows="5">{{ alerte.notes_suivi }}</textarea>
+            <button type="submit" class="btn btn-primary btn-sm">Enregistrer</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

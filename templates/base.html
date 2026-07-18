@@ -81,6 +81,7 @@
         <a class="{% if request.resolver_match.namespace == 'qcm' %}active{% endif %}" href="{% url 'qcm:qcm_liste' %}">{% translate "QCM" %}</a>
         <a class="{% if request.resolver_match.url_name == 'mes_disponibilites' %}active{% endif %}" href="{% url 'rendezvous:mes_disponibilites' %}">{% translate "Rendez-vous" %}</a>
         <a class="{% if request.resolver_match.namespace == 'ressources' %}active{% endif %}" href="{% url 'ressources:mes_reservations' %}">{% translate "Ressources" %}</a>
+        <a class="{% if request.resolver_match.namespace == 'decrochage' %}active{% endif %}" href="{% url 'decrochage:alerte_liste' %}">⚠️ {% translate "Décrochage" %}</a>
       {% endif %}
 
       {% if user.role == 'ELEVE' or user.role == 'PARENT' %}
@@ -102,6 +103,7 @@
       <a class="{% if request.resolver_match.namespace == 'sondages' %}active{% endif %}" href="{% url 'sondages:liste' %}">{% translate "Sondages" %}</a>
       {% if user.role == 'ADMIN' %}
         <a class="{% if request.resolver_match.namespace == 'admissions' %}active{% endif %}" href="{% url 'admissions:candidature_liste' %}">{% translate "Admissions" %}</a>
+        <a class="{% if request.resolver_match.namespace == 'decrochage' %}active{% endif %}" href="{% url 'decrochage:alerte_liste' %}">⚠️ {% translate "Décrochage" %}</a>
         <a href="{% url 'admin:index' %}">{% translate "Administration" %}</a>
       {% endif %}
     </nav>

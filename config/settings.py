@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "notifications",
     "admissions",
     "assistant_ia",
+    "decrochage",
 ]
 
 MIDDLEWARE = [
