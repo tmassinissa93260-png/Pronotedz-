@@ -27,6 +27,7 @@ urlpatterns = [
     path("admissions/", include("admissions.urls")),
     path("assistant-ia/", include("assistant_ia.urls")),
     path("decrochage/", include("decrochage.urls")),
+    path("revisions/", include("revisions.urls")),
     path("", dashboard_dispatch, name="home"),
 ]
 

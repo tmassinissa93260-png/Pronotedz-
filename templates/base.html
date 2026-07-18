@@ -92,6 +92,9 @@
           <a class="{% if request.resolver_match.namespace == 'qcm' %}active{% endif %}" href="{% url 'qcm:qcm_liste' %}">{% translate "QCM" %}</a>
           <a class="{% if request.resolver_match.namespace == 'assistant_ia' %}active{% endif %}" href="{% url 'assistant_ia:conversation_liste' %}">🤖 {% translate "Assistant IA" %}</a>
         {% endif %}
+        {% if eleve_classe_examen %}
+          <a class="{% if request.resolver_match.namespace == 'revisions' %}active{% endif %}" href="{% url 'revisions:revisions_accueil' %}">📚 {% translate "Révisions BEM/BAC" %}</a>
+        {% endif %}
       {% endif %}
 
       {% if user.role == 'PARENT' %}

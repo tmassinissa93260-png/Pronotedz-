@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "admissions",
     "assistant_ia",
     "decrochage",
+    "revisions",
 ]
 
 MIDDLEWARE = [
@@ -85,6 +86,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "academics.context_processors.etablissement",
                 "notifications.context_processors.notifications_non_lues",
+                "revisions.context_processors.classe_examen",
             ],
         },
     },

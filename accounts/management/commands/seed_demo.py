@@ -27,6 +27,7 @@ from notifications.models import Notification
 from qcm.models import ChoixQCM, QCM, QuestionQCM
 from rendezvous.models import DisponibiliteRDV, RendezVous
 from ressources.models import Reservation, Ressource
+from revisions.models import AnnaleExamen, DateExamen, ProgrammeChapitre, ProgressionChapitre
 from sondages.models import ChoixReponse, QuestionSondage, Sondage
 from timetable.models import CreneauHoraire, EmploiDuTempsEntry
 from vie_scolaire.models import Observation
@@ -108,6 +109,7 @@ class Command(BaseCommand):
         self._make_qcm(classe_sciences, matieres, enseignants)
         self._make_notifications(eleves_sciences, parent_benali)
         self._make_candidatures(etablissement, tous_niveaux)
+        self._make_revisions_bac(etablissement, annee, tous_niveaux, filiere_sciences, matieres)
 
         self.stdout.write(f"Mot de passe commun à tous les comptes de démo : {DEMO_PASSWORD}")
         self.stdout.write(f"Admin : {admin_user.username}")
@@ -544,4 +546,40 @@ class Command(BaseCommand):
                     "niveau_souhaite": tous_niveaux[niveau_libelle], "nom_parent": nom_parent,
                     "telephone_parent": telephone, "email_parent": email, "statut": statut,
                 },
+            )
+
+    # -- Révisions BEM/BAC -----------------------------------------------------
+
+    def _make_revisions_bac(self, etablissement, annee, tous_niveaux, filiere_sciences, matieres):
+        niveau_3as = tous_niveaux["3AS"]
+        classe_examen = Classe.objects.get_or_create(
+            libelle="3AS Sciences 1", niveau=niveau_3as, filiere=filiere_sciences, annee_scolaire=annee,
+        )[0]
+        eleve_examen = self._make_eleves(classe_examen, "20263", 1, 1, etablissement)[0]
+
+        DateExamen.objects.get_or_create(
+            niveau=niveau_3as, annee_scolaire=annee,
+            defaults={"date_examen": datetime.date.today() + datetime.timedelta(days=75)},
+        )
+
+        chapitres_par_matiere = {
+            "Mathématiques": ["Limites et continuité", "Dérivabilité", "Suites numériques", "Probabilités"],
+            "Français": ["Le discours argumentatif", "L'étude de texte", "La production écrite"],
+        }
+        premier_chapitre = None
+        for nom_matiere, titres in chapitres_par_matiere.items():
+            matiere = matieres[nom_matiere]
+            for ordre, titre in enumerate(titres, start=1):
+                chapitre = ProgrammeChapitre.objects.get_or_create(
+                    niveau=niveau_3as, matiere=matiere, ordre=ordre, defaults={"titre": titre},
+                )[0]
+                if premier_chapitre is None:
+                    premier_chapitre = chapitre
+            AnnaleExamen.objects.get_or_create(
+                niveau=niveau_3as, matiere=matiere, annee="2025", defaults={"titre": f"Sujet BAC {nom_matiere} 2025"},
+            )
+
+        if premier_chapitre:
+            ProgressionChapitre.objects.get_or_create(
+                eleve=eleve_examen, chapitre=premier_chapitre, defaults={"statut": ProgressionChapitre.Statut.MAITRISE},
             )
