@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -49,3 +50,19 @@ class EmploiDuTempsEntry(models.Model):
 
     def __str__(self):
         return f"{self.classe} — {self.matiere} — {self.creneau}"
+
+    def clean(self):
+        conflits = []
+        autres = EmploiDuTempsEntry.objects.filter(
+            creneau=self.creneau, annee_scolaire=self.annee_scolaire
+        ).exclude(pk=self.pk)
+
+        if autres.filter(classe=self.classe).exists():
+            conflits.append(f"La classe {self.classe} a déjà un cours à ce créneau.")
+        if autres.filter(enseignant=self.enseignant).exists():
+            conflits.append(f"{self.enseignant} a déjà un cours à ce créneau.")
+        if autres.filter(salle=self.salle).exists():
+            conflits.append(f"La salle {self.salle} est déjà occupée à ce créneau.")
+
+        if conflits:
+            raise ValidationError(" ".join(conflits))

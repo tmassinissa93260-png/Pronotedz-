@@ -1,4 +1,6 @@
-from .models import CreneauHoraire
+from accounts.models import Enseignant
+
+from .models import CreneauHoraire, EmploiDuTempsEntry
 
 
 def build_grid(entries_qs):
@@ -31,6 +33,20 @@ def build_grid(entries_qs):
         lignes.append({"ordre": ordre, "heure_debut": heure_debut, "heure_fin": heure_fin, "cellules": cellules})
 
     return {"jours": jours, "lignes": lignes}
+
+
+def suggerer_remplacants(entry):
+    """Teachers who teach the same matière and have no class of their own at
+    this exact créneau, so they're free to cover an absent colleague."""
+    occupes = EmploiDuTempsEntry.objects.filter(
+        creneau=entry.creneau, annee_scolaire=entry.annee_scolaire,
+    ).values_list("enseignant_id", flat=True)
+    return (
+        Enseignant.objects.filter(matieres_enseignees=entry.matiere)
+        .exclude(pk=entry.enseignant_id)
+        .exclude(pk__in=occupes)
+        .select_related("user")
+    )
 
 
 def _minutes(t):

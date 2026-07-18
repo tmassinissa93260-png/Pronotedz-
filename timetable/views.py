@@ -1,11 +1,20 @@
+import datetime
+
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from academics.models import AnneeScolaire, Classe
+from accounts.models import Utilisateur
+from accounts.permissions import role_required
+from attendance.models import Seance
+from notifications.models import Notification
+from notifications.services import notifier_plusieurs
 
-from .models import EmploiDuTempsEntry
-from .services import build_grid
+from .models import CreneauHoraire, EmploiDuTempsEntry
+from .services import build_grid, suggerer_remplacants
 
 
 def _annee_active(user):
@@ -52,3 +61,73 @@ def mon_emploi_du_temps(request):
     if user.role == user.Role.ADMIN:
         context["classes"] = Classe.objects.filter(annee_scolaire=annee) if annee else Classe.objects.none()
     return render(request, "timetable/grid.html", context)
+
+
+@role_required(Utilisateur.Role.ADMIN)
+def remplacements_jour(request):
+    date_str = request.GET.get("date")
+    date = datetime.date.fromisoformat(date_str) if date_str else datetime.date.today()
+    jour_semaine = CreneauHoraire.PYTHON_WEEKDAY_TO_JOUR.get(date.weekday())
+
+    entries = []
+    if jour_semaine is not None:
+        entries = list(
+            EmploiDuTempsEntry.objects.filter(
+                creneau__jour_semaine=jour_semaine, annee_scolaire__etablissement=request.user.etablissement,
+            )
+            .select_related("classe", "matiere", "enseignant__user", "creneau")
+            .order_by("creneau__ordre", "classe__libelle")
+        )
+
+    seances_par_entry = {
+        entry.pk: Seance.objects.filter(emploi_du_temps_entry=entry, date=date)
+        .select_related("enseignant_remplacant__user")
+        .first()
+        for entry in entries
+    }
+
+    return render(
+        request, "timetable/remplacements.html",
+        {"date": date, "entries": entries, "seances_par_entry": seances_par_entry},
+    )
+
+
+@role_required(Utilisateur.Role.ADMIN)
+def remplacement_assigner(request, entry_id, date):
+    entry = get_object_or_404(
+        EmploiDuTempsEntry, pk=entry_id, annee_scolaire__etablissement=request.user.etablissement,
+    )
+    date_obj = datetime.date.fromisoformat(date)
+    candidats = suggerer_remplacants(entry)
+
+    if request.method == "POST":
+        remplacant = get_object_or_404(candidats, pk=request.POST.get("enseignant"))
+        seance = Seance.get_or_create_for(entry, date_obj)
+        seance.enseignant_remplacant = remplacant
+        seance.statut = Seance.Statut.REMPLACEE
+        seance.save()
+        notifier_plusieurs(
+            [eleve.user for eleve in entry.classe.eleves.select_related("user")],
+            Notification.Type.REMPLACEMENT,
+            titre=f"Remplacement — {entry.matiere}",
+            contenu=f"Le cours de {entry.matiere} du {date_obj:%d/%m/%Y} sera assuré par {remplacant}.",
+        )
+        messages.success(request, f"{remplacant} a été assigné(e) en remplacement.")
+        return redirect(f"{reverse('timetable:remplacements_jour')}?date={date_obj.isoformat()}")
+
+    return render(
+        request, "timetable/remplacement_assigner.html",
+        {"entry": entry, "date": date_obj, "candidats": candidats},
+    )
+
+
+@role_required(Utilisateur.Role.ADMIN)
+def remplacement_annuler(request, seance_id):
+    seance = get_object_or_404(
+        Seance, pk=seance_id, emploi_du_temps_entry__annee_scolaire__etablissement=request.user.etablissement,
+    )
+    seance.enseignant_remplacant = None
+    seance.statut = Seance.Statut.NORMALE
+    seance.save()
+    messages.success(request, "Remplacement annulé.")
+    return redirect(f"{reverse('timetable:remplacements_jour')}?date={seance.date.isoformat()}")
