@@ -34,6 +34,7 @@ from ressources.models import Reservation, Ressource
 from revisions.models import AnnaleExamen, DateExamen, ProgrammeChapitre, ProgressionChapitre
 from sondages.models import ChoixReponse, QuestionSondage, Sondage
 from timetable.models import CreneauHoraire, EmploiDuTempsEntry
+from workflows.models import WorkflowRegle
 from vie_scolaire.models import Observation
 
 DEMO_PASSWORD = "Pronotedz2026!"
@@ -116,6 +117,7 @@ class Command(BaseCommand):
         self._make_candidatures(etablissement, tous_niveaux)
         self._make_revisions_bac(etablissement, annee, tous_niveaux, filiere_sciences, matieres)
         self._make_finance(niveau, annee, eleves_sciences, eleves_lettres, admin_user)
+        self._make_workflows(etablissement)
 
         self.stdout.write(f"Mot de passe commun à tous les comptes de démo : {DEMO_PASSWORD}")
         self.stdout.write(f"Admin : {admin_user.username}")
@@ -648,3 +650,23 @@ class Command(BaseCommand):
 
         for eleve in eleves[2:]:
             recalculer_statut(Facture.objects.get(eleve=eleve, frais=frais_inscription))
+
+    # -- Workflows automatisés ----------------------------------------------
+
+    def _make_workflows(self, etablissement):
+        WorkflowRegle.objects.get_or_create(
+            etablissement=etablissement, nom="Alerte note basse",
+            defaults={
+                "declencheur": WorkflowRegle.Declencheur.NOTE_BASSE, "seuil": Decimal("10"),
+                "destinataire": WorkflowRegle.Destinataire.PARENT,
+                "message": "{eleve} a obtenu {valeur}/20 en {matiere}, en dessous du seuil de {seuil}/20.",
+            },
+        )
+        WorkflowRegle.objects.get_or_create(
+            etablissement=etablissement, nom="Retards fréquents",
+            defaults={
+                "declencheur": WorkflowRegle.Declencheur.RETARDS_FREQUENTS, "seuil": Decimal("3"),
+                "destinataire": WorkflowRegle.Destinataire.PROF_PRINCIPAL,
+                "message": "{eleve} cumule au moins {nb_retards} retards sur les 30 derniers jours.",
+            },
+        )
