@@ -1,8 +1,17 @@
 {% extends "base.html" %}
-{% block title %}Lien de candidature — Pronotedz{% endblock %}
-{% block page_title %}Lien public de candidature{% endblock %}
+{% block title %}Liens publics — Pronotedz{% endblock %}
+{% block page_title %}Liens publics de l'établissement{% endblock %}
 
 {% block content %}
+  <div class="pn-widget mb-3">
+    <div class="pn-widget-header"><p class="pn-widget-title">Portail vitrine</p></div>
+    <div class="pn-widget-body">
+      <p>Page publique de présentation de {{ etablissement.nom }} (actualités, niveaux proposés, accès à la candidature) :</p>
+      <p><code>{% url 'portail_public' etablissement.slug %}</code></p>
+      <a href="{% url 'portail_public' etablissement.slug %}" class="btn btn-outline-primary btn-sm" target="_blank">Ouvrir le portail</a>
+    </div>
+  </div>
+
   <div class="pn-widget">
     <div class="pn-widget-header"><p class="pn-widget-title">Partagez ce lien avec les familles</p></div>
     <div class="pn-widget-body">

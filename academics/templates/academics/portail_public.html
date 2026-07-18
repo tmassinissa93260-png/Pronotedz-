@@ -1,0 +1,47 @@
+{% extends "public_base.html" %}
+{% block title %}{{ etablissement.nom }} — Pronotedz{% endblock %}
+{% block header_title %}{{ etablissement.nom }}{% endblock %}
+
+{% block content %}
+  <div class="public-card">
+    {% if etablissement.logo %}
+      <img src="{{ etablissement.logo.url }}" alt="{{ etablissement.nom }}" style="max-height: 96px;" class="mb-3">
+    {% endif %}
+    <h1 class="h4 mb-1">{{ etablissement.nom }}</h1>
+    <p class="text-muted mb-3">
+      {{ etablissement.get_type_etablissement_display }}
+      {% if etablissement.wilaya %} — {{ etablissement.wilaya }}{% if etablissement.commune %}, {{ etablissement.commune }}{% endif %}{% endif %}
+    </p>
+
+    <ul class="list-unstyled small text-muted mb-4">
+      {% if etablissement.adresse %}<li>📍 {{ etablissement.adresse }}</li>{% endif %}
+      {% if etablissement.telephone %}<li>📞 {{ etablissement.telephone }}</li>{% endif %}
+      {% if etablissement.email %}<li>✉️ {{ etablissement.email }}</li>{% endif %}
+    </ul>
+
+    {% if niveaux %}
+      <h2 class="h6">Niveaux proposés</h2>
+      <p class="mb-4">
+        {% for niveau in niveaux %}
+          <span class="badge bg-secondary">{{ niveau }}</span>
+        {% endfor %}
+      </p>
+    {% endif %}
+
+    <a href="{% url 'admissions:candidature_form' etablissement.slug %}" class="btn btn-primary btn-sm">Déposer une candidature</a>
+    <a href="{% url 'admissions:candidature_suivi' %}" class="btn btn-outline-secondary btn-sm">Suivre ma candidature</a>
+  </div>
+
+  {% if publications %}
+    <div class="public-card mt-3">
+      <h2 class="h6 mb-3">Actualités</h2>
+      {% for publication in publications %}
+        <div class="mb-3 pb-3 {% if not forloop.last %}border-bottom{% endif %}">
+          <p class="fw-semibold mb-1">{% if publication.epingle %}📌 {% endif %}{{ publication.titre }}</p>
+          <p class="text-muted small mb-1">{{ publication.date_publication|date:"d/m/Y" }}</p>
+          <p class="mb-0">{{ publication.contenu|linebreaksbr }}</p>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endblock %}

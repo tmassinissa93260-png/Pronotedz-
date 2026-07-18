@@ -451,6 +451,15 @@ class Command(BaseCommand):
             titre="Réunion parents-professeurs", etablissement=etablissement,
             defaults={"auteur": admin_user, "contenu": "Une réunion parents-professeurs est organisée le mois prochain.", "audience": Publication.Audience.ELEVES_PARENTS},
         )
+        Publication.objects.get_or_create(
+            titre="Portes ouvertes 2026", etablissement=etablissement,
+            defaults={
+                "auteur": admin_user,
+                "contenu": "Le lycée Ibn Khaldoun ouvre ses portes aux familles le mois prochain. "
+                "Venez découvrir nos filières Sciences et Lettres et rencontrer l'équipe pédagogique.",
+                "audience": Publication.Audience.PUBLIC, "epingle": True,
+            },
+        )
 
     # -- Rendez-vous ---------------------------------------------------------
 

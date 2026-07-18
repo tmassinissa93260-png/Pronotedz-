@@ -125,6 +125,7 @@
           <a class="{% if request.resolver_match.url_name == 'groupe_tableau_bord' %}active{% endif %}" href="{% url 'academics:groupe_tableau_bord' %}">🏫 {% translate "Groupe scolaire" %}</a>
         {% endif %}
         <a href="{% url 'admin:workflows_workflowregle_changelist' %}">⚙️ {% translate "Workflows" %}</a>
+        <a class="{% if request.resolver_match.url_name == 'portail_liens' %}active{% endif %}" href="{% url 'admissions:portail_liens' %}">🌐 {% translate "Portail public" %}</a>
         <a href="{% url 'admin:index' %}">{% translate "Administration" %}</a>
       {% endif %}
     </nav>

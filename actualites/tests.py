@@ -39,6 +39,20 @@ class PublicationVisibilityTests(TestCase):
         response = self.client.get("/actualites/")
         self.assertNotContains(response, "Note de service internes")
 
+    def test_public_publication_hidden_from_internal_feed_for_eleve(self):
+        eleve = Utilisateur.objects.get(username="eleve.202600001")
+        visibles = Publication.visibles_pour(eleve)
+        self.assertFalse(visibles.filter(titre="Portes ouvertes 2026").exists())
+
+    def test_public_publication_still_visible_to_admin(self):
+        admin = Utilisateur.objects.get(username="admin.direction")
+        visibles = Publication.visibles_pour(admin)
+        self.assertTrue(visibles.filter(titre="Portes ouvertes 2026").exists())
+
+    def test_public_publication_notifies_nobody(self):
+        publication = Publication.objects.get(titre="Portes ouvertes 2026")
+        self.assertFalse(publication.destinataires().exists())
+
 
 class LectureAccuseeTests(TestCase):
     @classmethod

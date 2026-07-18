@@ -1,12 +1,13 @@
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Sum
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 
 from accounts.models import Eleve, Enseignant
+from actualites.models import Publication
 from finance.models import Facture, Paiement
 
-from .models import Classe
+from .models import Classe, Etablissement, Niveau
 
 
 @login_required
@@ -43,3 +44,18 @@ def groupe_tableau_bord(request):
     }
 
     return render(request, "academics/groupe_tableau_bord.html", {"groupe": groupe, "campus": campus, "totaux": totaux})
+
+
+def portail_public(request, slug):
+    etablissement = get_object_or_404(Etablissement, slug=slug)
+    publications = Publication.objects.filter(
+        etablissement=etablissement, audience=Publication.Audience.PUBLIC
+    ).order_by("-epingle", "-date_publication")[:10]
+    niveaux = Niveau.objects.filter(
+        classes__annee_scolaire__etablissement=etablissement
+    ).distinct().order_by("ordre")
+
+    return render(
+        request, "academics/portail_public.html",
+        {"etablissement": etablissement, "publications": publications, "niveaux": niveaux},
+    )

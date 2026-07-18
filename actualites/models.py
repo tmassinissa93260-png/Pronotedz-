@@ -6,6 +6,7 @@ class Publication(models.Model):
         TOUS = "TOUS", "Tout l'établissement"
         ENSEIGNANTS = "ENSEIGNANTS", "Enseignants"
         ELEVES_PARENTS = "ELEVES_PARENTS", "Élèves et parents"
+        PUBLIC = "PUBLIC", "Portail public (visiteurs)"
 
     etablissement = models.ForeignKey(
         "academics.Etablissement", on_delete=models.CASCADE, related_name="publications", null=True, blank=True
@@ -37,6 +38,10 @@ class Publication(models.Model):
     def destinataires(self):
         """Utilisateur queryset matching this publication's target audience."""
         from accounts.models import Utilisateur
+
+        if self.audience == self.Audience.PUBLIC:
+            # Portail public : visible sur la page vitrine, ne notifie personne en interne.
+            return Utilisateur.objects.none()
 
         qs = Utilisateur.objects.filter(etablissement=self.etablissement)
         if self.audience == self.Audience.ENSEIGNANTS:

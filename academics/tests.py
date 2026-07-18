@@ -9,7 +9,7 @@ from accounts.management.commands.seed_demo import DEMO_PASSWORD
 from accounts.models import Eleve, Enseignant, Utilisateur
 from finance.models import Facture
 
-from .models import Classe, Etablissement, GroupeScolaire
+from .models import Classe, Etablissement, GroupeScolaire, Niveau
 
 
 class GroupeTableauBordTests(TestCase):
@@ -63,3 +63,40 @@ class GroupeTableauBordTests(TestCase):
         self.assertTrue(self.client.login(username="admin.oran", password=DEMO_PASSWORD))
         response = self.client.get(reverse("dashboard:admin_home"))
         self.assertNotContains(response, "Groupe scolaire")
+
+
+class PortailPublicTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo")
+        cls.etablissement = Etablissement.objects.get(nom="Lycée Ibn Khaldoun")
+
+    def test_portail_accessible_sans_connexion(self):
+        response = self.client.get(reverse("portail_public", args=[self.etablissement.slug]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.etablissement.nom)
+
+    def test_portail_affiche_seulement_les_actualites_publiques(self):
+        response = self.client.get(reverse("portail_public", args=[self.etablissement.slug]))
+        self.assertContains(response, "Portes ouvertes 2026")
+        self.assertNotContains(response, "Réunion parents-professeurs")
+
+    def test_portail_liste_les_niveaux_de_letablissement(self):
+        response = self.client.get(reverse("portail_public", args=[self.etablissement.slug]))
+        niveaux_attendus = Niveau.objects.filter(
+            classes__annee_scolaire__etablissement=self.etablissement
+        ).distinct()
+        self.assertEqual(set(response.context["niveaux"]), set(niveaux_attendus))
+
+    def test_portail_lien_vers_la_candidature(self):
+        response = self.client.get(reverse("portail_public", args=[self.etablissement.slug]))
+        self.assertContains(response, reverse("admissions:candidature_form", args=[self.etablissement.slug]))
+
+    def test_slug_inconnu_renvoie_404(self):
+        response = self.client.get(reverse("portail_public", args=["ecole-qui-nexiste-pas"]))
+        self.assertEqual(response.status_code, 404)
+
+    def test_page_liens_admin_contient_le_lien_du_portail(self):
+        self.assertTrue(self.client.login(username="admin.direction", password=DEMO_PASSWORD))
+        response = self.client.get(reverse("admissions:portail_liens"))
+        self.assertContains(response, reverse("portail_public", args=[self.etablissement.slug]))
