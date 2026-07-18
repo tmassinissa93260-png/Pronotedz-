@@ -3,7 +3,7 @@ import datetime
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
-from academics.models import AnneeScolaire, Classe
+from academics.models import AnneeScolaire, Classe, Trimestre
 from accounts.models import Eleve, Enseignant, Utilisateur
 from accounts.permissions import role_required
 from actualites.models import Publication
@@ -13,6 +13,8 @@ from grades.models import Evaluation, Note
 from homework.models import Devoir
 from timetable.models import EmploiDuTempsEntry
 from timetable.services import build_day
+
+from .services import absenteisme_hebdomadaire, moyennes_et_reussite_par_classe, repartition_des_moyennes
 
 
 @login_required
@@ -85,6 +87,29 @@ def admin_home(request):
         "publications": Publication.visibles_pour(request.user)[:3],
     }
     return render(request, "dashboard/admin_home.html", context)
+
+
+@role_required(Utilisateur.Role.ADMIN)
+def admin_analytics(request):
+    annee = AnneeScolaire.objects.filter(etablissement=request.user.etablissement, est_active=True).first()
+    classes = Classe.objects.filter(annee_scolaire=annee).order_by("niveau__ordre", "libelle") if annee else Classe.objects.none()
+    trimestres = Trimestre.objects.filter(annee_scolaire=annee) if annee else Trimestre.objects.none()
+
+    trimestre_id = request.GET.get("trimestre")
+    if trimestre_id:
+        trimestre = get_object_or_404(trimestres, pk=trimestre_id)
+    else:
+        trimestre = trimestres.filter(est_actif=True).first() or trimestres.first()
+
+    context = {
+        "annee": annee,
+        "trimestres": trimestres,
+        "trimestre": trimestre,
+        "moyennes_par_classe": moyennes_et_reussite_par_classe(classes, trimestre),
+        "repartition_moyennes": repartition_des_moyennes(classes, trimestre),
+        "absenteisme": absenteisme_hebdomadaire(annee),
+    }
+    return render(request, "dashboard/admin_analytics.html", context)
 
 
 @role_required(Utilisateur.Role.ENSEIGNANT)

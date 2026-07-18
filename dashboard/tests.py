@@ -133,3 +133,60 @@ class LanguageSwitchTests(TestCase):
         self.assertIn('dir="ltr"', body)
         self.assertIn("bootstrap.min.css", body)
         self.assertNotIn("bootstrap.rtl.min.css", body)
+
+
+class AdminAnalyticsTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        call_command("seed_demo")
+
+    def _login(self, username):
+        from accounts.management.commands.seed_demo import DEMO_PASSWORD
+
+        self.assertTrue(self.client.login(username=username, password=DEMO_PASSWORD))
+
+    def test_admin_analytics_loads_with_moyennes_par_classe(self):
+        self._login("admin.direction")
+
+        response = self.client.get("/dashboard/admin/analytics/")
+
+        self.assertEqual(response.status_code, 200)
+        moyennes = response.context["moyennes_par_classe"]
+        self.assertTrue(moyennes)
+        self.assertTrue(any(ligne["moyenne"] is not None for ligne in moyennes))
+
+    def test_repartition_moyennes_sums_to_total_eleves_with_notes(self):
+        self._login("admin.direction")
+
+        response = self.client.get("/dashboard/admin/analytics/")
+
+        repartition = response.context["repartition_moyennes"]
+        nb_total = sum(ligne["nb_eleves"] for ligne in repartition)
+        nb_attendu = sum(ligne["nb_notes"] for ligne in response.context["moyennes_par_classe"])
+        self.assertEqual(nb_total, nb_attendu)
+        self.assertGreater(nb_total, 0)
+
+    def test_absenteisme_covers_six_weeks(self):
+        self._login("admin.direction")
+
+        response = self.client.get("/dashboard/admin/analytics/")
+
+        self.assertEqual(len(response.context["absenteisme"]), 6)
+
+    def test_trimestre_selector_switches_the_selected_trimestre(self):
+        from academics.models import Trimestre
+
+        self._login("admin.direction")
+        response = self.client.get("/dashboard/admin/analytics/")
+        autre_trimestre = Trimestre.objects.filter(
+            annee_scolaire=response.context["annee"]
+        ).exclude(pk=response.context["trimestre"].pk).first()
+
+        response = self.client.get("/dashboard/admin/analytics/", {"trimestre": autre_trimestre.pk})
+
+        self.assertEqual(response.context["trimestre"], autre_trimestre)
+
+    def test_non_admin_cannot_access_analytics(self):
+        self._login("eleve.202600001")
+        response = self.client.get("/dashboard/admin/analytics/")
+        self.assertEqual(response.status_code, 403)

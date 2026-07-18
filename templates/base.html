@@ -116,6 +116,7 @@
       <a class="{% if request.resolver_match.namespace == 'documents' %}active{% endif %}" href="{% url 'documents:liste' %}">{% translate "Documents" %}</a>
       <a class="{% if request.resolver_match.namespace == 'sondages' %}active{% endif %}" href="{% url 'sondages:liste' %}">{% translate "Sondages" %}</a>
       {% if user.role == 'ADMIN' %}
+        <a class="{% if request.resolver_match.url_name == 'admin_analytics' %}active{% endif %}" href="{% url 'dashboard:admin_analytics' %}">📊 {% translate "Analytics" %}</a>
         <a class="{% if request.resolver_match.namespace == 'admissions' %}active{% endif %}" href="{% url 'admissions:candidature_liste' %}">{% translate "Admissions" %}</a>
         <a class="{% if request.resolver_match.namespace == 'decrochage' %}active{% endif %}" href="{% url 'decrochage:alerte_liste' %}">⚠️ {% translate "Décrochage" %}</a>
         <a class="{% if request.resolver_match.namespace == 'finance' %}active{% endif %}" href="{% url 'finance:tableau_bord' %}">💰 {% translate "Finances" %}</a>

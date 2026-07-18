@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Analytics — Pronotedz{% endblock %}
+{% block page_title %}Analytics avancés{% endblock %}
+
+{% block content %}
+  <form method="get" class="mb-3" style="max-width: 320px;">
+    <select name="trimestre" class="form-select form-select-sm" onchange="this.form.submit()">
+      {% for t in trimestres %}
+        <option value="{{ t.pk }}" {% if trimestre.pk == t.pk %}selected{% endif %}>{{ t.get_numero_display }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  <div class="pn-widget mb-3">
+    <div class="pn-widget-header"><p class="pn-widget-title">Moyenne générale et taux de réussite par classe</p></div>
+    <div class="pn-widget-body">
+      {% for ligne in moyennes_par_classe %}
+        <div class="mb-3">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>{{ ligne.classe }}</span>
+            <span class="text-muted">
+              {% if ligne.moyenne is not None %}Moyenne : {{ ligne.moyenne }}/20 — Réussite : {{ ligne.taux_reussite }} %{% else %}Aucune note publiée{% endif %}
+            </span>
+          </div>
+          <div class="progress" style="height: 18px;">
+            {% if ligne.moyenne is not None %}
+              <div class="progress-bar bg-primary" role="progressbar" style="width: {% widthratio ligne.moyenne 20 100 %}%;"></div>
+            {% endif %}
+          </div>
+        </div>
+      {% empty %}
+        <p class="pn-widget-empty">Aucune classe pour cette année scolaire.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="pn-widget mb-3">
+    <div class="pn-widget-header"><p class="pn-widget-title">Répartition des moyennes générales</p></div>
+    <div class="pn-widget-body">
+      {% for tranche in repartition_moyennes %}
+        <div class="mb-2">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>{{ tranche.label }}/20</span>
+            <span class="text-muted">{{ tranche.nb_eleves }} élève(s) — {{ tranche.pct }} %</span>
+          </div>
+          <div class="progress" style="height: 14px;">
+            <div class="progress-bar bg-info" role="progressbar" style="width: {{ tranche.pct }}%;"></div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="pn-widget">
+    <div class="pn-widget-header"><p class="pn-widget-title">Élèves absents par semaine (6 dernières semaines)</p></div>
+    <div class="pn-widget-body">
+      {% for semaine in absenteisme %}
+        <div class="mb-2">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>{{ semaine.debut|date:"d/m" }} — {{ semaine.fin|date:"d/m" }}</span>
+            <span class="text-muted">{{ semaine.nb_absences }} élève(s)</span>
+          </div>
+          <div class="progress" style="height: 14px;">
+            <div class="progress-bar bg-warning text-dark" role="progressbar" style="width: {{ semaine.pct }}%;"></div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endblock %}
