@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "decrochage",
     "revisions",
     "rapport_parent",
+    "pwa",
 ]
 
 MIDDLEWARE = [

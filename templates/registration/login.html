@@ -5,12 +5,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% translate "Connexion" %} — Pronotedz</title>
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <meta name="theme-color" content="#2f5fa8">
+  <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
   {% if LANGUAGE_BIDI %}
     <link href="{% static 'vendor/bootstrap/css/bootstrap.rtl.min.css' %}" rel="stylesheet">
   {% else %}
     <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
   {% endif %}
   <link href="{% static 'css/app.css' %}" rel="stylesheet">
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("/sw.js");
+      });
+    }
+  </script>
 </head>
 <body class="auth-page d-flex align-items-center justify-content-center">
   <div class="card auth-card shadow-sm">

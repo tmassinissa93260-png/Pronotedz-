@@ -1,0 +1,25 @@
+{
+  "name": "Pronotedz",
+  "short_name": "Pronotedz",
+  "description": "Plateforme de gestion scolaire pour l'Algérie",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2f5fa8",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
