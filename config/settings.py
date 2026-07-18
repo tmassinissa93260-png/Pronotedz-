@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "assistant_ia",
     "decrochage",
     "revisions",
+    "rapport_parent",
 ]
 
 MIDDLEWARE = [

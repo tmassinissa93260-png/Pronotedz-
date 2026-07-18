@@ -99,6 +99,7 @@
 
       {% if user.role == 'PARENT' %}
         <a class="{% if request.resolver_match.namespace == 'rendezvous' %}active{% endif %}" href="{% url 'rendezvous:mes_rdv' %}">{% translate "Rendez-vous" %}</a>
+        <a class="{% if request.resolver_match.namespace == 'rapport_parent' %}active{% endif %}" href="{% url 'rapport_parent:preferences_notifications' %}">✉️ {% translate "Préférences" %}</a>
       {% endif %}
 
       <a class="{% if request.resolver_match.namespace == 'messaging' %}active{% endif %}" href="{% url 'messaging:boite_reception' %}">{% translate "Communication" %}</a>

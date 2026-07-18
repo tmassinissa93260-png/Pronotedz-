@@ -314,10 +314,15 @@ class Command(BaseCommand):
 
     def _make_parents(self, eleves_sciences, eleves_lettres, etablissement):
         parent1_user = self._make_user("parent.benali", "Farid", "Benali", Utilisateur.Role.PARENT, etablissement)
+        parent1_user.email = "farid.benali@parent-demo.dz"
+        parent1_user.save(update_fields=["email"])
         parent1 = Parent.objects.get_or_create(user=parent1_user)[0]
         parent1.enfants.add(eleves_sciences[0], eleves_lettres[0])
 
         parent2_user = self._make_user("parent.hamdi", "Samira", "Hamdi", Utilisateur.Role.PARENT, etablissement)
+        parent2_user.email = "samira.hamdi@parent-demo.dz"
+        parent2_user.langue_notifications = Utilisateur.LangueNotifications.ARABE
+        parent2_user.save(update_fields=["email", "langue_notifications"])
         parent2 = Parent.objects.get_or_create(user=parent2_user)[0]
         parent2.enfants.add(eleves_sciences[1])
 
@@ -325,6 +330,8 @@ class Command(BaseCommand):
 
     def _make_parents_secondaire(self, eleves, etablissement):
         parent_user = self._make_user("parent.oran", "Kader", "Boumediene", Utilisateur.Role.PARENT, etablissement)
+        parent_user.email = "kader.boumediene@parent-demo.dz"
+        parent_user.save(update_fields=["email"])
         parent = Parent.objects.get_or_create(user=parent_user)[0]
         parent.enfants.add(eleves[0])
         return parent

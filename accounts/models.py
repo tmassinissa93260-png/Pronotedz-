@@ -9,6 +9,10 @@ class Utilisateur(AbstractUser):
         ELEVE = "ELEVE", "Élève"
         PARENT = "PARENT", "Parent"
 
+    class LangueNotifications(models.TextChoices):
+        FRANCAIS = "fr", "Français"
+        ARABE = "ar", "العربية"
+
     role = models.CharField(max_length=20, choices=Role.choices)
     etablissement = models.ForeignKey(
         "academics.Etablissement", on_delete=models.CASCADE, related_name="utilisateurs", null=True, blank=True
@@ -16,6 +20,10 @@ class Utilisateur(AbstractUser):
     telephone = models.CharField(max_length=20, blank=True)
     photo = models.ImageField(upload_to="photos/", blank=True, null=True)
     must_change_password = models.BooleanField(default=False)
+    langue_notifications = models.CharField(
+        max_length=2, choices=LangueNotifications.choices, default=LangueNotifications.FRANCAIS,
+        help_text="Langue utilisée pour le rapport hebdomadaire et les notifications par email.",
+    )
 
     def __str__(self):
         return self.get_full_name() or self.username
