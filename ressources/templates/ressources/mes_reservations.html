@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Mes réservations — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Mes réservations de ressources</h1>{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'ressources:nouvelle_reservation' %}" class="btn btn-primary btn-sm">Nouvelle réservation</a></p>
+  <table class="table pn-surface">
+    <thead><tr><th>Date</th><th>Créneau</th><th>Ressource</th><th>Motif</th><th></th></tr></thead>
+    <tbody>
+      {% for reservation in reservations %}
+        <tr>
+          <td>{{ reservation.date|date:"d/m/Y" }}</td>
+          <td>{{ reservation.creneau.heure_debut|time:"H:i" }}</td>
+          <td>{{ reservation.ressource }}</td>
+          <td>{{ reservation.motif }}</td>
+          <td>
+            <form method="post" action="{% url 'ressources:annuler_reservation' reservation.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline-danger">Annuler</button>
+            </form>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-muted text-center py-3">Aucune réservation à venir.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

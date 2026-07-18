@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Déposer un document — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Déposer un document</h1>{% endblock %}
+
+{% block content %}
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Titre</label>
+      <input type="text" name="titre" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Fichier</label>
+      <input type="file" name="fichier" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Description (optionnel)</label>
+      <input type="text" name="description" class="form-control">
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Catégorie</label>
+      <select name="categorie" class="form-select">
+        {% for value, label in categories %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Classe</label>
+      <select name="classe" class="form-select">
+        {% if est_admin %}<option value="">Tout l'établissement</option>{% endif %}
+        {% for classe in classes %}
+          <option value="{{ classe.pk }}">{{ classe }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Déposer</button>
+  </form>
+{% endblock %}

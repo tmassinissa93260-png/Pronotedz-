@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load qcm_extras %}
+{% block title %}{{ qcm.titre }} — Pronotedz{% endblock %}
+{% block page_title %}{{ qcm.titre }} — résultat{% endblock %}
+
+{% block content %}
+  <div class="alert alert-info">Score : <strong>{{ tentative.score }} / {{ qcm.total_points }}</strong></div>
+
+  {% for question in questions %}
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">{{ forloop.counter }}. {{ question.texte }}</p></div>
+      <div class="pn-widget-body">
+        {% with ma_reponse=reponses|get_item:question.pk %}
+          {% for choix in question.choix.all %}
+            <div>
+              {% if choix.est_correct %}✅{% elif choix.pk == ma_reponse %}❌{% else %}◻️{% endif %}
+              {{ choix.texte }}
+              {% if choix.pk == ma_reponse %}<span class="text-muted small">(votre réponse)</span>{% endif %}
+            </div>
+          {% endfor %}
+        {% endwith %}
+      </div>
+    </div>
+  {% endfor %}
+{% endblock %}

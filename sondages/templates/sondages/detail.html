@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load sondages_extras %}
+{% block title %}{{ sondage.titre }} — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">{{ sondage.titre }}</h1>{% endblock %}
+
+{% block content %}
+  <p class="text-muted">{{ sondage.description }}</p>
+
+  {% if resultats %}
+    {% for question in questions %}
+      <h2 class="h6">{{ question.texte }}</h2>
+      <ul class="list-group mb-4">
+        {% for choix in resultats|get_item:question.pk %}
+          <li class="list-group-item d-flex justify-content-between">
+            <span>{{ choix.texte }}</span>
+            <span class="badge bg-primary">{{ choix.nb_votes }} vote{{ choix.nb_votes|pluralize }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% endfor %}
+    {% if deja_vote %}<p class="text-muted">Vous avez déjà répondu à ce sondage.</p>{% endif %}
+  {% else %}
+    <form method="post">
+      {% csrf_token %}
+      {% for question in questions %}
+        <h2 class="h6">{{ question.texte }}</h2>
+        <div class="mb-4">
+          {% for choix in question.choix.all %}
+            <div class="form-check">
+              <input type="radio" name="question_{{ question.pk }}" value="{{ choix.pk }}" class="form-check-input" id="choix-{{ choix.pk }}" required>
+              <label class="form-check-label" for="choix-{{ choix.pk }}">{{ choix.texte }}</label>
+            </div>
+          {% endfor %}
+        </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">Répondre</button>
+    </form>
+  {% endif %}
+{% endblock %}

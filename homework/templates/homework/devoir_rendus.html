@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Devoirs rendus — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Devoirs rendus — {{ devoir.matiere }} — {{ devoir.classe }}</h1>{% endblock %}
+
+{% block content %}
+  <p class="text-muted">Consigne : {{ devoir.consigne }} — à rendre pour le {{ devoir.date_a_faire_pour|date:"d/m/Y" }}</p>
+
+  <table class="table pn-surface">
+    <thead><tr><th>Élève</th><th>Déposé le</th><th>Fichier</th><th>Note</th><th></th></tr></thead>
+    <tbody>
+      {% for rendu in rendus %}
+        <tr>
+          <td>{{ rendu.eleve.user.get_full_name }}</td>
+          <td>{{ rendu.date_soumission|date:"d/m/Y H:i" }}</td>
+          <td><a href="{{ rendu.fichier.url }}">Télécharger</a></td>
+          <td>{% if rendu.est_corrige %}{{ rendu.note_sur_20 }}/20{% else %}<span class="text-muted">Non corrigé</span>{% endif %}</td>
+          <td><a href="{% url 'homework:rendu_corriger' rendu.pk %}" class="btn btn-sm btn-outline-primary">Corriger</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-muted text-center py-3">Aucun devoir rendu pour l'instant.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

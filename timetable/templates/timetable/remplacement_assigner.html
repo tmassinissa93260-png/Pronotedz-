@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Assigner un remplaçant — Pronotedz{% endblock %}
+{% block page_title %}Assigner un remplaçant{% endblock %}
+
+{% block content %}
+  <div class="pn-widget" style="max-width: 560px;">
+    <div class="pn-widget-header">
+      <p class="pn-widget-title">{{ entry.matiere }} — {{ entry.classe }} — {{ date|date:"d/m/Y" }}</p>
+    </div>
+    <div class="pn-widget-body">
+      <p class="text-muted small">Enseignant habituel : {{ entry.enseignant }}</p>
+      {% if candidats %}
+        <form method="post">
+          {% csrf_token %}
+          {% for candidat in candidats %}
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="radio" name="enseignant" value="{{ candidat.pk }}" id="candidat-{{ candidat.pk }}" required>
+              <label class="form-check-label" for="candidat-{{ candidat.pk }}">{{ candidat }}</label>
+            </div>
+          {% endfor %}
+          <button type="submit" class="btn btn-primary btn-sm mt-2">Assigner</button>
+        </form>
+      {% else %}
+        <p class="pn-widget-empty">Aucun enseignant de la même matière n'est disponible à ce créneau.</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

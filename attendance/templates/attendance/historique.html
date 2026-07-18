@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Absences — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Historique des absences{% if eleve %} — {{ eleve.user.get_full_name }}{% endif %}</h1>{% endblock %}
+
+{% block content %}
+  {% if enfants and enfants|length > 1 %}
+    <div class="mb-3 btn-group">
+      {% for enfant in enfants %}
+        <a class="btn btn-sm btn-outline-primary {% if enfant == eleve %}active{% endif %}" href="?enfant={{ enfant.pk }}">{{ enfant.user.get_full_name }}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <table class="table pn-surface align-middle">
+    <thead><tr><th>Date</th><th>Matière</th><th>Justifiée</th><th>Motif</th><th>Justificatif</th></tr></thead>
+    <tbody>
+      {% for absence in absences %}
+        <tr>
+          <td>{{ absence.seance.date|date:"d/m/Y" }}</td>
+          <td>{{ absence.seance.emploi_du_temps_entry.matiere }}</td>
+          <td>{% if absence.justifiee %}<span class="badge bg-success">Oui</span>{% else %}<span class="badge bg-danger">Non</span>{% endif %}</td>
+          <td>{{ absence.motif }}</td>
+          <td>
+            {% if absence.dernier_justificatif %}
+              {% if absence.dernier_justificatif.statut == "EN_ATTENTE" %}
+                <span class="badge bg-warning text-dark">En attente</span>
+              {% elif absence.dernier_justificatif.statut == "APPROUVE" %}
+                <span class="badge bg-success">Approuvé</span>
+              {% else %}
+                <span class="badge bg-danger">Rejeté</span>
+              {% endif %}
+            {% elif not absence.justifiee %}
+              <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#justif-{{ absence.pk }}">
+                Joindre un justificatif
+              </button>
+            {% endif %}
+            <div class="collapse mt-2" id="justif-{{ absence.pk }}">
+              <form method="post" action="{% url 'attendance:justificatif_upload' absence.pk %}" enctype="multipart/form-data" class="d-flex gap-2 align-items-start flex-column">
+                {% csrf_token %}
+                <input type="file" name="fichier" class="form-control form-control-sm" required>
+                <input type="text" name="commentaire" class="form-control form-control-sm" placeholder="Commentaire (optionnel)">
+                <button type="submit" class="btn btn-sm btn-primary">Envoyer</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-muted text-center py-3">Aucune absence enregistrée.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

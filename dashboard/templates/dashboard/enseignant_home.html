@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Page d'accueil" %} — Pronotedz{% endblock %}
+{% block page_title %}{% translate "Page d'accueil" %}{% endblock %}
+
+{% block content %}
+<div class="pn-dashboard-grid">
+
+  <div>
+    {% include "timetable/_day_widget.html" %}
+  </div>
+
+  <div>
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Mes cours du jour" %}</p></div>
+      <div class="pn-widget-body">
+        {% if jour_widget.blocks %}
+          <ul class="pn-widget-list">
+            {% for b in jour_widget.blocks %}
+              <li>
+                <span>{{ b.entry.creneau.heure_debut|time:"H:i" }} — {{ b.entry.matiere }} — {{ b.entry.classe }}</span>
+                <span class="text-nowrap">
+                  <a href="{% url 'attendance:appel_seance' b.entry.pk %}" class="btn btn-sm btn-outline-primary">{% translate "Appel" %}</a>
+                  <a href="{% url 'homework:cahier_seance' b.entry.pk %}" class="btn btn-sm btn-outline-secondary">{% translate "Cahier" %}</a>
+                </span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="pn-widget-empty">{% translate "Aucun cours ce jour." %}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Actualités" %}</p></div>
+      <div class="pn-widget-body">
+        {% if publications %}
+          <ul class="pn-widget-list">
+            {% for publication in publications %}
+              <li><span>{% if publication.epingle %}📌 {% endif %}{{ publication.titre }}</span></li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="pn-widget-empty">{% translate "Aucune nouvelle information." %}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Accès rapides" %}</p></div>
+      <div class="pn-widget-body">
+        <ul class="pn-widget-list">
+          <li><a href="{% url 'grades:evaluation_liste' %}">{% translate "Saisir des notes" %}</a></li>
+          <li><a href="{% url 'vie_scolaire:observation_creer' %}">{% translate "Ajouter une observation" %}</a></li>
+          <li><a href="{% url 'rendezvous:mes_disponibilites' %}">{% translate "Mes disponibilités RDV" %}</a></li>
+          <li><a href="{% url 'ressources:nouvelle_reservation' %}">{% translate "Réserver une ressource" %}</a></li>
+          <li><a href="{% url 'documents:deposer' %}">{% translate "Déposer un document" %}</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Discussions" %}</p></div>
+      <div class="pn-widget-body">
+        <p class="pn-widget-empty"><a href="{% url 'messaging:boite_reception' %}">{% translate "Accéder à ma messagerie" %}</a></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

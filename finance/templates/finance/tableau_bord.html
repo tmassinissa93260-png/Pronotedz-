@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord financier — Pronotedz{% endblock %}
+{% block page_title %}Tableau de bord financier{% endblock %}
+
+{% block content %}
+  <div class="pn-dashboard-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">Total attendu</p></div>
+      <div class="pn-widget-body"><p class="h3 mb-0">{{ total_attendu }} DA</p></div>
+    </div>
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">Total encaissé</p></div>
+      <div class="pn-widget-body"><p class="h3 mb-0">{{ total_encaisse }} DA</p></div>
+    </div>
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">Taux de recouvrement</p></div>
+      <div class="pn-widget-body"><p class="h3 mb-0">{{ taux_recouvrement }} %</p></div>
+    </div>
+  </div>
+
+  <div class="pn-widget mt-3">
+    <div class="pn-widget-header">
+      <p class="pn-widget-title">Impayés</p>
+      <a href="{% url 'finance:facture_liste' %}" class="small">Voir toutes les factures</a>
+    </div>
+    <div class="pn-widget-body">
+      <table class="table pn-surface">
+        <thead><tr><th>Élève</th><th>Classe</th><th>Frais</th><th>Échéance</th><th>Restant</th><th>Statut</th><th></th></tr></thead>
+        <tbody>
+          {% for facture in impayes %}
+            <tr>
+              <td>{{ facture.eleve.user.get_full_name }}</td>
+              <td>{{ facture.eleve.classe }}</td>
+              <td>{{ facture.frais.libelle }}</td>
+              <td>{{ facture.frais.date_echeance|date:"d/m/Y" }}</td>
+              <td>{{ facture.montant_restant }} DA</td>
+              <td><span class="badge {% if facture.statut == 'EN_RETARD' %}bg-danger{% else %}bg-warning text-dark{% endif %}">{{ facture.get_statut_display }}</span></td>
+              <td><a href="{% url 'finance:facture_detail' facture.pk %}" class="btn btn-sm btn-outline-secondary">Détail</a></td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="text-muted text-center py-3">Aucun impayé.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

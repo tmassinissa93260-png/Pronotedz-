@@ -1,0 +1,246 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-17 13:34+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+msgid "Page d'accueil"
+msgstr "الصفحة الرئيسية"
+
+#, python-format
+msgid "Année scolaire : %(annee)s"
+msgstr "السنة الدراسية: %(annee)s"
+
+msgid "Aucune année scolaire active"
+msgstr "لا توجد سنة دراسية نشطة"
+
+msgid "Établissement"
+msgstr "المؤسسة"
+
+msgid "Classes"
+msgstr "الأقسام"
+
+msgid "Élèves"
+msgstr "التلاميذ"
+
+msgid "Enseignants"
+msgstr "الأساتذة"
+
+msgid "Gérer l'établissement"
+msgstr "إدارة المؤسسة"
+
+msgid "Statistiques du jour"
+msgstr "إحصائيات اليوم"
+
+msgid "Absents aujourd'hui"
+msgstr "الغائبون اليوم"
+
+msgid "Taux d'absentéisme"
+msgstr "نسبة الغياب"
+
+msgid "Évaluations (7 derniers jours)"
+msgstr "التقييمات (آخر 7 أيام)"
+
+msgid "Actualités"
+msgstr "الأخبار"
+
+msgid "Aucune nouvelle information."
+msgstr "لا توجد معلومات جديدة."
+
+msgid "Publier une actualité"
+msgstr "نشر خبر"
+
+msgid "Accès rapides"
+msgstr "روابط سريعة"
+
+msgid "Importer des comptes (CSV)"
+msgstr "استيراد الحسابات (CSV)"
+
+msgid "Vie scolaire"
+msgstr "الحياة المدرسية"
+
+msgid "Documents"
+msgstr "الوثائق"
+
+msgid "Créer un sondage"
+msgstr "إنشاء استطلاع"
+
+msgid "Messagerie"
+msgstr "المراسلة"
+
+msgid "Activité récente"
+msgstr "النشاط الأخير"
+
+msgid "Aucune activité récente."
+msgstr "لا يوجد نشاط حديث."
+
+msgid "Travail à faire"
+msgstr "العمل المطلوب"
+
+msgid "Aucun travail à faire n'a été saisi pour cette semaine."
+msgstr "لم يتم تسجيل أي عمل مطلوب لهذا الأسبوع."
+
+msgid "Dernières ressources pédagogiques"
+msgstr "آخر الموارد التربوية"
+
+msgid "Aucune ressource déposée récemment."
+msgstr "لم يتم إيداع أي مورد مؤخرًا."
+
+msgid "Absences, retards ..."
+msgstr "الغيابات، التأخرات ..."
+
+msgid "Aucune absence enregistrée."
+msgstr "لا يوجد غياب مسجل."
+
+msgid "Dernières notes"
+msgstr "آخر العلامات"
+
+msgid "Aucune note récente."
+msgstr "لا توجد علامة حديثة."
+
+msgid "Consulter mes observations"
+msgstr "الاطلاع على ملاحظاتي"
+
+msgid "Discussions"
+msgstr "المحادثات"
+
+msgid "Accéder à ma messagerie"
+msgstr "الذهاب إلى رسائلي"
+
+msgid "Informations & Sondages"
+msgstr "معلومات واستطلاعات"
+
+msgid "Voir les sondages en cours"
+msgstr "عرض الاستطلاعات الجارية"
+
+msgid "Mes cours du jour"
+msgstr "حصصي اليوم"
+
+msgid "Appel"
+msgstr "النداء"
+
+msgid "Cahier"
+msgstr "الدفتر"
+
+msgid "Aucun cours ce jour."
+msgstr "لا توجد حصص اليوم."
+
+msgid "Saisir des notes"
+msgstr "تسجيل العلامات"
+
+msgid "Ajouter une observation"
+msgstr "إضافة ملاحظة"
+
+msgid "Mes disponibilités RDV"
+msgstr "أوقات توفري للمواعيد"
+
+msgid "Réserver une ressource"
+msgstr "حجز مورد"
+
+msgid "Déposer un document"
+msgstr "إيداع وثيقة"
+
+msgid "Aucun enfant rattaché à ce compte."
+msgstr "لا يوجد ابن مرتبط بهذا الحساب."
+
+msgid "Consulter les observations"
+msgstr "الاطلاع على الملاحظات"
+
+msgid "Rendez-vous"
+msgstr "المواعيد"
+
+msgid "Mes rendez-vous"
+msgstr "مواعيدي"
+
+msgid "Prendre RDV"
+msgstr "حجز موعد"
+
+#, python-format
+msgid "Espace %(role)s"
+msgstr "فضاء %(role)s"
+
+msgid "Notifications"
+msgstr "الإشعارات"
+
+msgid "Aucune notification."
+msgstr "لا توجد إشعارات."
+
+msgid "Voir toutes les notifications"
+msgstr "عرض جميع الإشعارات"
+
+msgid "Changer de langue"
+msgstr "تغيير اللغة"
+
+msgid "Changer de thème"
+msgstr "تغيير المظهر"
+
+msgid "Déconnexion"
+msgstr "تسجيل الخروج"
+
+msgid "Emploi du temps"
+msgstr "الجدول الزمني"
+
+msgid "Cahier de texte"
+msgstr "دفتر النصوص"
+
+msgid "Notes"
+msgstr "العلامات"
+
+msgid "QCM"
+msgstr "الاختبارات"
+
+msgid "Ressources"
+msgstr "الموارد"
+
+msgid "Notes / bulletin"
+msgstr "العلامات / كشف النقاط"
+
+msgid "Communication"
+msgstr "التواصل"
+
+msgid "Sondages"
+msgstr "الاستطلاعات"
+
+msgid "Administration"
+msgstr "الإدارة"
+
+#, python-format
+msgid "Précédente connexion le %(date)s"
+msgstr "آخر تسجيل دخول في %(date)s"
+
+msgid "Mentions légales"
+msgstr "الإشعارات القانونية"
+
+msgid "Plateforme de gestion scolaire pour l'Algérie"
+msgstr "منصة لإدارة المؤسسات المدرسية في الجزائر"
+
+msgid "Connexion"
+msgstr "تسجيل الدخول"
+
+msgid "Espace numérique de l'établissement"
+msgstr "الفضاء الرقمي للمؤسسة"
+
+msgid "Identifiant ou mot de passe incorrect."
+msgstr "اسم المستخدم أو كلمة المرور غير صحيحة."
+
+msgid "Identifiant"
+msgstr "اسم المستخدم"
+
+msgid "Mot de passe"
+msgstr "كلمة المرور"
+
+msgid "Se connecter"
+msgstr "تسجيل الدخول"

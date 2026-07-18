@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Nouvelle publication — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Nouvelle publication</h1>{% endblock %}
+
+{% block content %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Titre</label>
+      <input type="text" name="titre" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Contenu</label>
+      <textarea name="contenu" class="form-control" rows="4" required></textarea>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Audience</label>
+      <select name="audience" class="form-select">
+        {% for value, label in audiences %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="form-check mb-3">
+      <input type="checkbox" name="epingle" class="form-check-input" id="epingle">
+      <label class="form-check-label" for="epingle">Épingler en haut du kiosque</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Publier</button>
+  </form>
+{% endblock %}

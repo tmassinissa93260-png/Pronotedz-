@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Préférences — Pronotedz{% endblock %}
+{% block page_title %}Préférences de notification{% endblock %}
+
+{% block content %}
+  <div class="pn-widget" style="max-width: 480px;">
+    <div class="pn-widget-header"><p class="pn-widget-title">Langue du rapport hebdomadaire</p></div>
+    <div class="pn-widget-body">
+      <p class="text-muted small">Choisissez la langue dans laquelle vous recevrez le résumé hebdomadaire de vos enfants (notes, absences, devoirs à venir).</p>
+      <form method="post">
+        {% csrf_token %}
+        <select name="langue_notifications" class="form-select mb-2">
+          {% for value, label in langues %}
+            <option value="{{ value }}" {% if value == request.user.langue_notifications %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Enregistrer</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}

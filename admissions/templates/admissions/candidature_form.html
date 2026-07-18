@@ -1,0 +1,86 @@
+{% extends "public_base.html" %}
+{% block title %}Candidature — {{ etablissement.nom }}{% endblock %}
+{% block header_title %}{{ etablissement.nom }}{% endblock %}
+
+{% block content %}
+  <div class="public-card">
+    <h1 class="h4 mb-1">Formulaire de candidature</h1>
+    <p class="text-muted">Merci de compléter ce formulaire pour inscrire votre enfant à {{ etablissement.nom }}.</p>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <h2 class="h6 mt-4">Informations sur l'enfant</h2>
+      <div class="row g-2">
+        <div class="col-md-6">
+          <label class="form-label">Nom</label>
+          <input type="text" name="nom" class="form-control" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Prénom</label>
+          <input type="text" name="prenom" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Date de naissance</label>
+          <input type="date" name="date_naissance" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Sexe</label>
+          <select name="sexe" class="form-select">
+            <option value="">—</option>
+            {% for value, label in sexes %}
+              <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Niveau souhaité</label>
+          <select name="niveau_souhaite" class="form-select" required>
+            <option value="">—</option>
+            {% for niveau in niveaux %}
+              <option value="{{ niveau.pk }}">{{ niveau.libelle }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <h2 class="h6 mt-4">Coordonnées du parent / tuteur</h2>
+      <div class="row g-2">
+        <div class="col-md-4">
+          <label class="form-label">Nom complet</label>
+          <input type="text" name="nom_parent" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Téléphone</label>
+          <input type="text" name="telephone_parent" class="form-control" required>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Email</label>
+          <input type="email" name="email_parent" class="form-control" required>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Adresse</label>
+          <input type="text" name="adresse" class="form-control">
+        </div>
+      </div>
+
+      <h2 class="h6 mt-4">Documents (optionnel)</h2>
+      <div class="row g-2">
+        <div class="col-md-4">
+          <label class="form-label">Bulletin précédent</label>
+          <input type="file" name="bulletin_precedent" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Acte de naissance</label>
+          <input type="file" name="acte_naissance" class="form-control">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label">Photo</label>
+          <input type="file" name="photo" class="form-control" accept="image/*">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary mt-4">Envoyer ma candidature</button>
+    </form>
+  </div>
+{% endblock %}

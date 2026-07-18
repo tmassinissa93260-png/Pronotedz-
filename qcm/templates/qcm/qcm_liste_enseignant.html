@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}QCM — Pronotedz{% endblock %}
+{% block page_title %}Mes QCM{% endblock %}
+
+{% block content %}
+  <p><a href="{% url 'qcm:qcm_creer' %}" class="btn btn-primary btn-sm">Nouveau QCM</a></p>
+  <table class="table pn-surface">
+    <thead><tr><th>Titre</th><th>Classe</th><th>Matière</th><th>Questions</th><th></th></tr></thead>
+    <tbody>
+      {% for qcm in qcms %}
+        <tr>
+          <td>{{ qcm.titre }}</td>
+          <td>{{ qcm.classe }}</td>
+          <td>{{ qcm.matiere }}</td>
+          <td>{{ qcm.questions.count }}</td>
+          <td><a href="{% url 'qcm:qcm_resultats' qcm.pk %}" class="btn btn-sm btn-outline-primary">Résultats</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-muted text-center py-3">Aucun QCM créé.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

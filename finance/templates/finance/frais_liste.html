@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Frais de scolarité — Pronotedz{% endblock %}
+{% block page_title %}Frais de scolarité{% endblock %}
+
+{% block content %}
+  <p>
+    <a href="{% url 'finance:frais_creer' %}" class="btn btn-primary btn-sm">Créer un frais</a>
+    <a href="{% url 'finance:tableau_bord' %}" class="btn btn-outline-secondary btn-sm">Tableau de bord</a>
+    <a href="{% url 'finance:facture_liste' %}" class="btn btn-outline-secondary btn-sm">Factures</a>
+  </p>
+
+  <table class="table pn-surface">
+    <thead><tr><th>Libellé</th><th>Niveau</th><th>Année scolaire</th><th>Montant</th><th>Échéance</th></tr></thead>
+    <tbody>
+      {% for frais in frais_liste %}
+        <tr>
+          <td>{{ frais.libelle }}</td>
+          <td>{{ frais.niveau }}</td>
+          <td>{{ frais.annee_scolaire }}</td>
+          <td>{{ frais.montant }} DA</td>
+          <td>{{ frais.date_echeance|date:"d/m/Y" }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="5" class="text-muted text-center py-3">Aucun frais créé pour le moment.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

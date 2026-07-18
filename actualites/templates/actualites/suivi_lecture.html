@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Suivi de lecture — Pronotedz{% endblock %}
+{% block page_title %}Suivi de lecture — {{ publication.titre }}{% endblock %}
+
+{% block content %}
+  <p class="text-muted">{{ nb_lu }} / {{ nb_total }} destinataire(s) ont pris connaissance de cette publication.</p>
+  <table class="table pn-surface">
+    <thead><tr><th>Destinataire</th><th>Rôle</th><th>Statut</th></tr></thead>
+    <tbody>
+      {% for ligne in lignes %}
+        <tr>
+          <td>{{ ligne.utilisateur.get_full_name }}</td>
+          <td>{{ ligne.utilisateur.get_role_display }}</td>
+          <td>{% if ligne.lu %}<span class="badge bg-success">Lu</span>{% else %}<span class="badge bg-secondary">Non lu</span>{% endif %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="3" class="text-muted text-center py-3">Aucun destinataire.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

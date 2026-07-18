@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Nouveau sondage — Pronotedz{% endblock %}
+{% block page_title %}<h1 class="h4 mb-0">Nouveau sondage</h1>{% endblock %}
+
+{% block content %}
+  <form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label">Titre</label>
+      <input type="text" name="titre" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Description (optionnel)</label>
+      <textarea name="description" class="form-control" rows="2"></textarea>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Audience</label>
+      <select name="audience" class="form-select">
+        {% for value, label in audiences %}
+          <option value="{{ value }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Date de clôture (optionnel)</label>
+      <input type="date" name="date_cloture" class="form-control w-auto">
+    </div>
+    <hr>
+    <div class="mb-3">
+      <label class="form-label">Question</label>
+      <input type="text" name="question" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Choix de réponse (un par ligne)</label>
+      <textarea name="choix" class="form-control" rows="4" placeholder="Oui&#10;Non&#10;Sans avis" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Créer le sondage</button>
+  </form>
+{% endblock %}

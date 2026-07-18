@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load timetable_extras %}
+{% block title %}Remplacements — Pronotedz{% endblock %}
+{% block page_title %}Remplacements du {{ date|date:"d/m/Y" }}{% endblock %}
+
+{% block content %}
+  {% with date_iso=date|date:"Y-m-d" %}
+    <form method="get" class="row g-2 mb-3" style="max-width: 320px;">
+      <div class="col-auto">
+        <input type="date" name="date" value="{{ date_iso }}" class="form-control form-control-sm" onchange="this.form.submit()">
+      </div>
+    </form>
+
+    <table class="table pn-surface">
+      <thead><tr><th>Créneau</th><th>Classe</th><th>Matière</th><th>Enseignant</th><th>Statut</th><th></th></tr></thead>
+      <tbody>
+        {% for entry in entries %}
+          {% with seance=seances_par_entry|get_item:entry.pk %}
+            <tr>
+              <td>{{ entry.creneau.heure_debut|time:"H:i" }}-{{ entry.creneau.heure_fin|time:"H:i" }}</td>
+              <td>{{ entry.classe }}</td>
+              <td>{{ entry.matiere }}</td>
+              <td>{{ entry.enseignant }}</td>
+              <td>
+                {% if seance and seance.enseignant_remplacant %}
+                  <span class="badge bg-warning text-dark">Remplacé par {{ seance.enseignant_remplacant }}</span>
+                {% else %}
+                  <span class="badge bg-secondary">Normal</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if seance and seance.enseignant_remplacant %}
+                  <a href="{% url 'timetable:remplacement_annuler' seance.pk %}" class="btn btn-sm btn-outline-danger">Annuler</a>
+                {% else %}
+                  <a href="{% url 'timetable:remplacement_assigner' entry.pk date_iso %}" class="btn btn-sm btn-outline-secondary">Assigner un remplaçant</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endwith %}
+        {% empty %}
+          <tr><td colspan="6" class="text-muted text-center py-3">Aucun cours ce jour-là.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endwith %}
+{% endblock %}

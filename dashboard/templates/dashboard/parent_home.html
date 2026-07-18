@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Page d'accueil" %} — Pronotedz{% endblock %}
+{% block page_title %}{% translate "Page d'accueil" %}{% endblock %}
+
+{% block content %}
+  {% if enfants|length > 1 %}
+    <div class="mb-3 btn-group">
+      {% for enf in enfants %}
+        <a class="btn btn-sm btn-outline-primary {% if enf == enfant %}active{% endif %}" href="?enfant={{ enf.pk }}">{{ enf.user.get_full_name }}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if not enfant %}
+    <p class="text-muted">{% translate "Aucun enfant rattaché à ce compte." %}</p>
+  {% else %}
+    <div class="pn-dashboard-grid">
+
+      <div>
+        {% include "timetable/_day_widget.html" %}
+      </div>
+
+      <div>
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Travail à faire" %}</p></div>
+          <div class="pn-widget-body">
+            {% if devoirs_a_venir %}
+              <ul class="pn-widget-list">
+                {% for devoir in devoirs_a_venir %}
+                  <li><span><strong>{{ devoir.matiere }}</strong> — {{ devoir.consigne|truncatechars:60 }}</span><span class="text-nowrap">{{ devoir.date_a_faire_pour|date:"d/m" }}</span></li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="pn-widget-empty">{% translate "Aucun travail à faire n'a été saisi pour cette semaine." %}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Absences, retards ..." %}</p></div>
+          <div class="pn-widget-body">
+            {% if absences_recentes %}
+              <ul class="pn-widget-list">
+                {% for absence in absences_recentes %}
+                  <li><span>{{ absence.seance.emploi_du_temps_entry.matiere }}</span><span class="text-nowrap">{{ absence.seance.date|date:"d/m" }}</span></li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="pn-widget-empty">{% translate "Aucune absence enregistrée." %}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Dernières notes" %}</p></div>
+          <div class="pn-widget-body">
+            {% if notes_recentes %}
+              <ul class="pn-widget-list">
+                {% for note in notes_recentes %}
+                  <li><span>{{ note.evaluation.matiere }}</span><span class="pn-note-value">{{ note.valeur }}</span></li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="pn-widget-empty">{% translate "Aucune note récente." %}</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Actualités" %}</p></div>
+          <div class="pn-widget-body">
+            {% if publications %}
+              <ul class="pn-widget-list">
+                {% for publication in publications %}
+                  <li><span>{% if publication.epingle %}📌 {% endif %}{{ publication.titre }}</span></li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="pn-widget-empty">{% translate "Aucune nouvelle information." %}</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Vie scolaire" %}</p></div>
+          <div class="pn-widget-body">
+            <p class="pn-widget-empty"><a href="{% url 'vie_scolaire:mes_observations' %}">{% translate "Consulter les observations" %}</a></p>
+          </div>
+        </div>
+
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Rendez-vous" %}</p></div>
+          <div class="pn-widget-body">
+            <p class="pn-widget-empty"><a href="{% url 'rendezvous:mes_rdv' %}">{% translate "Mes rendez-vous" %}</a> · <a href="{% url 'rendezvous:disponibilites_liste' %}">{% translate "Prendre RDV" %}</a></p>
+          </div>
+        </div>
+
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Discussions" %}</p></div>
+          <div class="pn-widget-body">
+            <p class="pn-widget-empty"><a href="{% url 'messaging:boite_reception' %}">{% translate "Accéder à ma messagerie" %}</a></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  {% endif %}
+{% endblock %}

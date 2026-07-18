@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Bulletin — Pronotedz{% endblock %}
+{% block page_title %}Bulletin{% if eleve %} — {{ eleve.user.get_full_name }}{% endif %}{% if trimestre %} — {{ trimestre }}{% endif %}{% endblock %}
+
+{% block content %}
+  {% if enfants and enfants|length > 1 %}
+    <div class="mb-3 btn-group">
+      {% for enfant in enfants %}
+        <a class="btn btn-sm btn-outline-primary {% if enfant == eleve %}active{% endif %}" href="?enfant={{ enfant.pk }}">{{ enfant.user.get_full_name }}</a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if not trimestre %}
+    <p class="text-muted">Aucun trimestre actif pour le moment.</p>
+  {% else %}
+    <p><a href="{% url 'grades:bulletin_pdf' %}{% if enfants %}?enfant={{ eleve.pk }}{% endif %}" class="btn btn-outline-primary btn-sm">📄 Télécharger le bulletin PDF</a></p>
+
+    <div class="table-responsive">
+      <table class="table pn-surface">
+        <thead><tr><th>Matière</th><th>Coef.</th><th>Ma moyenne</th><th>Moy. classe</th><th>Min</th><th>Max</th><th>Appréciation</th></tr></thead>
+        <tbody>
+          {% for ligne in lignes %}
+            <tr>
+              <td>{{ ligne.matiere }}</td>
+              <td>{{ ligne.coefficient.coefficient|default:"-" }}</td>
+              <td class="pn-note-value">{{ ligne.moyenne|default:"—" }}</td>
+              <td>{{ ligne.stats_classe.moyenne|default:"—" }}</td>
+              <td>{{ ligne.stats_classe.min|default:"—" }}</td>
+              <td>{{ ligne.stats_classe.max|default:"—" }}</td>
+              <td class="small">{{ ligne.appreciation }}</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="text-muted text-center py-3">Aucune note ce trimestre.</td></tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr class="fw-bold">
+            <td>Moyenne générale</td>
+            <td></td>
+            <td class="pn-note-value">{{ moyenne_generale|default:"—" }}</td>
+            <td colspan="4">{% if rang %}Rang : {{ rang }} / {{ effectif }}{% endif %}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    {% if appreciation_generale and appreciation_generale.texte %}
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">Appréciation générale</p></div>
+        <div class="pn-widget-body">{{ appreciation_generale.texte }}</div>
+      </div>
+    {% endif %}
+  {% endif %}
+{% endblock %}

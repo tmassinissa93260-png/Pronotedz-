@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}{{ groupe.nom }} — Pronotedz{% endblock %}
+{% block page_title %}Groupe scolaire — {{ groupe.nom }}{% endblock %}
+
+{% block content %}
+  <div class="pn-dashboard-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr;">
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">Campus</p></div>
+      <div class="pn-widget-body"><p class="h3 mb-0">{{ campus|length }}</p></div>
+    </div>
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">Classes</p></div>
+      <div class="pn-widget-body"><p class="h3 mb-0">{{ totaux.nb_classes }}</p></div>
+    </div>
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">Élèves</p></div>
+      <div class="pn-widget-body"><p class="h3 mb-0">{{ totaux.nb_eleves }}</p></div>
+    </div>
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">Total attendu</p></div>
+      <div class="pn-widget-body"><p class="h3 mb-0">{{ totaux.total_attendu }} DA</p></div>
+    </div>
+    <div class="pn-widget">
+      <div class="pn-widget-header"><p class="pn-widget-title">Total encaissé</p></div>
+      <div class="pn-widget-body"><p class="h3 mb-0">{{ totaux.total_encaisse }} DA</p></div>
+    </div>
+  </div>
+
+  <div class="pn-widget mt-3">
+    <div class="pn-widget-header"><p class="pn-widget-title">Détail par campus</p></div>
+    <div class="pn-widget-body">
+      <table class="table pn-surface">
+        <thead><tr><th>Établissement</th><th>Wilaya</th><th>Classes</th><th>Élèves</th><th>Enseignants</th><th>Attendu</th><th>Encaissé</th></tr></thead>
+        <tbody>
+          {% for c in campus %}
+            <tr>
+              <td>{{ c.etablissement.nom }}</td>
+              <td>{{ c.etablissement.wilaya }}</td>
+              <td>{{ c.nb_classes }}</td>
+              <td>{{ c.nb_eleves }}</td>
+              <td>{{ c.nb_enseignants }}</td>
+              <td>{{ c.total_attendu }} DA</td>
+              <td>{{ c.total_encaisse }} DA</td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="7" class="text-muted text-center py-3">Aucun campus dans ce groupe.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

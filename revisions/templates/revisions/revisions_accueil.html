@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Espace révisions — Pronotedz{% endblock %}
+{% block page_title %}Espace révisions BEM/BAC{% endblock %}
+
+{% block content %}
+  {% if date_examen %}
+    <div class="alert alert-info">
+      Examen le <strong>{{ date_examen.date_examen|date:"d/m/Y" }}</strong>
+      {% if jours_restants is not None %}— <strong>J-{{ jours_restants }}</strong>{% endif %}
+    </div>
+  {% endif %}
+
+  <div class="pn-dashboard-grid" style="grid-template-columns: 1fr 1fr;">
+    <div>
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">Progression par matière</p></div>
+        <div class="pn-widget-body">
+          <ul class="pn-widget-list">
+            {% for matiere, stats in progression_par_matiere %}
+              <li><span>{{ matiere.nom }}</span><span class="pn-note-value">{{ stats.maitrises }}/{{ stats.total }} ({{ stats.pourcentage }}%)</span></li>
+            {% empty %}
+              <li><span class="text-muted">Aucun chapitre au programme n'a encore été renseigné pour votre niveau.</span></li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">Annales d'examen</p></div>
+        <div class="pn-widget-body">
+          {% if annales %}
+            <ul class="pn-widget-list">
+              {% for annale in annales %}
+                <li>
+                  <span>{{ annale.matiere.nom }} — {{ annale.titre }} ({{ annale.annee }})</span>
+                  {% if annale.fichier %}<a href="{{ annale.fichier.url }}" class="small">Télécharger</a>{% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="pn-widget-empty">Aucune annale disponible pour le moment.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">Planning de révision</p></div>
+        <div class="pn-widget-body">
+          {% if planning %}
+            {% for numero, chapitres in planning %}
+              <p class="fw-semibold mb-1">Semaine {{ numero }}</p>
+              <ul class="pn-widget-list mb-3">
+                {% for chapitre in chapitres %}
+                  <li><span>{{ chapitre.matiere.nom }} — {{ chapitre.titre }}</span></li>
+                {% endfor %}
+              </ul>
+            {% endfor %}
+          {% else %}
+            <p class="pn-widget-empty">
+              {% if not date_examen %}La date d'examen n'a pas encore été configurée par l'administration.
+              {% else %}Bravo, tous les chapitres sont maîtrisés !{% endif %}
+            </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pn-widget mt-3">
+    <div class="pn-widget-header"><p class="pn-widget-title">Suivi par chapitre</p></div>
+    <div class="pn-widget-body">
+      <table class="table pn-surface">
+        <thead><tr><th>Matière</th><th>Chapitre</th><th style="width:200px;">Statut</th></tr></thead>
+        <tbody>
+          {% for ligne in lignes %}
+            <tr>
+              <td>{{ ligne.chapitre.matiere.nom }}</td>
+              <td>{{ ligne.chapitre.titre }}</td>
+              <td>
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="chapitre_id" value="{{ ligne.chapitre.pk }}">
+                  <select name="statut" class="form-select form-select-sm" onchange="this.form.submit()">
+                    {% for value, label in statuts %}
+                      <option value="{{ value }}" {% if value == ligne.statut %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                </form>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="3" class="text-muted text-center py-3">Aucun chapitre au programme pour votre niveau.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

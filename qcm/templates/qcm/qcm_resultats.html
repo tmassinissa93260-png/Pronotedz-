@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Résultats QCM — Pronotedz{% endblock %}
+{% block page_title %}Résultats — {{ qcm.titre }}{% endblock %}
+
+{% block content %}
+  <p class="text-muted">Barème total : {{ qcm.total_points }} points</p>
+  <table class="table pn-surface">
+    <thead><tr><th>Élève</th><th>Statut</th><th>Score</th></tr></thead>
+    <tbody>
+      {% for ligne in lignes %}
+        <tr>
+          <td>{{ ligne.eleve.user.get_full_name }}</td>
+          <td>
+            {% if ligne.tentative.est_soumise %}<span class="badge bg-success">Soumis</span>
+            {% elif ligne.tentative %}<span class="badge bg-warning text-dark">En cours</span>
+            {% else %}<span class="badge bg-secondary">Non commencé</span>{% endif %}
+          </td>
+          <td>{% if ligne.tentative.est_soumise %}{{ ligne.tentative.score }} / {{ qcm.total_points }}{% else %}—{% endif %}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

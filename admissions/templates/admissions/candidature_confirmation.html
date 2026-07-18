@@ -1,0 +1,14 @@
+{% extends "public_base.html" %}
+{% block title %}Candidature envoyée — {{ candidature.etablissement.nom }}{% endblock %}
+{% block header_title %}{{ candidature.etablissement.nom }}{% endblock %}
+
+{% block content %}
+  <div class="public-card text-center">
+    <h1 class="h4 mb-3">✅ Candidature envoyée</h1>
+    <p>Merci, la candidature de <strong>{{ candidature.nom_complet }}</strong> a bien été reçue.</p>
+    <p class="text-muted">Conservez précieusement votre numéro de référence pour suivre son évolution :</p>
+    <p class="h3 text-primary">{{ candidature.reference }}</p>
+    <p class="text-muted small">Un email de confirmation a été envoyé à {{ candidature.email_parent }}.</p>
+    <p class="mt-3"><a href="{% url 'admissions:candidature_suivi' %}">Suivre ma candidature</a></p>
+  </div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hors ligne — Pronotedz</title>
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'css/app.css' %}" rel="stylesheet">
+</head>
+<body class="auth-page d-flex align-items-center justify-content-center">
+  <div class="card auth-card shadow-sm text-center">
+    <div class="card-body p-4">
+      <span class="app-brand-badge">🎓</span>
+      <h1 class="h4 fw-bold mt-3 mb-2">Pronotedz</h1>
+      <p class="text-muted">Vous êtes hors ligne et cette page n'a pas encore été consultée. Reconnectez-vous à internet, ou ouvrez une page déjà visitée.</p>
+      <button type="button" class="btn btn-primary" onclick="window.location.reload()">Réessayer</button>
+    </div>
+  </div>
+</body>
+</html>

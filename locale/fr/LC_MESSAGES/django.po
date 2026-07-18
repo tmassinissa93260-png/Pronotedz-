@@ -1,0 +1,246 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-17 13:34+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+msgid "Page d'accueil"
+msgstr ""
+
+#, python-format
+msgid "Année scolaire : %(annee)s"
+msgstr ""
+
+msgid "Aucune année scolaire active"
+msgstr ""
+
+msgid "Établissement"
+msgstr ""
+
+msgid "Classes"
+msgstr ""
+
+msgid "Élèves"
+msgstr ""
+
+msgid "Enseignants"
+msgstr ""
+
+msgid "Gérer l'établissement"
+msgstr ""
+
+msgid "Statistiques du jour"
+msgstr ""
+
+msgid "Absents aujourd'hui"
+msgstr ""
+
+msgid "Taux d'absentéisme"
+msgstr ""
+
+msgid "Évaluations (7 derniers jours)"
+msgstr ""
+
+msgid "Actualités"
+msgstr ""
+
+msgid "Aucune nouvelle information."
+msgstr ""
+
+msgid "Publier une actualité"
+msgstr ""
+
+msgid "Accès rapides"
+msgstr ""
+
+msgid "Importer des comptes (CSV)"
+msgstr ""
+
+msgid "Vie scolaire"
+msgstr ""
+
+msgid "Documents"
+msgstr ""
+
+msgid "Créer un sondage"
+msgstr ""
+
+msgid "Messagerie"
+msgstr ""
+
+msgid "Activité récente"
+msgstr ""
+
+msgid "Aucune activité récente."
+msgstr ""
+
+msgid "Travail à faire"
+msgstr ""
+
+msgid "Aucun travail à faire n'a été saisi pour cette semaine."
+msgstr ""
+
+msgid "Dernières ressources pédagogiques"
+msgstr ""
+
+msgid "Aucune ressource déposée récemment."
+msgstr ""
+
+msgid "Absences, retards ..."
+msgstr ""
+
+msgid "Aucune absence enregistrée."
+msgstr ""
+
+msgid "Dernières notes"
+msgstr ""
+
+msgid "Aucune note récente."
+msgstr ""
+
+msgid "Consulter mes observations"
+msgstr ""
+
+msgid "Discussions"
+msgstr ""
+
+msgid "Accéder à ma messagerie"
+msgstr ""
+
+msgid "Informations & Sondages"
+msgstr ""
+
+msgid "Voir les sondages en cours"
+msgstr ""
+
+msgid "Mes cours du jour"
+msgstr ""
+
+msgid "Appel"
+msgstr ""
+
+msgid "Cahier"
+msgstr ""
+
+msgid "Aucun cours ce jour."
+msgstr ""
+
+msgid "Saisir des notes"
+msgstr ""
+
+msgid "Ajouter une observation"
+msgstr ""
+
+msgid "Mes disponibilités RDV"
+msgstr ""
+
+msgid "Réserver une ressource"
+msgstr ""
+
+msgid "Déposer un document"
+msgstr ""
+
+msgid "Aucun enfant rattaché à ce compte."
+msgstr ""
+
+msgid "Consulter les observations"
+msgstr ""
+
+msgid "Rendez-vous"
+msgstr ""
+
+msgid "Mes rendez-vous"
+msgstr ""
+
+msgid "Prendre RDV"
+msgstr ""
+
+#, python-format
+msgid "Espace %(role)s"
+msgstr ""
+
+msgid "Notifications"
+msgstr ""
+
+msgid "Aucune notification."
+msgstr ""
+
+msgid "Voir toutes les notifications"
+msgstr ""
+
+msgid "Changer de langue"
+msgstr ""
+
+msgid "Changer de thème"
+msgstr ""
+
+msgid "Déconnexion"
+msgstr ""
+
+msgid "Emploi du temps"
+msgstr ""
+
+msgid "Cahier de texte"
+msgstr ""
+
+msgid "Notes"
+msgstr ""
+
+msgid "QCM"
+msgstr ""
+
+msgid "Ressources"
+msgstr ""
+
+msgid "Notes / bulletin"
+msgstr ""
+
+msgid "Communication"
+msgstr ""
+
+msgid "Sondages"
+msgstr ""
+
+msgid "Administration"
+msgstr ""
+
+#, python-format
+msgid "Précédente connexion le %(date)s"
+msgstr ""
+
+msgid "Mentions légales"
+msgstr ""
+
+msgid "Plateforme de gestion scolaire pour l'Algérie"
+msgstr ""
+
+msgid "Connexion"
+msgstr ""
+
+msgid "Espace numérique de l'établissement"
+msgstr ""
+
+msgid "Identifiant ou mot de passe incorrect."
+msgstr ""
+
+msgid "Identifiant"
+msgstr ""
+
+msgid "Mot de passe"
+msgstr ""
+
+msgid "Se connecter"
+msgstr ""

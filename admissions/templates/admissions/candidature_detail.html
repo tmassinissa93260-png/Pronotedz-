@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}{{ candidature.reference }} — Pronotedz{% endblock %}
+{% block page_title %}Candidature {{ candidature.reference }}{% endblock %}
+
+{% block content %}
+  <div class="pn-dashboard-grid" style="grid-template-columns: 1.4fr 1fr;">
+    <div>
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">Informations</p></div>
+        <div class="pn-widget-body">
+          <ul class="pn-widget-list">
+            <li><span>Candidat</span><span>{{ candidature.nom_complet }}</span></li>
+            <li><span>Date de naissance</span><span>{{ candidature.date_naissance|date:"d/m/Y"|default:"—" }}</span></li>
+            <li><span>Niveau souhaité</span><span>{{ candidature.niveau_souhaite }}</span></li>
+            <li><span>Parent</span><span>{{ candidature.nom_parent }}</span></li>
+            <li><span>Téléphone</span><span>{{ candidature.telephone_parent }}</span></li>
+            <li><span>Email</span><span>{{ candidature.email_parent }}</span></li>
+            <li><span>Adresse</span><span>{{ candidature.adresse|default:"—" }}</span></li>
+          </ul>
+          <p class="mt-3 mb-0">
+            {% if candidature.bulletin_precedent %}<a href="{{ candidature.bulletin_precedent.url }}" class="me-2">Bulletin</a>{% endif %}
+            {% if candidature.acte_naissance %}<a href="{{ candidature.acte_naissance.url }}" class="me-2">Acte de naissance</a>{% endif %}
+            {% if candidature.photo %}<a href="{{ candidature.photo.url }}">Photo</a>{% endif %}
+          </p>
+        </div>
+      </div>
+
+      {% if candidature.statut == "ACCEPTE" %}
+        <div class="pn-widget">
+          <div class="pn-widget-header"><p class="pn-widget-title">Conversion en compte élève</p></div>
+          <div class="pn-widget-body">
+            {% if candidature.eleve_cree %}
+              <p class="text-success mb-0">✓ Déjà convertie en élève : {{ candidature.eleve_cree }}</p>
+            {% elif classes %}
+              <form method="post" action="{% url 'admissions:candidature_convertir' candidature.pk %}">
+                {% csrf_token %}
+                <label class="form-label">Classe</label>
+                <select name="classe" class="form-select mb-2" required>
+                  {% for classe in classes %}
+                    <option value="{{ classe.pk }}">{{ classe }}</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary btn-sm">Créer le compte élève</button>
+              </form>
+            {% else %}
+              <p class="pn-widget-empty">Aucune classe disponible pour ce niveau.</p>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <div>
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">Statut du dossier</p></div>
+        <div class="pn-widget-body">
+          <p>Statut actuel : <span class="badge bg-primary">{{ candidature.get_statut_display }}</span></p>
+          <form method="post">
+            {% csrf_token %}
+            <label class="form-label">Changer le statut</label>
+            <select name="statut" class="form-select mb-2">
+              {% for value, label in statuts %}
+                <option value="{{ value }}" {% if value == candidature.statut %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <label class="form-label">Notes internes</label>
+            <textarea name="notes_admin" class="form-control mb-2" rows="4">{{ candidature.notes_admin }}</textarea>
+            <button type="submit" class="btn btn-primary btn-sm">Enregistrer</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

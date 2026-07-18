@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% translate "Page d'accueil" %} — Pronotedz{% endblock %}
+{% block page_title %}{% translate "Page d'accueil" %}{% endblock %}
+
+{% block content %}
+  <p class="text-muted">
+    {% if annee %}{% blocktranslate %}Année scolaire : {{ annee }}{% endblocktranslate %}{% else %}{% translate "Aucune année scolaire active" %}{% endif %}
+  </p>
+
+  <div class="pn-dashboard-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+    <div>
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Établissement" %}</p></div>
+        <div class="pn-widget-body">
+          <ul class="pn-widget-list">
+            <li><span>{% translate "Classes" %}</span><span class="pn-note-value">{{ nb_classes }}</span></li>
+            <li><span>{% translate "Élèves" %}</span><span class="pn-note-value">{{ nb_eleves }}</span></li>
+            <li><span>{% translate "Enseignants" %}</span><span class="pn-note-value">{{ nb_enseignants }}</span></li>
+          </ul>
+          <p class="mt-3 mb-0"><a href="{% url 'admin:index' %}" class="btn btn-primary btn-sm">{% translate "Gérer l'établissement" %}</a></p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Statistiques du jour" %}</p></div>
+        <div class="pn-widget-body">
+          <ul class="pn-widget-list">
+            <li><span>{% translate "Absents aujourd'hui" %}</span><span class="pn-note-value">{{ nb_absents_aujourdhui }}</span></li>
+            <li><span>{% translate "Taux d'absentéisme" %}</span><span class="pn-note-value">{{ taux_absenteisme }} %</span></li>
+            <li><span>{% translate "Évaluations (7 derniers jours)" %}</span><span class="pn-note-value">{{ nb_evaluations_semaine }}</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Actualités" %}</p></div>
+        <div class="pn-widget-body">
+          {% if publications %}
+            <ul class="pn-widget-list">
+              {% for publication in publications %}
+                <li><span>{% if publication.epingle %}📌 {% endif %}{{ publication.titre }}</span></li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="pn-widget-empty">{% translate "Aucune nouvelle information." %}</p>
+          {% endif %}
+          <p class="mt-2 mb-0"><a href="{% url 'actualites:creer' %}" class="small">{% translate "Publier une actualité" %}</a></p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="pn-widget">
+        <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Accès rapides" %}</p></div>
+        <div class="pn-widget-body">
+          <ul class="pn-widget-list">
+            <li><a href="{% url 'admissions:candidature_liste' %}">{% translate "Admissions" %}</a></li>
+            <li><a href="{% url 'decrochage:alerte_liste' %}">⚠️ {% translate "Alertes décrochage" %}</a></li>
+            <li><a href="{% url 'import_csv' %}">{% translate "Importer des comptes (CSV)" %}</a></li>
+            <li><a href="{% url 'vie_scolaire:observation_liste' %}">{% translate "Vie scolaire" %}</a></li>
+            <li><a href="{% url 'documents:liste' %}">{% translate "Documents" %}</a></li>
+            <li><a href="{% url 'sondages:creer' %}">{% translate "Créer un sondage" %}</a></li>
+            <li><a href="{% url 'messaging:boite_reception' %}">{% translate "Messagerie" %}</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pn-widget mt-3">
+    <div class="pn-widget-header"><p class="pn-widget-title">{% translate "Activité récente" %}</p></div>
+    <div class="pn-widget-body">
+      {% if activite_recente %}
+        <ul class="pn-widget-list">
+          {% for item in activite_recente %}
+            <li><span>{{ item.libelle }}</span><span class="small text-muted">{{ item.date|date:"d/m/Y" }}</span></li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="pn-widget-empty">{% translate "Aucune activité récente." %}</p>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

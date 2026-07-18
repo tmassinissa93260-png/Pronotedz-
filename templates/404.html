@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Page introuvable — Pronotedz</title>
+  <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+</head>
+<body class="d-flex align-items-center justify-content-center vh-100">
+  <div class="text-center">
+    <h1 class="display-4 fw-bold text-secondary">404</h1>
+    <p class="lead">Cette page n'existe pas.</p>
+    <a href="{% url 'dashboard:dispatch' %}" class="btn btn-primary">Retour au tableau de bord</a>
+  </div>
+</body>
+</html>

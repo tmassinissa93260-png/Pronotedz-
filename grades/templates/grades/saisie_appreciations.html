@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Appréciations — Pronotedz{% endblock %}
+{% block page_title %}Appréciations assistées par IA{% endblock %}
+
+{% block content %}
+  <form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+      <label class="form-label small mb-0">Classe</label>
+      <select name="classe" class="form-select form-select-sm" onchange="this.form.submit()">
+        {% for c in classes %}<option value="{{ c.pk }}" {% if classe.pk == c.pk %}selected{% endif %}>{{ c }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label small mb-0">Matière</label>
+      <select name="matiere" class="form-select form-select-sm" onchange="this.form.submit()">
+        {% for m in matieres %}<option value="{{ m.pk }}" {% if matiere.pk == m.pk %}selected{% endif %}>{{ m }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label small mb-0">Trimestre</label>
+      <select name="trimestre" class="form-select form-select-sm" onchange="this.form.submit()">
+        {% for t in classe.annee_scolaire.trimestres.all %}
+          <option value="{{ t.pk }}" {% if trimestre.pk == t.pk %}selected{% endif %}>{{ t }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </form>
+
+  {% if eleves_ctx %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="classe" value="{{ classe.pk }}">
+      <input type="hidden" name="matiere" value="{{ matiere.pk }}">
+      <input type="hidden" name="trimestre" value="{{ trimestre.pk }}">
+
+      <p><button type="submit" name="action" value="generer_tout" class="btn btn-outline-primary btn-sm">🤖 Générer les appréciations manquantes pour toute la classe</button></p>
+
+      <table class="table pn-surface align-middle">
+        <thead><tr><th>Élève</th><th>Moyenne</th><th>Appréciation</th><th></th></tr></thead>
+        <tbody>
+          {% for ligne in eleves_ctx %}
+            <tr>
+              <td>{{ ligne.eleve.user.get_full_name }}</td>
+              <td class="pn-note-value">{{ ligne.moyenne|default:"—" }}</td>
+              <td><textarea name="appreciation_{{ ligne.eleve.pk }}" class="form-control form-control-sm" rows="2">{{ ligne.appreciation }}</textarea></td>
+              <td><button type="submit" name="action" value="generer_{{ ligne.eleve.pk }}" class="btn btn-outline-secondary btn-sm">🤖 Générer</button></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <button type="submit" name="action" value="enregistrer" class="btn btn-primary">Enregistrer les appréciations</button>
+    </form>
+  {% else %}
+    <p class="pn-widget-empty">Sélectionnez une classe, une matière et un trimestre pour commencer.</p>
+  {% endif %}
+{% endblock %}
