@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { CalendarClock, Plus, Users, User as UserIcon, Settings2 } from "lucide-react";
+import { CalendarClock, Plus, Users, User as UserIcon, Settings2, Video } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,7 +58,12 @@ function TeacherSchedule({ teacherId }: { teacherId: string }) {
           <h1 className="font-display text-2xl font-bold tracking-tight sm:text-3xl">Espace prof</h1>
           <p className="mt-1 text-muted-foreground">Tes sessions et réservations.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/teacher/courses">
+              <Video className="size-4" /> Mes cours
+            </Link>
+          </Button>
           <Button variant="outline" asChild>
             <Link to="/teacher/availability">
               <Settings2 className="size-4" /> Disponibilités
