@@ -106,6 +106,14 @@ export function suggestedExamTarget(level: SchoolLevel): ExamTarget {
   return "none";
 }
 
+/** Flat list of every level a teacher could plausibly offer a session for (CEM grades, 1AS, every 2AS/3AS filière). */
+export const ALL_TEACHABLE_LEVELS: { schoolLevel: SchoolLevel; label_fr: string; label_ar: string }[] = [
+  ...GRADES_BY_CYCLE.cem,
+  ...GRADES_BY_CYCLE.lycee.filter((g) => !g.hasTrack),
+  ...LYCEE_2_TRACKS,
+  ...LYCEE_3_TRACKS,
+];
+
 export function schoolLevelLabel(level: SchoolLevel, lang: "fr" | "ar" = "fr"): string {
   for (const grades of Object.values(GRADES_BY_CYCLE)) {
     const grade = grades.find((g) => g.schoolLevel === level);
