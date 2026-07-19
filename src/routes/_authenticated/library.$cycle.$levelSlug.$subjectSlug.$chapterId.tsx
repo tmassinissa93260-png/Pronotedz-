@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Sparkles, BookOpen, CheckCircle2 } from "lucide-react";
+import { Sparkles, BookOpen, CheckCircle2, Trophy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,6 +9,7 @@ import { StaggerGroup, StaggerItem } from "@/components/motion/stagger";
 import { BreadcrumbNav } from "@/components/library/breadcrumb-nav";
 import { chapterByIdQueryOptions, lessonsByChapterQueryOptions } from "@/lib/queries/curriculum";
 import { useGenerateLessonPlan } from "@/hooks/use-curriculum-ai";
+import { useMarkChapterComplete } from "@/hooks/use-gamification";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/library/$cycle/$levelSlug/$subjectSlug/$chapterId")({
@@ -17,10 +18,12 @@ export const Route = createFileRoute("/_authenticated/library/$cycle/$levelSlug/
 
 function LessonList() {
   const { cycle, levelSlug, subjectSlug, chapterId } = Route.useParams();
+  const { user } = Route.useRouteContext();
   const { lang } = useI18n();
   const { data: chapter, isLoading: chapterLoading } = useQuery(chapterByIdQueryOptions(chapterId));
   const { data: lessons, isLoading: lessonsLoading } = useQuery(lessonsByChapterQueryOptions(chapterId));
   const generatePlan = useGenerateLessonPlan(chapterId);
+  const markComplete = useMarkChapterComplete(user.id);
 
   async function handleGeneratePlan() {
     try {
@@ -30,6 +33,17 @@ function LessonList() {
       toast.error(err instanceof Error ? err.message : "Impossible de générer le plan pour le moment.");
     }
   }
+
+  async function handleMarkComplete() {
+    try {
+      const res = await markComplete.mutateAsync(chapterId);
+      if (!res.alreadyDone) toast.success("Chapitre terminé ! +20 XP");
+    } catch {
+      toast.error("Impossible d'enregistrer ta progression.");
+    }
+  }
+
+  const allLessonsReady = Boolean(lessons?.length) && lessons!.every((l) => l.lesson_content);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -97,7 +111,21 @@ function LessonList() {
               );
             })}
           </StaggerGroup>
-        ) : chapter ? (
+        ) : null}
+
+        {allLessonsReady && (
+          <Button
+            variant={markComplete.data?.alreadyDone ? "secondary" : "default"}
+            className="mt-4 w-full"
+            onClick={handleMarkComplete}
+            disabled={markComplete.isPending || markComplete.data?.alreadyDone}
+          >
+            <Trophy className="size-4" />
+            {markComplete.data?.alreadyDone ? "Chapitre terminé" : "Marquer ce chapitre comme terminé"}
+          </Button>
+        )}
+
+        {!lessonsLoading && lessons && lessons.length === 0 && chapter ? (
           <Card className="flex flex-col items-center gap-4 p-8 text-center">
             <div className="grid size-12 place-items-center rounded-2xl bg-primary/12 text-primary">
               <Sparkles className="size-6" />

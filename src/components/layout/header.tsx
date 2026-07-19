@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Flame, Zap, Bell, LogOut, User as UserIcon } from "lucide-react";
+import { Flame, Zap, LogOut, User as UserIcon, Gift } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -9,9 +9,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationsDropdown } from "@/components/layout/notifications-dropdown";
 import { useT } from "@/lib/i18n";
 import type { Profile } from "@/lib/queries/profile";
 import type { DashboardData } from "@/lib/queries/dashboard";
@@ -67,12 +67,7 @@ export function Header({
           </div>
         )}
 
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
-          <Bell className="size-4" />
-          {dashboard && dashboard.unreadNotifications > 0 && (
-            <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-accent" />
-          )}
-        </Button>
+        <NotificationsDropdown userId={user.id} />
 
         <LanguageSwitcher compact />
         <ThemeToggle />
@@ -94,6 +89,11 @@ export function Header({
             <DropdownMenuItem asChild>
               <Link to="/dashboard">
                 <UserIcon className="size-4" /> {t("nav.dashboard")}
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/referral">
+                <Gift className="size-4" /> Parrainage
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

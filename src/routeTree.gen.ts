@@ -17,6 +17,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedAiRouteImport } from './routes/_authenticated/ai'
 import { Route as AuthenticatedArchiveRouteImport } from './routes/_authenticated/archive'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedReferralRouteImport } from './routes/_authenticated/referral'
 import { Route as AuthenticatedArchiveIndexRouteImport } from './routes/_authenticated/archive.index'
 import { Route as AuthenticatedArchiveSubmitRouteImport } from './routes/_authenticated/archive.submit'
 import { Route as AuthenticatedCommunityIndexRouteImport } from './routes/_authenticated/community.index'
@@ -86,6 +87,11 @@ const AuthenticatedArchiveRoute = AuthenticatedArchiveRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedReferralRoute = AuthenticatedReferralRouteImport.update({
+  id: '/referral',
+  path: '/referral',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedArchiveIndexRoute =
@@ -285,6 +291,7 @@ export interface FileRoutesByFullPath {
   '/ai': typeof AuthenticatedAiRoute
   '/archive': typeof AuthenticatedArchiveRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/referral': typeof AuthenticatedReferralRoute
   '/archive/submit': typeof AuthenticatedArchiveSubmitRoute
   '/community/$threadId': typeof AuthenticatedCommunityThreadIdRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
@@ -324,6 +331,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/ai': typeof AuthenticatedAiRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/referral': typeof AuthenticatedReferralRoute
   '/archive/submit': typeof AuthenticatedArchiveSubmitRoute
   '/community/$threadId': typeof AuthenticatedCommunityThreadIdRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
@@ -366,6 +374,7 @@ export interface FileRoutesById {
   '/_authenticated/ai': typeof AuthenticatedAiRoute
   '/_authenticated/archive': typeof AuthenticatedArchiveRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/referral': typeof AuthenticatedReferralRoute
   '/_authenticated/archive/submit': typeof AuthenticatedArchiveSubmitRoute
   '/_authenticated/community/$threadId': typeof AuthenticatedCommunityThreadIdRoute
   '/_authenticated/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
@@ -408,6 +417,7 @@ export interface FileRouteTypes {
     | '/ai'
     | '/archive'
     | '/dashboard'
+    | '/referral'
     | '/archive/submit'
     | '/community/$threadId'
     | '/courses/$courseId'
@@ -447,6 +457,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/ai'
     | '/dashboard'
+    | '/referral'
     | '/archive/submit'
     | '/community/$threadId'
     | '/courses/$courseId'
@@ -488,6 +499,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ai'
     | '/_authenticated/archive'
     | '/_authenticated/dashboard'
+    | '/_authenticated/referral'
     | '/_authenticated/archive/submit'
     | '/_authenticated/community/$threadId'
     | '/_authenticated/courses/$courseId'
@@ -584,6 +596,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/referral': {
+      id: '/_authenticated/referral'
+      path: '/referral'
+      fullPath: '/referral'
+      preLoaderRoute: typeof AuthenticatedReferralRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/archive/': {
@@ -860,6 +879,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAiRoute: typeof AuthenticatedAiRoute
   AuthenticatedArchiveRoute: typeof AuthenticatedArchiveRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedReferralRoute: typeof AuthenticatedReferralRoute
   AuthenticatedCommunityThreadIdRoute: typeof AuthenticatedCommunityThreadIdRoute
   AuthenticatedCoursesCourseIdRoute: typeof AuthenticatedCoursesCourseIdRoute
   AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
@@ -892,6 +912,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAiRoute: AuthenticatedAiRoute,
   AuthenticatedArchiveRoute: AuthenticatedArchiveRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedReferralRoute: AuthenticatedReferralRoute,
   AuthenticatedCommunityThreadIdRoute: AuthenticatedCommunityThreadIdRoute,
   AuthenticatedCoursesCourseIdRoute: AuthenticatedCoursesCourseIdRoute,
   AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,

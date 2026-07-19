@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StaggerGroup, StaggerItem } from "@/components/motion/stagger";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { useDashboard } from "@/hooks/use-dashboard";
+import { usePingStreakOnce } from "@/hooks/use-gamification";
 import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -17,6 +18,7 @@ function Dashboard() {
   const t = useT();
   const { data: userData } = useCurrentUser();
   const { data, isLoading } = useDashboard(user.id);
+  usePingStreakOnce(user.id);
 
   const firstName = userData?.profile?.full_name?.split(" ")[0] || user.email?.split("@")[0] || "";
 

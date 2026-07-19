@@ -24,7 +24,7 @@ async function fetchDashboardData(userId: string): Promise<DashboardData> {
       supabase.from("student_profiles").select("streak_days").eq("user_id", userId).maybeSingle(),
       supabase
         .from("gamification")
-        .select("badges, chapters_completed")
+        .select("badges, chapters_completed, xp")
         .eq("student_id", userId)
         .maybeSingle(),
       supabase
@@ -42,9 +42,6 @@ async function fetchDashboardData(userId: string): Promise<DashboardData> {
         .is("read_at", null),
     ]);
 
-  const chaptersCompleted = Array.isArray(gamification?.chapters_completed)
-    ? gamification.chapters_completed.length
-    : 0;
   const badgeCount = Array.isArray(gamification?.badges) ? gamification.badges.length : 0;
 
   const upcomingSessions: UpcomingSession[] = (bookings ?? [])
@@ -60,7 +57,7 @@ async function fetchDashboardData(userId: string): Promise<DashboardData> {
 
   return {
     streakDays: studentProfile?.streak_days ?? 0,
-    xp: chaptersCompleted * 10 + badgeCount * 25,
+    xp: gamification?.xp ?? 0,
     badgeCount,
     unreadNotifications: unread ?? 0,
     upcomingSessions,

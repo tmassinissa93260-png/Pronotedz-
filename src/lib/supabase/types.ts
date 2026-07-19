@@ -931,6 +931,7 @@ export type Database = {
           last_practice_date: string | null
           student_id: string
           updated_at: string
+          xp: number
         }
         Insert: {
           badges?: Json
@@ -938,6 +939,7 @@ export type Database = {
           last_practice_date?: string | null
           student_id: string
           updated_at?: string
+          xp?: number
         }
         Update: {
           badges?: Json
@@ -945,6 +947,7 @@ export type Database = {
           last_practice_date?: string | null
           student_id?: string
           updated_at?: string
+          xp?: number
         }
         Relationships: []
       }
@@ -2185,6 +2188,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      award_xp: {
+        Args: { _amount: number; _user: string }
+        Returns: number
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
