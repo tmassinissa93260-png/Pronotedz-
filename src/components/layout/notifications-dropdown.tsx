@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Bell, CheckCheck } from "lucide-react";
+import { toast } from "sonner";
+import { Bell, CheckCheck, BellRing, BellOff } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useNotifications, useMarkNotificationRead, useMarkAllNotificationsRead } from "@/hooks/use-notifications";
+import { usePushSubscription } from "@/hooks/use-push-subscription";
 
 function timeAgo(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
@@ -24,6 +26,16 @@ export function NotificationsDropdown({ userId }: { userId: string }) {
   const markRead = useMarkNotificationRead(userId);
   const markAllRead = useMarkAllNotificationsRead(userId);
   const unreadCount = (notifications ?? []).filter((n) => !n.read_at).length;
+  const push = usePushSubscription(userId);
+
+  async function handleTogglePush() {
+    try {
+      const nowSubscribed = await push.toggle();
+      toast.success(nowSubscribed ? "Notifications push activées." : "Notifications push désactivées.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Impossible d'activer les notifications push.");
+    }
+  }
 
   return (
     <DropdownMenu>
@@ -77,6 +89,16 @@ export function NotificationsDropdown({ userId }: { userId: string }) {
             })
           )}
         </div>
+        {push.supported && (
+          <button
+            onClick={handleTogglePush}
+            disabled={push.loading}
+            className="flex w-full items-center gap-2 border-t border-border px-3.5 py-2.5 text-left text-xs text-muted-foreground transition-colors hover:bg-secondary/50 hover:text-foreground"
+          >
+            {push.subscribed ? <BellOff className="size-3.5" /> : <BellRing className="size-3.5" />}
+            {push.subscribed ? "Désactiver les notifications push" : "Activer les notifications push"}
+          </button>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

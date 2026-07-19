@@ -7,6 +7,8 @@ export type GroupMember = Database["public"]["Tables"]["group_members"]["Row"];
 export type GroupMessage = Database["public"]["Tables"]["group_messages"]["Row"];
 export type GroupResource = Database["public"]["Tables"]["group_resources"]["Row"];
 export type GroupEvent = Database["public"]["Tables"]["group_events"]["Row"];
+export type GroupPomodoroSession = Database["public"]["Tables"]["group_pomodoro_sessions"]["Row"];
+export type GroupExamAlert = Database["public"]["Tables"]["group_exam_alerts"]["Row"];
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 
 export type MyGroup = StudyGroup & { memberCount: number; myRole: string };
@@ -130,6 +132,44 @@ export function groupEventsQueryOptions(groupId: string) {
   return queryOptions({
     queryKey: ["groups", "events", groupId],
     queryFn: () => fetchGroupEvents(groupId),
+    staleTime: 30_000,
+  });
+}
+
+async function fetchLatestPomodoro(groupId: string): Promise<GroupPomodoroSession | null> {
+  const { data, error } = await supabase
+    .from("group_pomodoro_sessions")
+    .select("*")
+    .eq("group_id", groupId)
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export function groupPomodoroQueryOptions(groupId: string) {
+  return queryOptions({
+    queryKey: ["groups", "pomodoro", groupId],
+    queryFn: () => fetchLatestPomodoro(groupId),
+    staleTime: 5_000,
+  });
+}
+
+async function fetchExamAlerts(groupId: string): Promise<GroupExamAlert[]> {
+  const { data, error } = await supabase
+    .from("group_exam_alerts")
+    .select("*")
+    .eq("group_id", groupId)
+    .order("exam_date", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export function groupExamAlertsQueryOptions(groupId: string) {
+  return queryOptions({
+    queryKey: ["groups", "exam-alerts", groupId],
+    queryFn: () => fetchExamAlerts(groupId),
     staleTime: 30_000,
   });
 }

@@ -28,6 +28,9 @@ import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
 import { Route as AuthenticatedLiveSessionIdRouteImport } from './routes/_authenticated/live.$sessionId'
+import { Route as AuthenticatedPaymentCancelRouteImport } from './routes/_authenticated/payment.cancel'
+import { Route as AuthenticatedPaymentSuccessRouteImport } from './routes/_authenticated/payment.success'
+import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authenticated/tasks.index'
 import { Route as AuthenticatedTeacherIndexRouteImport } from './routes/_authenticated/teacher.index'
 import { Route as AuthenticatedTeacherAvailabilityRouteImport } from './routes/_authenticated/teacher.availability'
 import { Route as AuthenticatedTeachersIndexRouteImport } from './routes/_authenticated/teachers.index'
@@ -154,6 +157,23 @@ const AuthenticatedLiveSessionIdRoute =
     path: '/live/$sessionId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPaymentCancelRoute =
+  AuthenticatedPaymentCancelRouteImport.update({
+    id: '/payment/cancel',
+    path: '/payment/cancel',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPaymentSuccessRoute =
+  AuthenticatedPaymentSuccessRouteImport.update({
+    id: '/payment/success',
+    path: '/payment/success',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedTasksIndexRoute = AuthenticatedTasksIndexRouteImport.update({
+  id: '/tasks/',
+  path: '/tasks/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTeacherIndexRoute =
   AuthenticatedTeacherIndexRouteImport.update({
     id: '/teacher/',
@@ -297,6 +317,8 @@ export interface FileRoutesByFullPath {
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/live/$sessionId': typeof AuthenticatedLiveSessionIdRoute
+  '/payment/cancel': typeof AuthenticatedPaymentCancelRoute
+  '/payment/success': typeof AuthenticatedPaymentSuccessRoute
   '/teacher/availability': typeof AuthenticatedTeacherAvailabilityRoute
   '/teachers/$teacherId': typeof AuthenticatedTeachersTeacherIdRoute
   '/tools/calculator': typeof AuthenticatedToolsCalculatorRoute
@@ -307,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/courses/': typeof AuthenticatedCoursesIndexRoute
   '/groups/': typeof AuthenticatedGroupsIndexRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
+  '/tasks/': typeof AuthenticatedTasksIndexRoute
   '/teacher/': typeof AuthenticatedTeacherIndexRoute
   '/teachers/': typeof AuthenticatedTeachersIndexRoute
   '/tools/': typeof AuthenticatedToolsIndexRoute
@@ -337,6 +360,8 @@ export interface FileRoutesByTo {
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/live/$sessionId': typeof AuthenticatedLiveSessionIdRoute
+  '/payment/cancel': typeof AuthenticatedPaymentCancelRoute
+  '/payment/success': typeof AuthenticatedPaymentSuccessRoute
   '/teacher/availability': typeof AuthenticatedTeacherAvailabilityRoute
   '/teachers/$teacherId': typeof AuthenticatedTeachersTeacherIdRoute
   '/tools/calculator': typeof AuthenticatedToolsCalculatorRoute
@@ -347,6 +372,7 @@ export interface FileRoutesByTo {
   '/courses': typeof AuthenticatedCoursesIndexRoute
   '/groups': typeof AuthenticatedGroupsIndexRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
+  '/tasks': typeof AuthenticatedTasksIndexRoute
   '/teacher': typeof AuthenticatedTeacherIndexRoute
   '/teachers': typeof AuthenticatedTeachersIndexRoute
   '/tools': typeof AuthenticatedToolsIndexRoute
@@ -380,6 +406,8 @@ export interface FileRoutesById {
   '/_authenticated/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
   '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/live/$sessionId': typeof AuthenticatedLiveSessionIdRoute
+  '/_authenticated/payment/cancel': typeof AuthenticatedPaymentCancelRoute
+  '/_authenticated/payment/success': typeof AuthenticatedPaymentSuccessRoute
   '/_authenticated/teacher/availability': typeof AuthenticatedTeacherAvailabilityRoute
   '/_authenticated/teachers/$teacherId': typeof AuthenticatedTeachersTeacherIdRoute
   '/_authenticated/tools/calculator': typeof AuthenticatedToolsCalculatorRoute
@@ -390,6 +418,7 @@ export interface FileRoutesById {
   '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
   '/_authenticated/groups/': typeof AuthenticatedGroupsIndexRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
+  '/_authenticated/tasks/': typeof AuthenticatedTasksIndexRoute
   '/_authenticated/teacher/': typeof AuthenticatedTeacherIndexRoute
   '/_authenticated/teachers/': typeof AuthenticatedTeachersIndexRoute
   '/_authenticated/tools/': typeof AuthenticatedToolsIndexRoute
@@ -423,6 +452,8 @@ export interface FileRouteTypes {
     | '/courses/$courseId'
     | '/groups/$groupId'
     | '/live/$sessionId'
+    | '/payment/cancel'
+    | '/payment/success'
     | '/teacher/availability'
     | '/teachers/$teacherId'
     | '/tools/calculator'
@@ -433,6 +464,7 @@ export interface FileRouteTypes {
     | '/courses/'
     | '/groups/'
     | '/library/'
+    | '/tasks/'
     | '/teacher/'
     | '/teachers/'
     | '/tools/'
@@ -463,6 +495,8 @@ export interface FileRouteTypes {
     | '/courses/$courseId'
     | '/groups/$groupId'
     | '/live/$sessionId'
+    | '/payment/cancel'
+    | '/payment/success'
     | '/teacher/availability'
     | '/teachers/$teacherId'
     | '/tools/calculator'
@@ -473,6 +507,7 @@ export interface FileRouteTypes {
     | '/courses'
     | '/groups'
     | '/library'
+    | '/tasks'
     | '/teacher'
     | '/teachers'
     | '/tools'
@@ -505,6 +540,8 @@ export interface FileRouteTypes {
     | '/_authenticated/courses/$courseId'
     | '/_authenticated/groups/$groupId'
     | '/_authenticated/live/$sessionId'
+    | '/_authenticated/payment/cancel'
+    | '/_authenticated/payment/success'
     | '/_authenticated/teacher/availability'
     | '/_authenticated/teachers/$teacherId'
     | '/_authenticated/tools/calculator'
@@ -515,6 +552,7 @@ export interface FileRouteTypes {
     | '/_authenticated/courses/'
     | '/_authenticated/groups/'
     | '/_authenticated/library/'
+    | '/_authenticated/tasks/'
     | '/_authenticated/teacher/'
     | '/_authenticated/teachers/'
     | '/_authenticated/tools/'
@@ -673,6 +711,27 @@ declare module '@tanstack/react-router' {
       path: '/live/$sessionId'
       fullPath: '/live/$sessionId'
       preLoaderRoute: typeof AuthenticatedLiveSessionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/payment/cancel': {
+      id: '/_authenticated/payment/cancel'
+      path: '/payment/cancel'
+      fullPath: '/payment/cancel'
+      preLoaderRoute: typeof AuthenticatedPaymentCancelRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/payment/success': {
+      id: '/_authenticated/payment/success'
+      path: '/payment/success'
+      fullPath: '/payment/success'
+      preLoaderRoute: typeof AuthenticatedPaymentSuccessRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tasks/': {
+      id: '/_authenticated/tasks/'
+      path: '/tasks'
+      fullPath: '/tasks/'
+      preLoaderRoute: typeof AuthenticatedTasksIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/teacher/': {
@@ -884,6 +943,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCoursesCourseIdRoute: typeof AuthenticatedCoursesCourseIdRoute
   AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
   AuthenticatedLiveSessionIdRoute: typeof AuthenticatedLiveSessionIdRoute
+  AuthenticatedPaymentCancelRoute: typeof AuthenticatedPaymentCancelRoute
+  AuthenticatedPaymentSuccessRoute: typeof AuthenticatedPaymentSuccessRoute
   AuthenticatedTeacherAvailabilityRoute: typeof AuthenticatedTeacherAvailabilityRoute
   AuthenticatedTeachersTeacherIdRoute: typeof AuthenticatedTeachersTeacherIdRoute
   AuthenticatedToolsCalculatorRoute: typeof AuthenticatedToolsCalculatorRoute
@@ -893,6 +954,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
   AuthenticatedGroupsIndexRoute: typeof AuthenticatedGroupsIndexRoute
   AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
+  AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
   AuthenticatedTeacherIndexRoute: typeof AuthenticatedTeacherIndexRoute
   AuthenticatedTeachersIndexRoute: typeof AuthenticatedTeachersIndexRoute
   AuthenticatedToolsIndexRoute: typeof AuthenticatedToolsIndexRoute
@@ -917,6 +979,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCoursesCourseIdRoute: AuthenticatedCoursesCourseIdRoute,
   AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
   AuthenticatedLiveSessionIdRoute: AuthenticatedLiveSessionIdRoute,
+  AuthenticatedPaymentCancelRoute: AuthenticatedPaymentCancelRoute,
+  AuthenticatedPaymentSuccessRoute: AuthenticatedPaymentSuccessRoute,
   AuthenticatedTeacherAvailabilityRoute: AuthenticatedTeacherAvailabilityRoute,
   AuthenticatedTeachersTeacherIdRoute: AuthenticatedTeachersTeacherIdRoute,
   AuthenticatedToolsCalculatorRoute: AuthenticatedToolsCalculatorRoute,
@@ -926,6 +990,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
   AuthenticatedGroupsIndexRoute: AuthenticatedGroupsIndexRoute,
   AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
+  AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
   AuthenticatedTeacherIndexRoute: AuthenticatedTeacherIndexRoute,
   AuthenticatedTeachersIndexRoute: AuthenticatedTeachersIndexRoute,
   AuthenticatedToolsIndexRoute: AuthenticatedToolsIndexRoute,

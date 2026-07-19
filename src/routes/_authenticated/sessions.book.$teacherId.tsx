@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { StaggerGroup, StaggerItem } from "@/components/motion/stagger";
 import { teacherProfileQueryOptions, openSlotsQueryOptions, myBookedSessionIdsQueryOptions, type OpenSlot } from "@/lib/queries/teachers";
 import { useBookSession } from "@/hooks/use-session-actions";
+import { useStartCheckout } from "@/hooks/use-payment-actions";
 
 export const Route = createFileRoute("/_authenticated/sessions/book/$teacherId")({
   component: BookTeacher,
@@ -69,11 +70,17 @@ function SlotRow({
   onBooked: () => void;
 }) {
   const book = useBookSession(slot.id, studentId);
+  const checkout = useStartCheckout();
   const full = slot.booked >= slot.max_students;
   const isGroup = slot.session_type === "group";
 
   async function handleBook() {
     try {
+      if (slot.price_per_student > 0) {
+        const { checkoutUrl } = await checkout.mutateAsync({ itemType: "session", itemId: slot.id });
+        window.location.href = checkoutUrl;
+        return;
+      }
       const res = await book.mutateAsync();
       if (!res.alreadyBooked) toast.success("Réservation confirmée !");
       onBooked();
@@ -111,8 +118,8 @@ function SlotRow({
             </Link>
           </Button>
         ) : (
-          <Button onClick={handleBook} disabled={full || book.isPending}>
-            {book.isPending ? "…" : full ? "Complet" : "Réserver"}
+          <Button onClick={handleBook} disabled={full || book.isPending || checkout.isPending}>
+            {book.isPending || checkout.isPending ? "…" : full ? "Complet" : slot.price_per_student > 0 ? "Payer et réserver" : "Réserver"}
           </Button>
         )}
       </div>

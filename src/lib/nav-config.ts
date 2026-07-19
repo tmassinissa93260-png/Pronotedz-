@@ -5,6 +5,7 @@ import {
   BookOpen,
   Video,
   Wrench,
+  ListTodo,
   Users,
   MessageSquare,
   Archive,
@@ -27,6 +28,7 @@ export const primaryNav: NavItem[] = [
   { titleKey: "nav.courses", url: "/courses", icon: BookOpen },
   { titleKey: "nav.teachers", url: "/teachers", icon: Video },
   { titleKey: "nav.tools", url: "/tools", icon: Wrench },
+  { titleKey: "nav.tasks", url: "/tasks", icon: ListTodo },
 ];
 
 export const communityNav: NavItem[] = [

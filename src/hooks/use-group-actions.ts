@@ -8,6 +8,9 @@ import {
   deleteGroupEvent,
   uploadGroupResource,
   deleteGroupResource,
+  startPomodoro,
+  createGroupExamAlert,
+  deleteGroupExamAlert,
   type CreateGroupPayload,
 } from "@/lib/groups/actions";
 
@@ -73,5 +76,30 @@ export function useDeleteGroupResource(groupId: string) {
   return useMutation({
     mutationFn: ({ id, path }: { id: string; path: string }) => deleteGroupResource(id, path),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["groups", "resources", groupId] }),
+  });
+}
+
+export function useStartPomodoro(groupId: string, startedBy: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { phase: "focus" | "break"; durationMin: number }) =>
+      startPomodoro(groupId, startedBy, input.phase, input.durationMin),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["groups", "pomodoro", groupId] }),
+  });
+}
+
+export function useCreateGroupExamAlert(groupId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createGroupExamAlert,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["groups", "exam-alerts", groupId] }),
+  });
+}
+
+export function useDeleteGroupExamAlert(groupId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteGroupExamAlert(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["groups", "exam-alerts", groupId] }),
   });
 }

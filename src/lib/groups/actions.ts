@@ -78,3 +78,42 @@ export async function deleteGroupResource(resourceId: string, storagePath: strin
   const { error } = await supabase.from("group_resources").delete().eq("id", resourceId);
   if (error) throw error;
 }
+
+export async function startPomodoro(groupId: string, startedBy: string, phase: "focus" | "break", durationMin: number): Promise<void> {
+  const startedAt = new Date();
+  const endsAt = new Date(startedAt.getTime() + durationMin * 60_000);
+  const { error } = await supabase.from("group_pomodoro_sessions").insert({
+    group_id: groupId,
+    started_by: startedBy,
+    phase,
+    started_at: startedAt.toISOString(),
+    ends_at: endsAt.toISOString(),
+  });
+  if (error) throw error;
+}
+
+export type QuizQuestion = { question: string; options: string[]; correct_index: number; explanation: string };
+
+export async function createGroupExamAlert(payload: {
+  groupId: string;
+  subject: string;
+  chapters: string[];
+  examDate: Date;
+}): Promise<{ id: string; quiz: QuizQuestion[]; checklist: string[] }> {
+  const { data, error } = await supabase.functions.invoke("group-quiz-ai", {
+    body: {
+      groupId: payload.groupId,
+      subject: payload.subject,
+      chapters: payload.chapters,
+      examDate: payload.examDate.toISOString(),
+    },
+  });
+  if (error) throw new Error(error.message ?? "Impossible de générer l'alerte examen.");
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+
+export async function deleteGroupExamAlert(id: string): Promise<void> {
+  const { error } = await supabase.from("group_exam_alerts").delete().eq("id", id);
+  if (error) throw error;
+}

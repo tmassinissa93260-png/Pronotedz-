@@ -29,6 +29,7 @@ export const ar: Dictionary = {
     courses: "دروس الأساتذة",
     teachers: "أساتذة مباشرون",
     tools: "أدوات",
+    tasks: "مهامي",
     groups: "مجموعات",
     community: "المجتمع",
     archive: "أرشيف البكالوريا والتعليم المتوسط",

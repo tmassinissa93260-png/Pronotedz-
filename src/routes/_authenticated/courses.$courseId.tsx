@@ -16,6 +16,7 @@ import {
   myEnrollmentQueryOptions,
 } from "@/lib/queries/courses";
 import { useEnrollInCourse } from "@/hooks/use-course-actions";
+import { useStartCheckout } from "@/hooks/use-payment-actions";
 
 export const Route = createFileRoute("/_authenticated/courses/$courseId")({
   component: CourseDetail,
@@ -29,6 +30,7 @@ function CourseDetail() {
   const { data: reviews } = useQuery(courseReviewsQueryOptions(courseId));
   const { data: enrollment } = useQuery(myEnrollmentQueryOptions(courseId, user.id));
   const enroll = useEnrollInCourse(courseId, user.id);
+  const checkout = useStartCheckout();
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
 
   if (isLoading) {
@@ -50,8 +52,15 @@ function CourseDetail() {
   const hasAccess = isTeacher || Boolean(enrollment);
   const shownUrl = activeVideo ?? (hasAccess ? undefined : course.trailer_video_url);
 
+  const price = course.price;
+
   async function handleEnroll() {
     try {
+      if (price > 0) {
+        const { checkoutUrl } = await checkout.mutateAsync({ itemType: "course", itemId: courseId });
+        window.location.href = checkoutUrl;
+        return;
+      }
       const res = await enroll.mutateAsync();
       if (!res.alreadyEnrolled) toast.success("Inscription confirmée !");
     } catch (err) {
@@ -91,8 +100,8 @@ function CourseDetail() {
                       <CheckCircle2 className="size-3" /> Inscrit
                     </Badge>
                   ) : (
-                    <Button className="mt-2" onClick={handleEnroll} disabled={enroll.isPending}>
-                      {enroll.isPending ? "…" : "S'inscrire"}
+                    <Button className="mt-2" onClick={handleEnroll} disabled={enroll.isPending || checkout.isPending}>
+                      {enroll.isPending || checkout.isPending ? "…" : course.price > 0 ? "Payer et s'inscrire" : "S'inscrire"}
                     </Button>
                   )}
                 </div>

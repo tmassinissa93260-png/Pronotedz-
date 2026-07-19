@@ -2,11 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Send, FileText, CalendarDays, Upload, Trash2, Copy, LogOut } from "lucide-react";
+import { Send, FileText, CalendarDays, Upload, Trash2, Copy, LogOut, Timer, Coffee, AlertTriangle, Plus, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,6 +19,9 @@ import {
   groupMessagesQueryOptions,
   groupResourcesQueryOptions,
   groupEventsQueryOptions,
+  groupPomodoroQueryOptions,
+  groupExamAlertsQueryOptions,
+  type GroupExamAlert,
 } from "@/lib/queries/groups";
 import {
   useSendGroupMessage,
@@ -26,8 +30,12 @@ import {
   useDeleteGroupResource,
   useCreateGroupEvent,
   useDeleteGroupEvent,
+  useStartPomodoro,
+  useCreateGroupExamAlert,
+  useDeleteGroupExamAlert,
 } from "@/hooks/use-group-actions";
 import { useGroupMessagesRealtime } from "@/hooks/use-group-messages-realtime";
+import { useGroupPomodoroRealtime } from "@/hooks/use-group-pomodoro-realtime";
 import { supabase } from "@/lib/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/groups/$groupId")({
@@ -84,6 +92,8 @@ function GroupDetail() {
           <TabsTrigger value="members">Membres</TabsTrigger>
           <TabsTrigger value="resources">Ressources</TabsTrigger>
           <TabsTrigger value="events">Événements</TabsTrigger>
+          <TabsTrigger value="pomodoro">Pomodoro</TabsTrigger>
+          <TabsTrigger value="exams">Examens</TabsTrigger>
         </TabsList>
         <TabsContent value="chat">
           <ChatPanel groupId={groupId} userId={user.id} />
@@ -96,6 +106,12 @@ function GroupDetail() {
         </TabsContent>
         <TabsContent value="events">
           <EventsPanel groupId={groupId} userId={user.id} />
+        </TabsContent>
+        <TabsContent value="pomodoro">
+          <PomodoroPanel groupId={groupId} userId={user.id} />
+        </TabsContent>
+        <TabsContent value="exams">
+          <ExamAlertsPanel groupId={groupId} userId={user.id} />
         </TabsContent>
       </Tabs>
     </div>
@@ -324,5 +340,236 @@ function EventsPanel({ groupId, userId }: { groupId: string; userId: string }) {
         <p className="text-sm text-muted-foreground">Aucun événement prévu.</p>
       )}
     </div>
+  );
+}
+
+const PHASE_LABEL: Record<string, string> = { focus: "Focus", break: "Pause" };
+const PHASE_DURATION: Record<string, number> = { focus: 25, break: 5 };
+
+function useCountdown(endsAt: string | undefined) {
+  const [remainingMs, setRemainingMs] = useState(() => (endsAt ? new Date(endsAt).getTime() - Date.now() : 0));
+  useEffect(() => {
+    if (!endsAt) return;
+    const tick = () => setRemainingMs(new Date(endsAt).getTime() - Date.now());
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [endsAt]);
+  return remainingMs;
+}
+
+function PomodoroPanel({ groupId, userId }: { groupId: string; userId: string }) {
+  useGroupPomodoroRealtime(groupId);
+  const { data: session, isLoading } = useQuery(groupPomodoroQueryOptions(groupId));
+  const start = useStartPomodoro(groupId, userId);
+  const remainingMs = useCountdown(session?.ends_at);
+  const isActive = Boolean(session) && remainingMs > 0;
+
+  const minutes = Math.max(0, Math.floor(remainingMs / 60_000));
+  const seconds = Math.max(0, Math.floor((remainingMs % 60_000) / 1000));
+
+  async function handleStart(phase: "focus" | "break") {
+    try {
+      await start.mutateAsync({ phase, durationMin: PHASE_DURATION[phase] });
+    } catch {
+      toast.error("Impossible de démarrer la session.");
+    }
+  }
+
+  if (isLoading) return <Skeleton className="h-48" />;
+
+  return (
+    <Card className="flex flex-col items-center gap-4 p-8 text-center">
+      {isActive && session ? (
+        <>
+          <Badge variant={session.phase === "focus" ? "default" : "secondary"} className="text-xs">
+            {session.phase === "focus" ? <Timer className="size-3" /> : <Coffee className="size-3" />}
+            {PHASE_LABEL[session.phase] ?? session.phase}
+          </Badge>
+          <div className="font-display text-6xl font-bold tabular-nums tracking-tight">
+            {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+          </div>
+          <p className="text-sm text-muted-foreground">Session synchronisée pour tout le groupe.</p>
+        </>
+      ) : (
+        <>
+          <p className="text-sm text-muted-foreground">Aucune session en cours. Lance un pomodoro pour tout le groupe.</p>
+          <div className="flex gap-2">
+            <Button onClick={() => handleStart("focus")} disabled={start.isPending}>
+              <Timer className="size-4" /> Focus 25 min
+            </Button>
+            <Button variant="outline" onClick={() => handleStart("break")} disabled={start.isPending}>
+              <Coffee className="size-4" /> Pause 5 min
+            </Button>
+          </div>
+        </>
+      )}
+    </Card>
+  );
+}
+
+function ExamAlertsPanel({ groupId, userId }: { groupId: string; userId: string }) {
+  const { data: alerts, isLoading } = useQuery(groupExamAlertsQueryOptions(groupId));
+  const del = useDeleteGroupExamAlert(groupId);
+
+  return (
+    <div className="space-y-3">
+      <CreateExamAlertDialog groupId={groupId} />
+      {isLoading ? (
+        <Skeleton className="h-24" />
+      ) : alerts && alerts.length > 0 ? (
+        alerts.map((alert) => (
+          <ExamAlertCard key={alert.id} alert={alert} canDelete={alert.created_by === userId} onDelete={() => del.mutate(alert.id)} />
+        ))
+      ) : (
+        <p className="text-sm text-muted-foreground">Aucune alerte examen. Crée-en une pour générer un quiz de révision IA.</p>
+      )}
+    </div>
+  );
+}
+
+function ExamAlertCard({
+  alert,
+  canDelete,
+  onDelete,
+}: {
+  alert: GroupExamAlert;
+  canDelete: boolean;
+  onDelete: () => void;
+}) {
+  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const quiz = (alert.quiz as { question: string; options: string[]; correct_index: number; explanation: string }[]) ?? [];
+  const checklist = (alert.checklist as string[]) ?? [];
+  const daysLeft = Math.ceil((new Date(alert.exam_date).getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+
+  return (
+    <Card className="p-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="size-4 text-accent" />
+            <h3 className="text-sm font-semibold">{alert.subject}</h3>
+            <Badge variant={daysLeft <= 3 ? "default" : "outline"}>{daysLeft > 0 ? `J-${daysLeft}` : "Aujourd'hui"}</Badge>
+          </div>
+          {alert.chapters.length > 0 && <p className="mt-1 text-xs text-muted-foreground">{alert.chapters.join(", ")}</p>}
+        </div>
+        {canDelete && (
+          <Button size="icon" variant="ghost" onClick={onDelete}>
+            <Trash2 className="size-4 text-destructive" />
+          </Button>
+        )}
+      </div>
+
+      {checklist.length > 0 && (
+        <div className="mt-3 space-y-1.5">
+          {checklist.map((item, i) => (
+            <label key={i} className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={Boolean(checked[i])}
+                onChange={(e) => setChecked((prev) => ({ ...prev, [i]: e.target.checked }))}
+                className="size-4 rounded border-input"
+              />
+              <span className={checked[i] ? "text-muted-foreground line-through" : ""}>{item}</span>
+            </label>
+          ))}
+        </div>
+      )}
+
+      {quiz.length > 0 && (
+        <div className="mt-4 space-y-4 border-t border-border pt-4">
+          {quiz.map((q, qi) => (
+            <div key={qi}>
+              <p className="text-sm font-medium">{q.question}</p>
+              <div className="mt-1.5 grid gap-1.5">
+                {q.options.map((opt, oi) => {
+                  const selected = answers[qi] === oi;
+                  const revealed = answers[qi] !== undefined;
+                  const isCorrect = oi === q.correct_index;
+                  return (
+                    <button
+                      key={oi}
+                      onClick={() => setAnswers((prev) => ({ ...prev, [qi]: oi }))}
+                      disabled={revealed}
+                      className={`rounded-lg border px-3 py-1.5 text-left text-sm transition-colors ${
+                        revealed && isCorrect
+                          ? "border-primary bg-primary/10"
+                          : revealed && selected
+                            ? "border-destructive bg-destructive/10"
+                            : "border-border hover:bg-secondary"
+                      }`}
+                    >
+                      {opt}
+                      {revealed && isCorrect && <CheckCircle2 className="ml-1.5 inline size-3.5 text-primary" />}
+                    </button>
+                  );
+                })}
+              </div>
+              {answers[qi] !== undefined && <p className="mt-1 text-xs text-muted-foreground">{q.explanation}</p>}
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function CreateExamAlertDialog({ groupId }: { groupId: string }) {
+  const [open, setOpen] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [chapters, setChapters] = useState("");
+  const [date, setDate] = useState("");
+  const create = useCreateGroupExamAlert(groupId);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      await create.mutateAsync({
+        groupId,
+        subject: subject.trim(),
+        chapters: chapters.split(",").map((c) => c.trim()).filter(Boolean),
+        examDate: new Date(date),
+      });
+      toast.success("Alerte examen créée — quiz généré par l'IA.");
+      setOpen(false);
+      setSubject("");
+      setChapters("");
+      setDate("");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Impossible de créer cette alerte.");
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button size="sm">
+          <Plus className="size-4" /> Alerte examen + quiz IA
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Nouvelle alerte examen</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="asubject">Matière</Label>
+            <Input id="asubject" value={subject} onChange={(e) => setSubject(e.target.value)} required />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="achapters">Chapitres (séparés par une virgule)</Label>
+            <Input id="achapters" value={chapters} onChange={(e) => setChapters(e.target.value)} />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="adate">Date de l'examen</Label>
+            <Input id="adate" type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+          </div>
+          <Button type="submit" disabled={create.isPending} className="w-full">
+            {create.isPending ? "Génération du quiz…" : "Créer et générer le quiz"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

@@ -27,6 +27,7 @@ export type Dictionary = {
     courses: string;
     teachers: string;
     tools: string;
+    tasks: string;
     groups: string;
     community: string;
     archive: string;

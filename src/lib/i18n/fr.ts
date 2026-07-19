@@ -29,6 +29,7 @@ export const fr: Dictionary = {
     courses: "Cours de profs",
     teachers: "Profs en direct",
     tools: "Outils",
+    tasks: "Mes tâches",
     groups: "Groupes",
     community: "Communauté",
     archive: "Archive BAC & BEM",
