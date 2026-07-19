@@ -2193,6 +2193,10 @@ export type Database = {
         Returns: boolean
       }
       is_community_banned: { Args: { _user: string }; Returns: boolean }
+      join_group_by_code: {
+        Args: { _code: string }
+        Returns: { group_id: string; group_name: string }[]
+      }
       is_group_member: {
         Args: { _group: string; _user: string }
         Returns: boolean

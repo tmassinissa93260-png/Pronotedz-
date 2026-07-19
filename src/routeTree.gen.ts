@@ -16,20 +16,25 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAiRouteImport } from './routes/_authenticated/ai'
 import { Route as AuthenticatedArchiveRouteImport } from './routes/_authenticated/archive'
-import { Route as AuthenticatedCommunityRouteImport } from './routes/_authenticated/community'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
-import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
 import { Route as AuthenticatedArchiveIndexRouteImport } from './routes/_authenticated/archive.index'
 import { Route as AuthenticatedArchiveSubmitRouteImport } from './routes/_authenticated/archive.submit'
+import { Route as AuthenticatedCommunityIndexRouteImport } from './routes/_authenticated/community.index'
+import { Route as AuthenticatedCommunityThreadIdRouteImport } from './routes/_authenticated/community.$threadId'
 import { Route as AuthenticatedCoursesIndexRouteImport } from './routes/_authenticated/courses.index'
 import { Route as AuthenticatedCoursesCourseIdRouteImport } from './routes/_authenticated/courses.$courseId'
+import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups.index'
+import { Route as AuthenticatedGroupsGroupIdRouteImport } from './routes/_authenticated/groups.$groupId'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
 import { Route as AuthenticatedLiveSessionIdRouteImport } from './routes/_authenticated/live.$sessionId'
 import { Route as AuthenticatedTeacherIndexRouteImport } from './routes/_authenticated/teacher.index'
 import { Route as AuthenticatedTeacherAvailabilityRouteImport } from './routes/_authenticated/teacher.availability'
 import { Route as AuthenticatedTeachersIndexRouteImport } from './routes/_authenticated/teachers.index'
 import { Route as AuthenticatedTeachersTeacherIdRouteImport } from './routes/_authenticated/teachers.$teacherId'
+import { Route as AuthenticatedToolsIndexRouteImport } from './routes/_authenticated/tools.index'
+import { Route as AuthenticatedToolsCalculatorRouteImport } from './routes/_authenticated/tools.calculator'
+import { Route as AuthenticatedToolsCountdownRouteImport } from './routes/_authenticated/tools.countdown'
+import { Route as AuthenticatedToolsHomeworkRouteImport } from './routes/_authenticated/tools.homework'
 import { Route as AuthenticatedArchiveExamTypeIndexRouteImport } from './routes/_authenticated/archive.$examType.index'
 import { Route as AuthenticatedArchiveExamTypeSubjectRouteImport } from './routes/_authenticated/archive.$examType.$subject'
 import { Route as AuthenticatedLibraryCycleIndexRouteImport } from './routes/_authenticated/library.$cycle.index'
@@ -37,6 +42,8 @@ import { Route as AuthenticatedSessionsBookTeacherIdRouteImport } from './routes
 import { Route as AuthenticatedTeacherCoursesIndexRouteImport } from './routes/_authenticated/teacher.courses.index'
 import { Route as AuthenticatedTeacherCoursesCourseIdRouteImport } from './routes/_authenticated/teacher.courses.$courseId'
 import { Route as AuthenticatedTeacherCoursesNewRouteImport } from './routes/_authenticated/teacher.courses.new'
+import { Route as AuthenticatedToolsMemoIndexRouteImport } from './routes/_authenticated/tools.memo.index'
+import { Route as AuthenticatedToolsMemoSheetIdRouteImport } from './routes/_authenticated/tools.memo.$sheetId'
 import { Route as AuthenticatedLibraryCycleLevelSlugIndexRouteImport } from './routes/_authenticated/library.$cycle.$levelSlug.index'
 import { Route as AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteImport } from './routes/_authenticated/library.$cycle.$levelSlug.$subjectSlug'
 import { Route as AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteImport } from './routes/_authenticated/library.$cycle.$levelSlug.$subjectSlug.$chapterId'
@@ -76,24 +83,9 @@ const AuthenticatedArchiveRoute = AuthenticatedArchiveRouteImport.update({
   path: '/archive',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedCommunityRoute = AuthenticatedCommunityRouteImport.update({
-  id: '/community',
-  path: '/community',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedGroupsRoute = AuthenticatedGroupsRouteImport.update({
-  id: '/groups',
-  path: '/groups',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedToolsRoute = AuthenticatedToolsRouteImport.update({
-  id: '/tools',
-  path: '/tools',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedArchiveIndexRoute =
@@ -108,6 +100,18 @@ const AuthenticatedArchiveSubmitRoute =
     path: '/submit',
     getParentRoute: () => AuthenticatedArchiveRoute,
   } as any)
+const AuthenticatedCommunityIndexRoute =
+  AuthenticatedCommunityIndexRouteImport.update({
+    id: '/community/',
+    path: '/community/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCommunityThreadIdRoute =
+  AuthenticatedCommunityThreadIdRouteImport.update({
+    id: '/community/$threadId',
+    path: '/community/$threadId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCoursesIndexRoute =
   AuthenticatedCoursesIndexRouteImport.update({
     id: '/courses/',
@@ -118,6 +122,18 @@ const AuthenticatedCoursesCourseIdRoute =
   AuthenticatedCoursesCourseIdRouteImport.update({
     id: '/courses/$courseId',
     path: '/courses/$courseId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGroupsIndexRoute =
+  AuthenticatedGroupsIndexRouteImport.update({
+    id: '/groups/',
+    path: '/groups/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedGroupsGroupIdRoute =
+  AuthenticatedGroupsGroupIdRouteImport.update({
+    id: '/groups/$groupId',
+    path: '/groups/$groupId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedLibraryIndexRoute =
@@ -154,6 +170,29 @@ const AuthenticatedTeachersTeacherIdRoute =
   AuthenticatedTeachersTeacherIdRouteImport.update({
     id: '/teachers/$teacherId',
     path: '/teachers/$teacherId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedToolsIndexRoute = AuthenticatedToolsIndexRouteImport.update({
+  id: '/tools/',
+  path: '/tools/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedToolsCalculatorRoute =
+  AuthenticatedToolsCalculatorRouteImport.update({
+    id: '/tools/calculator',
+    path: '/tools/calculator',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedToolsCountdownRoute =
+  AuthenticatedToolsCountdownRouteImport.update({
+    id: '/tools/countdown',
+    path: '/tools/countdown',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedToolsHomeworkRoute =
+  AuthenticatedToolsHomeworkRouteImport.update({
+    id: '/tools/homework',
+    path: '/tools/homework',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedArchiveExamTypeIndexRoute =
@@ -198,6 +237,18 @@ const AuthenticatedTeacherCoursesNewRoute =
     path: '/teacher/courses/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedToolsMemoIndexRoute =
+  AuthenticatedToolsMemoIndexRouteImport.update({
+    id: '/tools/memo/',
+    path: '/tools/memo/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedToolsMemoSheetIdRoute =
+  AuthenticatedToolsMemoSheetIdRouteImport.update({
+    id: '/tools/memo/$sheetId',
+    path: '/tools/memo/$sheetId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLibraryCycleLevelSlugIndexRoute =
   AuthenticatedLibraryCycleLevelSlugIndexRouteImport.update({
     id: '/library/$cycle/$levelSlug/',
@@ -233,27 +284,34 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/ai': typeof AuthenticatedAiRoute
   '/archive': typeof AuthenticatedArchiveRouteWithChildren
-  '/community': typeof AuthenticatedCommunityRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/groups': typeof AuthenticatedGroupsRoute
-  '/tools': typeof AuthenticatedToolsRoute
   '/archive/submit': typeof AuthenticatedArchiveSubmitRoute
+  '/community/$threadId': typeof AuthenticatedCommunityThreadIdRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
+  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/live/$sessionId': typeof AuthenticatedLiveSessionIdRoute
   '/teacher/availability': typeof AuthenticatedTeacherAvailabilityRoute
   '/teachers/$teacherId': typeof AuthenticatedTeachersTeacherIdRoute
+  '/tools/calculator': typeof AuthenticatedToolsCalculatorRoute
+  '/tools/countdown': typeof AuthenticatedToolsCountdownRoute
+  '/tools/homework': typeof AuthenticatedToolsHomeworkRoute
   '/archive/': typeof AuthenticatedArchiveIndexRoute
+  '/community/': typeof AuthenticatedCommunityIndexRoute
   '/courses/': typeof AuthenticatedCoursesIndexRoute
+  '/groups/': typeof AuthenticatedGroupsIndexRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
   '/teacher/': typeof AuthenticatedTeacherIndexRoute
   '/teachers/': typeof AuthenticatedTeachersIndexRoute
+  '/tools/': typeof AuthenticatedToolsIndexRoute
   '/archive/$examType/$subject': typeof AuthenticatedArchiveExamTypeSubjectRoute
   '/sessions/book/$teacherId': typeof AuthenticatedSessionsBookTeacherIdRoute
   '/teacher/courses/$courseId': typeof AuthenticatedTeacherCoursesCourseIdRoute
   '/teacher/courses/new': typeof AuthenticatedTeacherCoursesNewRoute
+  '/tools/memo/$sheetId': typeof AuthenticatedToolsMemoSheetIdRoute
   '/archive/$examType/': typeof AuthenticatedArchiveExamTypeIndexRoute
   '/library/$cycle/': typeof AuthenticatedLibraryCycleIndexRoute
   '/teacher/courses/': typeof AuthenticatedTeacherCoursesIndexRoute
+  '/tools/memo/': typeof AuthenticatedToolsMemoIndexRoute
   '/library/$cycle/$levelSlug/$subjectSlug': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren
   '/library/$cycle/$levelSlug/': typeof AuthenticatedLibraryCycleLevelSlugIndexRoute
   '/library/$cycle/$levelSlug/$subjectSlug/$chapterId': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteWithChildren
@@ -265,27 +323,34 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/ai': typeof AuthenticatedAiRoute
-  '/community': typeof AuthenticatedCommunityRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/groups': typeof AuthenticatedGroupsRoute
-  '/tools': typeof AuthenticatedToolsRoute
   '/archive/submit': typeof AuthenticatedArchiveSubmitRoute
+  '/community/$threadId': typeof AuthenticatedCommunityThreadIdRoute
   '/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
+  '/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/live/$sessionId': typeof AuthenticatedLiveSessionIdRoute
   '/teacher/availability': typeof AuthenticatedTeacherAvailabilityRoute
   '/teachers/$teacherId': typeof AuthenticatedTeachersTeacherIdRoute
+  '/tools/calculator': typeof AuthenticatedToolsCalculatorRoute
+  '/tools/countdown': typeof AuthenticatedToolsCountdownRoute
+  '/tools/homework': typeof AuthenticatedToolsHomeworkRoute
   '/archive': typeof AuthenticatedArchiveIndexRoute
+  '/community': typeof AuthenticatedCommunityIndexRoute
   '/courses': typeof AuthenticatedCoursesIndexRoute
+  '/groups': typeof AuthenticatedGroupsIndexRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
   '/teacher': typeof AuthenticatedTeacherIndexRoute
   '/teachers': typeof AuthenticatedTeachersIndexRoute
+  '/tools': typeof AuthenticatedToolsIndexRoute
   '/archive/$examType/$subject': typeof AuthenticatedArchiveExamTypeSubjectRoute
   '/sessions/book/$teacherId': typeof AuthenticatedSessionsBookTeacherIdRoute
   '/teacher/courses/$courseId': typeof AuthenticatedTeacherCoursesCourseIdRoute
   '/teacher/courses/new': typeof AuthenticatedTeacherCoursesNewRoute
+  '/tools/memo/$sheetId': typeof AuthenticatedToolsMemoSheetIdRoute
   '/archive/$examType': typeof AuthenticatedArchiveExamTypeIndexRoute
   '/library/$cycle': typeof AuthenticatedLibraryCycleIndexRoute
   '/teacher/courses': typeof AuthenticatedTeacherCoursesIndexRoute
+  '/tools/memo': typeof AuthenticatedToolsMemoIndexRoute
   '/library/$cycle/$levelSlug/$subjectSlug': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren
   '/library/$cycle/$levelSlug': typeof AuthenticatedLibraryCycleLevelSlugIndexRoute
   '/library/$cycle/$levelSlug/$subjectSlug/$chapterId': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteWithChildren
@@ -300,27 +365,34 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/ai': typeof AuthenticatedAiRoute
   '/_authenticated/archive': typeof AuthenticatedArchiveRouteWithChildren
-  '/_authenticated/community': typeof AuthenticatedCommunityRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/groups': typeof AuthenticatedGroupsRoute
-  '/_authenticated/tools': typeof AuthenticatedToolsRoute
   '/_authenticated/archive/submit': typeof AuthenticatedArchiveSubmitRoute
+  '/_authenticated/community/$threadId': typeof AuthenticatedCommunityThreadIdRoute
   '/_authenticated/courses/$courseId': typeof AuthenticatedCoursesCourseIdRoute
+  '/_authenticated/groups/$groupId': typeof AuthenticatedGroupsGroupIdRoute
   '/_authenticated/live/$sessionId': typeof AuthenticatedLiveSessionIdRoute
   '/_authenticated/teacher/availability': typeof AuthenticatedTeacherAvailabilityRoute
   '/_authenticated/teachers/$teacherId': typeof AuthenticatedTeachersTeacherIdRoute
+  '/_authenticated/tools/calculator': typeof AuthenticatedToolsCalculatorRoute
+  '/_authenticated/tools/countdown': typeof AuthenticatedToolsCountdownRoute
+  '/_authenticated/tools/homework': typeof AuthenticatedToolsHomeworkRoute
   '/_authenticated/archive/': typeof AuthenticatedArchiveIndexRoute
+  '/_authenticated/community/': typeof AuthenticatedCommunityIndexRoute
   '/_authenticated/courses/': typeof AuthenticatedCoursesIndexRoute
+  '/_authenticated/groups/': typeof AuthenticatedGroupsIndexRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
   '/_authenticated/teacher/': typeof AuthenticatedTeacherIndexRoute
   '/_authenticated/teachers/': typeof AuthenticatedTeachersIndexRoute
+  '/_authenticated/tools/': typeof AuthenticatedToolsIndexRoute
   '/_authenticated/archive/$examType/$subject': typeof AuthenticatedArchiveExamTypeSubjectRoute
   '/_authenticated/sessions/book/$teacherId': typeof AuthenticatedSessionsBookTeacherIdRoute
   '/_authenticated/teacher/courses/$courseId': typeof AuthenticatedTeacherCoursesCourseIdRoute
   '/_authenticated/teacher/courses/new': typeof AuthenticatedTeacherCoursesNewRoute
+  '/_authenticated/tools/memo/$sheetId': typeof AuthenticatedToolsMemoSheetIdRoute
   '/_authenticated/archive/$examType/': typeof AuthenticatedArchiveExamTypeIndexRoute
   '/_authenticated/library/$cycle/': typeof AuthenticatedLibraryCycleIndexRoute
   '/_authenticated/teacher/courses/': typeof AuthenticatedTeacherCoursesIndexRoute
+  '/_authenticated/tools/memo/': typeof AuthenticatedToolsMemoIndexRoute
   '/_authenticated/library/$cycle/$levelSlug/$subjectSlug': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren
   '/_authenticated/library/$cycle/$levelSlug/': typeof AuthenticatedLibraryCycleLevelSlugIndexRoute
   '/_authenticated/library/$cycle/$levelSlug/$subjectSlug/$chapterId': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteWithChildren
@@ -335,27 +407,34 @@ export interface FileRouteTypes {
     | '/admin'
     | '/ai'
     | '/archive'
-    | '/community'
     | '/dashboard'
-    | '/groups'
-    | '/tools'
     | '/archive/submit'
+    | '/community/$threadId'
     | '/courses/$courseId'
+    | '/groups/$groupId'
     | '/live/$sessionId'
     | '/teacher/availability'
     | '/teachers/$teacherId'
+    | '/tools/calculator'
+    | '/tools/countdown'
+    | '/tools/homework'
     | '/archive/'
+    | '/community/'
     | '/courses/'
+    | '/groups/'
     | '/library/'
     | '/teacher/'
     | '/teachers/'
+    | '/tools/'
     | '/archive/$examType/$subject'
     | '/sessions/book/$teacherId'
     | '/teacher/courses/$courseId'
     | '/teacher/courses/new'
+    | '/tools/memo/$sheetId'
     | '/archive/$examType/'
     | '/library/$cycle/'
     | '/teacher/courses/'
+    | '/tools/memo/'
     | '/library/$cycle/$levelSlug/$subjectSlug'
     | '/library/$cycle/$levelSlug/'
     | '/library/$cycle/$levelSlug/$subjectSlug/$chapterId'
@@ -367,27 +446,34 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/admin'
     | '/ai'
-    | '/community'
     | '/dashboard'
-    | '/groups'
-    | '/tools'
     | '/archive/submit'
+    | '/community/$threadId'
     | '/courses/$courseId'
+    | '/groups/$groupId'
     | '/live/$sessionId'
     | '/teacher/availability'
     | '/teachers/$teacherId'
+    | '/tools/calculator'
+    | '/tools/countdown'
+    | '/tools/homework'
     | '/archive'
+    | '/community'
     | '/courses'
+    | '/groups'
     | '/library'
     | '/teacher'
     | '/teachers'
+    | '/tools'
     | '/archive/$examType/$subject'
     | '/sessions/book/$teacherId'
     | '/teacher/courses/$courseId'
     | '/teacher/courses/new'
+    | '/tools/memo/$sheetId'
     | '/archive/$examType'
     | '/library/$cycle'
     | '/teacher/courses'
+    | '/tools/memo'
     | '/library/$cycle/$levelSlug/$subjectSlug'
     | '/library/$cycle/$levelSlug'
     | '/library/$cycle/$levelSlug/$subjectSlug/$chapterId'
@@ -401,27 +487,34 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/ai'
     | '/_authenticated/archive'
-    | '/_authenticated/community'
     | '/_authenticated/dashboard'
-    | '/_authenticated/groups'
-    | '/_authenticated/tools'
     | '/_authenticated/archive/submit'
+    | '/_authenticated/community/$threadId'
     | '/_authenticated/courses/$courseId'
+    | '/_authenticated/groups/$groupId'
     | '/_authenticated/live/$sessionId'
     | '/_authenticated/teacher/availability'
     | '/_authenticated/teachers/$teacherId'
+    | '/_authenticated/tools/calculator'
+    | '/_authenticated/tools/countdown'
+    | '/_authenticated/tools/homework'
     | '/_authenticated/archive/'
+    | '/_authenticated/community/'
     | '/_authenticated/courses/'
+    | '/_authenticated/groups/'
     | '/_authenticated/library/'
     | '/_authenticated/teacher/'
     | '/_authenticated/teachers/'
+    | '/_authenticated/tools/'
     | '/_authenticated/archive/$examType/$subject'
     | '/_authenticated/sessions/book/$teacherId'
     | '/_authenticated/teacher/courses/$courseId'
     | '/_authenticated/teacher/courses/new'
+    | '/_authenticated/tools/memo/$sheetId'
     | '/_authenticated/archive/$examType/'
     | '/_authenticated/library/$cycle/'
     | '/_authenticated/teacher/courses/'
+    | '/_authenticated/tools/memo/'
     | '/_authenticated/library/$cycle/$levelSlug/$subjectSlug'
     | '/_authenticated/library/$cycle/$levelSlug/'
     | '/_authenticated/library/$cycle/$levelSlug/$subjectSlug/$chapterId'
@@ -486,32 +579,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedArchiveRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/community': {
-      id: '/_authenticated/community'
-      path: '/community'
-      fullPath: '/community'
-      preLoaderRoute: typeof AuthenticatedCommunityRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/groups': {
-      id: '/_authenticated/groups'
-      path: '/groups'
-      fullPath: '/groups'
-      preLoaderRoute: typeof AuthenticatedGroupsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/tools': {
-      id: '/_authenticated/tools'
-      path: '/tools'
-      fullPath: '/tools'
-      preLoaderRoute: typeof AuthenticatedToolsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/archive/': {
@@ -528,6 +600,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedArchiveSubmitRouteImport
       parentRoute: typeof AuthenticatedArchiveRoute
     }
+    '/_authenticated/community/': {
+      id: '/_authenticated/community/'
+      path: '/community'
+      fullPath: '/community/'
+      preLoaderRoute: typeof AuthenticatedCommunityIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/community/$threadId': {
+      id: '/_authenticated/community/$threadId'
+      path: '/community/$threadId'
+      fullPath: '/community/$threadId'
+      preLoaderRoute: typeof AuthenticatedCommunityThreadIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/courses/': {
       id: '/_authenticated/courses/'
       path: '/courses'
@@ -540,6 +626,20 @@ declare module '@tanstack/react-router' {
       path: '/courses/$courseId'
       fullPath: '/courses/$courseId'
       preLoaderRoute: typeof AuthenticatedCoursesCourseIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/groups/': {
+      id: '/_authenticated/groups/'
+      path: '/groups'
+      fullPath: '/groups/'
+      preLoaderRoute: typeof AuthenticatedGroupsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/groups/$groupId': {
+      id: '/_authenticated/groups/$groupId'
+      path: '/groups/$groupId'
+      fullPath: '/groups/$groupId'
+      preLoaderRoute: typeof AuthenticatedGroupsGroupIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/library/': {
@@ -582,6 +682,34 @@ declare module '@tanstack/react-router' {
       path: '/teachers/$teacherId'
       fullPath: '/teachers/$teacherId'
       preLoaderRoute: typeof AuthenticatedTeachersTeacherIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tools/': {
+      id: '/_authenticated/tools/'
+      path: '/tools'
+      fullPath: '/tools/'
+      preLoaderRoute: typeof AuthenticatedToolsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tools/calculator': {
+      id: '/_authenticated/tools/calculator'
+      path: '/tools/calculator'
+      fullPath: '/tools/calculator'
+      preLoaderRoute: typeof AuthenticatedToolsCalculatorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tools/countdown': {
+      id: '/_authenticated/tools/countdown'
+      path: '/tools/countdown'
+      fullPath: '/tools/countdown'
+      preLoaderRoute: typeof AuthenticatedToolsCountdownRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tools/homework': {
+      id: '/_authenticated/tools/homework'
+      path: '/tools/homework'
+      fullPath: '/tools/homework'
+      preLoaderRoute: typeof AuthenticatedToolsHomeworkRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/archive/$examType/': {
@@ -631,6 +759,20 @@ declare module '@tanstack/react-router' {
       path: '/teacher/courses/new'
       fullPath: '/teacher/courses/new'
       preLoaderRoute: typeof AuthenticatedTeacherCoursesNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tools/memo/': {
+      id: '/_authenticated/tools/memo/'
+      path: '/tools/memo'
+      fullPath: '/tools/memo/'
+      preLoaderRoute: typeof AuthenticatedToolsMemoIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/tools/memo/$sheetId': {
+      id: '/_authenticated/tools/memo/$sheetId'
+      path: '/tools/memo/$sheetId'
+      fullPath: '/tools/memo/$sheetId'
+      preLoaderRoute: typeof AuthenticatedToolsMemoSheetIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/library/$cycle/$levelSlug/': {
@@ -717,23 +859,30 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAiRoute: typeof AuthenticatedAiRoute
   AuthenticatedArchiveRoute: typeof AuthenticatedArchiveRouteWithChildren
-  AuthenticatedCommunityRoute: typeof AuthenticatedCommunityRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
-  AuthenticatedToolsRoute: typeof AuthenticatedToolsRoute
+  AuthenticatedCommunityThreadIdRoute: typeof AuthenticatedCommunityThreadIdRoute
   AuthenticatedCoursesCourseIdRoute: typeof AuthenticatedCoursesCourseIdRoute
+  AuthenticatedGroupsGroupIdRoute: typeof AuthenticatedGroupsGroupIdRoute
   AuthenticatedLiveSessionIdRoute: typeof AuthenticatedLiveSessionIdRoute
   AuthenticatedTeacherAvailabilityRoute: typeof AuthenticatedTeacherAvailabilityRoute
   AuthenticatedTeachersTeacherIdRoute: typeof AuthenticatedTeachersTeacherIdRoute
+  AuthenticatedToolsCalculatorRoute: typeof AuthenticatedToolsCalculatorRoute
+  AuthenticatedToolsCountdownRoute: typeof AuthenticatedToolsCountdownRoute
+  AuthenticatedToolsHomeworkRoute: typeof AuthenticatedToolsHomeworkRoute
+  AuthenticatedCommunityIndexRoute: typeof AuthenticatedCommunityIndexRoute
   AuthenticatedCoursesIndexRoute: typeof AuthenticatedCoursesIndexRoute
+  AuthenticatedGroupsIndexRoute: typeof AuthenticatedGroupsIndexRoute
   AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
   AuthenticatedTeacherIndexRoute: typeof AuthenticatedTeacherIndexRoute
   AuthenticatedTeachersIndexRoute: typeof AuthenticatedTeachersIndexRoute
+  AuthenticatedToolsIndexRoute: typeof AuthenticatedToolsIndexRoute
   AuthenticatedSessionsBookTeacherIdRoute: typeof AuthenticatedSessionsBookTeacherIdRoute
   AuthenticatedTeacherCoursesCourseIdRoute: typeof AuthenticatedTeacherCoursesCourseIdRoute
   AuthenticatedTeacherCoursesNewRoute: typeof AuthenticatedTeacherCoursesNewRoute
+  AuthenticatedToolsMemoSheetIdRoute: typeof AuthenticatedToolsMemoSheetIdRoute
   AuthenticatedLibraryCycleIndexRoute: typeof AuthenticatedLibraryCycleIndexRoute
   AuthenticatedTeacherCoursesIndexRoute: typeof AuthenticatedTeacherCoursesIndexRoute
+  AuthenticatedToolsMemoIndexRoute: typeof AuthenticatedToolsMemoIndexRoute
   AuthenticatedLibraryCycleLevelSlugSubjectSlugRoute: typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren
   AuthenticatedLibraryCycleLevelSlugIndexRoute: typeof AuthenticatedLibraryCycleLevelSlugIndexRoute
 }
@@ -742,25 +891,32 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAiRoute: AuthenticatedAiRoute,
   AuthenticatedArchiveRoute: AuthenticatedArchiveRouteWithChildren,
-  AuthenticatedCommunityRoute: AuthenticatedCommunityRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
-  AuthenticatedToolsRoute: AuthenticatedToolsRoute,
+  AuthenticatedCommunityThreadIdRoute: AuthenticatedCommunityThreadIdRoute,
   AuthenticatedCoursesCourseIdRoute: AuthenticatedCoursesCourseIdRoute,
+  AuthenticatedGroupsGroupIdRoute: AuthenticatedGroupsGroupIdRoute,
   AuthenticatedLiveSessionIdRoute: AuthenticatedLiveSessionIdRoute,
   AuthenticatedTeacherAvailabilityRoute: AuthenticatedTeacherAvailabilityRoute,
   AuthenticatedTeachersTeacherIdRoute: AuthenticatedTeachersTeacherIdRoute,
+  AuthenticatedToolsCalculatorRoute: AuthenticatedToolsCalculatorRoute,
+  AuthenticatedToolsCountdownRoute: AuthenticatedToolsCountdownRoute,
+  AuthenticatedToolsHomeworkRoute: AuthenticatedToolsHomeworkRoute,
+  AuthenticatedCommunityIndexRoute: AuthenticatedCommunityIndexRoute,
   AuthenticatedCoursesIndexRoute: AuthenticatedCoursesIndexRoute,
+  AuthenticatedGroupsIndexRoute: AuthenticatedGroupsIndexRoute,
   AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
   AuthenticatedTeacherIndexRoute: AuthenticatedTeacherIndexRoute,
   AuthenticatedTeachersIndexRoute: AuthenticatedTeachersIndexRoute,
+  AuthenticatedToolsIndexRoute: AuthenticatedToolsIndexRoute,
   AuthenticatedSessionsBookTeacherIdRoute:
     AuthenticatedSessionsBookTeacherIdRoute,
   AuthenticatedTeacherCoursesCourseIdRoute:
     AuthenticatedTeacherCoursesCourseIdRoute,
   AuthenticatedTeacherCoursesNewRoute: AuthenticatedTeacherCoursesNewRoute,
+  AuthenticatedToolsMemoSheetIdRoute: AuthenticatedToolsMemoSheetIdRoute,
   AuthenticatedLibraryCycleIndexRoute: AuthenticatedLibraryCycleIndexRoute,
   AuthenticatedTeacherCoursesIndexRoute: AuthenticatedTeacherCoursesIndexRoute,
+  AuthenticatedToolsMemoIndexRoute: AuthenticatedToolsMemoIndexRoute,
   AuthenticatedLibraryCycleLevelSlugSubjectSlugRoute:
     AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren,
   AuthenticatedLibraryCycleLevelSlugIndexRoute:
