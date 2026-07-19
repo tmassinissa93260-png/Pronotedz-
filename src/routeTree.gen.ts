@@ -23,7 +23,11 @@ import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedTeacherRouteImport } from './routes/_authenticated/teacher'
 import { Route as AuthenticatedTeachersRouteImport } from './routes/_authenticated/teachers'
 import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
+import { Route as AuthenticatedArchiveIndexRouteImport } from './routes/_authenticated/archive.index'
+import { Route as AuthenticatedArchiveSubmitRouteImport } from './routes/_authenticated/archive.submit'
 import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
+import { Route as AuthenticatedArchiveExamTypeIndexRouteImport } from './routes/_authenticated/archive.$examType.index'
+import { Route as AuthenticatedArchiveExamTypeSubjectRouteImport } from './routes/_authenticated/archive.$examType.$subject'
 import { Route as AuthenticatedLibraryCycleIndexRouteImport } from './routes/_authenticated/library.$cycle.index'
 import { Route as AuthenticatedLibraryCycleLevelSlugIndexRouteImport } from './routes/_authenticated/library.$cycle.$levelSlug.index'
 import { Route as AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteImport } from './routes/_authenticated/library.$cycle.$levelSlug.$subjectSlug'
@@ -99,11 +103,35 @@ const AuthenticatedToolsRoute = AuthenticatedToolsRouteImport.update({
   path: '/tools',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedArchiveIndexRoute =
+  AuthenticatedArchiveIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedArchiveRoute,
+  } as any)
+const AuthenticatedArchiveSubmitRoute =
+  AuthenticatedArchiveSubmitRouteImport.update({
+    id: '/submit',
+    path: '/submit',
+    getParentRoute: () => AuthenticatedArchiveRoute,
+  } as any)
 const AuthenticatedLibraryIndexRoute =
   AuthenticatedLibraryIndexRouteImport.update({
     id: '/library/',
     path: '/library/',
     getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedArchiveExamTypeIndexRoute =
+  AuthenticatedArchiveExamTypeIndexRouteImport.update({
+    id: '/$examType/',
+    path: '/$examType/',
+    getParentRoute: () => AuthenticatedArchiveRoute,
+  } as any)
+const AuthenticatedArchiveExamTypeSubjectRoute =
+  AuthenticatedArchiveExamTypeSubjectRouteImport.update({
+    id: '/$examType/$subject',
+    path: '/$examType/$subject',
+    getParentRoute: () => AuthenticatedArchiveRoute,
   } as any)
 const AuthenticatedLibraryCycleIndexRoute =
   AuthenticatedLibraryCycleIndexRouteImport.update({
@@ -145,7 +173,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/ai': typeof AuthenticatedAiRoute
-  '/archive': typeof AuthenticatedArchiveRoute
+  '/archive': typeof AuthenticatedArchiveRouteWithChildren
   '/community': typeof AuthenticatedCommunityRoute
   '/courses': typeof AuthenticatedCoursesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -153,7 +181,11 @@ export interface FileRoutesByFullPath {
   '/teacher': typeof AuthenticatedTeacherRoute
   '/teachers': typeof AuthenticatedTeachersRoute
   '/tools': typeof AuthenticatedToolsRoute
+  '/archive/submit': typeof AuthenticatedArchiveSubmitRoute
+  '/archive/': typeof AuthenticatedArchiveIndexRoute
   '/library/': typeof AuthenticatedLibraryIndexRoute
+  '/archive/$examType/$subject': typeof AuthenticatedArchiveExamTypeSubjectRoute
+  '/archive/$examType/': typeof AuthenticatedArchiveExamTypeIndexRoute
   '/library/$cycle/': typeof AuthenticatedLibraryCycleIndexRoute
   '/library/$cycle/$levelSlug/$subjectSlug': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren
   '/library/$cycle/$levelSlug/': typeof AuthenticatedLibraryCycleLevelSlugIndexRoute
@@ -166,7 +198,6 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/ai': typeof AuthenticatedAiRoute
-  '/archive': typeof AuthenticatedArchiveRoute
   '/community': typeof AuthenticatedCommunityRoute
   '/courses': typeof AuthenticatedCoursesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -174,7 +205,11 @@ export interface FileRoutesByTo {
   '/teacher': typeof AuthenticatedTeacherRoute
   '/teachers': typeof AuthenticatedTeachersRoute
   '/tools': typeof AuthenticatedToolsRoute
+  '/archive/submit': typeof AuthenticatedArchiveSubmitRoute
+  '/archive': typeof AuthenticatedArchiveIndexRoute
   '/library': typeof AuthenticatedLibraryIndexRoute
+  '/archive/$examType/$subject': typeof AuthenticatedArchiveExamTypeSubjectRoute
+  '/archive/$examType': typeof AuthenticatedArchiveExamTypeIndexRoute
   '/library/$cycle': typeof AuthenticatedLibraryCycleIndexRoute
   '/library/$cycle/$levelSlug/$subjectSlug': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren
   '/library/$cycle/$levelSlug': typeof AuthenticatedLibraryCycleLevelSlugIndexRoute
@@ -189,7 +224,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/ai': typeof AuthenticatedAiRoute
-  '/_authenticated/archive': typeof AuthenticatedArchiveRoute
+  '/_authenticated/archive': typeof AuthenticatedArchiveRouteWithChildren
   '/_authenticated/community': typeof AuthenticatedCommunityRoute
   '/_authenticated/courses': typeof AuthenticatedCoursesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -197,7 +232,11 @@ export interface FileRoutesById {
   '/_authenticated/teacher': typeof AuthenticatedTeacherRoute
   '/_authenticated/teachers': typeof AuthenticatedTeachersRoute
   '/_authenticated/tools': typeof AuthenticatedToolsRoute
+  '/_authenticated/archive/submit': typeof AuthenticatedArchiveSubmitRoute
+  '/_authenticated/archive/': typeof AuthenticatedArchiveIndexRoute
   '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
+  '/_authenticated/archive/$examType/$subject': typeof AuthenticatedArchiveExamTypeSubjectRoute
+  '/_authenticated/archive/$examType/': typeof AuthenticatedArchiveExamTypeIndexRoute
   '/_authenticated/library/$cycle/': typeof AuthenticatedLibraryCycleIndexRoute
   '/_authenticated/library/$cycle/$levelSlug/$subjectSlug': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren
   '/_authenticated/library/$cycle/$levelSlug/': typeof AuthenticatedLibraryCycleLevelSlugIndexRoute
@@ -220,7 +259,11 @@ export interface FileRouteTypes {
     | '/teacher'
     | '/teachers'
     | '/tools'
+    | '/archive/submit'
+    | '/archive/'
     | '/library/'
+    | '/archive/$examType/$subject'
+    | '/archive/$examType/'
     | '/library/$cycle/'
     | '/library/$cycle/$levelSlug/$subjectSlug'
     | '/library/$cycle/$levelSlug/'
@@ -233,7 +276,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/admin'
     | '/ai'
-    | '/archive'
     | '/community'
     | '/courses'
     | '/dashboard'
@@ -241,7 +283,11 @@ export interface FileRouteTypes {
     | '/teacher'
     | '/teachers'
     | '/tools'
+    | '/archive/submit'
+    | '/archive'
     | '/library'
+    | '/archive/$examType/$subject'
+    | '/archive/$examType'
     | '/library/$cycle'
     | '/library/$cycle/$levelSlug/$subjectSlug'
     | '/library/$cycle/$levelSlug'
@@ -263,7 +309,11 @@ export interface FileRouteTypes {
     | '/_authenticated/teacher'
     | '/_authenticated/teachers'
     | '/_authenticated/tools'
+    | '/_authenticated/archive/submit'
+    | '/_authenticated/archive/'
     | '/_authenticated/library/'
+    | '/_authenticated/archive/$examType/$subject'
+    | '/_authenticated/archive/$examType/'
     | '/_authenticated/library/$cycle/'
     | '/_authenticated/library/$cycle/$levelSlug/$subjectSlug'
     | '/_authenticated/library/$cycle/$levelSlug/'
@@ -378,12 +428,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedToolsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/archive/': {
+      id: '/_authenticated/archive/'
+      path: '/'
+      fullPath: '/archive/'
+      preLoaderRoute: typeof AuthenticatedArchiveIndexRouteImport
+      parentRoute: typeof AuthenticatedArchiveRoute
+    }
+    '/_authenticated/archive/submit': {
+      id: '/_authenticated/archive/submit'
+      path: '/submit'
+      fullPath: '/archive/submit'
+      preLoaderRoute: typeof AuthenticatedArchiveSubmitRouteImport
+      parentRoute: typeof AuthenticatedArchiveRoute
+    }
     '/_authenticated/library/': {
       id: '/_authenticated/library/'
       path: '/library'
       fullPath: '/library/'
       preLoaderRoute: typeof AuthenticatedLibraryIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/archive/$examType/': {
+      id: '/_authenticated/archive/$examType/'
+      path: '/$examType'
+      fullPath: '/archive/$examType/'
+      preLoaderRoute: typeof AuthenticatedArchiveExamTypeIndexRouteImport
+      parentRoute: typeof AuthenticatedArchiveRoute
+    }
+    '/_authenticated/archive/$examType/$subject': {
+      id: '/_authenticated/archive/$examType/$subject'
+      path: '/$examType/$subject'
+      fullPath: '/archive/$examType/$subject'
+      preLoaderRoute: typeof AuthenticatedArchiveExamTypeSubjectRouteImport
+      parentRoute: typeof AuthenticatedArchiveRoute
     }
     '/_authenticated/library/$cycle/': {
       id: '/_authenticated/library/$cycle/'
@@ -423,6 +501,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedArchiveRouteChildren {
+  AuthenticatedArchiveSubmitRoute: typeof AuthenticatedArchiveSubmitRoute
+  AuthenticatedArchiveIndexRoute: typeof AuthenticatedArchiveIndexRoute
+  AuthenticatedArchiveExamTypeSubjectRoute: typeof AuthenticatedArchiveExamTypeSubjectRoute
+  AuthenticatedArchiveExamTypeIndexRoute: typeof AuthenticatedArchiveExamTypeIndexRoute
+}
+
+const AuthenticatedArchiveRouteChildren: AuthenticatedArchiveRouteChildren = {
+  AuthenticatedArchiveSubmitRoute: AuthenticatedArchiveSubmitRoute,
+  AuthenticatedArchiveIndexRoute: AuthenticatedArchiveIndexRoute,
+  AuthenticatedArchiveExamTypeSubjectRoute:
+    AuthenticatedArchiveExamTypeSubjectRoute,
+  AuthenticatedArchiveExamTypeIndexRoute:
+    AuthenticatedArchiveExamTypeIndexRoute,
+}
+
+const AuthenticatedArchiveRouteWithChildren =
+  AuthenticatedArchiveRoute._addFileChildren(AuthenticatedArchiveRouteChildren)
+
 interface AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteChildren {
   AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdLessonIdRoute: typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdLessonIdRoute
 }
@@ -456,7 +553,7 @@ const AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAiRoute: typeof AuthenticatedAiRoute
-  AuthenticatedArchiveRoute: typeof AuthenticatedArchiveRoute
+  AuthenticatedArchiveRoute: typeof AuthenticatedArchiveRouteWithChildren
   AuthenticatedCommunityRoute: typeof AuthenticatedCommunityRoute
   AuthenticatedCoursesRoute: typeof AuthenticatedCoursesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -473,7 +570,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAiRoute: AuthenticatedAiRoute,
-  AuthenticatedArchiveRoute: AuthenticatedArchiveRoute,
+  AuthenticatedArchiveRoute: AuthenticatedArchiveRouteWithChildren,
   AuthenticatedCommunityRoute: AuthenticatedCommunityRoute,
   AuthenticatedCoursesRoute: AuthenticatedCoursesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,

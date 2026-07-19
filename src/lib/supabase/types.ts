@@ -863,6 +863,8 @@ export type Database = {
           filiere: string | null
           id: string
           pdf_url: string
+          session: string | null
+          status: string
           subject: string
           title: string
           updated_at: string
@@ -876,6 +878,8 @@ export type Database = {
           filiere?: string | null
           id?: string
           pdf_url: string
+          session?: string | null
+          status?: string
           subject: string
           title: string
           updated_at?: string
@@ -889,6 +893,8 @@ export type Database = {
           filiere?: string | null
           id?: string
           pdf_url?: string
+          session?: string | null
+          status?: string
           subject?: string
           title?: string
           updated_at?: string
