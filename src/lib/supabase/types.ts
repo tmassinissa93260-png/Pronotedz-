@@ -675,6 +675,7 @@ export type Database = {
           summary_fr: string | null
           title_ar: string
           title_fr: string
+          trimester: number | null
           updated_at: string
         }
         Insert: {
@@ -688,6 +689,7 @@ export type Database = {
           summary_fr?: string | null
           title_ar: string
           title_fr: string
+          trimester?: number | null
           updated_at?: string
         }
         Update: {
@@ -701,6 +703,7 @@ export type Database = {
           summary_fr?: string | null
           title_ar?: string
           title_fr?: string
+          trimester?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -709,6 +712,59 @@ export type Database = {
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "edu_subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edu_lessons: {
+        Row: {
+          ai_generated_at: string | null
+          ai_model: string | null
+          chapter_id: string
+          created_at: string
+          exercises: Json | null
+          id: string
+          lesson_content: Json | null
+          order_index: number
+          sujet: Json | null
+          title_ar: string
+          title_fr: string
+          updated_at: string
+        }
+        Insert: {
+          ai_generated_at?: string | null
+          ai_model?: string | null
+          chapter_id: string
+          created_at?: string
+          exercises?: Json | null
+          id?: string
+          lesson_content?: Json | null
+          order_index?: number
+          sujet?: Json | null
+          title_ar: string
+          title_fr: string
+          updated_at?: string
+        }
+        Update: {
+          ai_generated_at?: string | null
+          ai_model?: string | null
+          chapter_id?: string
+          created_at?: string
+          exercises?: Json | null
+          id?: string
+          lesson_content?: Json | null
+          order_index?: number
+          sujet?: Json | null
+          title_ar?: string
+          title_fr?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edu_lessons_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "edu_chapters"
             referencedColumns: ["id"]
           },
         ]
@@ -2177,18 +2233,22 @@ export type Database = {
         | "cem_3"
         | "cem_4"
         | "lycee_1_tc"
+        | "lycee_1_tc_sciences"
+        | "lycee_1_tc_lettres"
         | "lycee_2_sciences"
         | "lycee_2_lettres"
         | "lycee_2_maths"
         | "lycee_2_gestion"
         | "lycee_2_langues"
         | "lycee_2_techmath"
+        | "lycee_2_arts"
         | "lycee_3_sciences"
         | "lycee_3_lettres"
         | "lycee_3_maths"
         | "lycee_3_gestion"
         | "lycee_3_langues"
         | "lycee_3_techmath"
+        | "lycee_3_arts"
         | "univ_1"
         | "univ_2"
         | "univ_3"
@@ -2344,18 +2404,22 @@ export const Constants = {
         "cem_3",
         "cem_4",
         "lycee_1_tc",
+        "lycee_1_tc_sciences",
+        "lycee_1_tc_lettres",
         "lycee_2_sciences",
         "lycee_2_lettres",
         "lycee_2_maths",
         "lycee_2_gestion",
         "lycee_2_langues",
         "lycee_2_techmath",
+        "lycee_2_arts",
         "lycee_3_sciences",
         "lycee_3_lettres",
         "lycee_3_maths",
         "lycee_3_gestion",
         "lycee_3_langues",
         "lycee_3_techmath",
+        "lycee_3_arts",
         "univ_1",
         "univ_2",
         "univ_3",

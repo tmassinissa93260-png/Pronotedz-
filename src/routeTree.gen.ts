@@ -20,10 +20,15 @@ import { Route as AuthenticatedCommunityRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCoursesRouteImport } from './routes/_authenticated/courses'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedGroupsRouteImport } from './routes/_authenticated/groups'
-import { Route as AuthenticatedLibraryRouteImport } from './routes/_authenticated/library'
 import { Route as AuthenticatedTeacherRouteImport } from './routes/_authenticated/teacher'
 import { Route as AuthenticatedTeachersRouteImport } from './routes/_authenticated/teachers'
 import { Route as AuthenticatedToolsRouteImport } from './routes/_authenticated/tools'
+import { Route as AuthenticatedLibraryIndexRouteImport } from './routes/_authenticated/library.index'
+import { Route as AuthenticatedLibraryCycleIndexRouteImport } from './routes/_authenticated/library.$cycle.index'
+import { Route as AuthenticatedLibraryCycleLevelSlugIndexRouteImport } from './routes/_authenticated/library.$cycle.$levelSlug.index'
+import { Route as AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteImport } from './routes/_authenticated/library.$cycle.$levelSlug.$subjectSlug'
+import { Route as AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteImport } from './routes/_authenticated/library.$cycle.$levelSlug.$subjectSlug.$chapterId'
+import { Route as AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdLessonIdRouteImport } from './routes/_authenticated/library.$cycle.$levelSlug.$subjectSlug.$chapterId.$lessonId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -79,11 +84,6 @@ const AuthenticatedGroupsRoute = AuthenticatedGroupsRouteImport.update({
   path: '/groups',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedLibraryRoute = AuthenticatedLibraryRouteImport.update({
-  id: '/library',
-  path: '/library',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedTeacherRoute = AuthenticatedTeacherRouteImport.update({
   id: '/teacher',
   path: '/teacher',
@@ -99,6 +99,45 @@ const AuthenticatedToolsRoute = AuthenticatedToolsRouteImport.update({
   path: '/tools',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLibraryIndexRoute =
+  AuthenticatedLibraryIndexRouteImport.update({
+    id: '/library/',
+    path: '/library/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLibraryCycleIndexRoute =
+  AuthenticatedLibraryCycleIndexRouteImport.update({
+    id: '/library/$cycle/',
+    path: '/library/$cycle/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLibraryCycleLevelSlugIndexRoute =
+  AuthenticatedLibraryCycleLevelSlugIndexRouteImport.update({
+    id: '/library/$cycle/$levelSlug/',
+    path: '/library/$cycle/$levelSlug/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLibraryCycleLevelSlugSubjectSlugRoute =
+  AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteImport.update({
+    id: '/library/$cycle/$levelSlug/$subjectSlug',
+    path: '/library/$cycle/$levelSlug/$subjectSlug',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRoute =
+  AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteImport.update({
+    id: '/$chapterId',
+    path: '/$chapterId',
+    getParentRoute: () => AuthenticatedLibraryCycleLevelSlugSubjectSlugRoute,
+  } as any)
+const AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdLessonIdRoute =
+  AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdLessonIdRouteImport.update(
+    {
+      id: '/$lessonId',
+      path: '/$lessonId',
+      getParentRoute: () =>
+        AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRoute,
+    } as any,
+  )
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -111,10 +150,15 @@ export interface FileRoutesByFullPath {
   '/courses': typeof AuthenticatedCoursesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/groups': typeof AuthenticatedGroupsRoute
-  '/library': typeof AuthenticatedLibraryRoute
   '/teacher': typeof AuthenticatedTeacherRoute
   '/teachers': typeof AuthenticatedTeachersRoute
   '/tools': typeof AuthenticatedToolsRoute
+  '/library/': typeof AuthenticatedLibraryIndexRoute
+  '/library/$cycle/': typeof AuthenticatedLibraryCycleIndexRoute
+  '/library/$cycle/$levelSlug/$subjectSlug': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren
+  '/library/$cycle/$levelSlug/': typeof AuthenticatedLibraryCycleLevelSlugIndexRoute
+  '/library/$cycle/$levelSlug/$subjectSlug/$chapterId': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteWithChildren
+  '/library/$cycle/$levelSlug/$subjectSlug/$chapterId/$lessonId': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdLessonIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -127,10 +171,15 @@ export interface FileRoutesByTo {
   '/courses': typeof AuthenticatedCoursesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/groups': typeof AuthenticatedGroupsRoute
-  '/library': typeof AuthenticatedLibraryRoute
   '/teacher': typeof AuthenticatedTeacherRoute
   '/teachers': typeof AuthenticatedTeachersRoute
   '/tools': typeof AuthenticatedToolsRoute
+  '/library': typeof AuthenticatedLibraryIndexRoute
+  '/library/$cycle': typeof AuthenticatedLibraryCycleIndexRoute
+  '/library/$cycle/$levelSlug/$subjectSlug': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren
+  '/library/$cycle/$levelSlug': typeof AuthenticatedLibraryCycleLevelSlugIndexRoute
+  '/library/$cycle/$levelSlug/$subjectSlug/$chapterId': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteWithChildren
+  '/library/$cycle/$levelSlug/$subjectSlug/$chapterId/$lessonId': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdLessonIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -145,10 +194,15 @@ export interface FileRoutesById {
   '/_authenticated/courses': typeof AuthenticatedCoursesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/groups': typeof AuthenticatedGroupsRoute
-  '/_authenticated/library': typeof AuthenticatedLibraryRoute
   '/_authenticated/teacher': typeof AuthenticatedTeacherRoute
   '/_authenticated/teachers': typeof AuthenticatedTeachersRoute
   '/_authenticated/tools': typeof AuthenticatedToolsRoute
+  '/_authenticated/library/': typeof AuthenticatedLibraryIndexRoute
+  '/_authenticated/library/$cycle/': typeof AuthenticatedLibraryCycleIndexRoute
+  '/_authenticated/library/$cycle/$levelSlug/$subjectSlug': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren
+  '/_authenticated/library/$cycle/$levelSlug/': typeof AuthenticatedLibraryCycleLevelSlugIndexRoute
+  '/_authenticated/library/$cycle/$levelSlug/$subjectSlug/$chapterId': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteWithChildren
+  '/_authenticated/library/$cycle/$levelSlug/$subjectSlug/$chapterId/$lessonId': typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdLessonIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -163,10 +217,15 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/groups'
-    | '/library'
     | '/teacher'
     | '/teachers'
     | '/tools'
+    | '/library/'
+    | '/library/$cycle/'
+    | '/library/$cycle/$levelSlug/$subjectSlug'
+    | '/library/$cycle/$levelSlug/'
+    | '/library/$cycle/$levelSlug/$subjectSlug/$chapterId'
+    | '/library/$cycle/$levelSlug/$subjectSlug/$chapterId/$lessonId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -179,10 +238,15 @@ export interface FileRouteTypes {
     | '/courses'
     | '/dashboard'
     | '/groups'
-    | '/library'
     | '/teacher'
     | '/teachers'
     | '/tools'
+    | '/library'
+    | '/library/$cycle'
+    | '/library/$cycle/$levelSlug/$subjectSlug'
+    | '/library/$cycle/$levelSlug'
+    | '/library/$cycle/$levelSlug/$subjectSlug/$chapterId'
+    | '/library/$cycle/$levelSlug/$subjectSlug/$chapterId/$lessonId'
   id:
     | '__root__'
     | '/'
@@ -196,10 +260,15 @@ export interface FileRouteTypes {
     | '/_authenticated/courses'
     | '/_authenticated/dashboard'
     | '/_authenticated/groups'
-    | '/_authenticated/library'
     | '/_authenticated/teacher'
     | '/_authenticated/teachers'
     | '/_authenticated/tools'
+    | '/_authenticated/library/'
+    | '/_authenticated/library/$cycle/'
+    | '/_authenticated/library/$cycle/$levelSlug/$subjectSlug'
+    | '/_authenticated/library/$cycle/$levelSlug/'
+    | '/_authenticated/library/$cycle/$levelSlug/$subjectSlug/$chapterId'
+    | '/_authenticated/library/$cycle/$levelSlug/$subjectSlug/$chapterId/$lessonId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -288,13 +357,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGroupsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/library': {
-      id: '/_authenticated/library'
-      path: '/library'
-      fullPath: '/library'
-      preLoaderRoute: typeof AuthenticatedLibraryRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/teacher': {
       id: '/_authenticated/teacher'
       path: '/teacher'
@@ -316,8 +378,80 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedToolsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/library/': {
+      id: '/_authenticated/library/'
+      path: '/library'
+      fullPath: '/library/'
+      preLoaderRoute: typeof AuthenticatedLibraryIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/library/$cycle/': {
+      id: '/_authenticated/library/$cycle/'
+      path: '/library/$cycle'
+      fullPath: '/library/$cycle/'
+      preLoaderRoute: typeof AuthenticatedLibraryCycleIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/library/$cycle/$levelSlug/': {
+      id: '/_authenticated/library/$cycle/$levelSlug/'
+      path: '/library/$cycle/$levelSlug'
+      fullPath: '/library/$cycle/$levelSlug/'
+      preLoaderRoute: typeof AuthenticatedLibraryCycleLevelSlugIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/library/$cycle/$levelSlug/$subjectSlug': {
+      id: '/_authenticated/library/$cycle/$levelSlug/$subjectSlug'
+      path: '/library/$cycle/$levelSlug/$subjectSlug'
+      fullPath: '/library/$cycle/$levelSlug/$subjectSlug'
+      preLoaderRoute: typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/library/$cycle/$levelSlug/$subjectSlug/$chapterId': {
+      id: '/_authenticated/library/$cycle/$levelSlug/$subjectSlug/$chapterId'
+      path: '/$chapterId'
+      fullPath: '/library/$cycle/$levelSlug/$subjectSlug/$chapterId'
+      preLoaderRoute: typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteImport
+      parentRoute: typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugRoute
+    }
+    '/_authenticated/library/$cycle/$levelSlug/$subjectSlug/$chapterId/$lessonId': {
+      id: '/_authenticated/library/$cycle/$levelSlug/$subjectSlug/$chapterId/$lessonId'
+      path: '/$lessonId'
+      fullPath: '/library/$cycle/$levelSlug/$subjectSlug/$chapterId/$lessonId'
+      preLoaderRoute: typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdLessonIdRouteImport
+      parentRoute: typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRoute
+    }
   }
 }
+
+interface AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteChildren {
+  AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdLessonIdRoute: typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdLessonIdRoute
+}
+
+const AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteChildren: AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteChildren =
+  {
+    AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdLessonIdRoute:
+      AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdLessonIdRoute,
+  }
+
+const AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteWithChildren =
+  AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRoute._addFileChildren(
+    AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteChildren,
+  )
+
+interface AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteChildren {
+  AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRoute: typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteWithChildren
+}
+
+const AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteChildren: AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteChildren =
+  {
+    AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRoute:
+      AuthenticatedLibraryCycleLevelSlugSubjectSlugChapterIdRouteWithChildren,
+  }
+
+const AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren =
+  AuthenticatedLibraryCycleLevelSlugSubjectSlugRoute._addFileChildren(
+    AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
@@ -327,10 +461,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCoursesRoute: typeof AuthenticatedCoursesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedGroupsRoute: typeof AuthenticatedGroupsRoute
-  AuthenticatedLibraryRoute: typeof AuthenticatedLibraryRoute
   AuthenticatedTeacherRoute: typeof AuthenticatedTeacherRoute
   AuthenticatedTeachersRoute: typeof AuthenticatedTeachersRoute
   AuthenticatedToolsRoute: typeof AuthenticatedToolsRoute
+  AuthenticatedLibraryIndexRoute: typeof AuthenticatedLibraryIndexRoute
+  AuthenticatedLibraryCycleIndexRoute: typeof AuthenticatedLibraryCycleIndexRoute
+  AuthenticatedLibraryCycleLevelSlugSubjectSlugRoute: typeof AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren
+  AuthenticatedLibraryCycleLevelSlugIndexRoute: typeof AuthenticatedLibraryCycleLevelSlugIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -341,10 +478,15 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCoursesRoute: AuthenticatedCoursesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedGroupsRoute: AuthenticatedGroupsRoute,
-  AuthenticatedLibraryRoute: AuthenticatedLibraryRoute,
   AuthenticatedTeacherRoute: AuthenticatedTeacherRoute,
   AuthenticatedTeachersRoute: AuthenticatedTeachersRoute,
   AuthenticatedToolsRoute: AuthenticatedToolsRoute,
+  AuthenticatedLibraryIndexRoute: AuthenticatedLibraryIndexRoute,
+  AuthenticatedLibraryCycleIndexRoute: AuthenticatedLibraryCycleIndexRoute,
+  AuthenticatedLibraryCycleLevelSlugSubjectSlugRoute:
+    AuthenticatedLibraryCycleLevelSlugSubjectSlugRouteWithChildren,
+  AuthenticatedLibraryCycleLevelSlugIndexRoute:
+    AuthenticatedLibraryCycleLevelSlugIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

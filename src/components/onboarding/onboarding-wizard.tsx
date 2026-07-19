@@ -33,7 +33,7 @@ export function OnboardingWizard({ userId }: { userId: string }) {
   const [step, setStep] = useState(0);
   const [role, setRole] = useState<Role>("student");
   const [cycle, setCycle] = useState<Cycle>("lycee");
-  const [grade, setGrade] = useState<GradeOption>(GRADES_BY_CYCLE.lycee[2]);
+  const [grade, setGrade] = useState<GradeOption>(GRADES_BY_CYCLE.lycee[3]);
   const [year, setYear] = useState<2 | 3>(3);
   const [track, setTrack] = useState<SchoolLevel | null>(null);
   const [exam, setExam] = useState<ExamTarget>("bac");
@@ -65,7 +65,7 @@ export function OnboardingWizard({ userId }: { userId: string }) {
 
   function selectYear(y: 2 | 3) {
     setYear(y);
-    const g = GRADES_BY_CYCLE.lycee[y === 2 ? 1 : 2];
+    const g = GRADES_BY_CYCLE.lycee[y === 2 ? 2 : 3];
     setGrade(g);
     setTrack(null);
     setExam(y === 3 ? "bac" : "none");
@@ -295,12 +295,15 @@ function GradeStep({
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         {grades.map((g) => {
           const isLyceeYearGrade = cycle === "lycee" && g.hasTrack;
-          const active = isLyceeYearGrade ? grade.hasTrack && year === (g === grades[1] ? 2 : 3) : grade.schoolLevel === g.schoolLevel;
+          const gradeYear: 2 | 3 = g.schoolLevel.startsWith("lycee_2") ? 2 : 3;
+          const active = isLyceeYearGrade
+            ? grade.hasTrack && year === gradeYear
+            : grade.schoolLevel === g.schoolLevel;
           return (
             <OptionCard
               key={g.schoolLevel + g.label_fr}
               active={active}
-              onClick={() => (isLyceeYearGrade ? onSelectYear(g === grades[1] ? 2 : 3) : onSelectGrade(g))}
+              onClick={() => (isLyceeYearGrade ? onSelectYear(gradeYear) : onSelectGrade(g))}
               label={lang === "ar" ? g.label_ar : g.label_fr}
             />
           );

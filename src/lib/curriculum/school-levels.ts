@@ -39,6 +39,7 @@ const LYCEE_2_TRACKS: TrackOption[] = [
   { schoolLevel: "lycee_2_gestion", label_fr: "Gestion & économie", label_ar: "تسيير واقتصاد" },
   { schoolLevel: "lycee_2_langues", label_fr: "Langues étrangères", label_ar: "لغات أجنبية" },
   { schoolLevel: "lycee_2_lettres", label_fr: "Lettres & philosophie", label_ar: "آداب وفلسفة" },
+  { schoolLevel: "lycee_2_arts", label_fr: "Arts", label_ar: "فنون" },
 ];
 
 const LYCEE_3_TRACKS: TrackOption[] = [
@@ -48,9 +49,15 @@ const LYCEE_3_TRACKS: TrackOption[] = [
   { schoolLevel: "lycee_3_gestion", label_fr: "Gestion & économie", label_ar: "تسيير واقتصاد" },
   { schoolLevel: "lycee_3_langues", label_fr: "Langues étrangères", label_ar: "لغات أجنبية" },
   { schoolLevel: "lycee_3_lettres", label_fr: "Lettres & philosophie", label_ar: "آداب وفلسفة" },
+  { schoolLevel: "lycee_3_arts", label_fr: "Arts", label_ar: "فنون" },
 ];
 
-/** Grades available for a cycle. Lycée 2AS/3AS resolve through `tracksForGrade`. */
+/**
+ * Grades available for a cycle. Lycée 2AS/3AS resolve through `tracksForGrade`.
+ * 1AS is genuinely two tronc-commun tracks in the real system (sciences /
+ * lettres), not one — index order here (0,1 = 1AS; 2 = 2AS; 3 = 3AS) is
+ * relied on by the onboarding wizard's year selection.
+ */
 export const GRADES_BY_CYCLE: Record<Cycle, GradeOption[]> = {
   primaire: [{ schoolLevel: "primaire", label_fr: "Primaire", label_ar: "الابتدائي", hasTrack: false }],
   cem: [
@@ -60,7 +67,8 @@ export const GRADES_BY_CYCLE: Record<Cycle, GradeOption[]> = {
     { schoolLevel: "cem_4", label_fr: "4e année moyenne — BEM (4AM)", label_ar: "السنة الرابعة متوسط (شهادة التعليم المتوسط)", hasTrack: false },
   ],
   lycee: [
-    { schoolLevel: "lycee_1_tc", label_fr: "1ère année secondaire — tronc commun (1AS)", label_ar: "السنة الأولى ثانوي (جذع مشترك)", hasTrack: false },
+    { schoolLevel: "lycee_1_tc_sciences", label_fr: "1ère année secondaire — tronc commun sciences (1AS)", label_ar: "السنة الأولى ثانوي (جذع مشترك علوم)", hasTrack: false },
+    { schoolLevel: "lycee_1_tc_lettres", label_fr: "1ère année secondaire — tronc commun lettres (1AS)", label_ar: "السنة الأولى ثانوي (جذع مشترك آداب)", hasTrack: false },
     { schoolLevel: "lycee_2_sciences", label_fr: "2e année secondaire (2AS)", label_ar: "السنة الثانية ثانوي", hasTrack: true },
     { schoolLevel: "lycee_3_sciences", label_fr: "3e année secondaire — BAC (3AS)", label_ar: "السنة الثالثة ثانوي (بكالوريا)", hasTrack: true },
   ],
