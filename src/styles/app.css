@@ -1,0 +1,221 @@
+@import "tailwindcss" source(none);
+@source "../../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Estadi — Émeraude & Nuit design system (Apple / Linear feel).
+ * Palette: Émeraude #10B981 (primary), Nuit #0B1220 (dark bg), Blanc cassé #F8FAFC
+ * (light bg), Ambre #F59E0B (accent). All colors in oklch. Dark is the default
+ * theme; light is a fully designed secondary surface, not an afterthought.
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter Tight", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/*
+ * Light — Blanc cassé. Fully designed, not a dark-mode inversion. Declared as
+ * the base :root layer so `.dark` (below) can override it — both selectors
+ * target <html> with equal specificity, so source order decides the tie.
+ */
+:root {
+  --radius: 1rem;
+  --background: oklch(0.985 0.004 95);
+  --foreground: oklch(0.19 0.02 240);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0.02 240);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.19 0.02 240);
+  --primary: oklch(0.64 0.15 162);
+  --primary-foreground: oklch(0.99 0.003 95);
+  --secondary: oklch(0.95 0.008 95);
+  --secondary-foreground: oklch(0.22 0.02 240);
+  --muted: oklch(0.96 0.006 95);
+  --muted-foreground: oklch(0.48 0.02 240);
+  --accent: oklch(0.72 0.15 70);
+  --accent-foreground: oklch(0.2 0.03 60);
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: oklch(0.99 0.003 95);
+  --success: oklch(0.6 0.15 162);
+  --success-foreground: oklch(0.99 0.003 95);
+  --border: oklch(0.9 0.008 95);
+  --input: oklch(0.9 0.008 95);
+  --ring: oklch(0.64 0.15 162);
+  --chart-1: oklch(0.64 0.15 162);
+  --chart-2: oklch(0.72 0.15 70);
+  --chart-3: oklch(0.58 0.16 250);
+  --chart-4: oklch(0.65 0.13 195);
+  --chart-5: oklch(0.6 0.2 15);
+  --sidebar: oklch(0.98 0.004 95);
+  --sidebar-foreground: oklch(0.22 0.02 240);
+  --sidebar-primary: oklch(0.64 0.15 162);
+  --sidebar-primary-foreground: oklch(0.99 0.003 95);
+  --sidebar-accent: oklch(0.95 0.008 95);
+  --sidebar-accent-foreground: oklch(0.22 0.02 240);
+  --sidebar-border: oklch(0.9 0.008 95);
+  --sidebar-ring: oklch(0.64 0.15 162);
+  --gradient-hero: radial-gradient(1200px 600px at 15% -10%, oklch(0.85 0.09 162 / 0.35), transparent 60%),
+    radial-gradient(900px 500px at 95% 10%, oklch(0.88 0.1 70 / 0.2), transparent 60%),
+    linear-gradient(180deg, oklch(1 0 0), oklch(0.97 0.006 95));
+  --gradient-emerald: linear-gradient(135deg, oklch(0.64 0.15 162) 0%, oklch(0.56 0.13 190) 100%);
+  --gradient-amber: linear-gradient(135deg, oklch(0.78 0.15 75) 0%, oklch(0.68 0.18 45) 100%);
+  --glass-bg: oklch(1 0 0 / 0.6);
+  --glass-border: oklch(0 0 0 / 6%);
+  --shadow-soft: 0 4px 16px -8px oklch(0.2 0.02 240 / 0.15);
+  --shadow-lift: 0 20px 45px -18px oklch(0.2 0.02 240 / 0.25), 0 0 0 1px oklch(0.2 0.02 240 / 0.04);
+  --shadow-glow: 0 0 32px -6px oklch(0.64 0.15 162 / 0.25);
+}
+
+/* Dark — Nuit. This is the default theme (html has class="dark" out of the box). */
+.dark {
+  --radius: 1rem;
+  --background: oklch(0.15 0.018 240);
+  --foreground: oklch(0.98 0.005 240);
+  --card: oklch(0.2 0.022 240);
+  --card-foreground: oklch(0.98 0.005 240);
+  --popover: oklch(0.22 0.024 240);
+  --popover-foreground: oklch(0.98 0.005 240);
+  --primary: oklch(0.75 0.17 162);
+  --primary-foreground: oklch(0.14 0.02 240);
+  --secondary: oklch(0.26 0.02 240);
+  --secondary-foreground: oklch(0.98 0.005 240);
+  --muted: oklch(0.24 0.018 240);
+  --muted-foreground: oklch(0.72 0.02 240);
+  --accent: oklch(0.79 0.15 70);
+  --accent-foreground: oklch(0.16 0.03 240);
+  --destructive: oklch(0.66 0.22 25);
+  --destructive-foreground: oklch(0.98 0.005 240);
+  --success: oklch(0.72 0.17 162);
+  --success-foreground: oklch(0.14 0.02 240);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 12%);
+  --ring: oklch(0.75 0.17 162);
+  --chart-1: oklch(0.72 0.17 162);
+  --chart-2: oklch(0.79 0.15 70);
+  --chart-3: oklch(0.65 0.18 250);
+  --chart-4: oklch(0.78 0.14 195);
+  --chart-5: oklch(0.67 0.22 15);
+  --sidebar: oklch(0.17 0.02 240);
+  --sidebar-foreground: oklch(0.96 0.005 240);
+  --sidebar-primary: oklch(0.75 0.17 162);
+  --sidebar-primary-foreground: oklch(0.14 0.02 240);
+  --sidebar-accent: oklch(0.26 0.02 240);
+  --sidebar-accent-foreground: oklch(0.98 0.005 240);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.75 0.17 162);
+  --gradient-hero: radial-gradient(1200px 600px at 15% -10%, oklch(0.55 0.16 162 / 0.28), transparent 60%),
+    radial-gradient(900px 500px at 95% 10%, oklch(0.6 0.16 70 / 0.16), transparent 60%),
+    linear-gradient(180deg, oklch(0.19 0.022 240), oklch(0.15 0.018 240));
+  --gradient-emerald: linear-gradient(135deg, oklch(0.72 0.17 162) 0%, oklch(0.62 0.14 190) 100%);
+  --gradient-amber: linear-gradient(135deg, oklch(0.82 0.16 75) 0%, oklch(0.72 0.18 45) 100%);
+  --glass-bg: oklch(0.24 0.02 240 / 0.55);
+  --glass-border: oklch(1 0 0 / 10%);
+  --shadow-soft: 0 4px 20px -6px oklch(0 0 0 / 0.55);
+  --shadow-lift: 0 24px 60px -22px oklch(0 0 0 / 0.7), 0 0 0 1px oklch(1 0 0 / 0.05);
+  --shadow-glow: 0 0 40px -8px oklch(0.72 0.17 162 / 0.35);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01", "ss03";
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  [dir="rtl"] {
+    font-feature-settings: "ss01";
+  }
+}
+
+@utility bg-hero {
+  /* background-image (not the `background` shorthand) so it composes safely with
+     bg-clip-text elsewhere — the shorthand resets background-clip to border-box. */
+  background-image: var(--gradient-hero);
+}
+@utility bg-emerald-gradient {
+  background-image: var(--gradient-emerald);
+}
+@utility bg-amber-gradient {
+  background-image: var(--gradient-amber);
+}
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+@utility shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+@utility shadow-lift {
+  box-shadow: var(--shadow-lift);
+}
+@utility glass {
+  background-color: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(20px) saturate(160%);
+}
+@utility hover-lift {
+  transition:
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lift);
+  }
+}
