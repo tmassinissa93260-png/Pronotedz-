@@ -1,6 +1,7 @@
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '../constants/theme';
+import { guessTaskIcon } from '../lib/taskIcon';
 
 // Vue frise horaire façon Tiimo : la vue liste reste la vue "détails" (édition,
 // découpage IA, dread...), celle-ci sert de vue "coup d'œil" pour visualiser
@@ -132,7 +133,7 @@ export function TimelineView({
               onPress={() => onToggleDone(task)}
             >
               <Text numberOfLines={2} style={[styles.blockText, task.statut === 'fait' && styles.blockTextDone]}>
-                {task.statut === 'fait' ? '✓ ' : ''}
+                {task.statut === 'fait' ? '✓ ' : `${guessTaskIcon(task.titre).emoji} `}
                 {task.titre}
               </Text>
               {task.statut !== 'fait' && (

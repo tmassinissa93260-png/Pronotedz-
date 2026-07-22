@@ -27,6 +27,7 @@ import { useReward } from '../../lib/rewards/RewardProvider';
 import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
 import { TimelineView } from '../../components/TimelineView';
 import { syncTaskToCalendar } from '../../lib/calendar/sync';
+import { guessTaskIcon } from '../../lib/taskIcon';
 
 type Subtask = { id: string; titre: string; fait: boolean; ordre: number };
 type MomentJournee = 'n_importe_quand' | 'matin' | 'jour' | 'soir';
@@ -52,6 +53,14 @@ const MOMENT_LABELS: Record<MomentJournee, string> = {
   soir: 'Soir',
 };
 const MOMENT_ORDER: MomentJournee[] = ['n_importe_quand', 'matin', 'jour', 'soir'];
+const WEEKDAY_LETTERS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+
+function mondayOf(dateISO: string) {
+  const d = new Date(`${dateISO}T00:00:00`);
+  const day = d.getDay() || 7;
+  d.setDate(d.getDate() - day + 1);
+  return d;
+}
 
 export default function AccueilScreen() {
   const { session } = useAuth();
@@ -70,16 +79,23 @@ export default function AccueilScreen() {
   const [braindumpText, setBraindumpText] = useState('');
   const [braindumpLoading, setBraindumpLoading] = useState(false);
   const [vueMode, setVueMode] = useState<'liste' | 'timeline'>('liste');
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [streakDays, setStreakDays] = useState<number | null>(null);
+  const [selectedDate, setSelectedDate] = useState(() => today());
 
   const loadTasks = useCallback(async () => {
     if (!session) return;
     setIsLoading(true);
     try {
-      await ensureRoutinesForToday(session.user.id);
+      // Les routines ne se matérialisent que pour le vrai "aujourd'hui" —
+      // pas de sens à en créer pour un jour futur qu'on ne fait que consulter.
+      if (selectedDate === today()) {
+        await ensureRoutinesForToday(session.user.id);
+      }
       const { data, error } = await supabase
         .from('tasks')
         .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, niveau_dread, heure_debut, ordre, subtasks(id, titre, fait, ordre)')
-        .eq('date_prevue', today())
+        .eq('date_prevue', selectedDate)
         .order('ordre', { ascending: true })
         .order('created_at', { ascending: true });
 
@@ -92,11 +108,21 @@ export default function AccueilScreen() {
     } finally {
       setIsLoading(false);
     }
-  }, [session]);
+  }, [session, selectedDate]);
 
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
+
+  useEffect(() => {
+    if (!session) return;
+    supabase
+      .from('streaks')
+      .select('jours_consecutifs')
+      .eq('user_id', session.user.id)
+      .single()
+      .then(({ data }) => setStreakDays(data?.jours_consecutifs ?? null));
+  }, [session, tasks]);
 
   // Check-in d'interoception discret après un long moment passé sur l'écran
   // du planning (proxy simple pour "session de travail prolongée" en V1 —
@@ -120,11 +146,40 @@ export default function AccueilScreen() {
   // Regroupement par moment de journée (façon Tiimo) — moins de bruit qu'une
   // liste plate, un utilisateur voit tout de suite ce qui presse ce matin.
   const sections = useMemo(() => {
-    return MOMENT_ORDER.map((moment) => ({
-      title: MOMENT_LABELS[moment],
-      data: tasks.filter((t) => (t.moment_journee ?? 'n_importe_quand') === moment),
-    })).filter((s) => s.data.length > 0);
-  }, [tasks]);
+    return MOMENT_ORDER.map((moment) => {
+      const full = tasks.filter((t) => (t.moment_journee ?? 'n_importe_quand') === moment);
+      return { moment, title: MOMENT_LABELS[moment], count: full.length, data: collapsedSections[moment] ? [] : full };
+    }).filter((s) => s.count > 0);
+  }, [tasks, collapsedSections]);
+
+  function toggleSection(moment: MomentJournee) {
+    setCollapsedSections((prev) => ({ ...prev, [moment]: !prev[moment] }));
+  }
+
+  // Sélecteur de jour en semaine (façon Tiimo) : naviguer entre les jours au
+  // lieu d'être bloqué sur "aujourd'hui" — pratique pour préparer demain le
+  // soir, ou revoir ce qui était prévu hier.
+  const weekDays = useMemo(() => {
+    const monday = mondayOf(selectedDate);
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return d.toISOString().slice(0, 10);
+    });
+  }, [selectedDate]);
+
+  function shiftWeek(days: number) {
+    const d = new Date(`${selectedDate}T00:00:00`);
+    d.setDate(d.getDate() + days);
+    setSelectedDate(d.toISOString().slice(0, 10));
+  }
+
+  const dayTitle = useMemo(() => {
+    if (selectedDate === today()) return 'Aujourd’hui';
+    const d = new Date(`${selectedDate}T00:00:00`);
+    const label = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  }, [selectedDate]);
 
   // "Mange la grenouille" (Eat the Frog) : parmi les tâches non finies, celle
   // qui angoisse le plus — on la met en avant plutôt que de laisser
@@ -192,7 +247,7 @@ export default function AccueilScreen() {
     const { error } = await supabase.from('tasks').insert({
       user_id: session.user.id,
       titre: newTitle.trim(),
-      date_prevue: today(),
+      date_prevue: selectedDate,
     });
     if (error) {
       Alert.alert('Erreur', error.message);
@@ -224,16 +279,17 @@ export default function AccueilScreen() {
     }
   }
 
-  // "Too Hard Right Now" (Focus One) : reporter une tâche à demain sans aucune
-  // trace de culpabilité — pas de badge "en retard", pas de compteur d'échecs,
-  // juste un déplacement de date. Répond directement à la plainte la plus
-  // citée dans les avis Tiimo/Sunsama : aucune app ADHD ne gère bien le report.
+  // "Too Hard Right Now" (Focus One) : reporter une tâche au lendemain du
+  // jour où elle est prévue, sans aucune trace de culpabilité — pas de badge
+  // "en retard", pas de compteur d'échecs, juste un déplacement de date.
+  // Répond directement à la plainte la plus citée dans les avis
+  // Tiimo/Sunsama : aucune app ADHD ne gère bien le report.
   async function reportToTomorrow(taskId: string) {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    const base = new Date(selectedDate);
+    base.setDate(base.getDate() + 1);
     await supabase
       .from('tasks')
-      .update({ date_prevue: tomorrow.toISOString().slice(0, 10) })
+      .update({ date_prevue: base.toISOString().slice(0, 10) })
       .eq('id', taskId);
     loadTasks();
   }
@@ -243,7 +299,7 @@ export default function AccueilScreen() {
       const ok = await syncTaskToCalendar({
         id: task.id,
         titre: task.titre,
-        date_prevue: today(),
+        date_prevue: selectedDate,
         estimation_minutes: task.estimation_minutes,
       });
       if (!ok) {
@@ -308,7 +364,36 @@ export default function AccueilScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Text style={styles.title}>Aujourd’hui</Text>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>{dayTitle}</Text>
+        {streakDays != null && streakDays > 0 && (
+          <View style={styles.streakBadge}>
+            <Text style={styles.streakBadgeText}>🔥 {streakDays}</Text>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.weekRow}>
+        <Pressable hitSlop={8} onPress={() => shiftWeek(-7)}>
+          <Ionicons name="chevron-back" size={18} color={colors.textMuted} />
+        </Pressable>
+        {weekDays.map((d) => {
+          const dateObj = new Date(`${d}T00:00:00`);
+          const isSelected = d === selectedDate;
+          const isToday = d === today();
+          return (
+            <Pressable key={d} style={[styles.dayChip, isSelected && styles.dayChipActive]} onPress={() => setSelectedDate(d)}>
+              <Text style={[styles.dayChipLetter, isSelected && styles.dayChipTextActive]}>{WEEKDAY_LETTERS[dateObj.getDay() === 0 ? 6 : dateObj.getDay() - 1]}</Text>
+              <Text style={[styles.dayChipNumber, isSelected && styles.dayChipTextActive]}>{dateObj.getDate()}</Text>
+              {isToday && !isSelected && <View style={styles.dayChipDot} />}
+            </Pressable>
+          );
+        })}
+        <Pressable hitSlop={8} onPress={() => shiftWeek(7)}>
+          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+        </Pressable>
+      </View>
+
       <View style={styles.headerButtons}>
         <Pressable style={styles.braindumpButton} onPress={() => setBraindumpVisible(true)}>
           <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
@@ -365,9 +450,16 @@ export default function AccueilScreen() {
           <Text style={styles.empty}>Rien de prévu pour l’instant — ajoute une première tâche en bas, ou décris ta journée avec "Vide-tête".</Text>
         }
         renderSectionHeader={({ section }) => (
-          <Text style={styles.sectionHeader}>
-            {section.title} <Text style={styles.sectionCount}>({section.data.length})</Text>
-          </Text>
+          <Pressable style={styles.sectionHeaderRow} onPress={() => toggleSection(section.moment)}>
+            <Text style={styles.sectionHeader}>
+              {section.title} <Text style={styles.sectionCount}>({section.count})</Text>
+            </Text>
+            <Ionicons
+              name={collapsedSections[section.moment] ? 'chevron-down' : 'chevron-up'}
+              size={16}
+              color={colors.textMuted}
+            />
+          </Pressable>
         )}
         renderItem={({ item, index, section }) => (
           <View style={[styles.taskCard, item.statut === 'fait' && styles.taskCardDone]}>
@@ -382,11 +474,14 @@ export default function AccueilScreen() {
             <View style={styles.taskBody}>
             <View style={styles.taskHeader}>
               <Pressable style={styles.taskHeaderMain} onPress={() => markTaskDone(item)}>
-                <Ionicons
-                  name={item.statut === 'fait' ? 'checkmark-circle' : 'ellipse-outline'}
-                  size={22}
-                  color={item.statut === 'fait' ? colors.success : colors.textMuted}
-                />
+                <View style={[styles.taskIconBubble, { backgroundColor: guessTaskIcon(item.titre).color }]}>
+                  <Text style={styles.taskIconEmoji}>{guessTaskIcon(item.titre).emoji}</Text>
+                  {item.statut === 'fait' && (
+                    <View style={styles.taskIconCheckBadge}>
+                      <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+                    </View>
+                  )}
+                </View>
                 <Text style={[styles.taskTitle, item.statut === 'fait' && styles.taskTitleDone]}>{item.titre}</Text>
               </Pressable>
               {item.statut !== 'fait' && (
@@ -558,6 +653,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
   title: { ...typography.title, marginBottom: spacing.xs },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  streakBadge: { backgroundColor: colors.primaryMuted, borderRadius: 14, paddingVertical: 3, paddingHorizontal: spacing.sm, marginBottom: spacing.xs },
+  streakBadgeText: { color: colors.primary, fontWeight: '700', fontSize: 13 },
+  weekRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+  dayChip: { width: 38, alignItems: 'center', paddingVertical: 6, borderRadius: 12 },
+  dayChipActive: { backgroundColor: colors.primary },
+  dayChipLetter: { ...typography.caption, fontSize: 11, color: colors.textMuted },
+  dayChipNumber: { ...typography.body, fontSize: 15, fontWeight: '600', marginTop: 2 },
+  dayChipTextActive: { color: '#fff' },
+  dayChipDot: { width: 4, height: 4, borderRadius: 2, backgroundColor: colors.primary, marginTop: 3 },
   headerButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.sm },
   grenouilleBanner: {
     backgroundColor: '#FBEFE3',
@@ -579,7 +684,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
   },
   braindumpButtonText: { color: colors.primary, fontSize: 12, fontWeight: '600' },
-  sectionHeader: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.md, marginBottom: spacing.xs, fontWeight: '700' },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.md, marginBottom: spacing.xs },
+  sectionHeader: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700' },
   sectionCount: { fontWeight: '400', textTransform: 'none', letterSpacing: 0 },
   insight: { ...typography.caption, backgroundColor: colors.primaryMuted, padding: spacing.sm, borderRadius: 10, marginBottom: spacing.md, color: colors.primary },
   empty: { ...typography.body, color: colors.textMuted, marginTop: spacing.lg },
@@ -598,6 +704,9 @@ const styles = StyleSheet.create({
   taskBody: { flex: 1 },
   taskHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   taskHeaderMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  taskIconBubble: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  taskIconEmoji: { fontSize: 16 },
+  taskIconCheckBadge: { position: 'absolute', bottom: -3, right: -3, backgroundColor: colors.surface, borderRadius: 8 },
   taskTitle: { ...typography.body, fontWeight: '600', flex: 1 },
   taskTitleDone: { textDecorationLine: 'line-through', color: colors.textMuted },
   estimationRow: { marginTop: spacing.sm },

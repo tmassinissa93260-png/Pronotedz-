@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Animated, Easing, Modal, TextInput, Share } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase/client';
@@ -11,6 +12,7 @@ import { maybeUnlockTenSessionsBadge } from '../../lib/supabase/badges';
 import { useReward } from '../../lib/rewards/RewardProvider';
 import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
 import { generateRoomCode, joinDuoRoom, sendDuoEvent, leaveDuoRoom, type DuoEvent } from '../../lib/realtime/duoFocus';
+import { CircularTimer } from '../../components/CircularTimer';
 import { colors, spacing, typography } from '../../constants/theme';
 
 type Mode = 'responsabilisation' | 'coregulation';
@@ -34,6 +36,7 @@ export default function FocusScreen() {
   const [checkInVisible, setCheckInVisible] = useState(false);
   const [earlyExitPause, setEarlyExitPause] = useState(false);
   const [earlyExitReady, setEarlyExitReady] = useState(false);
+  const [paused, setPaused] = useState(false);
   const breathAnim = useRef(new Animated.Value(1)).current;
   const focusedTaskTitle = tacheParam ? decodeURIComponent(tacheParam) : null;
 
@@ -167,10 +170,10 @@ export default function FocusScreen() {
   const duoSeconds = String(duoRemainingSeconds % 60).padStart(2, '0');
 
   useEffect(() => {
-    if (!activeSession) return;
-    const interval = setInterval(() => setElapsedSeconds(Math.floor((Date.now() - activeSession.startedAt) / 1000)), 1000);
+    if (!activeSession || paused) return;
+    const interval = setInterval(() => setElapsedSeconds((s) => s + 1), 1000);
     return () => clearInterval(interval);
-  }, [activeSession]);
+  }, [activeSession, paused]);
 
   useEffect(() => {
     if (activeSession?.mode !== 'coregulation') return;
@@ -197,6 +200,7 @@ export default function FocusScreen() {
     setActiveSession({ id: data.id, mode, startedAt: Date.now() });
     setSessionTarget(targetMinutes);
     setElapsedSeconds(0);
+    setPaused(false);
 
     // Narration vocale façon Routinery : annoncer plutôt qu'obliger à lire —
     // moins de charge visuelle au moment où on démarre.
@@ -208,6 +212,10 @@ export default function FocusScreen() {
 
   function addFiveMinutes() {
     setSessionTarget((prev) => (prev ?? 0) + 5);
+  }
+
+  function togglePause() {
+    setPaused((p) => !p);
   }
 
   function requestEndSession() {
@@ -239,6 +247,7 @@ export default function FocusScreen() {
     }
     setActiveSession(null);
     setEarlyExitPause(false);
+    setPaused(false);
   }
 
   const remainingSeconds = sessionTarget != null ? Math.max(0, sessionTarget * 60 - elapsedSeconds) : elapsedSeconds;
@@ -284,14 +293,18 @@ export default function FocusScreen() {
     return (
       <View style={styles.sessionContainer}>
         {focusedTaskTitle && <Text style={styles.focusedTask}>🎯 {focusedTaskTitle}</Text>}
-        {activeSession.mode === 'coregulation' ? (
+        {activeSession.mode === 'coregulation' && !paused && (
           <Animated.View style={[styles.breathCircle, { transform: [{ scale: breathAnim }] }]} />
-        ) : (
+        )}
+        {activeSession.mode === 'responsabilisation' && (
           <Text style={styles.checkinLabel}>On vérifie ensemble de temps en temps 👋</Text>
         )}
-        <Text style={styles.timer}>
-          {isOvertime ? '+' : ''}{minutes}:{seconds}
-        </Text>
+        <CircularTimer progress={sessionTarget != null ? elapsedSeconds / (sessionTarget * 60) : 0}>
+          <Text style={styles.timer}>
+            {isOvertime ? '+' : ''}{minutes}:{seconds}
+          </Text>
+          {paused && <Text style={styles.pausedLabel}>En pause</Text>}
+        </CircularTimer>
         <Text style={styles.sessionMode}>
           {activeSession.mode === 'coregulation' ? 'Mode co-régulation' : 'Mode responsabilisation'}
           {sessionTarget != null ? ` · objectif ${sessionTarget} min` : ''}
@@ -302,6 +315,9 @@ export default function FocusScreen() {
               <Text style={styles.plusFiveText}>+5 min</Text>
             </Pressable>
           )}
+          <Pressable style={styles.pauseButton} onPress={togglePause}>
+            <Ionicons name={paused ? 'play' : 'pause'} size={20} color={colors.text} />
+          </Pressable>
           <Pressable style={styles.endButton} onPress={requestEndSession}>
             <Text style={styles.endButtonText}>Terminer la session</Text>
           </Pressable>
@@ -485,6 +501,16 @@ const styles = StyleSheet.create({
   plusFiveText: { color: colors.text, fontWeight: '600', fontSize: 14 },
   endButton: { backgroundColor: colors.primary, borderRadius: 12, paddingVertical: spacing.md, paddingHorizontal: spacing.xl },
   endButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  pauseButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pausedLabel: { ...typography.caption, color: colors.warning, marginTop: spacing.xs, fontWeight: '600' },
   focusedTask: { ...typography.heading, fontSize: 17, marginBottom: spacing.lg, textAlign: 'center' },
   pauseOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center', padding: spacing.lg },
   pauseCard: { backgroundColor: colors.surface, borderRadius: 16, padding: spacing.lg, width: '100%', maxWidth: 340 },

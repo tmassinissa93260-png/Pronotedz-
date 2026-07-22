@@ -49,6 +49,12 @@
 - Réorganisation manuelle des tâches (flèches haut/bas dans chaque section) — répond à une plainte récurrente sur Tiimo App Store sur l'impossibilité de déplacer une tâche une fois ajoutée
 - Détection des trous dans la journée sur la vue frise (créneaux libres ≥ 30 min affichés en pointillés) — répond à une demande citée dans les avis Tiimo sur l'absence de représentation visuelle des créneaux libres
 - Focus à deux (façon Focusmate) : body doubling avec une vraie personne, pas juste l'IA — créer une session génère un code à partager, l'autre le rejoint, minuteur partagé + boutons d'encouragement en temps réel via Supabase Realtime (presence + broadcast, sans table dédiée). Pas de vidéo/audio (demanderait un SDK natif + un build EAS), mais la présence mutuelle engagée est le vrai moteur de Focusmate, pas la qualité vidéo
+- Icône colorée par tâche (façon Tiimo) : devinée à partir de mots-clés dans le titre (📞 appel, 💊 médicament, 🍽️ repas, 🛒 courses...), aucune saisie manuelle requise
+- Sections repliables/dépliables dans le planning (chevron sur "MATIN", "JOUR", "SOIR"...)
+- Badge de série visible directement sur l'écran principal du planning (pas seulement sur le Bilan)
+- Sélecteur de jour en semaine (L M M J V S D avec dates, navigation semaine précédente/suivante) — permet de préparer demain ou revoir hier, plus seulement "aujourd'hui"
+- Anneau de progression circulaire animé autour du minuteur de focus (façon Tiimo), plus lisible d'un coup d'œil qu'un simple décompte
+- Pause/reprise pendant une session focus (bouton ⏸/▶️ à côté de "+5 min")
 
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 
