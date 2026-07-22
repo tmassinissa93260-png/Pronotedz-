@@ -25,6 +25,7 @@ import { maybeUnlockFirstTaskBadge } from '../../lib/supabase/badges';
 import { ensureRoutinesForToday } from '../../lib/supabase/routines';
 import { useReward } from '../../lib/rewards/RewardProvider';
 import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
+import { TimelineView } from '../../components/TimelineView';
 import { syncTaskToCalendar } from '../../lib/calendar/sync';
 
 type Subtask = { id: string; titre: string; fait: boolean; ordre: number };
@@ -37,6 +38,7 @@ type Task = {
   temps_reel_minutes: number | null;
   moment_journee: MomentJournee;
   niveau_dread: number | null;
+  heure_debut: string | null;
   subtasks: Subtask[];
 };
 
@@ -66,6 +68,7 @@ export default function AccueilScreen() {
   const [braindumpVisible, setBraindumpVisible] = useState(false);
   const [braindumpText, setBraindumpText] = useState('');
   const [braindumpLoading, setBraindumpLoading] = useState(false);
+  const [vueMode, setVueMode] = useState<'liste' | 'timeline'>('liste');
 
   const loadTasks = useCallback(async () => {
     if (!session) return;
@@ -74,7 +77,7 @@ export default function AccueilScreen() {
       await ensureRoutinesForToday(session.user.id);
       const { data, error } = await supabase
         .from('tasks')
-        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, niveau_dread, subtasks(id, titre, fait, ordre)')
+        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, niveau_dread, heure_debut, subtasks(id, titre, fait, ordre)')
         .eq('date_prevue', today())
         .order('created_at', { ascending: true });
 
@@ -287,6 +290,13 @@ export default function AccueilScreen() {
           <Ionicons name="moon-outline" size={16} color={colors.primary} />
           <Text style={styles.braindumpButtonText}>Fin de journée</Text>
         </Pressable>
+        <Pressable
+          style={styles.braindumpButton}
+          onPress={() => setVueMode((v) => (v === 'liste' ? 'timeline' : 'liste'))}
+        >
+          <Ionicons name={vueMode === 'liste' ? 'time-outline' : 'list-outline'} size={16} color={colors.primary} />
+          <Text style={styles.braindumpButtonText}>{vueMode === 'liste' ? 'Frise' : 'Liste'}</Text>
+        </Pressable>
       </View>
       {calibrationInsight && <Text style={styles.insight}>💡 {calibrationInsight}</Text>}
       {heureFinPrevue && <Text style={styles.insight}>🕓 À ce rythme, tu termines vers {heureFinPrevue}.</Text>}
@@ -297,6 +307,23 @@ export default function AccueilScreen() {
         </Pressable>
       )}
 
+      {vueMode === 'timeline' ? (
+        tasks.length === 0 ? (
+          <Text style={styles.empty}>Rien de prévu pour l’instant — ajoute une première tâche en bas, ou décris ta journée avec "Vide-tête".</Text>
+        ) : (
+          <TimelineView
+            tasks={tasks}
+            onToggleDone={(t) => {
+              const full = tasks.find((x) => x.id === t.id);
+              if (full) markTaskDone(full);
+            }}
+            onFocus={(t) => {
+              const full = tasks.find((x) => x.id === t.id);
+              if (full) startFocusOn(full);
+            }}
+          />
+        )
+      ) : (
       <SectionList
         sections={sections}
         keyExtractor={(t) => t.id}
@@ -422,6 +449,7 @@ export default function AccueilScreen() {
           </View>
         )}
       />
+      )}
 
       <View style={styles.addRow}>
         <TextInput
