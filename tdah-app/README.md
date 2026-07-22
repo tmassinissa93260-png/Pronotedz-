@@ -4,12 +4,12 @@
 
 1. **Créer un projet Supabase** (gratuit) sur [supabase.com](https://supabase.com), région **Europe (Frankfurt ou Paris)** — important pour l'argument RGPD.
 2. Copier `.env.example` en `.env` et remplir avec l'URL et la clé anon du projet (Project Settings → API).
-3. Appliquer le schéma : `supabase db push` (ou coller `supabase/migrations/0001_init.sql` dans le SQL Editor du dashboard Supabase).
-4. Déployer la fonction IA :
+3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`.
+4. Stocker la clé Anthropic dans Supabase Vault (SQL Editor) :
+   ```sql
+   select vault.create_secret('sk-ant-...', 'anthropic_api_key');
    ```
-   supabase functions deploy ai-task-breakdown
-   supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
-   ```
+   (L'IA tourne côté base de données via `pg_net`, pas via une Edge Function — plus simple à déployer sans terminal.)
 5. Installer les dépendances et lancer l'app :
    ```
    npm install
@@ -36,4 +36,4 @@
 
 ## Sécurité
 
-La clé API Anthropic ne doit **jamais** apparaître dans le code de l'app mobile — elle est uniquement utilisée côté serveur dans la Edge Function `ai-task-breakdown`, configurée via `supabase secrets set`. Toutes les tables sont protégées par Row Level Security : chaque utilisateur ne peut lire/écrire que ses propres données.
+La clé API Anthropic ne doit **jamais** apparaître dans le code de l'app mobile — elle est stockée dans Supabase Vault et utilisée uniquement à l'intérieur de la fonction Postgres `break_down_task` (SECURITY DEFINER), jamais renvoyée au client. Toutes les tables sont protégées par Row Level Security : chaque utilisateur ne peut lire/écrire que ses propres données.
