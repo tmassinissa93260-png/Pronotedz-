@@ -4,7 +4,7 @@
 
 1. **Créer un projet Supabase** (gratuit) sur [supabase.com](https://supabase.com), région **Europe (Frankfurt ou Paris)** — important pour l'argument RGPD.
 2. Copier `.env.example` en `.env` et remplir avec l'URL et la clé anon du projet (Project Settings → API).
-3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`.
+3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`, `0007_routines.sql`.
 4. Stocker la clé Anthropic dans Supabase Vault (SQL Editor) :
    ```sql
    select vault.create_secret('sk-ant-...', 'anthropic_api_key');
@@ -42,6 +42,7 @@
 - Narration vocale (TTS) au lancement d'une session focus
 - Pause de friction consciente avant d'abandonner une session focus très tôt (façon One Sec) — pas un blocage, juste 5 secondes avant de confirmer
 - Timeboxing : lancer une session focus directement sur une tâche précise depuis le planning (bouton ▶️ sur chaque tâche)
+- Routines récurrentes (façon Tiimo) : modèles de tâches qui se reproduisent automatiquement les jours choisis, gérables sur un écran dédié (créer, mettre en pause, supprimer)
 
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 

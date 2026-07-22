@@ -22,6 +22,7 @@ import { useAuth } from '../../lib/supabase/AuthProvider';
 import { useProfile } from '../../lib/supabase/useProfile';
 import { bumpStreak } from '../../lib/supabase/streak';
 import { maybeUnlockFirstTaskBadge } from '../../lib/supabase/badges';
+import { ensureRoutinesForToday } from '../../lib/supabase/routines';
 import { useReward } from '../../lib/rewards/RewardProvider';
 import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
 import { syncTaskToCalendar } from '../../lib/calendar/sync';
@@ -70,6 +71,7 @@ export default function AccueilScreen() {
     if (!session) return;
     setIsLoading(true);
     try {
+      await ensureRoutinesForToday(session.user.id);
       const { data, error } = await supabase
         .from('tasks')
         .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, niveau_dread, subtasks(id, titre, fait, ordre)')
@@ -271,18 +273,20 @@ export default function AccueilScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <View style={styles.headerRow}>
-        <Text style={styles.title}>Aujourd’hui</Text>
-        <View style={styles.headerButtons}>
-          <Pressable style={styles.braindumpButton} onPress={() => setBraindumpVisible(true)}>
-            <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
-            <Text style={styles.braindumpButtonText}>Vide-tête</Text>
-          </Pressable>
-          <Pressable style={styles.braindumpButton} onPress={() => router.push('/rituel-fin-journee')}>
-            <Ionicons name="moon-outline" size={16} color={colors.primary} />
-            <Text style={styles.braindumpButtonText}>Fin de journée</Text>
-          </Pressable>
-        </View>
+      <Text style={styles.title}>Aujourd’hui</Text>
+      <View style={styles.headerButtons}>
+        <Pressable style={styles.braindumpButton} onPress={() => setBraindumpVisible(true)}>
+          <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
+          <Text style={styles.braindumpButtonText}>Vide-tête</Text>
+        </Pressable>
+        <Pressable style={styles.braindumpButton} onPress={() => router.push('/routines')}>
+          <Ionicons name="repeat-outline" size={16} color={colors.primary} />
+          <Text style={styles.braindumpButtonText}>Routines</Text>
+        </Pressable>
+        <Pressable style={styles.braindumpButton} onPress={() => router.push('/rituel-fin-journee')}>
+          <Ionicons name="moon-outline" size={16} color={colors.primary} />
+          <Text style={styles.braindumpButtonText}>Fin de journée</Text>
+        </Pressable>
       </View>
       {calibrationInsight && <Text style={styles.insight}>💡 {calibrationInsight}</Text>}
       {heureFinPrevue && <Text style={styles.insight}>🕓 À ce rythme, tu termines vers {heureFinPrevue}.</Text>}
@@ -478,9 +482,8 @@ export default function AccueilScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { ...typography.title, marginBottom: spacing.xs },
-  headerButtons: { flexDirection: 'row', gap: spacing.xs },
+  headerButtons: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginBottom: spacing.sm },
   grenouilleBanner: {
     backgroundColor: '#FBEFE3',
     borderRadius: 12,
