@@ -20,6 +20,7 @@ import { useProfile } from '../../lib/supabase/useProfile';
 import { bumpStreak } from '../../lib/supabase/streak';
 import { useReward } from '../../lib/rewards/RewardProvider';
 import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
+import { syncTaskToCalendar } from '../../lib/calendar/sync';
 
 type Subtask = { id: string; titre: string; fait: boolean; ordre: number };
 type Task = {
@@ -128,6 +129,24 @@ export default function AccueilScreen() {
     }
   }
 
+  async function addToCalendar(task: Task) {
+    try {
+      const ok = await syncTaskToCalendar({
+        id: task.id,
+        titre: task.titre,
+        date_prevue: today(),
+        estimation_minutes: task.estimation_minutes,
+      });
+      if (!ok) {
+        Alert.alert('Permission refusée', 'Autorise l’accès au calendrier dans les réglages de ton téléphone pour utiliser cette fonction.');
+        return;
+      }
+      Alert.alert('Ajouté', 'La tâche est maintenant dans ton calendrier.');
+    } catch {
+      Alert.alert('Erreur', 'Impossible d’ajouter cette tâche au calendrier pour le moment.');
+    }
+  }
+
   async function toggleSubtask(subtask: Subtask) {
     const nowFait = !subtask.fait;
     await supabase.from('subtasks').update({ fait: nowFait }).eq('id', subtask.id);
@@ -191,14 +210,19 @@ export default function AccueilScreen() {
         }
         renderItem={({ item }) => (
           <View style={[styles.taskCard, item.statut === 'fait' && styles.taskCardDone]}>
-            <Pressable style={styles.taskHeader} onPress={() => markTaskDone(item)}>
-              <Ionicons
-                name={item.statut === 'fait' ? 'checkmark-circle' : 'ellipse-outline'}
-                size={22}
-                color={item.statut === 'fait' ? colors.success : colors.textMuted}
-              />
-              <Text style={[styles.taskTitle, item.statut === 'fait' && styles.taskTitleDone]}>{item.titre}</Text>
-            </Pressable>
+            <View style={styles.taskHeader}>
+              <Pressable style={styles.taskHeaderMain} onPress={() => markTaskDone(item)}>
+                <Ionicons
+                  name={item.statut === 'fait' ? 'checkmark-circle' : 'ellipse-outline'}
+                  size={22}
+                  color={item.statut === 'fait' ? colors.success : colors.textMuted}
+                />
+                <Text style={[styles.taskTitle, item.statut === 'fait' && styles.taskTitleDone]}>{item.titre}</Text>
+              </Pressable>
+              <Pressable hitSlop={8} onPress={() => addToCalendar(item)}>
+                <Ionicons name="calendar-outline" size={18} color={colors.textMuted} />
+              </Pressable>
+            </View>
 
             {item.estimation_minutes && (
               <Text style={styles.caption}>
@@ -318,6 +342,7 @@ const styles = StyleSheet.create({
   },
   taskCardDone: { opacity: 0.6 },
   taskHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  taskHeaderMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   taskTitle: { ...typography.body, fontWeight: '600', flex: 1 },
   taskTitleDone: { textDecorationLine: 'line-through', color: colors.textMuted },
   estimationRow: { marginTop: spacing.sm },

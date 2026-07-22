@@ -7,7 +7,15 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "plugins": ["expo-router"],
+    "plugins": [
+      "expo-router",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "L'app a besoin d'accéder à ton calendrier pour y ajouter tes tâches si tu le souhaites."
+        }
+      ]
+    ],
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true

@@ -29,6 +29,7 @@
 - Curseur de granularité pour le découpage de tâches par IA
 - Brouillon différé pour les messages envoyés en détresse (RSD)
 - Analyse de patterns long terme (`generate_pattern_insight`, se débloque après ~3 semaines d'usage réel)
+- Synchronisation d'une tâche vers le calendrier natif du téléphone (icône calendrier sur chaque tâche)
 - Profil : confiance des données (UE, export, suppression), désabonnement en libre-service
 
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
