@@ -41,6 +41,7 @@ type Task = {
   temps_reel_minutes: number | null;
   moment_journee: MomentJournee;
   niveau_dread: number | null;
+  niveau_priorite: 'haute' | 'moyenne' | 'basse' | null;
   heure_debut: string | null;
   ordre: number;
   subtasks: Subtask[];
@@ -48,6 +49,12 @@ type Task = {
 
 const today = () => new Date().toISOString().slice(0, 10);
 const GRANULARITE_LABELS: Record<1 | 2 | 3, string> = { 1: 'Grandes lignes', 2: 'Standard', 3: 'Petits pas' };
+const PRIORITE_CYCLE: (Task['niveau_priorite'])[] = [null, 'haute', 'moyenne', 'basse'];
+const PRIORITE_COLOR: Record<'haute' | 'moyenne' | 'basse', string> = {
+  haute: '#D9534F',
+  moyenne: colors.warning,
+  basse: colors.textMuted,
+};
 const MOMENT_LABELS: Record<MomentJournee, string> = {
   n_importe_quand: 'N’importe quand',
   matin: 'Matin',
@@ -87,6 +94,7 @@ export default function AccueilScreen() {
   const [streakDays, setStreakDays] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => today());
   const [momentStats, setMomentStats] = useState<MomentStats | null>(null);
+  const [retardPickerVisible, setRetardPickerVisible] = useState(false);
 
   const loadTasks = useCallback(async () => {
     if (!session) return;
@@ -99,7 +107,7 @@ export default function AccueilScreen() {
       }
       const { data, error } = await supabase
         .from('tasks')
-        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, niveau_dread, heure_debut, ordre, subtasks(id, titre, fait, ordre)')
+        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, niveau_dread, niveau_priorite, heure_debut, ordre, subtasks(id, titre, fait, ordre)')
         .eq('date_prevue', selectedDate)
         .order('ordre', { ascending: true })
         .order('created_at', { ascending: true });
@@ -238,6 +246,34 @@ export default function AccueilScreen() {
     loadTasks();
   }
 
+  // Priorité (urgence/importance) — distincte du niveau d'angoisse
+  // (difficulté émotionnelle). Un tap fait défiler : rien → haute → moyenne
+  // → basse → rien, pas besoin d'ouvrir un sélecteur pour trois options.
+  async function cyclePriorite(task: Task) {
+    const currentIndex = PRIORITE_CYCLE.indexOf(task.niveau_priorite);
+    const next = PRIORITE_CYCLE[(currentIndex + 1) % PRIORITE_CYCLE.length];
+    await supabase.from('tasks').update({ niveau_priorite: next }).eq('id', task.id);
+    loadTasks();
+  }
+
+  // "Je suis en retard" (façon le co-planner Tiimo qui replanifie sur
+  // commande) : décale d'un coup toutes les tâches restantes du jour qui ont
+  // une heure fixée, sans avoir à les modifier une par une.
+  async function delayRemainingTasks(minutes: number) {
+    const concerned = tasks.filter((t) => t.statut !== 'fait' && t.heure_debut);
+    await Promise.all(
+      concerned.map((t) => {
+        const [h, m] = t.heure_debut!.split(':').map(Number);
+        const d = new Date();
+        d.setHours(h, m + minutes, 0, 0);
+        const newHeure = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:00`;
+        return supabase.from('tasks').update({ heure_debut: newHeure }).eq('id', t.id);
+      })
+    );
+    setRetardPickerVisible(false);
+    loadTasks();
+  }
+
   const MIN_SAMPLE = 3;
   const LOW_COMPLETION_THRESHOLD = 0.5;
 
@@ -277,7 +313,7 @@ export default function AccueilScreen() {
   }
 
   function startFocusOn(task: Task) {
-    router.push(`/focus?tache=${encodeURIComponent(task.titre)}`);
+    router.push(`/focus?tache=${encodeURIComponent(task.titre)}&tacheId=${task.id}`);
   }
 
   async function submitBraindump() {
@@ -492,7 +528,23 @@ export default function AccueilScreen() {
         </Pressable>
       </View>
       {calibrationInsight && <Text style={styles.insight}>💡 {calibrationInsight}</Text>}
-      {heureFinPrevue && <Text style={styles.insight}>🕓 À ce rythme, tu termines vers {heureFinPrevue}.</Text>}
+      {heureFinPrevue && (
+        <View style={styles.insightRow}>
+          <Text style={[styles.insight, { flex: 1, marginBottom: 0 }]}>🕓 À ce rythme, tu termines vers {heureFinPrevue}.</Text>
+          <Pressable style={styles.retardButton} onPress={() => setRetardPickerVisible((v) => !v)}>
+            <Text style={styles.retardButtonText}>En retard ?</Text>
+          </Pressable>
+        </View>
+      )}
+      {retardPickerVisible && (
+        <View style={styles.retardPicker}>
+          {[5, 10, 15, 30].map((m) => (
+            <Pressable key={m} style={styles.retardChip} onPress={() => delayRemainingTasks(m)}>
+              <Text style={styles.retardChipText}>+{m} min</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
       {grenouille && (
         <Pressable style={styles.grenouilleBanner} onPress={() => startFocusOn(grenouille)}>
           <Text style={styles.grenouilleText}>🐸 Commence par ta grenouille : "{grenouille.titre}"</Text>
@@ -551,6 +603,15 @@ export default function AccueilScreen() {
             </View>
             <View style={styles.taskBody}>
             <View style={styles.taskHeader}>
+              {item.statut !== 'fait' && (
+                <Pressable hitSlop={6} onPress={() => cyclePriorite(item)}>
+                  <Ionicons
+                    name={item.niveau_priorite ? 'flag' : 'flag-outline'}
+                    size={16}
+                    color={item.niveau_priorite ? PRIORITE_COLOR[item.niveau_priorite] : colors.border}
+                  />
+                </Pressable>
+              )}
               <Pressable style={styles.taskHeaderMain} onPress={() => markTaskDone(item)}>
                 <View style={[styles.taskIconBubble, { backgroundColor: guessTaskIcon(item.titre).color }]}>
                   <Text style={styles.taskIconEmoji}>{guessTaskIcon(item.titre).emoji}</Text>
@@ -819,6 +880,12 @@ const styles = StyleSheet.create({
   sectionHeader: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700' },
   sectionCount: { fontWeight: '400', textTransform: 'none', letterSpacing: 0 },
   insight: { ...typography.caption, backgroundColor: colors.primaryMuted, padding: spacing.sm, borderRadius: 10, marginBottom: spacing.md, color: colors.primary },
+  insightRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.md },
+  retardButton: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 10, paddingVertical: spacing.sm, paddingHorizontal: spacing.sm },
+  retardButtonText: { color: colors.text, fontSize: 12, fontWeight: '600' },
+  retardPicker: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.md },
+  retardChip: { backgroundColor: colors.primaryMuted, borderRadius: 16, paddingVertical: 6, paddingHorizontal: spacing.md },
+  retardChipText: { color: colors.primary, fontSize: 13, fontWeight: '600' },
   empty: { ...typography.body, color: colors.textMuted, marginTop: spacing.lg },
   caption: { ...typography.caption, marginTop: spacing.xs },
   taskCard: {

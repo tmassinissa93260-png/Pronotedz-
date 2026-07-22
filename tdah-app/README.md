@@ -4,7 +4,7 @@
 
 1. **Créer un projet Supabase** (gratuit) sur [supabase.com](https://supabase.com), région **Europe (Frankfurt ou Paris)** — important pour l'argument RGPD.
 2. Copier `.env.example` en `.env` et remplir avec l'URL et la clé anon du projet (Project Settings → API).
-3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`, `0007_routines.sql`, `0008_ordre_tasks.sql`, `0009_weekly_review.sql`, `0010_weekly_ai_plan.sql`.
+3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`, `0007_routines.sql`, `0008_ordre_tasks.sql`, `0009_weekly_review.sql`, `0010_weekly_ai_plan.sql`, `0011_priorite.sql`.
 4. Stocker la clé Anthropic dans Supabase Vault (SQL Editor) :
    ```sql
    select vault.create_secret('sk-ant-...', 'anthropic_api_key');
@@ -65,6 +65,12 @@
 - **Coach IA proactif** : quand une tâche marquée très angoissante (4-5/5) est programmée à un moment de journée où l'historique montre un faible taux de réussite (échantillon ≥ 3, écart ≥ 20 points avec un autre moment), une bannière propose de la déplacer en un tap. Pas d'appel IA — juste une agrégation de l'historique des tâches, rapide et gratuit.
 - **Plan de semaine complet par IA** : le Vide-tête a maintenant un bascule "Aujourd'hui" / "Toute la semaine" — décrire toute sa semaine en vrac fait répartir les tâches sur les 7 jours par l'IA (`plan_week_from_braindump`), au lieu de tout entasser sur un seul jour.
 - **Matching automatique pour le Focus à deux** : en plus de créer une session et partager un code, un bouton "Trouver un binôme maintenant" met en relation avec un inconnu de l'app disponible au même moment, via une salle d'attente Supabase Realtime (élection déterministe, pas de table dédiée). Tiimo ne propose que du body doubling simulé par IA, jamais un vrai humain.
+
+### Suite à l'analyse de 15 captures d'écran Tiimo (App Store + site)
+
+- **Niveau de priorité** (Haute/Moyenne/Basse, `niveau_priorite`) distinct du niveau d'angoisse — un drapeau à côté du titre, tap pour faire défiler les niveaux
+- **"Je suis en retard ?"** : décale d'un coup toutes les tâches restantes du jour ayant une heure fixée (+5/10/15/30 min), capture le même besoin que le chat IA de Tiimo ("move all my tasks by 10min") sans dépendre d'un appel IA
+- **Sous-tâches visibles et cochables pendant la session focus** (auparavant seulement dans la liste du planning) — répond directement à une capture Tiimo montrant sa checklist affichée sous le minuteur
 
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 

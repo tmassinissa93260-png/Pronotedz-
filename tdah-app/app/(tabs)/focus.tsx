@@ -28,7 +28,7 @@ export default function FocusScreen() {
   const { session } = useAuth();
   const profile = useProfile();
   const { celebrate } = useReward();
-  const { tache: tacheParam } = useLocalSearchParams<{ tache?: string }>();
+  const { tache: tacheParam, tacheId } = useLocalSearchParams<{ tache?: string; tacheId?: string }>();
   const [targetMinutes, setTargetMinutes] = useState<number | null>(25);
   const [activeSession, setActiveSession] = useState<{ id: string; mode: Mode; startedAt: number } | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -37,8 +37,27 @@ export default function FocusScreen() {
   const [earlyExitPause, setEarlyExitPause] = useState(false);
   const [earlyExitReady, setEarlyExitReady] = useState(false);
   const [paused, setPaused] = useState(false);
+  const [focusSubtasks, setFocusSubtasks] = useState<{ id: string; titre: string; fait: boolean }[]>([]);
   const breathAnim = useRef(new Animated.Value(1)).current;
   const focusedTaskTitle = tacheParam ? decodeURIComponent(tacheParam) : null;
+
+  // Sous-tâches visibles et cochables pendant la session (façon Tiimo) —
+  // jusqu'ici elles n'existaient que dans la liste du planning, invisibles
+  // une fois qu'on avait lancé le focus dessus.
+  useEffect(() => {
+    if (!tacheId) return;
+    supabase
+      .from('subtasks')
+      .select('id, titre, fait, ordre')
+      .eq('task_id', tacheId)
+      .order('ordre', { ascending: true })
+      .then(({ data }) => setFocusSubtasks(data ?? []));
+  }, [tacheId]);
+
+  async function toggleFocusSubtask(subtaskId: string, fait: boolean) {
+    setFocusSubtasks((prev) => prev.map((s) => (s.id === subtaskId ? { ...s, fait: !fait } : s)));
+    await supabase.from('subtasks').update({ fait: !fait }).eq('id', subtaskId);
+  }
 
   // Focus à deux (façon Focusmate) : pas de vidéo (pas de SDK natif dispo
   // ici), mais la vraie présence mutuelle engagée — deux personnes réelles,
@@ -345,6 +364,16 @@ export default function FocusScreen() {
           {activeSession.mode === 'coregulation' ? 'Mode co-régulation' : 'Mode responsabilisation'}
           {sessionTarget != null ? ` · objectif ${sessionTarget} min` : ''}
         </Text>
+        {focusSubtasks.length > 0 && (
+          <View style={styles.focusSubtasksBox}>
+            {focusSubtasks.map((s) => (
+              <Pressable key={s.id} style={styles.focusSubtaskRow} onPress={() => toggleFocusSubtask(s.id, s.fait)}>
+                <Ionicons name={s.fait ? 'checkbox' : 'square-outline'} size={18} color={s.fait ? colors.success : colors.textMuted} />
+                <Text style={[styles.focusSubtaskText, s.fait && styles.focusSubtaskTextDone]}>{s.titre}</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
         <View style={styles.sessionActions}>
           {sessionTarget != null && (
             <Pressable style={styles.plusFiveButton} onPress={addFiveMinutes}>
@@ -553,6 +582,10 @@ const styles = StyleSheet.create({
   timer: { fontSize: 48, fontWeight: '700', color: colors.text, fontVariant: ['tabular-nums'] },
   sessionMode: { ...typography.caption, marginTop: spacing.xs, marginBottom: spacing.xl },
   sessionActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  focusSubtasksBox: { width: '100%', maxWidth: 320, marginBottom: spacing.lg, gap: spacing.xs },
+  focusSubtaskRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  focusSubtaskText: { ...typography.body, fontSize: 15 },
+  focusSubtaskTextDone: { textDecorationLine: 'line-through', color: colors.textMuted },
   plusFiveButton: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingVertical: spacing.md, paddingHorizontal: spacing.md },
   plusFiveText: { color: colors.text, fontWeight: '600', fontSize: 14 },
   endButton: { backgroundColor: colors.primary, borderRadius: 12, paddingVertical: spacing.md, paddingHorizontal: spacing.xl },
