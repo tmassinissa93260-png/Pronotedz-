@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { Link } from 'expo-router';
 import { supabase } from '../../lib/supabase/client';
-import { colors, spacing, typography } from '../../constants/theme';
+import { colors, spacing, typography, fonts } from '../../constants/theme';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: spacing.sm,
   },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  buttonText: { color: '#fff', fontSize: 16, fontFamily: fonts.semibold },
   link: { marginTop: spacing.lg, alignSelf: 'center' },
   linkText: { color: colors.primary, fontSize: 14 },
 });

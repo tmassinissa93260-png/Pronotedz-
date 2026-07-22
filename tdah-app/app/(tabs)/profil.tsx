@@ -3,7 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { supabase } from '../../lib/supabase/client';
 import { useAuth } from '../../lib/supabase/AuthProvider';
-import { colors, spacing, typography } from '../../constants/theme';
+import { colors, spacing, typography, fonts } from '../../constants/theme';
 
 export default function ProfilScreen() {
   const { session } = useAuth();
@@ -98,5 +98,5 @@ const styles = StyleSheet.create({
   rowText: { ...typography.body },
   caption: { ...typography.caption },
   signOutButton: { marginTop: spacing.lg, alignItems: 'center', padding: spacing.md },
-  signOutText: { color: colors.warning, fontSize: 16, fontWeight: '600' },
+  signOutText: { color: colors.warning, fontSize: 16, fontFamily: fonts.semibold },
 });

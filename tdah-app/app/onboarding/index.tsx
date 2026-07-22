@@ -3,7 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { supabase } from '../../lib/supabase/client';
 import { useAuth } from '../../lib/supabase/AuthProvider';
-import { colors, spacing, typography } from '../../constants/theme';
+import { colors, spacing, typography, fonts } from '../../constants/theme';
 
 type Step = {
   question: string;
@@ -115,6 +115,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     alignItems: 'center',
   },
-  optionText: { ...typography.body, fontWeight: '500' },
+  optionText: { ...typography.body, fontFamily: fonts.medium },
   footnote: { ...typography.caption, textAlign: 'center', marginTop: spacing.xl },
 });

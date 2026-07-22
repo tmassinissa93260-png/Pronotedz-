@@ -1,6 +1,6 @@
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, typography } from '../constants/theme';
+import { colors, spacing, typography, fonts } from '../constants/theme';
 import { resolveTaskIcon } from '../lib/taskIcon';
 
 // Vue frise horaire façon Tiimo : la vue liste reste la vue "détails" (édition,
@@ -37,8 +37,8 @@ function formatDuration(minutes: number) {
 }
 
 const MOMENT_COLOR: Record<MomentJournee, string> = {
-  matin: '#F4B860',
-  jour: '#5B6EE8',
+  matin: '#F0A860',
+  jour: colors.primary,
   soir: '#8B6FD8',
   n_importe_quand: colors.textMuted,
 };
@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: spacing.xs,
   },
-  blockText: { ...typography.body, fontSize: 13, fontWeight: '600', flex: 1 },
+  blockText: { ...typography.body, fontSize: 13, fontFamily: fonts.semibold, flex: 1 },
   blockTextDone: { textDecorationLine: 'line-through', color: colors.textMuted },
   gapBlock: {
     position: 'absolute',
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   },
   gapText: { ...typography.caption, fontSize: 11 },
   sansHoraireSection: { marginTop: spacing.lg, paddingHorizontal: spacing.sm },
-  sansHoraireTitle: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: spacing.xs, fontWeight: '700' },
+  sansHoraireTitle: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: spacing.xs, fontFamily: fonts.bold },
   sansHoraireRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
   sansHoraireText: { ...typography.body, fontSize: 14 },
 });

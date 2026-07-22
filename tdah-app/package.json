@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
+    "@expo-google-fonts/manrope": "^0.4.2",
     "@expo/vector-icons": "^15.1.1",
     "@react-native-async-storage/async-storage": "^3.1.1",
     "@supabase/supabase-js": "^2.110.8",
@@ -10,6 +11,7 @@
     "expo-calendar": "^57.0.1",
     "expo-clipboard": "^57.0.1",
     "expo-constants": "^57.0.6",
+    "expo-font": "^57.0.1",
     "expo-linking": "^57.0.3",
     "expo-notifications": "^57.0.7",
     "expo-router": "^57.0.7",

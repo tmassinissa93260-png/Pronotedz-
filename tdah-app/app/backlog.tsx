@@ -4,7 +4,7 @@ import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../lib/supabase/AuthProvider';
 import { supabase } from '../lib/supabase/client';
-import { colors, spacing, typography } from '../constants/theme';
+import { colors, spacing, typography, fonts, radius, shadow } from '../constants/theme';
 import { resolveTaskIcon } from '../lib/taskIcon';
 
 // Backlog façon Tiimo (liste de tâches "à placer" → glissées sur le calendrier).
@@ -156,32 +156,32 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   subtitle: { ...typography.body, color: colors.textMuted, padding: spacing.lg, paddingBottom: spacing.sm },
   empty: { ...typography.body, color: colors.textMuted, paddingHorizontal: spacing.lg },
-  sectionHeader: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: '700', marginTop: spacing.md, marginBottom: spacing.xs },
+  sectionHeader: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: fonts.bold, marginTop: spacing.md, marginBottom: spacing.xs },
   card: {
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 14,
+    borderRadius: radius.md,
     padding: spacing.md,
     marginBottom: spacing.sm,
+    ...shadow.soft,
   },
   cardRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   iconBubble: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   iconEmoji: { fontSize: 16 },
-  cardTitle: { ...typography.body, fontWeight: '600' },
+  cardTitle: { ...typography.body, fontFamily: fonts.semibold },
   caption: { ...typography.caption, marginTop: 2 },
-  nowButton: { backgroundColor: colors.primaryMuted, borderRadius: 16, paddingVertical: 6, paddingHorizontal: spacing.sm },
-  nowButtonText: { color: colors.primary, fontSize: 12, fontWeight: '600' },
+  nowButton: { backgroundColor: colors.primaryMuted, borderRadius: radius.pill, paddingVertical: 6, paddingHorizontal: spacing.sm },
+  nowButtonText: { color: colors.primary, fontSize: 12, fontFamily: fonts.semibold },
   timeRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   timeInput: {
     flex: 1,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: radius.sm,
     padding: spacing.sm,
     fontSize: 14,
+    fontFamily: fonts.regular,
     color: colors.text,
   },
-  placeButton: { backgroundColor: colors.primary, borderRadius: 10, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, justifyContent: 'center' },
-  placeButtonText: { color: '#fff', fontWeight: '600', fontSize: 13 },
+  placeButton: { backgroundColor: colors.primary, borderRadius: radius.sm, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, justifyContent: 'center' },
+  placeButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 13 },
 });

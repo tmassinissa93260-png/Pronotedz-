@@ -76,6 +76,14 @@
 - **Backlog "à placer"** (équivalent du glisser-déposer calendrier de Tiimo, en version tap) : les tâches du jour sans horaire, groupées par priorité, avec un bouton "Maintenant" pour un placement en un tap ou un champ heure pour choisir précisément — un vrai geste de glisser-déposer ne peut pas être testé de façon fiable dans cet environnement (aucun appareil tactile réel disponible), donc pas de dépendance ajoutée pour du code non vérifiable
 - Note : la saisie vocale façon co-planner Tiimo reste bloquée en l'état — elle nécessite un module natif de reconnaissance vocale (`expo-speech-recognition`) incompatible avec Expo Go, donc un build EAS personnalisé serait requis
 
+### Refonte visuelle
+
+- **Typographie Manrope** (`@expo-google-fonts/manrope`) sur tout l'app à la place de la police système — géométrique, terminaisons arrondies, cohérente avec le ton bienveillant du produit. Chargée au démarrage (`app/_layout.tsx`), un court écran de chargement s'affiche le temps que les graisses (400 à 800) soient prêtes.
+- **Palette affinée** (`constants/theme.ts`) : indigo plus vivant en couleur principale, nouvel accent chaud (corail) pour les moments positifs (grenouille du jour, streak), rouge dédié pour la priorité haute — toujours dans la philosophie "calme, peu saturée" d'origine, juste moins plate.
+- **Profondeur** : les cartes (tâches, routines, backlog, modes de focus, panneaux coulissants) ont maintenant une ombre douce cohérente plutôt qu'une simple bordure — sensation de relief plus moderne, sans surcharge visuelle.
+- **Échelle de rayons unifiée** (`radius.sm/md/lg/xl/pill`) pour des coins de carte, bouton et chip cohérents sur tout l'app.
+- Traitement le plus poussé sur les écrans les plus utilisés (Planning, Focus, Backlog, Routines) ; les écrans secondaires (Bilan, Rituel de fin de journée, Respiration, Profil, Auth, Onboarding) héritent automatiquement de la nouvelle police et palette via les tokens partagés, mais n'ont pas encore reçu le traitement ombre/rayon dédié.
+
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 
 - Chronothérapie sommeil (la table `wearable_data` existe, l'intégration HealthKit/Health Connect + le coaching restent à faire)

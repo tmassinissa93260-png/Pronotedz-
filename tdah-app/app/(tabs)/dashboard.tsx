@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase/client';
 import { useAuth } from '../../lib/supabase/AuthProvider';
-import { colors, spacing, typography } from '../../constants/theme';
+import { colors, spacing, typography, fonts } from '../../constants/theme';
 import { generatePatternInsight, type PatternInsight } from '../../lib/supabase/patternInsight';
 import { StreakHeatmap } from '../../components/StreakHeatmap';
 
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     marginBottom: spacing.lg,
   },
-  weeklyReviewButtonText: { color: colors.primary, fontWeight: '600', fontSize: 14 },
+  weeklyReviewButtonText: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 14 },
   card: {
     flexDirection: 'row',
     gap: spacing.md,
@@ -235,7 +235,7 @@ const styles = StyleSheet.create({
   cardTitle: { ...typography.heading, fontSize: 16, marginBottom: 2 },
   cardValue: { ...typography.body, color: colors.textMuted, fontSize: 14 },
   streakCard: { backgroundColor: colors.primaryMuted, borderRadius: 14, padding: spacing.md, marginTop: spacing.sm },
-  streakText: { ...typography.body, fontWeight: '600' },
+  streakText: { ...typography.body, fontFamily: fonts.semibold },
   caption: { ...typography.caption, marginTop: spacing.xs },
   insightCard: {
     backgroundColor: colors.surface,
@@ -245,8 +245,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.primaryMuted,
   },
-  insightPattern: { ...typography.body, fontWeight: '500' },
-  refreshText: { color: colors.primary, fontSize: 13, fontWeight: '500' },
+  insightPattern: { ...typography.body, fontFamily: fonts.medium },
+  refreshText: { color: colors.primary, fontSize: 13, fontFamily: fonts.medium },
   badgesCard: { backgroundColor: colors.surface, borderRadius: 14, padding: spacing.md, marginBottom: spacing.sm, borderWidth: 1, borderColor: colors.border },
   badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
   badgeItem: { width: 76, alignItems: 'center', gap: 4 },

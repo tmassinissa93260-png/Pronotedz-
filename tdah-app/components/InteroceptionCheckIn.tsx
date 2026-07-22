@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase/client';
 import { useAuth } from '../lib/supabase/AuthProvider';
 import { bumpStreak } from '../lib/supabase/streak';
 import { useReward } from '../lib/rewards/RewardProvider';
-import { colors, spacing, typography } from '../constants/theme';
+import { colors, spacing, typography, fonts } from '../constants/theme';
 
 // Question fermée plutôt qu'ouverte : les signaux internes (faim, fatigue...)
 // n'atteignent pas toujours le seuil de conscience chez un cerveau TDAH.
@@ -84,6 +84,6 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     alignItems: 'center',
   },
-  optionText: { color: colors.primary, fontWeight: '600' },
+  optionText: { color: colors.primary, fontFamily: fonts.semibold },
   dismiss: { ...typography.caption, textAlign: 'center' },
 });

@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, Alert } from 
 import { Stack, useRouter } from 'expo-router';
 import { supabase } from '../lib/supabase/client';
 import { useAuth } from '../lib/supabase/AuthProvider';
-import { colors, spacing, typography } from '../constants/theme';
+import { colors, spacing, typography, fonts } from '../constants/theme';
 
 // Équivalent hebdomadaire du rituel de fin de journée (0006) : trois
 // questions réflexives, pas une nouvelle page de stats — le Dashboard fait
@@ -125,5 +125,5 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   saveButton: { backgroundColor: colors.primary, borderRadius: 12, padding: spacing.md, alignItems: 'center', marginTop: spacing.xl },
-  saveButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  saveButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 16 },
 });

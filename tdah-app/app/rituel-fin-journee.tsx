@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, StyleSheet, ScrollView, Alert } from 
 import { Stack, useRouter } from 'expo-router';
 import { supabase } from '../lib/supabase/client';
 import { useAuth } from '../lib/supabase/AuthProvider';
-import { colors, spacing, typography } from '../constants/theme';
+import { colors, spacing, typography, fonts } from '../constants/theme';
 
 // Rituel de clôture façon Sunsama : 3 questions courtes pour fermer la
 // journée consciemment plutôt que de la laisser juste s'arrêter en carafe
@@ -164,11 +164,11 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   saveButton: { backgroundColor: colors.primary, borderRadius: 12, padding: spacing.md, alignItems: 'center', marginTop: spacing.xl },
-  saveButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  saveButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 16 },
   rolloverCard: { backgroundColor: colors.primaryMuted, borderRadius: 12, padding: spacing.md, marginTop: spacing.md },
-  rolloverTitle: { ...typography.body, fontWeight: '700' },
+  rolloverTitle: { ...typography.body, fontFamily: fonts.bold },
   rolloverSubtitle: { ...typography.caption, marginTop: 2, marginBottom: spacing.sm },
   rolloverTask: { ...typography.body, fontSize: 14, marginBottom: 2 },
   rolloverButton: { backgroundColor: colors.primary, borderRadius: 10, paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.sm },
-  rolloverButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  rolloverButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 14 },
 });

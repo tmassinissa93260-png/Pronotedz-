@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, StyleSheet, FlatList, Alert } from 'r
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../lib/supabase/AuthProvider';
-import { colors, spacing, typography } from '../constants/theme';
+import { colors, spacing, typography, fonts, radius, shadow } from '../constants/theme';
 import { listRoutines, createRoutine, toggleRoutine, deleteRoutine, type Routine } from '../lib/supabase/routines';
 
 type MomentJournee = 'n_importe_quand' | 'matin' | 'jour' | 'soir';
@@ -169,13 +169,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.md,
     padding: spacing.md,
     fontSize: 15,
+    fontFamily: fonts.regular,
     color: colors.text,
   },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  chip: { borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingVertical: spacing.xs, paddingHorizontal: spacing.md },
+  chip: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingVertical: spacing.xs, paddingHorizontal: spacing.md },
   dayChip: {
     borderWidth: 1,
     borderColor: colors.border,
@@ -186,22 +187,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   chipActive: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
-  chipText: { color: colors.textMuted, fontSize: 13 },
-  chipTextActive: { color: colors.primary, fontWeight: '600' },
-  saveButton: { backgroundColor: colors.primary, borderRadius: 12, padding: spacing.md, alignItems: 'center', marginTop: spacing.lg },
-  saveButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  chipText: { color: colors.textMuted, fontSize: 13, fontFamily: fonts.medium },
+  chipTextActive: { color: colors.primary, fontFamily: fonts.semibold },
+  saveButton: { backgroundColor: colors.primary, borderRadius: radius.md, padding: spacing.md, alignItems: 'center', marginTop: spacing.lg, ...shadow.soft },
+  saveButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 16 },
   listTitle: { ...typography.heading, fontSize: 16, marginTop: spacing.xl, marginBottom: spacing.sm },
   routineCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 12,
+    borderRadius: radius.md,
     padding: spacing.md,
     marginBottom: spacing.sm,
+    ...shadow.soft,
   },
   routineCardInactive: { opacity: 0.5 },
-  routineTitle: { ...typography.body, fontWeight: '600' },
+  routineTitle: { ...typography.body, fontFamily: fonts.semibold },
   caption: { ...typography.caption, marginTop: 2 },
 });

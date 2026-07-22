@@ -5,7 +5,7 @@ import * as Clipboard from 'expo-clipboard';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../lib/supabase/client';
 import { useAuth } from '../lib/supabase/AuthProvider';
-import { colors, spacing, typography } from '../constants/theme';
+import { colors, spacing, typography, fonts } from '../constants/theme';
 
 // Outil de "temporisation" pour les messages écrits en pleine détresse liée
 // à un rejet perçu (RSD). L'app ne touche à aucune vraie messagerie : c'est
@@ -149,13 +149,13 @@ const styles = StyleSheet.create({
   delayChip: { borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingVertical: spacing.xs, paddingHorizontal: spacing.md },
   delayChipActive: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
   delayText: { color: colors.textMuted },
-  delayTextActive: { color: colors.primary, fontWeight: '600' },
+  delayTextActive: { color: colors.primary, fontFamily: fonts.semibold },
   holdButton: { backgroundColor: colors.primary, borderRadius: 12, padding: spacing.md, alignItems: 'center', marginTop: spacing.lg },
-  holdButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  holdButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 16 },
   draftCard: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: spacing.md, marginBottom: spacing.sm },
   draftContent: { ...typography.body, marginBottom: spacing.xs },
   caption: { ...typography.caption },
   draftActions: { flexDirection: 'row', gap: spacing.lg, marginTop: spacing.xs },
   draftButton: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  draftButtonText: { color: colors.primary, fontSize: 13, fontWeight: '500' },
+  draftButtonText: { color: colors.primary, fontSize: 13, fontFamily: fonts.medium },
 });

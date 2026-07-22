@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Animated, Easing } from 'react-native';
 import { Stack } from 'expo-router';
-import { colors, spacing, typography } from '../constants/theme';
+import { colors, spacing, typography, fonts } from '../constants/theme';
 
 // Respiration guidée (façon RespiRelax) pour les moments de surcharge
 // émotionnelle — accessible à tout moment, indépendamment d'une session
@@ -116,12 +116,12 @@ const styles = StyleSheet.create({
   durationChip: { borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingVertical: 6, paddingHorizontal: spacing.md },
   durationChipActive: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
   durationText: { fontSize: 13, color: colors.textMuted },
-  durationTextActive: { color: colors.primary, fontWeight: '600' },
+  durationTextActive: { color: colors.primary, fontFamily: fonts.semibold },
   startButton: { backgroundColor: colors.primary, borderRadius: 12, padding: spacing.md, alignItems: 'center' },
-  startButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  startButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 16 },
   activeContainer: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: spacing.lg },
   circle: { width: 160, height: 160, borderRadius: 80, backgroundColor: colors.primaryMuted, marginBottom: spacing.xl },
   phaseLabel: { ...typography.title, marginBottom: spacing.xl },
   stopButton: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingVertical: spacing.md, paddingHorizontal: spacing.xl },
-  stopButtonText: { color: colors.text, fontWeight: '600', fontSize: 16 },
+  stopButtonText: { color: colors.text, fontFamily: fonts.semibold, fontSize: 16 },
 });
