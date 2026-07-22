@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider, useAuth } from '../lib/supabase/AuthProvider';
 import { supabase } from '../lib/supabase/client';
+import { RewardProvider } from '../lib/rewards/RewardProvider';
 
 function RootNavigation() {
   const { session, isLoading } = useAuth();
@@ -48,8 +49,10 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <RootNavigation />
-        <StatusBar style="auto" />
+        <RewardProvider>
+          <RootNavigation />
+          <StatusBar style="auto" />
+        </RewardProvider>
       </AuthProvider>
     </SafeAreaProvider>
   );

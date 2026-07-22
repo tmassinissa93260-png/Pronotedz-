@@ -2,14 +2,22 @@ import { useEffect, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Animated, Easing } from 'react-native';
 import { supabase } from '../../lib/supabase/client';
 import { useAuth } from '../../lib/supabase/AuthProvider';
+import { useProfile } from '../../lib/supabase/useProfile';
+import { bumpStreak } from '../../lib/supabase/streak';
+import { useReward } from '../../lib/rewards/RewardProvider';
+import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
 import { colors, spacing, typography } from '../../constants/theme';
 
 type Mode = 'responsabilisation' | 'coregulation';
+const CHECKIN_THRESHOLD_MINUTES = 45;
 
 export default function FocusScreen() {
   const { session } = useAuth();
+  const profile = useProfile();
+  const { celebrate } = useReward();
   const [activeSession, setActiveSession] = useState<{ id: string; mode: Mode; startedAt: number } | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [checkInVisible, setCheckInVisible] = useState(false);
   const breathAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -45,17 +53,33 @@ export default function FocusScreen() {
   }
 
   async function endSession() {
-    if (!activeSession) return;
+    if (!activeSession || !session) return;
     const dureeMinutes = Math.max(1, Math.round(elapsedSeconds / 60));
     await supabase
       .from('sessions')
       .update({ ended_at: new Date().toISOString(), duree_minutes: dureeMinutes })
       .eq('id', activeSession.id);
+
+    await bumpStreak(session.user.id);
+    celebrate(profile?.preference_gamification ?? 'discrete');
+
+    if (dureeMinutes >= CHECKIN_THRESHOLD_MINUTES) {
+      setCheckInVisible(true);
+    }
     setActiveSession(null);
   }
 
   const minutes = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
   const seconds = String(elapsedSeconds % 60).padStart(2, '0');
+
+  const checkInModal = (
+    <InteroceptionCheckIn
+      visible={checkInVisible}
+      contexteDeclencheur="fin_session_focus_longue"
+      gamificationPref={profile?.preference_gamification ?? 'discrete'}
+      onClose={() => setCheckInVisible(false)}
+    />
+  );
 
   if (activeSession) {
     return (
@@ -72,6 +96,7 @@ export default function FocusScreen() {
         <Pressable style={styles.endButton} onPress={endSession}>
           <Text style={styles.endButtonText}>Terminer la session</Text>
         </Pressable>
+        {checkInModal}
       </View>
     );
   }
@@ -90,6 +115,8 @@ export default function FocusScreen() {
         <Text style={styles.modeTitle}>Responsabilisation</Text>
         <Text style={styles.modeDesc}>Des points de contact ponctuels pour vérifier que tu avances.</Text>
       </Pressable>
+
+      {checkInModal}
     </View>
   );
 }

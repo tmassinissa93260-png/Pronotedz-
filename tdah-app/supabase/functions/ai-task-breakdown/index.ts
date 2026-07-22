@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: 'Non authentifié' }), { status: 401 });
   }
 
-  const { titre, preferenceTon } = await req.json();
+  const { titre, preferenceTon, granularite } = await req.json();
 
   if (!titre || typeof titre !== 'string') {
     return new Response(JSON.stringify({ error: '"titre" manquant' }), { status: 400 });
@@ -48,7 +48,19 @@ Deno.serve(async (req) => {
       humoristique: 'Ton léger, avec une pointe d’humour, sans être lourd.',
     }[preferenceTon as string] ?? 'Ton bienveillant, jamais culpabilisant.';
 
-  const systemPrompt = `Tu aides une personne adulte avec un TDAH à décomposer une tâche floue en 3 à 6 sous-étapes très concrètes et actionnables (chacune doit pouvoir démarrer en moins de 2 minutes de réflexion, formulée comme une action physique précise, pas un objectif abstrait).
+  // Curseur de granularité façon Goblin Tools ("spiciness") : à surcharge
+  // cognitive élevée, on veut des étapes minuscules ; à faible surcharge,
+  // une décomposition plus large suffit et évite de noyer l'utilisateur
+  // sous une liste à rallonge.
+  const granulariteInstruction =
+    {
+      1: '2 à 3 sous-étapes larges seulement — l’utilisateur a de l’énergie, ne le noie pas de détails.',
+      2: '3 à 5 sous-étapes, niveau standard.',
+      3: '6 à 10 sous-étapes minuscules, chacune démarrable en moins de 30 secondes de réflexion — l’utilisateur est en surcharge et a besoin du plus petit pas possible.',
+    }[Number(granularite) || 2] ?? '3 à 5 sous-étapes, niveau standard.';
+
+  const systemPrompt = `Tu aides une personne adulte avec un TDAH à décomposer une tâche floue en sous-étapes très concrètes et actionnables (chacune formulée comme une action physique précise, pas un objectif abstrait).
+Granularité demandée : ${granulariteInstruction}
 ${tonInstruction}
 Ne jamais culpabiliser, ne jamais dire "il suffit de" ou "simplement".
 Réponds UNIQUEMENT avec un JSON valide de la forme : {"sous_taches": ["...", "..."]}`;

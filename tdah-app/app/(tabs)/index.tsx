@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,10 @@ import { supabase } from '../../lib/supabase/client';
 import { breakdownTask } from '../../lib/ai/breakdownTask';
 import { colors, spacing, typography } from '../../constants/theme';
 import { useAuth } from '../../lib/supabase/AuthProvider';
+import { useProfile } from '../../lib/supabase/useProfile';
+import { bumpStreak } from '../../lib/supabase/streak';
+import { useReward } from '../../lib/rewards/RewardProvider';
+import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
 
 type Subtask = { id: string; titre: string; fait: boolean; ordre: number };
 type Task = {
@@ -28,27 +32,24 @@ type Task = {
 };
 
 const today = () => new Date().toISOString().slice(0, 10);
+const GRANULARITE_LABELS: Record<1 | 2 | 3, string> = { 1: 'Grandes lignes', 2: 'Standard', 3: 'Petits pas' };
 
 export default function AccueilScreen() {
   const { session } = useAuth();
+  const profile = useProfile();
+  const { celebrate } = useReward();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newTitle, setNewTitle] = useState('');
   const [estimationInput, setEstimationInput] = useState<Record<string, string>>({});
   const [decomposingId, setDecomposingId] = useState<string | null>(null);
-  const [preferenceTon, setPreferenceTon] = useState('doux');
+  const [granulariteByTask, setGranulariteByTask] = useState<Record<string, 1 | 2 | 3>>({});
+  const [checkInVisible, setCheckInVisible] = useState(false);
+  const [openedAt] = useState(Date.now());
 
   const loadTasks = useCallback(async () => {
     if (!session) return;
     setIsLoading(true);
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('preference_ton')
-      .eq('id', session.user.id)
-      .single();
-    if (profile?.preference_ton) setPreferenceTon(profile.preference_ton);
-
     const { data, error } = await supabase
       .from('tasks')
       .select('id, titre, statut, estimation_minutes, temps_reel_minutes, subtasks(id, titre, fait, ordre)')
@@ -66,6 +67,25 @@ export default function AccueilScreen() {
   useEffect(() => {
     loadTasks();
   }, [loadTasks]);
+
+  // Check-in d'interoception discret après un long moment passé sur l'écran
+  // du planning (proxy simple pour "session de travail prolongée" en V1 —
+  // sera affiné en V2 avec la détection de surcharge par wearable).
+  useEffect(() => {
+    const timer = setTimeout(() => setCheckInVisible(true), 90 * 60 * 1000);
+    return () => clearTimeout(timer);
+  }, [openedAt]);
+
+  // Calibration temporelle active : moyenne des écarts estimation/réel sur
+  // les tâches déjà closes, pour donner un vrai insight, pas juste stocker.
+  const calibrationInsight = useMemo(() => {
+    const withBoth = tasks.filter((t) => t.estimation_minutes && t.temps_reel_minutes);
+    if (withBoth.length < 3) return null;
+    const ratio =
+      withBoth.reduce((sum, t) => sum + t.temps_reel_minutes! / t.estimation_minutes!, 0) / withBoth.length;
+    if (ratio < 1.15) return null; // pas d'écart notable, pas besoin de le dire
+    return `Tu mets en moyenne ${ratio.toFixed(1)}x plus de temps que prévu — pense à multiplier tes estimations.`;
+  }, [tasks]);
 
   async function addTask() {
     if (!newTitle.trim() || !session) return;
@@ -92,11 +112,12 @@ export default function AccueilScreen() {
   async function decompose(taskId: string, titre: string) {
     setDecomposingId(taskId);
     try {
-      const sousTaches = await breakdownTask(titre, preferenceTon);
+      const granularite = granulariteByTask[taskId] ?? 2;
+      const sousTaches = await breakdownTask(titre, profile?.preference_ton ?? 'doux', granularite);
       const rows = sousTaches.map((titre, ordre) => ({ task_id: taskId, titre, ordre }));
       await supabase.from('subtasks').insert(rows);
       await loadTasks();
-    } catch (e) {
+    } catch {
       Alert.alert('L’IA n’a pas pu découper la tâche', 'Réessaie dans un instant.');
     } finally {
       setDecomposingId(null);
@@ -104,37 +125,44 @@ export default function AccueilScreen() {
   }
 
   async function toggleSubtask(subtask: Subtask) {
-    await supabase.from('subtasks').update({ fait: !subtask.fait }).eq('id', subtask.id);
+    const nowFait = !subtask.fait;
+    await supabase.from('subtasks').update({ fait: nowFait }).eq('id', subtask.id);
+    if (nowFait && session) {
+      await bumpStreak(session.user.id);
+      celebrate(profile?.preference_gamification ?? 'discrete');
+    }
     loadTasks();
   }
 
-  async function markTaskDone(task: Task) {
-    // Calibration temporelle active : si une estimation existait, on compare
-    // à ce que l'utilisateur rapporte comme temps réel avant de clore la tâche.
-    if (task.estimation_minutes && !task.temps_reel_minutes) {
-      Alert.prompt?.(
+  async function completeTask(task: Task, tempsReel?: number) {
+    await supabase
+      .from('tasks')
+      .update({ statut: 'fait', temps_reel_minutes: tempsReel ?? task.temps_reel_minutes })
+      .eq('id', task.id);
+    if (session) {
+      await bumpStreak(session.user.id);
+      celebrate(profile?.preference_gamification ?? 'discrete');
+    }
+    loadTasks();
+  }
+
+  function markTaskDone(task: Task) {
+    if (task.statut === 'fait') return;
+
+    if (task.estimation_minutes && !task.temps_reel_minutes && Platform.OS === 'ios' && Alert.prompt) {
+      Alert.prompt(
         'Combien de temps ça t’a pris ?',
         `Tu avais estimé ${task.estimation_minutes} min.`,
-        async (value) => {
+        (value) => {
           const minutes = parseInt(value ?? '', 10);
-          await supabase
-            .from('tasks')
-            .update({ statut: 'fait', temps_reel_minutes: Number.isNaN(minutes) ? null : minutes })
-            .eq('id', task.id);
-          loadTasks();
+          completeTask(task, Number.isNaN(minutes) ? undefined : minutes);
         },
         'plain-text',
         String(task.estimation_minutes)
       );
-      // Alert.prompt n'existe que sur iOS — repli simple sur Android/web.
-      if (Platform.OS !== 'ios') {
-        await supabase.from('tasks').update({ statut: 'fait' }).eq('id', task.id);
-        loadTasks();
-      }
       return;
     }
-    await supabase.from('tasks').update({ statut: 'fait' }).eq('id', task.id);
-    loadTasks();
+    completeTask(task);
   }
 
   if (isLoading) {
@@ -148,6 +176,7 @@ export default function AccueilScreen() {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Text style={styles.title}>Aujourd’hui</Text>
+      {calibrationInsight && <Text style={styles.insight}>💡 {calibrationInsight}</Text>}
 
       <FlatList
         data={tasks}
@@ -202,20 +231,43 @@ export default function AccueilScreen() {
                   </Pressable>
                 ))
             ) : (
-              <Pressable
-                style={styles.decomposeButton}
-                onPress={() => decompose(item.id, item.titre)}
-                disabled={decomposingId === item.id}
-              >
-                {decomposingId === item.id ? (
-                  <ActivityIndicator size="small" color={colors.primary} />
-                ) : (
-                  <>
-                    <Ionicons name="sparkles-outline" size={16} color={colors.primary} />
-                    <Text style={styles.decomposeText}>Découper avec l’IA</Text>
-                  </>
-                )}
-              </Pressable>
+              <View>
+                <View style={styles.granulariteRow}>
+                  {([1, 2, 3] as const).map((g) => (
+                    <Pressable
+                      key={g}
+                      style={[
+                        styles.granulariteChip,
+                        (granulariteByTask[item.id] ?? 2) === g && styles.granulariteChipActive,
+                      ]}
+                      onPress={() => setGranulariteByTask((prev) => ({ ...prev, [item.id]: g }))}
+                    >
+                      <Text
+                        style={[
+                          styles.granulariteText,
+                          (granulariteByTask[item.id] ?? 2) === g && styles.granulariteTextActive,
+                        ]}
+                      >
+                        {GRANULARITE_LABELS[g]}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Pressable
+                  style={styles.decomposeButton}
+                  onPress={() => decompose(item.id, item.titre)}
+                  disabled={decomposingId === item.id}
+                >
+                  {decomposingId === item.id ? (
+                    <ActivityIndicator size="small" color={colors.primary} />
+                  ) : (
+                    <>
+                      <Ionicons name="sparkles-outline" size={16} color={colors.primary} />
+                      <Text style={styles.decomposeText}>Découper avec l’IA</Text>
+                    </>
+                  )}
+                </Pressable>
+              </View>
             )}
           </View>
         )}
@@ -234,6 +286,13 @@ export default function AccueilScreen() {
           <Ionicons name="add" size={24} color="#fff" />
         </Pressable>
       </View>
+
+      <InteroceptionCheckIn
+        visible={checkInVisible}
+        contexteDeclencheur="session_prolongee_planning"
+        gamificationPref={profile?.preference_gamification ?? 'discrete'}
+        onClose={() => setCheckInVisible(false)}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -241,7 +300,8 @@ export default function AccueilScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
-  title: { ...typography.title, marginBottom: spacing.md },
+  title: { ...typography.title, marginBottom: spacing.xs },
+  insight: { ...typography.caption, backgroundColor: colors.primaryMuted, padding: spacing.sm, borderRadius: 10, marginBottom: spacing.md, color: colors.primary },
   empty: { ...typography.body, color: colors.textMuted, marginTop: spacing.lg },
   caption: { ...typography.caption, marginTop: spacing.xs },
   taskCard: {
@@ -267,6 +327,17 @@ const styles = StyleSheet.create({
   },
   subtaskRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm, marginLeft: spacing.lg },
   subtaskText: { ...typography.body, fontSize: 14, flex: 1 },
+  granulariteRow: { flexDirection: 'row', gap: spacing.xs, marginTop: spacing.sm },
+  granulariteChip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 20,
+    paddingVertical: 4,
+    paddingHorizontal: spacing.sm,
+  },
+  granulariteChipActive: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
+  granulariteText: { fontSize: 12, color: colors.textMuted },
+  granulariteTextActive: { color: colors.primary, fontWeight: '600' },
   decomposeButton: {
     flexDirection: 'row',
     alignItems: 'center',

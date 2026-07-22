@@ -1,5 +1,6 @@
 import { View, Text, Pressable, StyleSheet, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { supabase } from '../../lib/supabase/client';
 import { useAuth } from '../../lib/supabase/AuthProvider';
 import { colors, spacing, typography } from '../../constants/theme';
@@ -55,6 +56,14 @@ export default function ProfilScreen() {
         <Pressable style={styles.row} onPress={handleDeleteAccount}>
           <Ionicons name="trash-outline" size={20} color={colors.warning} />
           <Text style={[styles.rowText, { color: colors.warning }]}>Supprimer mon compte</Text>
+        </Pressable>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Outils</Text>
+        <Pressable style={styles.row} onPress={() => router.push('/brouillon-differe')}>
+          <Ionicons name="hourglass-outline" size={20} color={colors.text} />
+          <Text style={styles.rowText}>Brouillon différé</Text>
         </Pressable>
       </View>
 

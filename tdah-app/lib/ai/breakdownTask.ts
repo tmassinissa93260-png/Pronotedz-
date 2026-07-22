@@ -1,8 +1,8 @@
 import { supabase } from '../supabase/client';
 
-export async function breakdownTask(titre: string, preferenceTon: string): Promise<string[]> {
+export async function breakdownTask(titre: string, preferenceTon: string, granularite: 1 | 2 | 3 = 2): Promise<string[]> {
   const { data, error } = await supabase.functions.invoke('ai-task-breakdown', {
-    body: { titre, preferenceTon },
+    body: { titre, preferenceTon, granularite },
   });
 
   if (error) throw error;
