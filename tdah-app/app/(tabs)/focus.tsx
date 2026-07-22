@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Animated, Easing, Modal } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Animated, Easing, Modal, TextInput, Share } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import * as Speech from 'expo-speech';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase/client';
 import { useAuth } from '../../lib/supabase/AuthProvider';
 import { useProfile } from '../../lib/supabase/useProfile';
@@ -9,6 +10,7 @@ import { bumpStreak } from '../../lib/supabase/streak';
 import { maybeUnlockTenSessionsBadge } from '../../lib/supabase/badges';
 import { useReward } from '../../lib/rewards/RewardProvider';
 import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
+import { generateRoomCode, joinDuoRoom, sendDuoEvent, leaveDuoRoom, type DuoEvent } from '../../lib/realtime/duoFocus';
 import { colors, spacing, typography } from '../../constants/theme';
 
 type Mode = 'responsabilisation' | 'coregulation';
@@ -34,6 +36,135 @@ export default function FocusScreen() {
   const [earlyExitReady, setEarlyExitReady] = useState(false);
   const breathAnim = useRef(new Animated.Value(1)).current;
   const focusedTaskTitle = tacheParam ? decodeURIComponent(tacheParam) : null;
+
+  // Focus à deux (façon Focusmate) : pas de vidéo (pas de SDK natif dispo
+  // ici), mais la vraie présence mutuelle engagée — deux personnes réelles,
+  // un minuteur partagé — via Supabase Realtime, sans build ni infra en plus.
+  const [duoModalVisible, setDuoModalVisible] = useState(false);
+  const [duoStep, setDuoStep] = useState<'choix' | 'rejoindre' | 'salle'>('choix');
+  const [duoCode, setDuoCode] = useState('');
+  const [duoCodeInput, setDuoCodeInput] = useState('');
+  const [duoPeerIds, setDuoPeerIds] = useState<string[]>([]);
+  const [duoTargetMinutes, setDuoTargetMinutes] = useState<number | null>(25);
+  const [duoPhase, setDuoPhase] = useState<'attente' | 'actif'>('attente');
+  const [duoStartedAt, setDuoStartedAt] = useState<number | null>(null);
+  const [duoElapsedSeconds, setDuoElapsedSeconds] = useState(0);
+  const [duoToast, setDuoToast] = useState<string | null>(null);
+  const duoChannelRef = useRef<RealtimeChannel | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (duoChannelRef.current) leaveDuoRoom(duoChannelRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (duoPhase !== 'actif' || !duoStartedAt) return;
+    const interval = setInterval(() => setDuoElapsedSeconds(Math.floor((Date.now() - duoStartedAt) / 1000)), 1000);
+    return () => clearInterval(interval);
+  }, [duoPhase, duoStartedAt]);
+
+  function handleDuoEvent(event: DuoEvent) {
+    if (event.type === 'start') {
+      setDuoTargetMinutes(event.targetMinutes);
+      setDuoStartedAt(event.startedAt);
+      setDuoElapsedSeconds(0);
+      setDuoPhase('actif');
+    } else if (event.type === 'encourage') {
+      setDuoToast(event.emoji);
+      setTimeout(() => setDuoToast(null), 2500);
+    } else if (event.type === 'end') {
+      setDuoToast('Ton binôme a terminé de son côté 👋');
+      setTimeout(() => setDuoToast(null), 3500);
+    }
+  }
+
+  function enterDuoRoom(code: string) {
+    if (!session) return;
+    const channel = joinDuoRoom(code, session.user.id, {
+      onPeerIds: setDuoPeerIds,
+      onEvent: handleDuoEvent,
+    });
+    duoChannelRef.current = channel;
+    setDuoCode(code);
+    setDuoStep('salle');
+  }
+
+  function createDuoRoom() {
+    enterDuoRoom(generateRoomCode());
+  }
+
+  function joinDuoRoomWithInput() {
+    if (duoCodeInput.trim().length < 4) return;
+    enterDuoRoom(duoCodeInput.trim());
+  }
+
+  async function shareDuoCode() {
+    try {
+      await Share.share({ message: `On fait une session de focus ensemble ? Rejoins-moi sur Compagnon TDAH avec le code : ${duoCode}` });
+    } catch {
+      // partage annulé ou indisponible, pas grave
+    }
+  }
+
+  function startDuoSession() {
+    if (!duoChannelRef.current) return;
+    const startedAt = Date.now();
+    sendDuoEvent(duoChannelRef.current, { type: 'start', targetMinutes: duoTargetMinutes, startedAt });
+    setDuoStartedAt(startedAt);
+    setDuoElapsedSeconds(0);
+    setDuoPhase('actif');
+  }
+
+  function sendEncouragement(emoji: string) {
+    if (!duoChannelRef.current || !session) return;
+    sendDuoEvent(duoChannelRef.current, { type: 'encourage', emoji, from: session.user.id });
+  }
+
+  async function endDuoSession() {
+    if (!session) return;
+    const dureeMinutes = Math.max(1, Math.round(duoElapsedSeconds / 60));
+    await supabase.from('sessions').insert({
+      user_id: session.user.id,
+      type: 'coregulation',
+      partenaire: duoPeerIds[0] ?? 'inconnu',
+      duree_minutes: dureeMinutes,
+      started_at: new Date(duoStartedAt ?? Date.now()).toISOString(),
+      ended_at: new Date().toISOString(),
+    });
+    if (duoChannelRef.current) {
+      sendDuoEvent(duoChannelRef.current, { type: 'end' });
+      leaveDuoRoom(duoChannelRef.current);
+      duoChannelRef.current = null;
+    }
+    await bumpStreak(session.user.id);
+    await maybeUnlockTenSessionsBadge(session.user.id);
+    celebrate(profile?.preference_gamification ?? 'discrete');
+
+    setDuoPhase('attente');
+    setDuoStartedAt(null);
+    setDuoModalVisible(false);
+    setDuoStep('choix');
+    setDuoCode('');
+    setDuoCodeInput('');
+    setDuoPeerIds([]);
+  }
+
+  function closeDuoSetup() {
+    if (duoChannelRef.current) {
+      leaveDuoRoom(duoChannelRef.current);
+      duoChannelRef.current = null;
+    }
+    setDuoModalVisible(false);
+    setDuoStep('choix');
+    setDuoCode('');
+    setDuoCodeInput('');
+    setDuoPeerIds([]);
+  }
+
+  const duoRemainingSeconds = duoTargetMinutes != null ? Math.max(0, duoTargetMinutes * 60 - duoElapsedSeconds) : duoElapsedSeconds;
+  const duoMinutes = String(Math.floor(duoRemainingSeconds / 60)).padStart(2, '0');
+  const duoSeconds = String(duoRemainingSeconds % 60).padStart(2, '0');
 
   useEffect(() => {
     if (!activeSession) return;
@@ -124,6 +255,31 @@ export default function FocusScreen() {
     />
   );
 
+  if (duoPhase === 'actif') {
+    return (
+      <View style={styles.sessionContainer}>
+        <Text style={styles.checkinLabel}>👥 Session à deux · {duoPeerIds.length > 0 ? '1 binôme connecté' : 'en solo pour l\'instant'}</Text>
+        <Text style={styles.timer}>{duoMinutes}:{duoSeconds}</Text>
+        <Text style={styles.sessionMode}>{duoTargetMinutes != null ? `Objectif ${duoTargetMinutes} min` : 'Durée libre'}</Text>
+        <View style={styles.encourageRow}>
+          {['👏', '💪', '🙌', '🔥'].map((emoji) => (
+            <Pressable key={emoji} style={styles.encourageButton} onPress={() => sendEncouragement(emoji)}>
+              <Text style={styles.encourageEmoji}>{emoji}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <Pressable style={styles.endButton} onPress={endDuoSession}>
+          <Text style={styles.endButtonText}>Terminer la session</Text>
+        </Pressable>
+        {duoToast && (
+          <View style={styles.duoToast}>
+            <Text style={styles.duoToastText}>{duoToast}</Text>
+          </View>
+        )}
+      </View>
+    );
+  }
+
   if (activeSession) {
     return (
       <View style={styles.sessionContainer}>
@@ -212,7 +368,89 @@ export default function FocusScreen() {
         <Text style={styles.modeDesc}>Des points de contact ponctuels pour vérifier que tu avances.</Text>
       </Pressable>
 
+      <Pressable style={[styles.modeCard, styles.duoCard]} onPress={() => setDuoModalVisible(true)}>
+        <Text style={styles.modeTitle}>👥 Focus à deux</Text>
+        <Text style={styles.modeDesc}>Une vraie personne, en même temps que toi, avec un minuteur partagé. Pas de vidéo — juste une présence réelle.</Text>
+      </Pressable>
+
       {checkInModal}
+
+      <Modal visible={duoModalVisible} transparent animationType="slide" onRequestClose={closeDuoSetup}>
+        <View style={styles.duoModalBackdrop}>
+          <View style={styles.duoModalCard}>
+            {duoStep === 'choix' && (
+              <>
+                <Text style={styles.duoModalTitle}>Focus à deux</Text>
+                <Text style={styles.duoModalSubtitle}>Crée une session et partage le code, ou rejoins quelqu'un qui t'a envoyé le sien.</Text>
+                <Pressable style={styles.duoChoiceButton} onPress={createDuoRoom}>
+                  <Text style={styles.duoChoiceButtonText}>Créer une session</Text>
+                </Pressable>
+                <Pressable style={[styles.duoChoiceButton, styles.duoChoiceButtonOutline]} onPress={() => setDuoStep('rejoindre')}>
+                  <Text style={styles.duoChoiceButtonOutlineText}>Rejoindre avec un code</Text>
+                </Pressable>
+                <Pressable onPress={closeDuoSetup} style={{ marginTop: spacing.md, alignSelf: 'center' }}>
+                  <Text style={styles.duoModalCancel}>Annuler</Text>
+                </Pressable>
+              </>
+            )}
+
+            {duoStep === 'rejoindre' && (
+              <>
+                <Text style={styles.duoModalTitle}>Rejoindre une session</Text>
+                <Text style={styles.duoModalSubtitle}>Entre le code à 6 caractères qu'on t'a envoyé.</Text>
+                <TextInput
+                  style={styles.duoCodeInput}
+                  placeholder="EX: A3F7K9"
+                  placeholderTextColor={colors.textMuted}
+                  autoCapitalize="characters"
+                  value={duoCodeInput}
+                  onChangeText={setDuoCodeInput}
+                  maxLength={6}
+                />
+                <Pressable style={styles.duoChoiceButton} onPress={joinDuoRoomWithInput}>
+                  <Text style={styles.duoChoiceButtonText}>Rejoindre</Text>
+                </Pressable>
+                <Pressable onPress={closeDuoSetup} style={{ marginTop: spacing.md, alignSelf: 'center' }}>
+                  <Text style={styles.duoModalCancel}>Annuler</Text>
+                </Pressable>
+              </>
+            )}
+
+            {duoStep === 'salle' && (
+              <>
+                <Text style={styles.duoModalTitle}>Salle d'attente</Text>
+                <Text style={styles.duoCodeDisplay}>{duoCode}</Text>
+                <Pressable onPress={shareDuoCode} style={{ alignSelf: 'center', marginBottom: spacing.md }}>
+                  <Text style={styles.duoShareText}>Partager le code →</Text>
+                </Pressable>
+                <Text style={styles.duoModalSubtitle}>
+                  {duoPeerIds.length > 0 ? '✅ Ton binôme est connecté !' : 'En attente que quelqu\'un rejoigne...'}
+                </Text>
+
+                <Text style={styles.durationLabel}>Durée</Text>
+                <View style={styles.durationRow}>
+                  {DURATIONS.map((d) => (
+                    <Pressable
+                      key={d}
+                      style={[styles.durationChip, duoTargetMinutes === d && styles.durationChipActive]}
+                      onPress={() => setDuoTargetMinutes(d)}
+                    >
+                      <Text style={[styles.durationText, duoTargetMinutes === d && styles.durationTextActive]}>{d} min</Text>
+                    </Pressable>
+                  ))}
+                </View>
+
+                <Pressable style={styles.duoChoiceButton} onPress={startDuoSession} disabled={duoPeerIds.length === 0}>
+                  <Text style={styles.duoChoiceButtonText}>Démarrer</Text>
+                </Pressable>
+                <Pressable onPress={closeDuoSetup} style={{ marginTop: spacing.md, alignSelf: 'center' }}>
+                  <Text style={styles.duoModalCancel}>Quitter la salle</Text>
+                </Pressable>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -258,4 +496,54 @@ const styles = StyleSheet.create({
   pauseConfirmButton: { backgroundColor: colors.primary, borderRadius: 12, paddingVertical: spacing.md, alignItems: 'center' },
   pauseConfirmButtonDisabled: { opacity: 0.4 },
   pauseConfirmText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  duoCard: { borderColor: colors.primary, borderStyle: 'dashed' },
+  encourageRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.xl },
+  encourageButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.primaryMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  encourageEmoji: { fontSize: 24 },
+  duoToast: {
+    position: 'absolute',
+    top: spacing.xl,
+    alignSelf: 'center',
+    backgroundColor: colors.text,
+    borderRadius: 20,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+  },
+  duoToastText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  duoModalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  duoModalCard: { backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, paddingBottom: spacing.xl },
+  duoModalTitle: { ...typography.heading, marginBottom: spacing.xs },
+  duoModalSubtitle: { ...typography.caption, marginBottom: spacing.md },
+  duoModalCancel: { color: colors.textMuted, fontSize: 14, textAlign: 'center' },
+  duoChoiceButton: { backgroundColor: colors.primary, borderRadius: 12, padding: spacing.md, alignItems: 'center', marginTop: spacing.sm },
+  duoChoiceButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  duoChoiceButtonOutline: { backgroundColor: 'transparent', borderWidth: 1, borderColor: colors.border },
+  duoChoiceButtonOutlineText: { color: colors.text, fontWeight: '600', fontSize: 16 },
+  duoCodeInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: spacing.md,
+    fontSize: 20,
+    letterSpacing: 4,
+    textAlign: 'center',
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
+  duoCodeDisplay: {
+    fontSize: 36,
+    fontWeight: '700',
+    letterSpacing: 6,
+    textAlign: 'center',
+    color: colors.primary,
+    marginVertical: spacing.md,
+  },
+  duoShareText: { color: colors.primary, fontWeight: '600', fontSize: 14 },
 });

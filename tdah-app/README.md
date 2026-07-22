@@ -48,6 +48,7 @@
 - Report non-punitif d'une tâche à demain (façon "Too Hard Right Now" de Focus One) : icône dédiée sur chaque tâche + report groupé sur l'écran fin de journée — répond à la plainte la plus citée dans les avis Tiimo/Sunsama sur la gestion des tâches non finies
 - Réorganisation manuelle des tâches (flèches haut/bas dans chaque section) — répond à une plainte récurrente sur Tiimo App Store sur l'impossibilité de déplacer une tâche une fois ajoutée
 - Détection des trous dans la journée sur la vue frise (créneaux libres ≥ 30 min affichés en pointillés) — répond à une demande citée dans les avis Tiimo sur l'absence de représentation visuelle des créneaux libres
+- Focus à deux (façon Focusmate) : body doubling avec une vraie personne, pas juste l'IA — créer une session génère un code à partager, l'autre le rejoint, minuteur partagé + boutons d'encouragement en temps réel via Supabase Realtime (presence + broadcast, sans table dédiée). Pas de vidéo/audio (demanderait un SDK natif + un build EAS), mais la présence mutuelle engagée est le vrai moteur de Focusmate, pas la qualité vidéo
 
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 
