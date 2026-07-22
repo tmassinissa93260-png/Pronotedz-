@@ -50,18 +50,22 @@ export default function AccueilScreen() {
   const loadTasks = useCallback(async () => {
     if (!session) return;
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('id, titre, statut, estimation_minutes, temps_reel_minutes, subtasks(id, titre, fait, ordre)')
-      .eq('date_prevue', today())
-      .order('created_at', { ascending: true });
+    try {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, subtasks(id, titre, fait, ordre)')
+        .eq('date_prevue', today())
+        .order('created_at', { ascending: true });
 
-    if (error) {
-      Alert.alert('Erreur', error.message);
-    } else {
+      if (error) throw error;
       setTasks((data as unknown as Task[]) ?? []);
+    } catch (e) {
+      // Connexion instable ou requête en échec : on ne bloque jamais l'écran
+      // sur un spinner infini, l'utilisateur garde au moins l'écran vide/précédent.
+      Alert.alert('Connexion impossible', 'Impossible de charger tes tâches pour le moment. Réessaie dans un instant.');
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [session]);
 
   useEffect(() => {
