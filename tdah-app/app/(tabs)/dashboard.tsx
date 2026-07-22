@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase/client';
 import { useAuth } from '../../lib/supabase/AuthProvider';
 import { colors, spacing, typography } from '../../constants/theme';
@@ -25,6 +26,7 @@ function startOfWeekISO() {
 
 export default function DashboardScreen() {
   const { session } = useAuth();
+  const router = useRouter();
   const [autonomie, setAutonomie] = useState(0);
   const [competence, setCompetence] = useState(0);
   const [connexion, setConnexion] = useState(0);
@@ -107,6 +109,11 @@ export default function DashboardScreen() {
     <ScrollView style={styles.container} contentContainerStyle={{ padding: spacing.lg }}>
       <Text style={styles.title}>Ton bilan de la semaine</Text>
       <Text style={styles.subtitle}>Pas de note sur 100 ici — juste ce que tu as vraiment vécu.</Text>
+
+      <Pressable style={styles.weeklyReviewButton} onPress={() => router.push('/bilan-hebdomadaire')}>
+        <Ionicons name="chatbubbles-outline" size={16} color={colors.primary} />
+        <Text style={styles.weeklyReviewButtonText}>Faire le bilan réflexif de la semaine</Text>
+      </Pressable>
 
       <View style={styles.insightCard}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs }}>
@@ -203,6 +210,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   title: { ...typography.title, marginBottom: spacing.xs },
   subtitle: { ...typography.body, color: colors.textMuted, marginBottom: spacing.lg },
+  weeklyReviewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.primaryMuted,
+    borderRadius: 12,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  weeklyReviewButtonText: { color: colors.primary, fontWeight: '600', fontSize: 14 },
   card: {
     flexDirection: 'row',
     gap: spacing.md,

@@ -28,6 +28,7 @@ import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
 import { TimelineView } from '../../components/TimelineView';
 import { syncTaskToCalendar } from '../../lib/calendar/sync';
 import { guessTaskIcon } from '../../lib/taskIcon';
+import { scheduleTaskReminder, cancelTaskReminder } from '../../lib/notifications';
 
 type Subtask = { id: string; titre: string; fait: boolean; ordre: number };
 type MomentJournee = 'n_importe_quand' | 'matin' | 'jour' | 'soir';
@@ -71,6 +72,7 @@ export default function AccueilScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [newTitle, setNewTitle] = useState('');
   const [estimationInput, setEstimationInput] = useState<Record<string, string>>({});
+  const [timeInput, setTimeInput] = useState<Record<string, string>>({});
   const [decomposingId, setDecomposingId] = useState<string | null>(null);
   const [granulariteByTask, setGranulariteByTask] = useState<Record<string, 1 | 2 | 3>>({});
   const [checkInVisible, setCheckInVisible] = useState(false);
@@ -123,6 +125,19 @@ export default function AccueilScreen() {
       .single()
       .then(({ data }) => setStreakDays(data?.jours_consecutifs ?? null));
   }, [session, tasks]);
+
+  // Rappels locaux 5 min avant l'heure prévue — uniquement pour "aujourd'hui",
+  // pas de sens de programmer un rappel pour un jour qu'on ne fait que
+  // consulter. Répond au point le plus cité dans les checklists "bonne app
+  // ADHD" : des rappels pour respecter les horaires sans y penser sans arrêt.
+  useEffect(() => {
+    if (selectedDate !== today()) return;
+    for (const t of tasks) {
+      if (t.heure_debut && t.statut !== 'fait') {
+        scheduleTaskReminder(t.id, t.titre, selectedDate, t.heure_debut);
+      }
+    }
+  }, [tasks, selectedDate]);
 
   // Check-in d'interoception discret après un long moment passé sur l'écran
   // du planning (proxy simple pour "session de travail prolongée" en V1 —
@@ -291,6 +306,19 @@ export default function AccueilScreen() {
       .from('tasks')
       .update({ date_prevue: base.toISOString().slice(0, 10) })
       .eq('id', taskId);
+    await cancelTaskReminder(taskId);
+    loadTasks();
+  }
+
+  // Heure de début manuelle (le Vide-tête en pose déjà automatiquement, mais
+  // une tâche ajoutée à la main n'en a pas) — nécessaire pour que les
+  // rappels et la vue frise aient quelque chose à afficher.
+  async function setTaskTime(taskId: string, hhmm: string) {
+    if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(hhmm)) {
+      Alert.alert('Format invalide', 'Utilise le format HH:MM, ex : 14:30.');
+      return;
+    }
+    await supabase.from('tasks').update({ heure_debut: `${hhmm}:00` }).eq('id', taskId);
     loadTasks();
   }
 
@@ -327,6 +355,7 @@ export default function AccueilScreen() {
       .from('tasks')
       .update({ statut: 'fait', temps_reel_minutes: tempsReel ?? task.temps_reel_minutes })
       .eq('id', task.id);
+    await cancelTaskReminder(task.id);
     if (session) {
       await bumpStreak(session.user.id);
       await maybeUnlockFirstTaskBadge(session.user.id);
@@ -521,17 +550,29 @@ export default function AccueilScreen() {
               </View>
             )}
 
-            {!item.estimation_minutes && item.statut !== 'fait' && (
-              <View style={styles.estimationRow}>
-                <TextInput
-                  style={styles.estimationInput}
-                  placeholder="Estimation (min)"
-                  placeholderTextColor={colors.textMuted}
-                  keyboardType="number-pad"
-                  value={estimationInput[item.id] ?? ''}
-                  onChangeText={(v) => setEstimationInput((prev) => ({ ...prev, [item.id]: v }))}
-                  onSubmitEditing={() => saveEstimation(item.id)}
-                />
+            {item.statut !== 'fait' && (!item.estimation_minutes || !item.heure_debut) && (
+              <View style={[styles.estimationRow, styles.inputPairRow]}>
+                {!item.heure_debut && (
+                  <TextInput
+                    style={[styles.estimationInput, { flex: 1 }]}
+                    placeholder="14:30"
+                    placeholderTextColor={colors.textMuted}
+                    value={timeInput[item.id] ?? ''}
+                    onChangeText={(v) => setTimeInput((prev) => ({ ...prev, [item.id]: v }))}
+                    onSubmitEditing={() => setTaskTime(item.id, timeInput[item.id] ?? '')}
+                  />
+                )}
+                {!item.estimation_minutes && (
+                  <TextInput
+                    style={[styles.estimationInput, { flex: 1 }]}
+                    placeholder="Durée (min)"
+                    placeholderTextColor={colors.textMuted}
+                    keyboardType="number-pad"
+                    value={estimationInput[item.id] ?? ''}
+                    onChangeText={(v) => setEstimationInput((prev) => ({ ...prev, [item.id]: v }))}
+                    onSubmitEditing={() => saveEstimation(item.id)}
+                  />
+                )}
               </View>
             )}
 
@@ -710,6 +751,7 @@ const styles = StyleSheet.create({
   taskTitle: { ...typography.body, fontWeight: '600', flex: 1 },
   taskTitleDone: { textDecorationLine: 'line-through', color: colors.textMuted },
   estimationRow: { marginTop: spacing.sm },
+  inputPairRow: { flexDirection: 'row', gap: spacing.sm },
   estimationInput: {
     borderWidth: 1,
     borderColor: colors.border,

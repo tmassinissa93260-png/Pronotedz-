@@ -4,7 +4,7 @@
 
 1. **Créer un projet Supabase** (gratuit) sur [supabase.com](https://supabase.com), région **Europe (Frankfurt ou Paris)** — important pour l'argument RGPD.
 2. Copier `.env.example` en `.env` et remplir avec l'URL et la clé anon du projet (Project Settings → API).
-3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`, `0007_routines.sql`, `0008_ordre_tasks.sql`.
+3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`, `0007_routines.sql`, `0008_ordre_tasks.sql`, `0009_weekly_review.sql`.
 4. Stocker la clé Anthropic dans Supabase Vault (SQL Editor) :
    ```sql
    select vault.create_secret('sk-ant-...', 'anthropic_api_key');
@@ -55,6 +55,8 @@
 - Sélecteur de jour en semaine (L M M J V S D avec dates, navigation semaine précédente/suivante) — permet de préparer demain ou revoir hier, plus seulement "aujourd'hui"
 - Anneau de progression circulaire animé autour du minuteur de focus (façon Tiimo), plus lisible d'un coup d'œil qu'un simple décompte
 - Pause/reprise pendant une session focus (bouton ⏸/▶️ à côté de "+5 min")
+- Rappels locaux 5 min avant l'heure d'une tâche (notifications programmées sur l'appareil, sans push distant — ça marche encore dans Expo Go) + réglage manuel de l'heure d'une tâche pour en profiter même sans passer par le Vide-tête
+- Bilan hebdomadaire réflexif (3 questions : ce qui a marché / ce qui a été dur / la priorité de la semaine prochaine), accessible depuis le Dashboard, en plus du rituel quotidien
 
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 

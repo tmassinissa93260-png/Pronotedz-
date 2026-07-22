@@ -14,7 +14,8 @@
         {
           "calendarPermission": "L'app a besoin d'accéder à ton calendrier pour y ajouter tes tâches si tu le souhaites."
         }
-      ]
+      ],
+      "expo-notifications"
     ],
     "newArchEnabled": true,
     "ios": {
