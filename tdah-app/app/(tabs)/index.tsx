@@ -83,7 +83,7 @@ export default function AccueilScreen() {
   const router = useRouter();
   const profile = useProfile();
   const { celebrate } = useReward();
-  const { colors } = useTheme();
+  const { colors, focusMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const PRIORITE_COLOR = useMemo(() => prioriteColors(colors), [colors]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -388,6 +388,15 @@ export default function AccueilScreen() {
 
   function startFocusOn(task: Task) {
     router.push(`/focus?tache=${encodeURIComponent(task.titre)}&tacheId=${task.id}`);
+  }
+
+  // Mode focus : garde l'emoji (utile pour reconnaître une tâche d'un coup
+  // d'œil) mais neutralise la bulle colorée — une liste de tâches, c'est
+  // potentiellement une dizaine de teintes pastel différentes affichées en
+  // même temps, exactement le genre de touche décorative répétée que le
+  // mode focus retire.
+  function iconColorFor(task: Task) {
+    return focusMode ? colors.surfaceAlt : resolveTaskIcon(task).color;
   }
 
   async function submitBraindump() {
@@ -697,7 +706,7 @@ export default function AccueilScreen() {
                   setIconPickerTaskId(item.id);
                 }}
               >
-                <View style={[styles.taskIconBubble, { backgroundColor: resolveTaskIcon(item).color }]}>
+                <View style={[styles.taskIconBubble, { backgroundColor: iconColorFor(item) }]}>
                   <Text style={styles.taskIconEmoji}>{resolveTaskIcon(item).emoji}</Text>
                   {item.statut === 'fait' && (
                     <View style={styles.taskIconCheckBadge}>

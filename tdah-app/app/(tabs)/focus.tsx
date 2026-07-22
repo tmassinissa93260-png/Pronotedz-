@@ -29,7 +29,7 @@ export default function FocusScreen() {
   const { session } = useAuth();
   const profile = useProfile();
   const { celebrate } = useReward();
-  const { colors } = useTheme();
+  const { colors, focusMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { tache: tacheParam, tacheId } = useLocalSearchParams<{ tache?: string; tacheId?: string }>();
   const [targetMinutes, setTargetMinutes] = useState<number | null>(25);
@@ -235,6 +235,10 @@ export default function FocusScreen() {
 
   useEffect(() => {
     if (activeSession?.mode !== 'coregulation') return;
+    // Mode focus : le cercle reste fixe plutôt que de pulser en continu — un
+    // mouvement en boucle, même lent et volontaire comme celui-ci, ajoute une
+    // charge attentionnelle que le mode focus cherche justement à retirer.
+    if (focusMode) return;
     // Respiration visuelle lente et continue : le rythme de l'IA "compagnon"
     // sert de point d'ancrage calme, indépendant de la vitesse de l'utilisateur.
     const loop = Animated.loop(
@@ -245,7 +249,7 @@ export default function FocusScreen() {
     );
     loop.start();
     return () => loop.stop();
-  }, [activeSession?.mode]);
+  }, [activeSession?.mode, focusMode]);
 
   async function startSession(mode: Mode) {
     if (!session) return;

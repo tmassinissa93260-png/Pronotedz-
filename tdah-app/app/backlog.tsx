@@ -44,7 +44,7 @@ function nextRoundedTime() {
 
 export default function BacklogScreen() {
   const { session } = useAuth();
-  const { colors } = useTheme();
+  const { colors, focusMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -126,7 +126,7 @@ export default function BacklogScreen() {
           return (
             <View style={styles.card}>
               <View style={styles.cardRow}>
-                <View style={[styles.iconBubble, { backgroundColor: icon.color }]}>
+                <View style={[styles.iconBubble, { backgroundColor: focusMode ? colors.surfaceAlt : icon.color }]}>
                   <Text style={styles.iconEmoji}>{icon.emoji}</Text>
                 </View>
                 <View style={{ flex: 1 }}>

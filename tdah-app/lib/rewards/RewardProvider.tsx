@@ -14,7 +14,7 @@ export function RewardProvider({ children }: PropsWithChildren) {
   const [current, setCurrent] = useState<Reward | null>(null);
   const opacity = useRef(new Animated.Value(0)).current;
   const reduceMotion = useRef(false);
-  const { colors } = useTheme();
+  const { colors, focusMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   // Respecte le réglage "Réduire les animations" du téléphone — l'animation
@@ -36,7 +36,7 @@ export function RewardProvider({ children }: PropsWithChildren) {
       if (!reward || (!reward.text && !reward.emoji)) return; // le "rien" fait aussi partie du cycle
 
       setCurrent(reward);
-      if (reduceMotion.current) {
+      if (reduceMotion.current || focusMode) {
         opacity.setValue(1);
         const timer = setTimeout(() => setCurrent(null), 1300);
         return () => clearTimeout(timer);
@@ -48,7 +48,7 @@ export function RewardProvider({ children }: PropsWithChildren) {
         Animated.timing(opacity, { toValue: 0, duration: 300, useNativeDriver: true }),
       ]).start(() => setCurrent(null));
     },
-    [opacity]
+    [opacity, focusMode]
   );
 
   return (

@@ -98,7 +98,11 @@ Après la refonte visuelle ci-dessus, recherche ciblée sur la littérature UX/a
 - **Saturation ambiante à éviter** : la littérature associe la haute saturation à une charge attentionnelle plus lourde (dans la lignée des interventions "écran en niveaux de gris" étudiées pour réduire l'usage compulsif du téléphone). L'accent corail (utilisé sur la bannière "grenouille" et le badge de série) est passé de 100% à ~78% de saturation — toujours chaleureux, moins criard. Le reste de la palette (fond, surfaces) était déjà à faible saturation.
 - **Mouvement respecté selon les préférences système** : le toast de récompense (`RewardProvider`) interroge maintenant `AccessibilityInfo.isReduceMotionEnabled()` — si l'utilisateur a activé "Réduire les animations" dans les réglages de son téléphone, le fade s'efface au profit d'un affichage direct, conformément à la recommandation WCAG 2.3.3 sur les animations non essentielles (le mouvement, même discret, peut capter l'attention de façon disproportionnée chez les personnes TDAH).
 - **Sans-serif géométrique confirmé** : Manrope reste dans la même famille que les polices recommandées pour le TDAH/la dyslexie (Century Gothic, Trebuchet, Open Sans — sans-serif, formes de lettres nettes, pas d'italique utilisé dans l'app).
-- **Non traité pour l'instant** : un "mode focus" qui réduirait encore plus les couleurs/animations à la demande a été identifié comme piste (repéré dans la même recherche) mais n'est pas construit.
+### Mode focus
+
+- Nouveau réglage (Profil → Apparence → **Mode focus**) qui va plus loin que le mode sombre/clair : neutralise les touches de couleur purement décoratives (bannière "grenouille", badge de série, bulle d'icône de tâche — jusqu'à une dizaine de teintes pastel différentes affichées en même temps dans une liste) en les remplaçant par les tokens neutres déjà existants (`textMuted`/`surfaceAlt`). Les couleurs fonctionnelles (drapeau de priorité, flammes d'angoisse, boutons) restent intactes — elles portent une information, pas juste de la décoration.
+- Coupe aussi les animations non essentielles : le cercle de respiration en mode co-régulation du Focus reste fixe au lieu de pulser en boucle, et le toast de récompense s'affiche directement sans fondu (même logique que le respect du réglage système "Réduire les animations", mais activable indépendamment).
+- Réglage persistant sur l'appareil (`AsyncStorage`), indépendant du choix clair/sombre — les deux se combinent.
 
 ### Mode sombre
 

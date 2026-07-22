@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Alert, ScrollView, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { supabase } from '../../lib/supabase/client';
@@ -16,7 +16,7 @@ const THEME_OPTIONS: { value: ThemePreference; label: string; icon: keyof typeof
 
 export default function ProfilScreen() {
   const { session } = useAuth();
-  const { colors, preference, setPreference } = useTheme();
+  const { colors, preference, setPreference, focusMode, setFocusMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { statut, isPremium, reload } = useSubscription();
 
@@ -80,6 +80,21 @@ export default function ProfilScreen() {
               <Text style={[styles.themeChipText, preference === opt.value && styles.themeChipTextActive]}>{opt.label}</Text>
             </Pressable>
           ))}
+        </View>
+
+        <View style={styles.focusModeRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.focusModeTitle}>Mode focus</Text>
+            <Text style={styles.caption}>
+              Réduit encore les couleurs décoratives et coupe les animations — pour les jours où même ça, c'est trop.
+            </Text>
+          </View>
+          <Switch
+            value={focusMode}
+            onValueChange={setFocusMode}
+            trackColor={{ false: colors.border, true: colors.primaryMuted }}
+            thumbColor={focusMode ? colors.primary : undefined}
+          />
         </View>
       </View>
 
@@ -172,6 +187,8 @@ function makeStyles(colors: ThemeColors) {
     themeChipActive: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
     themeChipText: { fontSize: 13, fontFamily: fonts.medium, color: colors.textMuted },
     themeChipTextActive: { color: colors.primary, fontFamily: fonts.semibold },
+    focusModeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginTop: spacing.md },
+    focusModeTitle: { ...typography.body, fontFamily: fonts.semibold, marginBottom: 2 },
     row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },
     rowText: { ...typography.body },
     caption: { ...typography.caption },

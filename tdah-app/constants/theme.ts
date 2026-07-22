@@ -46,6 +46,16 @@ export const darkColors = {
 
 export type ThemeColors = typeof lightColors;
 
+// "Mode focus" : neutralise les touches de couleur purement décoratives
+// (bannière grenouille, badge de série, bulle d'icône de tâche) en réutilisant
+// les tokens neutres déjà là — les couleurs fonctionnelles (priorité, succès,
+// avertissement, danger) restent intactes, car elles portent une information,
+// pas juste de la décoration. Recherche UX-TDAH : la saturation ambiante,
+// même par petites touches répétées, ajoute une charge attentionnelle.
+export function applyFocusMode(c: ThemeColors): ThemeColors {
+  return { ...c, accent: c.textMuted, accentMuted: c.surfaceAlt };
+}
+
 // Alias historique : les écrans qui n'ont pas encore été convertis pour lire
 // la couleur active via useTheme() continuent d'importer `colors` — ils
 // restent volontairement figés en palette claire plutôt que de casser.
