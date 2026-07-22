@@ -21,6 +21,17 @@ const END_HOUR = 22;
 const PX_PER_MIN = 1.1;
 const HOUR_HEIGHT = 60 * PX_PER_MIN;
 const MIN_BLOCK_HEIGHT = 32;
+// En dessous de ce seuil, un trou est juste une marge normale entre deux
+// tâches — pas la peine de le signaler, ça ajouterait du bruit visuel.
+const MIN_GAP_MINUTES = 30;
+
+function formatDuration(minutes: number) {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h} h`;
+  return `${h} h ${m}`;
+}
 
 const MOMENT_COLOR: Record<MomentJournee, string> = {
   matin: '#F4B860',
@@ -32,6 +43,41 @@ const MOMENT_COLOR: Record<MomentJournee, string> = {
 function parseMinutes(heureDebut: string) {
   const [h, m] = heureDebut.split(':').map(Number);
   return h * 60 + m;
+}
+
+// Détection des trous dans la journée (plainte citée dans les avis Tiimo :
+// aucune représentation visuelle des créneaux libres entre les tâches).
+function computeGaps(placed: TimelineTask[]): { start: number; end: number }[] {
+  const dayStart = START_HOUR * 60;
+  const dayEnd = END_HOUR * 60;
+
+  const intervals = placed
+    .map((t): [number, number] => {
+      const start = parseMinutes(t.heure_debut!);
+      const duration = t.estimation_minutes ?? 30;
+      return [Math.max(dayStart, start), Math.min(dayEnd, start + duration)];
+    })
+    .filter(([s, e]) => e > s)
+    .sort((a, b) => a[0] - b[0]);
+
+  const merged: [number, number][] = [];
+  for (const [s, e] of intervals) {
+    const last = merged[merged.length - 1];
+    if (last && s <= last[1]) {
+      last[1] = Math.max(last[1], e);
+    } else {
+      merged.push([s, e]);
+    }
+  }
+
+  const gaps: { start: number; end: number }[] = [];
+  let cursor = dayStart;
+  for (const [s, e] of merged) {
+    if (s - cursor >= MIN_GAP_MINUTES) gaps.push({ start: cursor, end: s });
+    cursor = Math.max(cursor, e);
+  }
+  if (dayEnd - cursor >= MIN_GAP_MINUTES) gaps.push({ start: cursor, end: dayEnd });
+  return gaps;
 }
 
 export function TimelineView({
@@ -47,6 +93,7 @@ export function TimelineView({
   const sansHoraire = tasks.filter((t) => !t.heure_debut);
   const hours = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i);
   const totalHeight = hours.length * HOUR_HEIGHT;
+  const gaps = computeGaps(placed);
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: spacing.xl }}>
@@ -57,6 +104,16 @@ export function TimelineView({
             <View style={styles.hourLine} />
           </View>
         ))}
+
+        {gaps.map((gap) => {
+          const top = (gap.start - START_HOUR * 60) * PX_PER_MIN;
+          const height = (gap.end - gap.start) * PX_PER_MIN;
+          return (
+            <View key={`${gap.start}-${gap.end}`} style={[styles.gapBlock, { top, height }]}>
+              <Text style={styles.gapText}>{formatDuration(gap.end - gap.start)} libres</Text>
+            </View>
+          );
+        })}
 
         {placed.map((task) => {
           const startMin = Math.max(0, parseMinutes(task.heure_debut!) - START_HOUR * 60);
@@ -128,6 +185,18 @@ const styles = StyleSheet.create({
   },
   blockText: { ...typography.body, fontSize: 13, fontWeight: '600', flex: 1 },
   blockTextDone: { textDecorationLine: 'line-through', color: colors.textMuted },
+  gapBlock: {
+    position: 'absolute',
+    left: 52,
+    right: spacing.sm,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gapText: { ...typography.caption, fontSize: 11 },
   sansHoraireSection: { marginTop: spacing.lg, paddingHorizontal: spacing.sm },
   sansHoraireTitle: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: spacing.xs, fontWeight: '700' },
   sansHoraireRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
