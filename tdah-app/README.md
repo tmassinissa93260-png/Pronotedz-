@@ -4,13 +4,19 @@
 
 1. **Créer un projet Supabase** (gratuit) sur [supabase.com](https://supabase.com), région **Europe (Frankfurt ou Paris)** — important pour l'argument RGPD.
 2. Copier `.env.example` en `.env` et remplir avec l'URL et la clé anon du projet (Project Settings → API).
-3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`, `0007_routines.sql`, `0008_ordre_tasks.sql`, `0009_weekly_review.sql`, `0010_weekly_ai_plan.sql`, `0011_priorite.sql`, `0012_icone_manuelle.sql`, `0013_schedule_assistant.sql`.
+3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`, `0007_routines.sql`, `0008_ordre_tasks.sql`, `0009_weekly_review.sql`, `0010_weekly_ai_plan.sql`, `0011_priorite.sql`, `0012_icone_manuelle.sql`, `0013_schedule_assistant.sql`, `0014_sommeil_humeur.sql`, `0015_stripe_subscriptions.sql`.
 4. Stocker la clé Anthropic dans Supabase Vault (SQL Editor) :
    ```sql
    select vault.create_secret('sk-ant-...', 'anthropic_api_key');
    ```
    (L'IA tourne côté base de données via `pg_net`, pas via une Edge Function — plus simple à déployer sans terminal.)
-5. Installer les dépendances et lancer l'app :
+5. Si tu actives l'abonnement (facultatif, rien n'en dépend pour l'instant) : créer un compte [Stripe](https://stripe.com) gratuit, créer un produit avec deux prix récurrents (mensuel, annuel) dans son dashboard, puis dans le SQL Editor :
+   ```sql
+   select vault.create_secret('sk_test_...', 'stripe_secret_key'); -- clé TEST d'abord, jamais la clé "live" avant d'être prêt à vraiment encaisser
+   select vault.create_secret('price_...', 'stripe_price_mensuel');
+   select vault.create_secret('price_...', 'stripe_price_annuel');
+   ```
+6. Installer les dépendances et lancer l'app :
    ```
    npm install
    npm run start
@@ -101,11 +107,28 @@ Après la refonte visuelle ci-dessus, recherche ciblée sur la littérature UX/a
 - Chaque écran lit désormais ses couleurs via `useTheme()` plutôt que d'importer `colors` en statique, avec les styles construits par une fonction `makeStyles(colors)` appelée à chaque changement de thème (nécessaire en React Native : un `StyleSheet.create` figé au chargement du module ne peut pas se mettre à jour tout seul).
 - Traitement complet sur les écrans à plus fort trafic (Planning, Focus, Backlog, Routines, Profil) + les composants qu'ils utilisent (minuteur circulaire, frise horaire, check-in d'interoception, toast de récompense) et la coque de navigation (onglets, en-têtes natifs Backlog/Routines). Les écrans restants (Bilan, Rituel de fin de journée, Respiration, Brouillon différé, Auth, Onboarding) n'ont pas encore été convertis — ils restent figés en palette claire quel que soit le thème choisi, en attendant leur conversion.
 
+### Chronothérapie sommeil (saisie manuelle)
+
+- Nouvel écran **Sommeil** (dans le menu Outils) : saisie manuelle de l'heure de coucher/lever et d'une note de qualité ressentie (1-5), historique des nuits récentes.
+- **Corrélation sommeil/productivité** (`getSleepTaskCorrelation`, agrégation pure côté client, pas d'appel IA — même logique que le coach proactif) : compare le taux de tâches terminées les jours qui suivent une bonne nuit (≥7h ou qualité ≥4) contre les jours qui suivent une nuit courte ou difficile, affiché en bannière dès qu'il y a assez de données (≥3 nuits de chaque côté).
+- La synchro automatique Apple Watch/Health Connect reste bloquée par Expo Go (module natif, demanderait un build EAS) — même limitation que la saisie vocale. La table `wearable_data` a une colonne `source` déjà prête à recevoir `apple_watch`/`oura`/`whoop` le jour où ce build existe, sans migration supplémentaire.
+
+### Check-in "humeur"
+
+- Remplace la détection vocale émotionnelle prévue en V2 : analyser le ton de la voix demanderait un micro natif (bloqué dans Expo Go) et un modèle d'émotion externe non défini — une question fermée sur l'humeur ressentie (`😔 Dur` / `😐 Neutre` / `🙂 Bien`) capture l'essentiel du signal utile sans dépendre de rien de natif, intégrée au même système de check-in d'interoception existant.
+
+### Infrastructure d'abonnement (Stripe)
+
+- **Aucune fonctionnalité n'est verrouillée pour l'instant** — cette infrastructure existe pour que l'abonnement soit possible, la répartition gratuit/payant sera décidée plus tard une fois toutes les fonctionnalités terminées. `<PremiumGate>` (`components/PremiumGate.tsx`) est prêt à envelopper n'importe quel contenu le moment venu.
+- **Stripe Checkout** (page hébergée, ouverte dans le navigateur via `expo-web-browser`) plutôt que le SDK natif `@stripe/stripe-react-native`, qui casserait Expo Go.
+- **Aucun webhook** : confirmer un paiement nécessiterait normalement un point d'entrée HTTP public, hors du pattern pg_net sortant utilisé partout ailleurs dans ce projet. À la place : `confirm_checkout_session` vérifie activement auprès de Stripe juste après le retour dans l'app (lien `tdahapp://checkout-retour`), et `refresh_subscription_status` revérifie à chaque ouverture de l'écran Profil — capte les renouvellements/annulations avec un léger différé plutôt qu'en temps réel.
+- Nouvel écran **Profil → Abonnement → Voir les offres**, plans mensuel/annuel.
+
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 
-- Chronothérapie sommeil (la table `wearable_data` existe, l'intégration HealthKit/Health Connect + le coaching restent à faire)
-- Détection vocale émotionnelle
-- Paiement Stripe (l'app est gratuite pour l'instant, le temps de valider que le produit plaît)
+- Synchronisation automatique du sommeil (Apple Watch/Health Connect) — nécessite un build EAS, voir ci-dessus
+- Répartition effective des fonctionnalités entre gratuit et payant (l'infrastructure existe, mais rien n'est encore restreint)
+- Passage en clé Stripe "live" (le code tourne en clé de test tant que ce n'est pas fait explicitement)
 
 ## Sécurité
 

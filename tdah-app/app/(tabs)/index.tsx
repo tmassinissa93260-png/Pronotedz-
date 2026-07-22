@@ -545,6 +545,7 @@ export default function AccueilScreen() {
     { icon: 'repeat-outline', label: 'Routines', onPress: () => router.push('/routines') },
     { icon: 'moon-outline', label: 'Fin de journée', onPress: () => router.push('/rituel-fin-journee') },
     { icon: 'leaf-outline', label: 'Respirer', onPress: () => router.push('/respiration') },
+    { icon: 'bed-outline', label: 'Sommeil', onPress: () => router.push('/sommeil') },
   ];
 
   if (isLoading) {

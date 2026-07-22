@@ -12,10 +12,16 @@ import { useTheme } from '../lib/theme/ThemeProvider';
 // Une question à choix binaire coûte beaucoup moins cher cognitivement
 // qu'un "comment tu te sens ?" en ce moment précis.
 
-const QUESTIONS: { type: 'faim' | 'fatigue' | 'toilettes'; label: string; options: string[] }[] = [
+// "humeur" remplace la détection vocale émotionnelle prévue en V2 — analyser
+// le ton de la voix demanderait un micro natif (bloqué dans Expo Go, comme
+// la saisie vocale) et un modèle d'émotion externe non défini. Une question
+// fermée sur l'humeur ressentie capture l'essentiel du signal utile
+// (repérer une dérégulation dans la durée) sans dépendre de rien de natif.
+const QUESTIONS: { type: 'faim' | 'fatigue' | 'toilettes' | 'humeur'; label: string; options: string[] }[] = [
   { type: 'faim', label: 'Ventre ?', options: ['Vide', 'Plein', 'Sais pas'] },
   { type: 'fatigue', label: 'Niveau d’énergie ?', options: ['À plat', 'Ça va', 'Sais pas'] },
   { type: 'toilettes', label: 'Besoin d’une pause ?', options: ['Oui', 'Non', 'Sais pas'] },
+  { type: 'humeur', label: 'Ça va comment ?', options: ['😔 Dur', '😐 Neutre', '🙂 Bien'] },
 ];
 
 type Props = {

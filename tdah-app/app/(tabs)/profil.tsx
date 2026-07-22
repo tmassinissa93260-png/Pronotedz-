@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet, Alert, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase/client';
 import { useAuth } from '../../lib/supabase/AuthProvider';
 import { spacing, fonts, radius, makeTypography, type ThemeColors } from '../../constants/theme';
 import { useTheme, type ThemePreference } from '../../lib/theme/ThemeProvider';
+import { useSubscription, refreshSubscription } from '../../lib/billing/stripe';
 
 const THEME_OPTIONS: { value: ThemePreference; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { value: 'system', label: 'Système', icon: 'phone-portrait-outline' },
@@ -17,6 +18,17 @@ export default function ProfilScreen() {
   const { session } = useAuth();
   const { colors, preference, setPreference } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { statut, isPremium, reload } = useSubscription();
+
+  // Seul écran qui interroge Stripe pour rester à jour (renouvellements,
+  // annulations) — pas de webhook dans cette architecture, voir la
+  // migration 0015 pour le détail de ce choix.
+  useEffect(() => {
+    if (!session) return;
+    refreshSubscription(session.user.id)
+      .then(reload)
+      .catch(() => {});
+  }, [session]);
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -95,7 +107,21 @@ export default function ProfilScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Abonnement</Text>
-        <Text style={styles.caption}>Gratuit — résiliable en un clic à tout moment, sans justification à donner.</Text>
+        {isPremium ? (
+          <Text style={styles.caption}>Abonnement actif — merci de soutenir l’app 💜</Text>
+        ) : (
+          <>
+            <Text style={styles.caption}>
+              {statut === 'annule' || statut === 'expire'
+                ? 'Ton abonnement précédent est terminé.'
+                : 'Toutes les fonctionnalités sont gratuites pour l’instant.'}
+            </Text>
+            <Pressable style={styles.row} onPress={() => router.push('/paiement')}>
+              <Ionicons name="star-outline" size={20} color={colors.primary} />
+              <Text style={[styles.rowText, { color: colors.primary }]}>Voir les offres</Text>
+            </Pressable>
+          </>
+        )}
       </View>
 
       <Pressable style={styles.signOutButton} onPress={handleSignOut}>
