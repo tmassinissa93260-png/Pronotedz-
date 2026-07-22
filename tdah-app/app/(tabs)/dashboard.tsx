@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase/client';
 import { useAuth } from '../../lib/supabase/AuthProvider';
 import { colors, spacing, typography } from '../../constants/theme';
+import { generatePatternInsight, type PatternInsight } from '../../lib/supabase/patternInsight';
 
 // Volontairement PAS un pourcentage de tâches complétées : ce genre de métrique
 // rejoue en permanence le sentiment d'échec chez les utilisateurs TDAH.
@@ -25,10 +26,26 @@ export default function DashboardScreen() {
   const [competence, setCompetence] = useState(0);
   const [connexion, setConnexion] = useState(0);
   const [streak, setStreak] = useState<{ jours_consecutifs: number; reparations_disponibles: number } | null>(null);
+  const [insight, setInsight] = useState<PatternInsight | null>(null);
+  const [insightLoading, setInsightLoading] = useState(false);
+
+  async function loadInsight() {
+    if (!session) return;
+    setInsightLoading(true);
+    try {
+      const result = await generatePatternInsight(session.user.id);
+      setInsight(result);
+    } catch {
+      setInsight(null);
+    } finally {
+      setInsightLoading(false);
+    }
+  }
 
   useEffect(() => {
     if (!session) return;
     const since = startOfWeekISO();
+    loadInsight();
 
     supabase
       .from('tasks')
@@ -62,6 +79,30 @@ export default function DashboardScreen() {
     <ScrollView style={styles.container} contentContainerStyle={{ padding: spacing.lg }}>
       <Text style={styles.title}>Ton bilan de la semaine</Text>
       <Text style={styles.subtitle}>Pas de note sur 100 ici — juste ce que tu as vraiment vécu.</Text>
+
+      <View style={styles.insightCard}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs }}>
+          <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
+          <Text style={styles.cardTitle}>Insight personnalisé</Text>
+        </View>
+        {insightLoading ? (
+          <ActivityIndicator color={colors.primary} style={{ alignSelf: 'flex-start', marginTop: spacing.xs }} />
+        ) : insight?.pret === true ? (
+          <>
+            <Text style={styles.insightPattern}>{insight.pattern}</Text>
+            <Text style={styles.caption}>À essayer : {insight.suggestion}</Text>
+          </>
+        ) : (
+          <Text style={styles.cardValue}>
+            {insight?.pret === false ? insight.message : 'Utilise l’app pendant quelques semaines pour débloquer un premier insight basé sur tes vraies habitudes.'}
+          </Text>
+        )}
+        {!insightLoading && (
+          <Pressable onPress={loadInsight} style={{ marginTop: spacing.sm }}>
+            <Text style={styles.refreshText}>Actualiser</Text>
+          </Pressable>
+        )}
+      </View>
 
       <View style={styles.card}>
         <Ionicons name="compass-outline" size={24} color={colors.primary} />
@@ -128,4 +169,14 @@ const styles = StyleSheet.create({
   streakCard: { backgroundColor: colors.primaryMuted, borderRadius: 14, padding: spacing.md, marginTop: spacing.sm },
   streakText: { ...typography.body, fontWeight: '600' },
   caption: { ...typography.caption, marginTop: spacing.xs },
+  insightCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 14,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.primaryMuted,
+  },
+  insightPattern: { ...typography.body, fontWeight: '500' },
+  refreshText: { color: colors.primary, fontSize: 13, fontWeight: '500' },
 });

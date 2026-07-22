@@ -4,7 +4,7 @@
 
 1. **Créer un projet Supabase** (gratuit) sur [supabase.com](https://supabase.com), région **Europe (Frankfurt ou Paris)** — important pour l'argument RGPD.
 2. Copier `.env.example` en `.env` et remplir avec l'URL et la clé anon du projet (Project Settings → API).
-3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`.
+3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`.
 4. Stocker la clé Anthropic dans Supabase Vault (SQL Editor) :
    ```sql
    select vault.create_secret('sk-ant-...', 'anthropic_api_key');
@@ -24,13 +24,16 @@
 - Focus / body doubling avec IA — mode co-régulation (respiration visuelle continue) et mode responsabilisation
 - Dashboard non-déficitaire (autonomie / compétence / connexion, pas de % de complétion)
 - Système de streak avec réparations (pas de rupture punitive)
+- Check-ins d'interoception (questions fermées, déclenchées par contexte)
+- Récompenses à variance (pas le même confetti à chaque fois, pour éviter l'habituation)
+- Curseur de granularité pour le découpage de tâches par IA
+- Brouillon différé pour les messages envoyés en détresse (RSD)
+- Analyse de patterns long terme (`generate_pattern_insight`, se débloque après ~3 semaines d'usage réel)
 - Profil : confiance des données (UE, export, suppression), désabonnement en libre-service
 
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 
-- Analyse de patterns long terme (la table `pattern_memory` existe déjà, l'IA d'analyse arrive une fois assez d'historique accumulé)
 - Chronothérapie sommeil (la table `wearable_data` existe, l'intégration HealthKit/Health Connect + le coaching restent à faire)
-- Brouillon différé pour les messages envoyés en détresse (RSD)
 - Détection vocale émotionnelle
 - Paiement Stripe (l'app est gratuite pour l'instant, le temps de valider que le produit plaît)
 
