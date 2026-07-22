@@ -4,7 +4,7 @@
 
 1. **Créer un projet Supabase** (gratuit) sur [supabase.com](https://supabase.com), région **Europe (Frankfurt ou Paris)** — important pour l'argument RGPD.
 2. Copier `.env.example` en `.env` et remplir avec l'URL et la clé anon du projet (Project Settings → API).
-3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`, `0007_routines.sql`, `0008_ordre_tasks.sql`, `0009_weekly_review.sql`, `0010_weekly_ai_plan.sql`, `0011_priorite.sql`.
+3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`, `0007_routines.sql`, `0008_ordre_tasks.sql`, `0009_weekly_review.sql`, `0010_weekly_ai_plan.sql`, `0011_priorite.sql`, `0012_icone_manuelle.sql`, `0013_schedule_assistant.sql`.
 4. Stocker la clé Anthropic dans Supabase Vault (SQL Editor) :
    ```sql
    select vault.create_secret('sk-ant-...', 'anthropic_api_key');
@@ -71,6 +71,10 @@
 - **Niveau de priorité** (Haute/Moyenne/Basse, `niveau_priorite`) distinct du niveau d'angoisse — un drapeau à côté du titre, tap pour faire défiler les niveaux
 - **"Je suis en retard ?"** : décale d'un coup toutes les tâches restantes du jour ayant une heure fixée (+5/10/15/30 min), capture le même besoin que le chat IA de Tiimo ("move all my tasks by 10min") sans dépendre d'un appel IA
 - **Sous-tâches visibles et cochables pendant la session focus** (auparavant seulement dans la liste du planning) — répond directement à une capture Tiimo montrant sa checklist affichée sous le minuteur
+- **Icône et couleur personnalisables manuellement par tâche** (façon "3000+ couleurs et icônes" de Tiimo) : tap sur la bulle d'icône d'une tâche pour choisir parmi une sélection curatée, avec un retour à l'auto-détection possible à tout moment
+- **Assistant conversationnel de planning** (façon le chat IA de Tiimo qui exécute des commandes) : "je suis en retard, décale tout de 15 min", "reporte le ménage à demain", "mets les courses en priorité haute", ou une phrase vague comme "tout me semble urgent" — l'IA classe le message dans une action fixe et déterministe (jamais elle n'écrit directement en base), et c'est le client qui exécute la mutation réelle
+- **Backlog "à placer"** (équivalent du glisser-déposer calendrier de Tiimo, en version tap) : les tâches du jour sans horaire, groupées par priorité, avec un bouton "Maintenant" pour un placement en un tap ou un champ heure pour choisir précisément — un vrai geste de glisser-déposer ne peut pas être testé de façon fiable dans cet environnement (aucun appareil tactile réel disponible), donc pas de dépendance ajoutée pour du code non vérifiable
+- Note : la saisie vocale façon co-planner Tiimo reste bloquée en l'état — elle nécessite un module natif de reconnaissance vocale (`expo-speech-recognition`) incompatible avec Expo Go, donc un build EAS personnalisé serait requis
 
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 

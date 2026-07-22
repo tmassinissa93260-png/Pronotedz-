@@ -30,3 +30,23 @@ export function guessTaskIcon(titre: string): { emoji: string; color: string } {
   }
   return DEFAULT_ICON;
 }
+
+// Personnalisation manuelle (façon Tiimo "3000+ couleurs et icônes") — une
+// sélection curatée plutôt qu'un picker exhaustif, largement suffisante pour
+// se réapproprier visuellement ses tâches sans noyer le choix.
+export const ICON_CHOICES = [
+  '📝', '📞', '💊', '🍽️', '☕', '🛒', '🧺', '💻', '🏃', '🎒', '💰', '🩺',
+  '🚿', '📖', '😴', '🎨', '🎵', '🐶', '🌱', '🧘', '✈️', '🎉', '💡', '❤️',
+];
+
+export const COLOR_CHOICES = [
+  '#E8D9F4', '#F4D9DC', '#D9F4E1', '#F4EBD9', '#D9EAF4', '#F4E9D9', '#E1D9F4', '#D9F4EE',
+];
+
+export function resolveTaskIcon(task: { titre: string; icone_manuelle?: string | null; couleur_manuelle?: string | null }) {
+  const guessed = guessTaskIcon(task.titre);
+  return {
+    emoji: task.icone_manuelle ?? guessed.emoji,
+    color: task.couleur_manuelle ?? guessed.color,
+  };
+}

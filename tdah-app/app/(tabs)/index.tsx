@@ -11,12 +11,14 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase/client';
 import { breakdownTask } from '../../lib/ai/breakdownTask';
 import { planFromBraindump, planWeekFromBraindump } from '../../lib/ai/braindump';
+import { interpretScheduleCommand } from '../../lib/ai/scheduleAssistant';
 import { getHighDreadMomentStats, type MomentStats } from '../../lib/supabase/momentStats';
 import { colors, spacing, typography } from '../../constants/theme';
 import { useAuth } from '../../lib/supabase/AuthProvider';
@@ -28,7 +30,7 @@ import { useReward } from '../../lib/rewards/RewardProvider';
 import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
 import { TimelineView } from '../../components/TimelineView';
 import { syncTaskToCalendar } from '../../lib/calendar/sync';
-import { guessTaskIcon } from '../../lib/taskIcon';
+import { resolveTaskIcon, ICON_CHOICES, COLOR_CHOICES } from '../../lib/taskIcon';
 import { scheduleTaskReminder, cancelTaskReminder } from '../../lib/notifications';
 
 type Subtask = { id: string; titre: string; fait: boolean; ordre: number };
@@ -44,6 +46,8 @@ type Task = {
   niveau_priorite: 'haute' | 'moyenne' | 'basse' | null;
   heure_debut: string | null;
   ordre: number;
+  icone_manuelle: string | null;
+  couleur_manuelle: string | null;
   subtasks: Subtask[];
 };
 
@@ -95,6 +99,12 @@ export default function AccueilScreen() {
   const [selectedDate, setSelectedDate] = useState(() => today());
   const [momentStats, setMomentStats] = useState<MomentStats | null>(null);
   const [retardPickerVisible, setRetardPickerVisible] = useState(false);
+  const [iconPickerTaskId, setIconPickerTaskId] = useState<string | null>(null);
+  const [pickerColor, setPickerColor] = useState(COLOR_CHOICES[0]);
+  const [assistantVisible, setAssistantVisible] = useState(false);
+  const [assistantInput, setAssistantInput] = useState('');
+  const [assistantLoading, setAssistantLoading] = useState(false);
+  const [assistantMessages, setAssistantMessages] = useState<{ role: 'user' | 'assistant'; text: string }[]>([]);
 
   const loadTasks = useCallback(async () => {
     if (!session) return;
@@ -107,7 +117,7 @@ export default function AccueilScreen() {
       }
       const { data, error } = await supabase
         .from('tasks')
-        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, niveau_dread, niveau_priorite, heure_debut, ordre, subtasks(id, titre, fait, ordre)')
+        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, niveau_dread, niveau_priorite, heure_debut, ordre, icone_manuelle, couleur_manuelle, subtasks(id, titre, fait, ordre)')
         .eq('date_prevue', selectedDate)
         .order('ordre', { ascending: true })
         .order('created_at', { ascending: true });
@@ -246,6 +256,21 @@ export default function AccueilScreen() {
     loadTasks();
   }
 
+  // Personnalisation manuelle icône/couleur (façon Tiimo "3000+ couleurs et
+  // icônes") : tap sur la bulle d'icône d'une tâche ouvre un sélecteur, plutôt
+  // que d'ajouter un nouveau bouton dans un en-tête déjà chargé.
+  async function setTaskIcon(taskId: string, emoji: string, color: string) {
+    await supabase.from('tasks').update({ icone_manuelle: emoji, couleur_manuelle: color }).eq('id', taskId);
+    setIconPickerTaskId(null);
+    loadTasks();
+  }
+
+  async function resetTaskIcon(taskId: string) {
+    await supabase.from('tasks').update({ icone_manuelle: null, couleur_manuelle: null }).eq('id', taskId);
+    setIconPickerTaskId(null);
+    loadTasks();
+  }
+
   // Priorité (urgence/importance) — distincte du niveau d'angoisse
   // (difficulté émotionnelle). Un tap fait défiler : rien → haute → moyenne
   // → basse → rien, pas besoin d'ouvrir un sélecteur pour trois options.
@@ -272,6 +297,48 @@ export default function AccueilScreen() {
     );
     setRetardPickerVisible(false);
     loadTasks();
+  }
+
+  // Assistant conversationnel de planning (façon le chat IA de Tiimo qui
+  // exécute des commandes) : l'IA classe le message dans une action fixe et
+  // déterministe, c'est le client qui exécute — jamais l'IA qui écrit
+  // directement en base, pour rester prévisible.
+  async function submitAssistantMessage() {
+    const texte = assistantInput.trim();
+    if (!texte || !session) return;
+    setAssistantMessages((prev) => [...prev, { role: 'user', text: texte }]);
+    setAssistantInput('');
+    setAssistantLoading(true);
+    try {
+      const taches = tasks
+        .filter((t) => t.statut !== 'fait')
+        .map((t) => ({
+          id: t.id,
+          titre: t.titre,
+          heure_debut: t.heure_debut,
+          niveau_priorite: t.niveau_priorite,
+          niveau_dread: t.niveau_dread,
+          statut: t.statut,
+        }));
+      const result = await interpretScheduleCommand(session.user.id, texte, taches);
+      setAssistantMessages((prev) => [...prev, { role: 'assistant', text: result.message }]);
+
+      if (result.action === 'decaler_tout') {
+        await delayRemainingTasks(result.minutes ?? 10);
+      } else if (result.action === 'reporter_tache' && result.tache_id) {
+        await reportToTomorrow(result.tache_id);
+      } else if (result.action === 'prioriser' && result.tache_id && result.niveau_priorite) {
+        await supabase.from('tasks').update({ niveau_priorite: result.niveau_priorite }).eq('id', result.tache_id);
+        loadTasks();
+      }
+    } catch {
+      setAssistantMessages((prev) => [
+        ...prev,
+        { role: 'assistant', text: 'Je n’ai pas réussi à traiter ça pour le moment — réessaie dans un instant.' },
+      ]);
+    } finally {
+      setAssistantLoading(false);
+    }
   }
 
   const MIN_SAMPLE = 3;
@@ -507,6 +574,14 @@ export default function AccueilScreen() {
           <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
           <Text style={styles.braindumpButtonText}>Vide-tête</Text>
         </Pressable>
+        <Pressable style={styles.braindumpButton} onPress={() => setAssistantVisible(true)}>
+          <Ionicons name="sparkles-outline" size={16} color={colors.primary} />
+          <Text style={styles.braindumpButtonText}>Assistant</Text>
+        </Pressable>
+        <Pressable style={styles.braindumpButton} onPress={() => router.push('/backlog')}>
+          <Ionicons name="albums-outline" size={16} color={colors.primary} />
+          <Text style={styles.braindumpButtonText}>Backlog</Text>
+        </Pressable>
         <Pressable style={styles.braindumpButton} onPress={() => router.push('/routines')}>
           <Ionicons name="repeat-outline" size={16} color={colors.primary} />
           <Text style={styles.braindumpButtonText}>Routines</Text>
@@ -612,15 +687,23 @@ export default function AccueilScreen() {
                   />
                 </Pressable>
               )}
-              <Pressable style={styles.taskHeaderMain} onPress={() => markTaskDone(item)}>
-                <View style={[styles.taskIconBubble, { backgroundColor: guessTaskIcon(item.titre).color }]}>
-                  <Text style={styles.taskIconEmoji}>{guessTaskIcon(item.titre).emoji}</Text>
+              <Pressable
+                hitSlop={4}
+                onPress={() => {
+                  setPickerColor(resolveTaskIcon(item).color);
+                  setIconPickerTaskId(item.id);
+                }}
+              >
+                <View style={[styles.taskIconBubble, { backgroundColor: resolveTaskIcon(item).color }]}>
+                  <Text style={styles.taskIconEmoji}>{resolveTaskIcon(item).emoji}</Text>
                   {item.statut === 'fait' && (
                     <View style={styles.taskIconCheckBadge}>
                       <Ionicons name="checkmark-circle" size={16} color={colors.success} />
                     </View>
                   )}
                 </View>
+              </Pressable>
+              <Pressable style={styles.taskHeaderMain} onPress={() => markTaskDone(item)}>
                 <Text style={[styles.taskTitle, item.statut === 'fait' && styles.taskTitleDone]}>{item.titre}</Text>
               </Pressable>
               {item.statut !== 'fait' && (
@@ -833,6 +916,89 @@ export default function AccueilScreen() {
           </View>
         </View>
       </Modal>
+
+      <Modal
+        visible={iconPickerTaskId != null}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIconPickerTaskId(null)}
+      >
+        <View style={styles.braindumpBackdrop}>
+          <View style={styles.braindumpCard}>
+            <Text style={styles.braindumpTitle}>Icône & couleur</Text>
+            <Text style={styles.braindumpSubtitle}>Choisis une couleur, puis une icône — ou laisse l'IA deviner automatiquement.</Text>
+            <View style={styles.colorRow}>
+              {COLOR_CHOICES.map((c) => (
+                <Pressable
+                  key={c}
+                  style={[styles.colorSwatch, { backgroundColor: c }, pickerColor === c && styles.colorSwatchActive]}
+                  onPress={() => setPickerColor(c)}
+                />
+              ))}
+            </View>
+            <View style={styles.iconGrid}>
+              {ICON_CHOICES.map((emoji) => (
+                <Pressable
+                  key={emoji}
+                  style={[styles.iconChoice, { backgroundColor: pickerColor }]}
+                  onPress={() => iconPickerTaskId && setTaskIcon(iconPickerTaskId, emoji, pickerColor)}
+                >
+                  <Text style={styles.taskIconEmoji}>{emoji}</Text>
+                </Pressable>
+              ))}
+            </View>
+            <View style={styles.braindumpActions}>
+              <Pressable onPress={() => iconPickerTaskId && resetTaskIcon(iconPickerTaskId)}>
+                <Text style={styles.braindumpCancel}>Revenir à l'auto</Text>
+              </Pressable>
+              <Pressable onPress={() => setIconPickerTaskId(null)}>
+                <Text style={styles.braindumpCancel}>Fermer</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={assistantVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setAssistantVisible(false)}
+      >
+        <View style={styles.braindumpBackdrop}>
+          <View style={styles.braindumpCard}>
+            <Text style={styles.braindumpTitle}>Assistant</Text>
+            <Text style={styles.braindumpSubtitle}>
+              Dis-lui "je suis en retard, décale tout de 15 min", "reporte le ménage à demain", "mets les courses en priorité haute", ou juste "tout me semble urgent"...
+            </Text>
+            {assistantMessages.length > 0 && (
+              <ScrollView style={styles.assistantScroll}>
+                {assistantMessages.map((m, i) => (
+                  <View key={i} style={[styles.assistantBubble, m.role === 'user' ? styles.assistantBubbleUser : styles.assistantBubbleAi]}>
+                    <Text style={m.role === 'user' ? styles.assistantBubbleUserText : styles.assistantBubbleAiText}>{m.text}</Text>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+            <View style={styles.inputPairRow}>
+              <TextInput
+                style={[styles.braindumpInput, { flex: 1, minHeight: 44 }]}
+                placeholder="Écris ta demande..."
+                placeholderTextColor={colors.textMuted}
+                value={assistantInput}
+                onChangeText={setAssistantInput}
+                onSubmitEditing={submitAssistantMessage}
+              />
+              <Pressable style={styles.braindumpSubmit} onPress={submitAssistantMessage} disabled={assistantLoading}>
+                {assistantLoading ? <ActivityIndicator color="#fff" size="small" /> : <Ionicons name="send" size={18} color="#fff" />}
+              </Pressable>
+            </View>
+            <Pressable onPress={() => setAssistantVisible(false)} style={{ marginTop: spacing.md }}>
+              <Text style={styles.braindumpCancel}>Fermer</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -977,6 +1143,17 @@ const styles = StyleSheet.create({
     color: colors.text,
     backgroundColor: colors.background,
   },
+  assistantScroll: { maxHeight: 220, marginBottom: spacing.sm },
+  assistantBubble: { borderRadius: 12, padding: spacing.sm, marginBottom: spacing.xs, maxWidth: '85%' },
+  assistantBubbleUser: { backgroundColor: colors.primary, alignSelf: 'flex-end' },
+  assistantBubbleAi: { backgroundColor: colors.primaryMuted, alignSelf: 'flex-start' },
+  assistantBubbleUserText: { color: '#fff', fontSize: 14 },
+  assistantBubbleAiText: { color: colors.text, fontSize: 14 },
+  colorRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
+  colorSwatch: { width: 32, height: 32, borderRadius: 16, borderWidth: 2, borderColor: 'transparent' },
+  colorSwatchActive: { borderColor: colors.primary },
+  iconGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  iconChoice: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   braindumpActions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.md },
   braindumpCancel: { color: colors.textMuted, fontSize: 14 },
   braindumpSubmit: { backgroundColor: colors.primary, borderRadius: 20, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg },
