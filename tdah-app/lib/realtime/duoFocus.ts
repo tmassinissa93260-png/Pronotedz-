@@ -59,3 +59,51 @@ export function sendDuoEvent(channel: RealtimeChannel, event: DuoEvent) {
 export function leaveDuoRoom(channel: RealtimeChannel) {
   supabase.removeChannel(channel);
 }
+
+// Matching automatique : au lieu de partager un code avec quelqu'un qu'on
+// connaît déjà (Focusmate n'a même pas ça — juste de l'IA), une salle
+// d'attente commune où deux inconnus disponibles en même temps se
+// retrouvent appairés automatiquement. Élection déterministe par tri des
+// ids présents : seul le premier de la paire diffuse le code de la salle,
+// pour que les deux ne créent pas chacun un salon différent.
+export function joinLobby(
+  userId: string,
+  handlers: {
+    onMatched: (roomCode: string) => void;
+    onWaitingCountChange: (count: number) => void;
+  }
+): RealtimeChannel {
+  const channel = supabase.channel('duo-focus-lobby', {
+    config: { presence: { key: userId } },
+  });
+  let hasTriggeredMatch = false;
+
+  channel.on('presence', { event: 'sync' }, () => {
+    const ids = Object.keys(channel.presenceState()).sort();
+    handlers.onWaitingCountChange(ids.length);
+
+    if (ids.length >= 2 && !hasTriggeredMatch && userId === ids[0]) {
+      hasTriggeredMatch = true;
+      const pair = [ids[0], ids[1]];
+      const code = generateRoomCode();
+      channel.send({ type: 'broadcast', event: 'lobby-match', payload: { pair, code } });
+    }
+  });
+
+  channel.on('broadcast', { event: 'lobby-match' }, ({ payload }) => {
+    const { pair, code } = payload as { pair: string[]; code: string };
+    if (pair.includes(userId)) handlers.onMatched(code);
+  });
+
+  channel.subscribe(async (status) => {
+    if (status === 'SUBSCRIBED') {
+      await channel.track({ online_at: new Date().toISOString() });
+    }
+  });
+
+  return channel;
+}
+
+export function leaveLobby(channel: RealtimeChannel) {
+  supabase.removeChannel(channel);
+}

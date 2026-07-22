@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Animated, Easing, Modal, TextInput, Share } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Animated, Easing, Modal, TextInput, Share, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
@@ -11,7 +11,7 @@ import { bumpStreak } from '../../lib/supabase/streak';
 import { maybeUnlockTenSessionsBadge } from '../../lib/supabase/badges';
 import { useReward } from '../../lib/rewards/RewardProvider';
 import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
-import { generateRoomCode, joinDuoRoom, sendDuoEvent, leaveDuoRoom, type DuoEvent } from '../../lib/realtime/duoFocus';
+import { generateRoomCode, joinDuoRoom, sendDuoEvent, leaveDuoRoom, joinLobby, leaveLobby, type DuoEvent } from '../../lib/realtime/duoFocus';
 import { CircularTimer } from '../../components/CircularTimer';
 import { colors, spacing, typography } from '../../constants/theme';
 
@@ -44,7 +44,7 @@ export default function FocusScreen() {
   // ici), mais la vraie présence mutuelle engagée — deux personnes réelles,
   // un minuteur partagé — via Supabase Realtime, sans build ni infra en plus.
   const [duoModalVisible, setDuoModalVisible] = useState(false);
-  const [duoStep, setDuoStep] = useState<'choix' | 'rejoindre' | 'salle'>('choix');
+  const [duoStep, setDuoStep] = useState<'choix' | 'rejoindre' | 'salle' | 'lobby'>('choix');
   const [duoCode, setDuoCode] = useState('');
   const [duoCodeInput, setDuoCodeInput] = useState('');
   const [duoPeerIds, setDuoPeerIds] = useState<string[]>([]);
@@ -53,11 +53,14 @@ export default function FocusScreen() {
   const [duoStartedAt, setDuoStartedAt] = useState<number | null>(null);
   const [duoElapsedSeconds, setDuoElapsedSeconds] = useState(0);
   const [duoToast, setDuoToast] = useState<string | null>(null);
+  const [lobbyWaitingCount, setLobbyWaitingCount] = useState(0);
   const duoChannelRef = useRef<RealtimeChannel | null>(null);
+  const lobbyChannelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
     return () => {
       if (duoChannelRef.current) leaveDuoRoom(duoChannelRef.current);
+      if (lobbyChannelRef.current) leaveLobby(lobbyChannelRef.current);
     };
   }, []);
 
@@ -95,6 +98,34 @@ export default function FocusScreen() {
 
   function createDuoRoom() {
     enterDuoRoom(generateRoomCode());
+  }
+
+  // Matching automatique : salle d'attente commune, appairage dès qu'un
+  // deuxième inconnu s'y trouve aussi — pas besoin de connaître quelqu'un
+  // ni de partager un code à l'avance.
+  function joinMatchLobby() {
+    if (!session) return;
+    setDuoStep('lobby');
+    const channel = joinLobby(session.user.id, {
+      onWaitingCountChange: setLobbyWaitingCount,
+      onMatched: (code) => {
+        if (lobbyChannelRef.current) {
+          leaveLobby(lobbyChannelRef.current);
+          lobbyChannelRef.current = null;
+        }
+        enterDuoRoom(code);
+      },
+    });
+    lobbyChannelRef.current = channel;
+  }
+
+  function cancelLobby() {
+    if (lobbyChannelRef.current) {
+      leaveLobby(lobbyChannelRef.current);
+      lobbyChannelRef.current = null;
+    }
+    setLobbyWaitingCount(0);
+    setDuoStep('choix');
   }
 
   function joinDuoRoomWithInput() {
@@ -158,11 +189,16 @@ export default function FocusScreen() {
       leaveDuoRoom(duoChannelRef.current);
       duoChannelRef.current = null;
     }
+    if (lobbyChannelRef.current) {
+      leaveLobby(lobbyChannelRef.current);
+      lobbyChannelRef.current = null;
+    }
     setDuoModalVisible(false);
     setDuoStep('choix');
     setDuoCode('');
     setDuoCodeInput('');
     setDuoPeerIds([]);
+    setLobbyWaitingCount(0);
   }
 
   const duoRemainingSeconds = duoTargetMinutes != null ? Math.max(0, duoTargetMinutes * 60 - duoElapsedSeconds) : duoElapsedSeconds;
@@ -398,14 +434,34 @@ export default function FocusScreen() {
               <>
                 <Text style={styles.duoModalTitle}>Focus à deux</Text>
                 <Text style={styles.duoModalSubtitle}>Crée une session et partage le code, ou rejoins quelqu'un qui t'a envoyé le sien.</Text>
-                <Pressable style={styles.duoChoiceButton} onPress={createDuoRoom}>
-                  <Text style={styles.duoChoiceButtonText}>Créer une session</Text>
+                <Pressable style={styles.duoChoiceButton} onPress={joinMatchLobby}>
+                  <Text style={styles.duoChoiceButtonText}>🔀 Trouver un binôme maintenant</Text>
+                </Pressable>
+                <Pressable style={[styles.duoChoiceButton, styles.duoChoiceButtonOutline]} onPress={createDuoRoom}>
+                  <Text style={styles.duoChoiceButtonOutlineText}>Créer une session (avec un ami)</Text>
                 </Pressable>
                 <Pressable style={[styles.duoChoiceButton, styles.duoChoiceButtonOutline]} onPress={() => setDuoStep('rejoindre')}>
                   <Text style={styles.duoChoiceButtonOutlineText}>Rejoindre avec un code</Text>
                 </Pressable>
                 <Pressable onPress={closeDuoSetup} style={{ marginTop: spacing.md, alignSelf: 'center' }}>
                   <Text style={styles.duoModalCancel}>Annuler</Text>
+                </Pressable>
+              </>
+            )}
+
+            {duoStep === 'lobby' && (
+              <>
+                <Text style={styles.duoModalTitle}>Recherche d'un binôme…</Text>
+                <View style={styles.lobbySpinnerRow}>
+                  <ActivityIndicator color={colors.primary} size="large" />
+                </View>
+                <Text style={styles.duoModalSubtitle}>
+                  {lobbyWaitingCount > 1
+                    ? 'Quelqu\'un est là aussi — connexion en cours…'
+                    : 'En attente que quelqu\'un d\'autre cherche un binôme en même temps que toi.'}
+                </Text>
+                <Pressable onPress={cancelLobby} style={{ marginTop: spacing.md, alignSelf: 'center' }}>
+                  <Text style={styles.duoModalCancel}>Annuler la recherche</Text>
                 </Pressable>
               </>
             )}
@@ -572,4 +628,5 @@ const styles = StyleSheet.create({
     marginVertical: spacing.md,
   },
   duoShareText: { color: colors.primary, fontWeight: '600', fontSize: 14 },
+  lobbySpinnerRow: { alignItems: 'center', marginVertical: spacing.lg },
 });

@@ -4,7 +4,7 @@
 
 1. **Créer un projet Supabase** (gratuit) sur [supabase.com](https://supabase.com), région **Europe (Frankfurt ou Paris)** — important pour l'argument RGPD.
 2. Copier `.env.example` en `.env` et remplir avec l'URL et la clé anon du projet (Project Settings → API).
-3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`, `0007_routines.sql`, `0008_ordre_tasks.sql`, `0009_weekly_review.sql`.
+3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`, `0007_routines.sql`, `0008_ordre_tasks.sql`, `0009_weekly_review.sql`, `0010_weekly_ai_plan.sql`.
 4. Stocker la clé Anthropic dans Supabase Vault (SQL Editor) :
    ```sql
    select vault.create_secret('sk-ant-...', 'anthropic_api_key');
@@ -59,6 +59,12 @@
 - Bilan hebdomadaire réflexif (3 questions : ce qui a marché / ce qui a été dur / la priorité de la semaine prochaine), accessible depuis le Dashboard, en plus du rituel quotidien
 - Respiration guidée (façon RespiRelax) accessible à tout moment depuis le planning, pas seulement pendant une session focus — respiration carrée (4-4-4-4) avec durée 1/3/5 min ou libre
 - Rappel de relance douce ~10 min après l'heure prévue d'une tâche si elle n'est toujours pas faite, en plus du rappel 5 min avant — volontairement pas un rappel qui insiste en boucle (façon TickTick), pour rester cohérent avec le principe "discrète et non intrusive"
+
+### Fonctionnalités "hyper avancées" (au-delà de ce que Tiimo propose)
+
+- **Coach IA proactif** : quand une tâche marquée très angoissante (4-5/5) est programmée à un moment de journée où l'historique montre un faible taux de réussite (échantillon ≥ 3, écart ≥ 20 points avec un autre moment), une bannière propose de la déplacer en un tap. Pas d'appel IA — juste une agrégation de l'historique des tâches, rapide et gratuit.
+- **Plan de semaine complet par IA** : le Vide-tête a maintenant un bascule "Aujourd'hui" / "Toute la semaine" — décrire toute sa semaine en vrac fait répartir les tâches sur les 7 jours par l'IA (`plan_week_from_braindump`), au lieu de tout entasser sur un seul jour.
+- **Matching automatique pour le Focus à deux** : en plus de créer une session et partager un code, un bouton "Trouver un binôme maintenant" met en relation avec un inconnu de l'app disponible au même moment, via une salle d'attente Supabase Realtime (élection déterministe, pas de table dédiée). Tiimo ne propose que du body doubling simulé par IA, jamais un vrai humain.
 
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 

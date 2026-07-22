@@ -16,7 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase/client';
 import { breakdownTask } from '../../lib/ai/breakdownTask';
-import { planFromBraindump } from '../../lib/ai/braindump';
+import { planFromBraindump, planWeekFromBraindump } from '../../lib/ai/braindump';
+import { getHighDreadMomentStats, type MomentStats } from '../../lib/supabase/momentStats';
 import { colors, spacing, typography } from '../../constants/theme';
 import { useAuth } from '../../lib/supabase/AuthProvider';
 import { useProfile } from '../../lib/supabase/useProfile';
@@ -80,10 +81,12 @@ export default function AccueilScreen() {
   const [braindumpVisible, setBraindumpVisible] = useState(false);
   const [braindumpText, setBraindumpText] = useState('');
   const [braindumpLoading, setBraindumpLoading] = useState(false);
+  const [braindumpScope, setBraindumpScope] = useState<'jour' | 'semaine'>('jour');
   const [vueMode, setVueMode] = useState<'liste' | 'timeline'>('liste');
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const [streakDays, setStreakDays] = useState<number | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => today());
+  const [momentStats, setMomentStats] = useState<MomentStats | null>(null);
 
   const loadTasks = useCallback(async () => {
     if (!session) return;
@@ -124,6 +127,15 @@ export default function AccueilScreen() {
       .eq('user_id', session.user.id)
       .single()
       .then(({ data }) => setStreakDays(data?.jours_consecutifs ?? null));
+  }, [session, tasks]);
+
+  // Coach proactif : on regarde si les tâches très angoissantes passées ont
+  // vraiment été menées à terme selon le moment de journée choisi, pour
+  // avertir dès la création plutôt que de laisser le pattern se répéter en
+  // silence — sans appel IA, juste une agrégation de l'historique.
+  useEffect(() => {
+    if (!session) return;
+    getHighDreadMomentStats(session.user.id).then(setMomentStats);
   }, [session, tasks]);
 
   // Rappels locaux 5 min avant l'heure prévue — uniquement pour "aujourd'hui",
@@ -221,6 +233,33 @@ export default function AccueilScreen() {
     loadTasks();
   }
 
+  async function setTaskMoment(taskId: string, moment: MomentJournee) {
+    await supabase.from('tasks').update({ moment_journee: moment }).eq('id', taskId);
+    loadTasks();
+  }
+
+  const MIN_SAMPLE = 3;
+  const LOW_COMPLETION_THRESHOLD = 0.5;
+
+  // Suggestion du coach proactif : le moment choisi a un faible taux de
+  // réussite historique sur des tâches aussi angoissantes, et il existe un
+  // autre moment avec un net meilleur taux — sinon, pas la peine d'avertir.
+  function getMomentWarning(task: Task) {
+    if (!momentStats || (task.niveau_dread ?? 0) < 4) return null;
+    const current = momentStats[task.moment_journee];
+    if (!current || current.total < MIN_SAMPLE) return null;
+    const currentRate = current.completed / current.total;
+    if (currentRate >= LOW_COMPLETION_THRESHOLD) return null;
+
+    const better = MOMENT_ORDER.filter((m) => m !== task.moment_journee)
+      .map((m) => ({ moment: m, stats: momentStats[m] }))
+      .filter((s) => s.stats.total >= MIN_SAMPLE && s.stats.completed / s.stats.total > currentRate + 0.2)
+      .sort((a, b) => b.stats.completed / b.stats.total - a.stats.completed / a.stats.total)[0];
+
+    if (!better) return null;
+    return { currentRate, better };
+  }
+
   // Réorganisation manuelle dans une section : la plainte la plus citée sur
   // Tiimo dans les avis App Store est de ne pas pouvoir déplacer une tâche
   // une fois ajoutée. On renumérote toute la section pour rester cohérent
@@ -245,11 +284,15 @@ export default function AccueilScreen() {
     if (!braindumpText.trim() || !session) return;
     setBraindumpLoading(true);
     try {
-      const count = await planFromBraindump(session.user.id, braindumpText.trim());
+      const count =
+        braindumpScope === 'semaine'
+          ? await planWeekFromBraindump(session.user.id, braindumpText.trim())
+          : await planFromBraindump(session.user.id, braindumpText.trim());
       setBraindumpText('');
       setBraindumpVisible(false);
       await loadTasks();
-      Alert.alert('Planning généré', `${count} tâche${count > 1 ? 's' : ''} ajoutée${count > 1 ? 's' : ''} à ta journée.`);
+      const lieu = braindumpScope === 'semaine' ? 'ta semaine' : 'ta journée';
+      Alert.alert('Planning généré', `${count} tâche${count > 1 ? 's' : ''} ajoutée${count > 1 ? 's' : ''} à ${lieu}.`);
     } catch {
       Alert.alert('L’IA n’a pas pu générer ton planning', 'Réessaie dans un instant, ou ajoute tes tâches une par une.');
     } finally {
@@ -494,7 +537,9 @@ export default function AccueilScreen() {
             />
           </Pressable>
         )}
-        renderItem={({ item, index, section }) => (
+        renderItem={({ item, index, section }) => {
+          const momentWarning = getMomentWarning(item);
+          return (
           <View style={[styles.taskCard, item.statut === 'fait' && styles.taskCardDone]}>
             <View style={styles.reorderColumn}>
               <Pressable hitSlop={4} disabled={index === 0} onPress={() => moveTask(section.data, item.id, -1)}>
@@ -551,6 +596,22 @@ export default function AccueilScreen() {
                     />
                   </Pressable>
                 ))}
+              </View>
+            )}
+
+            {item.statut !== 'fait' && momentWarning && (
+              <View style={styles.coachWarning}>
+                <Text style={styles.coachWarningText}>
+                  ⚠️ Tu termines rarement tes tâches difficiles {MOMENT_LABELS[item.moment_journee].toLowerCase()} (
+                  {Math.round(momentWarning.currentRate * 100)}%) — le {MOMENT_LABELS[momentWarning.better.moment].toLowerCase()} marche mieux pour toi (
+                  {Math.round((momentWarning.better.stats.completed / momentWarning.better.stats.total) * 100)}%).
+                </Text>
+                <Pressable
+                  style={styles.coachWarningButton}
+                  onPress={() => setTaskMoment(item.id, momentWarning.better.moment)}
+                >
+                  <Text style={styles.coachWarningButtonText}>Passer {MOMENT_LABELS[momentWarning.better.moment].toLowerCase()}</Text>
+                </Pressable>
               </View>
             )}
 
@@ -634,7 +695,8 @@ export default function AccueilScreen() {
             )}
             </View>
           </View>
-        )}
+          );
+        }}
       />
       )}
 
@@ -664,12 +726,32 @@ export default function AccueilScreen() {
           <View style={styles.braindumpCard}>
             <Text style={styles.braindumpTitle}>Vide-tête</Text>
             <Text style={styles.braindumpSubtitle}>
-              Décris tout ce que t'as à faire aujourd'hui, en vrac, comme ça vient — l'IA construit le planning pour toi.
+              {braindumpScope === 'semaine'
+                ? 'Décris tout ce que t\'as à faire cette semaine, en vrac — l\'IA répartit intelligemment sur les 7 jours.'
+                : 'Décris tout ce que t\'as à faire aujourd\'hui, en vrac, comme ça vient — l\'IA construit le planning pour toi.'}
             </Text>
+            <View style={styles.braindumpScopeRow}>
+              <Pressable
+                style={[styles.braindumpScopeChip, braindumpScope === 'jour' && styles.braindumpScopeChipActive]}
+                onPress={() => setBraindumpScope('jour')}
+              >
+                <Text style={[styles.braindumpScopeText, braindumpScope === 'jour' && styles.braindumpScopeTextActive]}>Aujourd'hui</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.braindumpScopeChip, braindumpScope === 'semaine' && styles.braindumpScopeChipActive]}
+                onPress={() => setBraindumpScope('semaine')}
+              >
+                <Text style={[styles.braindumpScopeText, braindumpScope === 'semaine' && styles.braindumpScopeTextActive]}>Toute la semaine</Text>
+              </Pressable>
+            </View>
             <TextInput
               style={styles.braindumpInput}
               multiline
-              placeholder="Ex : je dois appeler maman, prendre mon petit déjeuner, aller au travail et récupérer les enfants cet après-midi..."
+              placeholder={
+                braindumpScope === 'semaine'
+                  ? "Ex : lundi j'ai le dentiste à 10h, il faut que j'appelle le comptable cette semaine, sport mardi et jeudi, anniversaire de Léo samedi..."
+                  : 'Ex : je dois appeler maman, prendre mon petit déjeuner, aller au travail et récupérer les enfants cet après-midi...'
+              }
               placeholderTextColor={colors.textMuted}
               value={braindumpText}
               onChangeText={setBraindumpText}
@@ -718,6 +800,10 @@ const styles = StyleSheet.create({
   grenouilleText: { ...typography.body, fontSize: 14, fontWeight: '600', color: colors.text },
   grenouilleAction: { ...typography.caption, color: colors.warning, marginTop: 2, fontWeight: '600' },
   dreadRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.xs },
+  coachWarning: { backgroundColor: '#FBEFE3', borderRadius: 10, padding: spacing.sm, marginTop: spacing.sm },
+  coachWarningText: { ...typography.caption, fontSize: 12, color: colors.text },
+  coachWarningButton: { marginTop: spacing.xs, alignSelf: 'flex-start' },
+  coachWarningButtonText: { color: colors.warning, fontWeight: '600', fontSize: 12 },
   dreadLabel: { ...typography.caption, fontSize: 11, marginRight: 2 },
   braindumpButton: {
     flexDirection: 'row',
@@ -808,6 +894,11 @@ const styles = StyleSheet.create({
   braindumpCard: { backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, paddingBottom: spacing.xl },
   braindumpTitle: { ...typography.heading, marginBottom: spacing.xs },
   braindumpSubtitle: { ...typography.caption, marginBottom: spacing.md },
+  braindumpScopeRow: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.md },
+  braindumpScopeChip: { borderWidth: 1, borderColor: colors.border, borderRadius: 20, paddingVertical: 6, paddingHorizontal: spacing.md },
+  braindumpScopeChipActive: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
+  braindumpScopeText: { fontSize: 13, color: colors.textMuted },
+  braindumpScopeTextActive: { color: colors.primary, fontWeight: '600' },
   braindumpInput: {
     borderWidth: 1,
     borderColor: colors.border,
