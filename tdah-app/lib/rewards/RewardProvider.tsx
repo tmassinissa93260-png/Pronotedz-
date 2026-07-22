@@ -1,7 +1,7 @@
-import { createContext, useCallback, useContext, useRef, useState, type PropsWithChildren } from 'react';
-import { Animated, StyleSheet, Text } from 'react-native';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type PropsWithChildren } from 'react';
+import { AccessibilityInfo, Animated, StyleSheet, Text } from 'react-native';
 import { pickReward, type Reward } from './rewardPool';
-import { colors, spacing } from '../../constants/theme';
+import { colors, spacing, fonts } from '../../constants/theme';
 
 type RewardContextValue = {
   celebrate: (gamificationPref: string) => void;
@@ -12,6 +12,20 @@ const RewardContext = createContext<RewardContextValue>({ celebrate: () => {} })
 export function RewardProvider({ children }: PropsWithChildren) {
   const [current, setCurrent] = useState<Reward | null>(null);
   const opacity = useRef(new Animated.Value(0)).current;
+  const reduceMotion = useRef(false);
+
+  // Respecte le réglage "Réduire les animations" du téléphone — l'animation
+  // (même discrète) peut capter l'attention de façon disproportionnée chez
+  // les personnes TDAH (recherche WCAG sur le mouvement et le TDAH).
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled?.().then((v) => {
+      reduceMotion.current = v;
+    });
+    const sub = AccessibilityInfo.addEventListener?.('reduceMotionChanged', (v) => {
+      reduceMotion.current = v;
+    });
+    return () => sub?.remove?.();
+  }, []);
 
   const celebrate = useCallback(
     (gamificationPref: string) => {
@@ -19,6 +33,11 @@ export function RewardProvider({ children }: PropsWithChildren) {
       if (!reward || (!reward.text && !reward.emoji)) return; // le "rien" fait aussi partie du cycle
 
       setCurrent(reward);
+      if (reduceMotion.current) {
+        opacity.setValue(1);
+        const timer = setTimeout(() => setCurrent(null), 1300);
+        return () => clearTimeout(timer);
+      }
       opacity.setValue(0);
       Animated.sequence([
         Animated.timing(opacity, { toValue: 1, duration: 200, useNativeDriver: true }),
@@ -57,5 +76,5 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
   },
-  toastText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  toastText: { color: '#fff', fontSize: 15, fontFamily: fonts.semibold },
 });

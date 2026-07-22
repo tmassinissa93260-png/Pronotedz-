@@ -84,6 +84,16 @@
 - **Échelle de rayons unifiée** (`radius.sm/md/lg/xl/pill`) pour des coins de carte, bouton et chip cohérents sur tout l'app.
 - Traitement le plus poussé sur les écrans les plus utilisés (Planning, Focus, Backlog, Routines) ; les écrans secondaires (Bilan, Rituel de fin de journée, Respiration, Profil, Auth, Onboarding) héritent automatiquement de la nouvelle police et palette via les tokens partagés, mais n'ont pas encore reçu le traitement ombre/rayon dédié.
 
+### Ajustements suite à une recherche sur le design et le TDAH
+
+Après la refonte visuelle ci-dessus, recherche ciblée sur la littérature UX/accessibilité cognitive pour vérifier (et corriger) les choix faits :
+
+- **Espacement > forme des lettres** : la lecture chez les personnes TDAH est plus affectée par un texte dense/resserré que par la police choisie elle-même. Conséquence concrète : le `letterSpacing: -0.4` "façon logo" sur le titre a été retiré (remplacé par un espacement légèrement positif), et un `lineHeight` généreux (~1.4-1.5x la taille de police) a été ajouté à tous les styles de texte de base (`title`/`heading`/`body`/`caption`) — c'était resserré par défaut avant cette recherche.
+- **Saturation ambiante à éviter** : la littérature associe la haute saturation à une charge attentionnelle plus lourde (dans la lignée des interventions "écran en niveaux de gris" étudiées pour réduire l'usage compulsif du téléphone). L'accent corail (utilisé sur la bannière "grenouille" et le badge de série) est passé de 100% à ~78% de saturation — toujours chaleureux, moins criard. Le reste de la palette (fond, surfaces) était déjà à faible saturation.
+- **Mouvement respecté selon les préférences système** : le toast de récompense (`RewardProvider`) interroge maintenant `AccessibilityInfo.isReduceMotionEnabled()` — si l'utilisateur a activé "Réduire les animations" dans les réglages de son téléphone, le fade s'efface au profit d'un affichage direct, conformément à la recommandation WCAG 2.3.3 sur les animations non essentielles (le mouvement, même discret, peut capter l'attention de façon disproportionnée chez les personnes TDAH).
+- **Sans-serif géométrique confirmé** : Manrope reste dans la même famille que les polices recommandées pour le TDAH/la dyslexie (Century Gothic, Trebuchet, Open Sans — sans-serif, formes de lettres nettes, pas d'italique utilisé dans l'app).
+- **Non traité pour l'instant (nécessite une décision produit, pas juste un ajustement de token)** : le mode sombre — cité comme pouvant réduire le bruit visuel pour certains profils TDAH — n'est pas implémenté (`app.json` force `userInterfaceStyle: "light"`) ; ce serait un chantier à part (variantes de couleur sur chaque écran, tests des deux thèmes). Un "mode focus" qui réduirait encore plus les couleurs/animations à la demande a aussi été identifié comme piste mais n'est pas construit.
+
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 
 - Chronothérapie sommeil (la table `wearable_data` existe, l'intégration HealthKit/Health Connect + le coaching restent à faire)

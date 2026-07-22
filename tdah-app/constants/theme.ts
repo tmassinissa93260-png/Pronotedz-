@@ -1,7 +1,9 @@
 // Palette volontairement calme et peu saturée : le public TDAH est déjà en
 // surcharge sensorielle une bonne partie du temps, l'app ne doit pas en rajouter.
-// Reste vrai avec cette version : on affine (indigo plus vivant, accent chaud
-// pour les moments positifs) sans jamais monter la saturation globale.
+// La couleur vive reste réservée à de petites touches (bouton, badge, drapeau)
+// sur un fond neutre à faible saturation (~30%) — jamais en grande surface —
+// conformément à la littérature UX sur le TDAH qui déconseille la saturation
+// ambiante (recherche associée aux interventions "écran en niveaux de gris").
 export const colors = {
   background: '#F8F6F2',
   surface: '#FFFFFF',
@@ -10,8 +12,8 @@ export const colors = {
   primary: '#5B4FE8',
   primaryDark: '#4A3FCB',
   primaryMuted: '#EEEBFC',
-  accent: '#FF9466',
-  accentMuted: '#FFEEE4',
+  accent: '#ED946E',
+  accentMuted: '#FBEEE6',
   text: '#1C1B29',
   textMuted: '#6D6B80',
   success: '#3FA672',
@@ -67,9 +69,14 @@ export const fonts = {
   extrabold: 'Manrope_800ExtraBold',
 };
 
+// Espacement généreux plutôt que resserré : la recherche sur la lecture chez
+// les personnes TDAH montre que l'espacement (interlignage, tracking) pèse
+// plus lourd que la forme des lettres elle-même sur la charge cognitive —
+// donc pas de letterSpacing négatif façon "logo", même sur le titre, et un
+// line-height nettement supérieur à la taille de police par défaut.
 export const typography = {
-  title: { fontSize: 28, fontFamily: fonts.extrabold, color: colors.text, letterSpacing: -0.4 },
-  heading: { fontSize: 20, fontFamily: fonts.bold, color: colors.text },
-  body: { fontSize: 16, fontFamily: fonts.regular, color: colors.text },
-  caption: { fontSize: 13, fontFamily: fonts.medium, color: colors.textMuted },
+  title: { fontSize: 28, lineHeight: 36, fontFamily: fonts.extrabold, color: colors.text, letterSpacing: 0.1 },
+  heading: { fontSize: 20, lineHeight: 27, fontFamily: fonts.bold, color: colors.text },
+  body: { fontSize: 16, lineHeight: 24, fontFamily: fonts.regular, color: colors.text },
+  caption: { fontSize: 13, lineHeight: 19, fontFamily: fonts.medium, color: colors.textMuted, letterSpacing: 0.1 },
 };
