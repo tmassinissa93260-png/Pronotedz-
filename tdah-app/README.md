@@ -4,7 +4,7 @@
 
 1. **Créer un projet Supabase** (gratuit) sur [supabase.com](https://supabase.com), région **Europe (Frankfurt ou Paris)** — important pour l'argument RGPD.
 2. Copier `.env.example` en `.env` et remplir avec l'URL et la clé anon du projet (Project Settings → API).
-3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`.
+3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`.
 4. Stocker la clé Anthropic dans Supabase Vault (SQL Editor) :
    ```sql
    select vault.create_secret('sk-ant-...', 'anthropic_api_key');
@@ -30,6 +30,10 @@
 - Brouillon différé pour les messages envoyés en détresse (RSD)
 - Analyse de patterns long terme (`generate_pattern_insight`, se débloque après ~3 semaines d'usage réel)
 - Synchronisation d'une tâche vers le calendrier natif du téléphone (icône calendrier sur chaque tâche)
+- Regroupement des tâches par moment de journée (N'importe quand / Matin / Jour / Soir), façon Tiimo
+- "Vide-tête" : décris toute ta journée en une phrase, l'IA crée directement les tâches structurées avec horaires
+- Minuteur de focus avec durée cible (15/25/45 min ou libre) et bouton "+5 min" pendant la session
+- Badges à collectionner (premier pas, séries de 7/30 jours, 10 sessions focus, etc.), visibles sur le Dashboard
 - Profil : confiance des données (UE, export, suppression), désabonnement en libre-service
 
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)

@@ -4,36 +4,48 @@ import {
   Text,
   TextInput,
   Pressable,
-  FlatList,
+  SectionList,
   StyleSheet,
   ActivityIndicator,
   Alert,
+  Modal,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../lib/supabase/client';
 import { breakdownTask } from '../../lib/ai/breakdownTask';
+import { planFromBraindump } from '../../lib/ai/braindump';
 import { colors, spacing, typography } from '../../constants/theme';
 import { useAuth } from '../../lib/supabase/AuthProvider';
 import { useProfile } from '../../lib/supabase/useProfile';
 import { bumpStreak } from '../../lib/supabase/streak';
+import { maybeUnlockFirstTaskBadge } from '../../lib/supabase/badges';
 import { useReward } from '../../lib/rewards/RewardProvider';
 import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
 import { syncTaskToCalendar } from '../../lib/calendar/sync';
 
 type Subtask = { id: string; titre: string; fait: boolean; ordre: number };
+type MomentJournee = 'n_importe_quand' | 'matin' | 'jour' | 'soir';
 type Task = {
   id: string;
   titre: string;
   statut: 'a_faire' | 'en_cours' | 'fait' | 'reporte';
   estimation_minutes: number | null;
   temps_reel_minutes: number | null;
+  moment_journee: MomentJournee;
   subtasks: Subtask[];
 };
 
 const today = () => new Date().toISOString().slice(0, 10);
 const GRANULARITE_LABELS: Record<1 | 2 | 3, string> = { 1: 'Grandes lignes', 2: 'Standard', 3: 'Petits pas' };
+const MOMENT_LABELS: Record<MomentJournee, string> = {
+  n_importe_quand: 'N’importe quand',
+  matin: 'Matin',
+  jour: 'Jour',
+  soir: 'Soir',
+};
+const MOMENT_ORDER: MomentJournee[] = ['n_importe_quand', 'matin', 'jour', 'soir'];
 
 export default function AccueilScreen() {
   const { session } = useAuth();
@@ -47,6 +59,9 @@ export default function AccueilScreen() {
   const [granulariteByTask, setGranulariteByTask] = useState<Record<string, 1 | 2 | 3>>({});
   const [checkInVisible, setCheckInVisible] = useState(false);
   const [openedAt] = useState(Date.now());
+  const [braindumpVisible, setBraindumpVisible] = useState(false);
+  const [braindumpText, setBraindumpText] = useState('');
+  const [braindumpLoading, setBraindumpLoading] = useState(false);
 
   const loadTasks = useCallback(async () => {
     if (!session) return;
@@ -54,7 +69,7 @@ export default function AccueilScreen() {
     try {
       const { data, error } = await supabase
         .from('tasks')
-        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, subtasks(id, titre, fait, ordre)')
+        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, subtasks(id, titre, fait, ordre)')
         .eq('date_prevue', today())
         .order('created_at', { ascending: true });
 
@@ -91,6 +106,31 @@ export default function AccueilScreen() {
     if (ratio < 1.15) return null; // pas d'écart notable, pas besoin de le dire
     return `Tu mets en moyenne ${ratio.toFixed(1)}x plus de temps que prévu — pense à multiplier tes estimations.`;
   }, [tasks]);
+
+  // Regroupement par moment de journée (façon Tiimo) — moins de bruit qu'une
+  // liste plate, un utilisateur voit tout de suite ce qui presse ce matin.
+  const sections = useMemo(() => {
+    return MOMENT_ORDER.map((moment) => ({
+      title: MOMENT_LABELS[moment],
+      data: tasks.filter((t) => (t.moment_journee ?? 'n_importe_quand') === moment),
+    })).filter((s) => s.data.length > 0);
+  }, [tasks]);
+
+  async function submitBraindump() {
+    if (!braindumpText.trim() || !session) return;
+    setBraindumpLoading(true);
+    try {
+      const count = await planFromBraindump(session.user.id, braindumpText.trim());
+      setBraindumpText('');
+      setBraindumpVisible(false);
+      await loadTasks();
+      Alert.alert('Planning généré', `${count} tâche${count > 1 ? 's' : ''} ajoutée${count > 1 ? 's' : ''} à ta journée.`);
+    } catch {
+      Alert.alert('L’IA n’a pas pu générer ton planning', 'Réessaie dans un instant, ou ajoute tes tâches une par une.');
+    } finally {
+      setBraindumpLoading(false);
+    }
+  }
 
   async function addTask() {
     if (!newTitle.trim() || !session) return;
@@ -164,6 +204,7 @@ export default function AccueilScreen() {
       .eq('id', task.id);
     if (session) {
       await bumpStreak(session.user.id);
+      await maybeUnlockFirstTaskBadge(session.user.id);
       celebrate(profile?.preference_gamification ?? 'discrete');
     }
     loadTasks();
@@ -198,16 +239,28 @@ export default function AccueilScreen() {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <Text style={styles.title}>Aujourd’hui</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.title}>Aujourd’hui</Text>
+        <Pressable style={styles.braindumpButton} onPress={() => setBraindumpVisible(true)}>
+          <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
+          <Text style={styles.braindumpButtonText}>Vide-tête</Text>
+        </Pressable>
+      </View>
       {calibrationInsight && <Text style={styles.insight}>💡 {calibrationInsight}</Text>}
 
-      <FlatList
-        data={tasks}
+      <SectionList
+        sections={sections}
         keyExtractor={(t) => t.id}
+        stickySectionHeadersEnabled={false}
         contentContainerStyle={{ paddingBottom: spacing.xl }}
         ListEmptyComponent={
-          <Text style={styles.empty}>Rien de prévu pour l’instant — ajoute une première tâche en bas.</Text>
+          <Text style={styles.empty}>Rien de prévu pour l’instant — ajoute une première tâche en bas, ou décris ta journée avec "Vide-tête".</Text>
         }
+        renderSectionHeader={({ section }) => (
+          <Text style={styles.sectionHeader}>
+            {section.title} <Text style={styles.sectionCount}>({section.data.length})</Text>
+          </Text>
+        )}
         renderItem={({ item }) => (
           <View style={[styles.taskCard, item.statut === 'fait' && styles.taskCardDone]}>
             <View style={styles.taskHeader}>
@@ -321,6 +374,38 @@ export default function AccueilScreen() {
         gamificationPref={profile?.preference_gamification ?? 'discrete'}
         onClose={() => setCheckInVisible(false)}
       />
+
+      <Modal visible={braindumpVisible} transparent animationType="slide" onRequestClose={() => setBraindumpVisible(false)}>
+        <View style={styles.braindumpBackdrop}>
+          <View style={styles.braindumpCard}>
+            <Text style={styles.braindumpTitle}>Vide-tête</Text>
+            <Text style={styles.braindumpSubtitle}>
+              Décris tout ce que t'as à faire aujourd'hui, en vrac, comme ça vient — l'IA construit le planning pour toi.
+            </Text>
+            <TextInput
+              style={styles.braindumpInput}
+              multiline
+              placeholder="Ex : je dois appeler maman, prendre mon petit déjeuner, aller au travail et récupérer les enfants cet après-midi..."
+              placeholderTextColor={colors.textMuted}
+              value={braindumpText}
+              onChangeText={setBraindumpText}
+              autoFocus
+            />
+            <View style={styles.braindumpActions}>
+              <Pressable onPress={() => setBraindumpVisible(false)}>
+                <Text style={styles.braindumpCancel}>Annuler</Text>
+              </Pressable>
+              <Pressable style={styles.braindumpSubmit} onPress={submitBraindump} disabled={braindumpLoading}>
+                {braindumpLoading ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.braindumpSubmitText}>Allez, c'est parti 🙌</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -328,7 +413,20 @@ export default function AccueilScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
+  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { ...typography.title, marginBottom: spacing.xs },
+  braindumpButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.primaryMuted,
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: spacing.sm,
+  },
+  braindumpButtonText: { color: colors.primary, fontSize: 12, fontWeight: '600' },
+  sectionHeader: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, marginTop: spacing.md, marginBottom: spacing.xs, fontWeight: '700' },
+  sectionCount: { fontWeight: '400', textTransform: 'none', letterSpacing: 0 },
   insight: { ...typography.caption, backgroundColor: colors.primaryMuted, padding: spacing.sm, borderRadius: 10, marginBottom: spacing.md, color: colors.primary },
   empty: { ...typography.body, color: colors.textMuted, marginTop: spacing.lg },
   caption: { ...typography.caption, marginTop: spacing.xs },
@@ -394,4 +492,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  braindumpBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  braindumpCard: { backgroundColor: colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: spacing.lg, paddingBottom: spacing.xl },
+  braindumpTitle: { ...typography.heading, marginBottom: spacing.xs },
+  braindumpSubtitle: { ...typography.caption, marginBottom: spacing.md },
+  braindumpInput: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 12,
+    padding: spacing.md,
+    minHeight: 110,
+    textAlignVertical: 'top',
+    fontSize: 15,
+    color: colors.text,
+    backgroundColor: colors.background,
+  },
+  braindumpActions: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: spacing.md },
+  braindumpCancel: { color: colors.textMuted, fontSize: 14 },
+  braindumpSubmit: { backgroundColor: colors.primary, borderRadius: 20, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg },
+  braindumpSubmitText: { color: '#fff', fontWeight: '600', fontSize: 14 },
 });

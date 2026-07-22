@@ -6,6 +6,8 @@ import { useAuth } from '../../lib/supabase/AuthProvider';
 import { colors, spacing, typography } from '../../constants/theme';
 import { generatePatternInsight, type PatternInsight } from '../../lib/supabase/patternInsight';
 
+type Badge = { code: string; titre: string; description: string; emoji: string; obtenu: boolean };
+
 // Volontairement PAS un pourcentage de tâches complétées : ce genre de métrique
 // rejoue en permanence le sentiment d'échec chez les utilisateurs TDAH.
 // On mesure plutôt 3 dimensions issues de la théorie de l'autodétermination :
@@ -28,6 +30,7 @@ export default function DashboardScreen() {
   const [streak, setStreak] = useState<{ jours_consecutifs: number; reparations_disponibles: number } | null>(null);
   const [insight, setInsight] = useState<PatternInsight | null>(null);
   const [insightLoading, setInsightLoading] = useState(false);
+  const [badges, setBadges] = useState<Badge[]>([]);
 
   async function loadInsight() {
     if (!session) return;
@@ -73,6 +76,14 @@ export default function DashboardScreen() {
       .eq('user_id', session.user.id)
       .single()
       .then(({ data }) => setStreak(data));
+
+    Promise.all([
+      supabase.from('badges').select('code, titre, description, emoji'),
+      supabase.from('user_badges').select('badge_code').eq('user_id', session.user.id),
+    ]).then(([badgesRes, userBadgesRes]) => {
+      const obtenus = new Set((userBadgesRes.data ?? []).map((b) => b.badge_code));
+      setBadges((badgesRes.data ?? []).map((b) => ({ ...b, obtenu: obtenus.has(b.code) })));
+    });
   }, [session]);
 
   return (
@@ -134,6 +145,22 @@ export default function DashboardScreen() {
         </View>
       </View>
 
+      {badges.length > 0 && (
+        <View style={styles.badgesCard}>
+          <Text style={styles.cardTitle}>
+            Badges ({badges.filter((b) => b.obtenu).length}/{badges.length})
+          </Text>
+          <View style={styles.badgesGrid}>
+            {badges.map((b) => (
+              <View key={b.code} style={[styles.badgeItem, !b.obtenu && styles.badgeItemLocked]}>
+                <Text style={styles.badgeEmoji}>{b.obtenu ? b.emoji : '🔒'}</Text>
+                <Text style={styles.badgeLabel} numberOfLines={2}>{b.titre}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      )}
+
       {streak && (
         <View style={styles.streakCard}>
           <Text style={styles.streakText}>
@@ -179,4 +206,10 @@ const styles = StyleSheet.create({
   },
   insightPattern: { ...typography.body, fontWeight: '500' },
   refreshText: { color: colors.primary, fontSize: 13, fontWeight: '500' },
+  badgesCard: { backgroundColor: colors.surface, borderRadius: 14, padding: spacing.md, marginBottom: spacing.sm, borderWidth: 1, borderColor: colors.border },
+  badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
+  badgeItem: { width: 76, alignItems: 'center', gap: 4 },
+  badgeItemLocked: { opacity: 0.4 },
+  badgeEmoji: { fontSize: 26 },
+  badgeLabel: { fontSize: 10.5, color: colors.textMuted, textAlign: 'center' },
 });
