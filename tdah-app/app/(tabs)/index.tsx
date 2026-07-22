@@ -13,6 +13,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase/client';
 import { breakdownTask } from '../../lib/ai/breakdownTask';
 import { planFromBraindump } from '../../lib/ai/braindump';
@@ -34,6 +35,7 @@ type Task = {
   estimation_minutes: number | null;
   temps_reel_minutes: number | null;
   moment_journee: MomentJournee;
+  niveau_dread: number | null;
   subtasks: Subtask[];
 };
 
@@ -49,6 +51,7 @@ const MOMENT_ORDER: MomentJournee[] = ['n_importe_quand', 'matin', 'jour', 'soir
 
 export default function AccueilScreen() {
   const { session } = useAuth();
+  const router = useRouter();
   const profile = useProfile();
   const { celebrate } = useReward();
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -69,7 +72,7 @@ export default function AccueilScreen() {
     try {
       const { data, error } = await supabase
         .from('tasks')
-        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, subtasks(id, titre, fait, ordre)')
+        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, niveau_dread, subtasks(id, titre, fait, ordre)')
         .eq('date_prevue', today())
         .order('created_at', { ascending: true });
 
@@ -116,6 +119,35 @@ export default function AccueilScreen() {
     })).filter((s) => s.data.length > 0);
   }, [tasks]);
 
+  // "Mange la grenouille" (Eat the Frog) : parmi les tâches non finies, celle
+  // qui angoisse le plus — on la met en avant plutôt que de laisser
+  // l'utilisateur la repousser silencieusement toute la journée.
+  const grenouille = useMemo(() => {
+    const candidates = tasks.filter((t) => t.statut !== 'fait' && (t.niveau_dread ?? 0) >= 4);
+    if (candidates.length === 0) return null;
+    return candidates.sort((a, b) => (b.niveau_dread ?? 0) - (a.niveau_dread ?? 0))[0];
+  }, [tasks]);
+
+  // Heure de fin prévisible façon Sunsama : simple somme des estimations
+  // restantes ajoutée à maintenant, pour visualiser la charge réelle du
+  // reste de la journée sans avoir à faire le calcul soi-même.
+  const heureFinPrevue = useMemo(() => {
+    const restantes = tasks.filter((t) => t.statut !== 'fait' && t.estimation_minutes);
+    if (restantes.length === 0) return null;
+    const totalMinutes = restantes.reduce((sum, t) => sum + (t.estimation_minutes ?? 0), 0);
+    const fin = new Date(Date.now() + totalMinutes * 60 * 1000);
+    return fin.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  }, [tasks]);
+
+  async function setDread(taskId: string, niveau: number) {
+    await supabase.from('tasks').update({ niveau_dread: niveau }).eq('id', taskId);
+    loadTasks();
+  }
+
+  function startFocusOn(task: Task) {
+    router.push(`/focus?tache=${encodeURIComponent(task.titre)}`);
+  }
+
   async function submitBraindump() {
     if (!braindumpText.trim() || !session) return;
     setBraindumpLoading(true);
@@ -154,11 +186,11 @@ export default function AccueilScreen() {
     loadTasks();
   }
 
-  async function decompose(taskId: string, titre: string) {
+  async function decompose(taskId: string, titre: string, niveauDread: number | null) {
     setDecomposingId(taskId);
     try {
       const granularite = granulariteByTask[taskId] ?? 2;
-      const sousTaches = await breakdownTask(titre, profile?.preference_ton ?? 'doux', granularite);
+      const sousTaches = await breakdownTask(titre, profile?.preference_ton ?? 'doux', granularite, niveauDread ?? undefined);
       const rows = sousTaches.map((titre, ordre) => ({ task_id: taskId, titre, ordre }));
       await supabase.from('subtasks').insert(rows);
       await loadTasks();
@@ -241,12 +273,25 @@ export default function AccueilScreen() {
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <View style={styles.headerRow}>
         <Text style={styles.title}>Aujourd’hui</Text>
-        <Pressable style={styles.braindumpButton} onPress={() => setBraindumpVisible(true)}>
-          <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
-          <Text style={styles.braindumpButtonText}>Vide-tête</Text>
-        </Pressable>
+        <View style={styles.headerButtons}>
+          <Pressable style={styles.braindumpButton} onPress={() => setBraindumpVisible(true)}>
+            <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
+            <Text style={styles.braindumpButtonText}>Vide-tête</Text>
+          </Pressable>
+          <Pressable style={styles.braindumpButton} onPress={() => router.push('/rituel-fin-journee')}>
+            <Ionicons name="moon-outline" size={16} color={colors.primary} />
+            <Text style={styles.braindumpButtonText}>Fin de journée</Text>
+          </Pressable>
+        </View>
       </View>
       {calibrationInsight && <Text style={styles.insight}>💡 {calibrationInsight}</Text>}
+      {heureFinPrevue && <Text style={styles.insight}>🕓 À ce rythme, tu termines vers {heureFinPrevue}.</Text>}
+      {grenouille && (
+        <Pressable style={styles.grenouilleBanner} onPress={() => startFocusOn(grenouille)}>
+          <Text style={styles.grenouilleText}>🐸 Commence par ta grenouille : "{grenouille.titre}"</Text>
+          <Text style={styles.grenouilleAction}>Lancer le focus dessus →</Text>
+        </Pressable>
+      )}
 
       <SectionList
         sections={sections}
@@ -272,6 +317,11 @@ export default function AccueilScreen() {
                 />
                 <Text style={[styles.taskTitle, item.statut === 'fait' && styles.taskTitleDone]}>{item.titre}</Text>
               </Pressable>
+              {item.statut !== 'fait' && (
+                <Pressable hitSlop={8} onPress={() => startFocusOn(item)}>
+                  <Ionicons name="play-circle-outline" size={20} color={colors.textMuted} />
+                </Pressable>
+              )}
               <Pressable hitSlop={8} onPress={() => addToCalendar(item)}>
                 <Ionicons name="calendar-outline" size={18} color={colors.textMuted} />
               </Pressable>
@@ -282,6 +332,21 @@ export default function AccueilScreen() {
                 Estimé {item.estimation_minutes} min
                 {item.temps_reel_minutes ? ` · réel ${item.temps_reel_minutes} min` : ''}
               </Text>
+            )}
+
+            {item.statut !== 'fait' && (
+              <View style={styles.dreadRow}>
+                <Text style={styles.dreadLabel}>Angoisse</Text>
+                {([1, 2, 3, 4, 5] as const).map((n) => (
+                  <Pressable key={n} hitSlop={4} onPress={() => setDread(item.id, n)}>
+                    <Ionicons
+                      name={(item.niveau_dread ?? 0) >= n ? 'flame' : 'flame-outline'}
+                      size={16}
+                      color={(item.niveau_dread ?? 0) >= n ? colors.warning : colors.textMuted}
+                    />
+                  </Pressable>
+                ))}
+              </View>
             )}
 
             {!item.estimation_minutes && item.statut !== 'fait' && (
@@ -336,7 +401,7 @@ export default function AccueilScreen() {
                 </View>
                 <Pressable
                   style={styles.decomposeButton}
-                  onPress={() => decompose(item.id, item.titre)}
+                  onPress={() => decompose(item.id, item.titre, item.niveau_dread)}
                   disabled={decomposingId === item.id}
                 >
                   {decomposingId === item.id ? (
@@ -415,6 +480,17 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { ...typography.title, marginBottom: spacing.xs },
+  headerButtons: { flexDirection: 'row', gap: spacing.xs },
+  grenouilleBanner: {
+    backgroundColor: '#FBEFE3',
+    borderRadius: 12,
+    padding: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  grenouilleText: { ...typography.body, fontSize: 14, fontWeight: '600', color: colors.text },
+  grenouilleAction: { ...typography.caption, color: colors.warning, marginTop: 2, fontWeight: '600' },
+  dreadRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.xs },
+  dreadLabel: { ...typography.caption, fontSize: 11, marginRight: 2 },
   braindumpButton: {
     flexDirection: 'row',
     alignItems: 'center',

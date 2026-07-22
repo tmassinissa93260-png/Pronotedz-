@@ -3,11 +3,17 @@ import { supabase } from '../supabase/client';
 // Appelle la fonction Postgres break_down_task (pg_net), pas une Edge
 // Function — voir supabase/migrations/0003_ai_via_pg_net.sql. La clé
 // Anthropic reste côté serveur (Supabase Vault), jamais exposée au client.
-export async function breakdownTask(titre: string, preferenceTon: string, granularite: 1 | 2 | 3 = 2): Promise<string[]> {
+export async function breakdownTask(
+  titre: string,
+  preferenceTon: string,
+  granularite: 1 | 2 | 3 = 2,
+  niveauDread?: number
+): Promise<string[]> {
   const { data, error } = await supabase.rpc('break_down_task', {
     p_titre: titre,
     p_preference_ton: preferenceTon,
     p_granularite: granularite,
+    p_niveau_dread: niveauDread ?? null,
   });
 
   if (error) throw error;

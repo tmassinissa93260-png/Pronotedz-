@@ -4,7 +4,7 @@
 
 1. **Créer un projet Supabase** (gratuit) sur [supabase.com](https://supabase.com), région **Europe (Frankfurt ou Paris)** — important pour l'argument RGPD.
 2. Copier `.env.example` en `.env` et remplir avec l'URL et la clé anon du projet (Project Settings → API).
-3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`.
+3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`.
 4. Stocker la clé Anthropic dans Supabase Vault (SQL Editor) :
    ```sql
    select vault.create_secret('sk-ant-...', 'anthropic_api_key');
@@ -35,6 +35,13 @@
 - Minuteur de focus avec durée cible (15/25/45 min ou libre) et bouton "+5 min" pendant la session
 - Badges à collectionner (premier pas, séries de 7/30 jours, 10 sessions focus, etc.), visibles sur le Dashboard
 - Profil : confiance des données (UE, export, suppression), désabonnement en libre-service
+- Niveau d'angoisse (1-5, façon "spiciness" de Goblin Tools) par tâche, qui influence la 1ère sous-étape générée par l'IA
+- "Mange la grenouille" (Eat the Frog) : bannière qui met en avant la tâche la plus angoissante du jour, avec lancement direct d'une session focus dessus
+- Heure de fin prévisible : estimation en temps réel de l'heure à laquelle tu termines si tu enchaînes tes tâches restantes (façon Sunsama)
+- Rituel de fin de journée (3 questions courtes : accompli / ce qui bascule à demain / ressenti)
+- Narration vocale (TTS) au lancement d'une session focus
+- Pause de friction consciente avant d'abandonner une session focus très tôt (façon One Sec) — pas un blocage, juste 5 secondes avant de confirmer
+- Timeboxing : lancer une session focus directement sur une tâche précise depuis le planning (bouton ▶️ sur chaque tâche)
 
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 
