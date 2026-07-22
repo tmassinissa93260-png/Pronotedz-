@@ -15,7 +15,9 @@
 -- l'API Stripe — officiellement recommandé pour les structures imbriquées
 -- comme line_items.
 
-create table public.subscriptions (
+-- if not exists / drop-then-create partout ici : rejouable sans erreur si un
+-- essai précédent s'est arrêté en cours de route.
+create table if not exists public.subscriptions (
   user_id uuid primary key references auth.users (id) on delete cascade,
   stripe_customer_id text,
   stripe_subscription_id text,
@@ -27,6 +29,7 @@ create table public.subscriptions (
 
 alter table public.subscriptions enable row level security;
 
+drop policy if exists "subscriptions: lecture de son propre abonnement" on public.subscriptions;
 create policy "subscriptions: lecture de son propre abonnement"
   on public.subscriptions for select
   using (auth.uid() = user_id);
