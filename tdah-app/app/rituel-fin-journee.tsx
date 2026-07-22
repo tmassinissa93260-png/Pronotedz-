@@ -11,6 +11,8 @@ import { colors, spacing, typography } from '../constants/theme';
 
 const today = () => new Date().toISOString().slice(0, 10);
 
+type TacheNonFinie = { id: string; titre: string };
+
 export default function RituelFinJourneeScreen() {
   const { session } = useAuth();
   const router = useRouter();
@@ -19,6 +21,8 @@ export default function RituelFinJourneeScreen() {
   const [ressenti, setRessenti] = useState('');
   const [saving, setSaving] = useState(false);
   const [dejaFait, setDejaFait] = useState(false);
+  const [tachesNonFinies, setTachesNonFinies] = useState<TacheNonFinie[]>([]);
+  const [reporting, setReporting] = useState(false);
 
   useEffect(() => {
     if (!session) return;
@@ -35,7 +39,31 @@ export default function RituelFinJourneeScreen() {
           setDejaFait(true);
         }
       });
+
+    supabase
+      .from('tasks')
+      .select('id, titre')
+      .eq('date_prevue', today())
+      .in('statut', ['a_faire', 'en_cours'])
+      .then(({ data }) => setTachesNonFinies(data ?? []));
   }, [session]);
+
+  // Report groupé façon "Too Hard Right Now" (Focus One) : aucune trace de
+  // retard ne reste sur la tâche, elle change juste de date. Répond à la
+  // plainte la plus citée dans les avis Tiimo/Sunsama sur la gestion des
+  // tâches non finies en fin de journée.
+  async function reporterTout() {
+    if (tachesNonFinies.length === 0) return;
+    setReporting(true);
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    await supabase
+      .from('tasks')
+      .update({ date_prevue: tomorrow.toISOString().slice(0, 10) })
+      .in('id', tachesNonFinies.map((t) => t.id));
+    setTachesNonFinies([]);
+    setReporting(false);
+  }
 
   async function save() {
     if (!session) return;
@@ -77,6 +105,21 @@ export default function RituelFinJourneeScreen() {
         value={accompli}
         onChangeText={setAccompli}
       />
+
+      {tachesNonFinies.length > 0 && (
+        <View style={styles.rolloverCard}>
+          <Text style={styles.rolloverTitle}>
+            {tachesNonFinies.length} tâche{tachesNonFinies.length > 1 ? 's' : ''} pas finie{tachesNonFinies.length > 1 ? 's' : ''} aujourd'hui
+          </Text>
+          <Text style={styles.rolloverSubtitle}>Ce n'est pas grave — elles peuvent juste glisser à demain, sans rien garder de "en retard".</Text>
+          {tachesNonFinies.map((t) => (
+            <Text key={t.id} style={styles.rolloverTask}>• {t.titre}</Text>
+          ))}
+          <Pressable style={styles.rolloverButton} onPress={reporterTout} disabled={reporting}>
+            <Text style={styles.rolloverButtonText}>{reporting ? 'Report en cours...' : 'Tout reporter à demain'}</Text>
+          </Pressable>
+        </View>
+      )}
 
       <Text style={styles.label}>Qu'est-ce qui bascule à demain ?</Text>
       <TextInput
@@ -122,4 +165,10 @@ const styles = StyleSheet.create({
   },
   saveButton: { backgroundColor: colors.primary, borderRadius: 12, padding: spacing.md, alignItems: 'center', marginTop: spacing.xl },
   saveButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
+  rolloverCard: { backgroundColor: colors.primaryMuted, borderRadius: 12, padding: spacing.md, marginTop: spacing.md },
+  rolloverTitle: { ...typography.body, fontWeight: '700' },
+  rolloverSubtitle: { ...typography.caption, marginTop: 2, marginBottom: spacing.sm },
+  rolloverTask: { ...typography.body, fontSize: 14, marginBottom: 2 },
+  rolloverButton: { backgroundColor: colors.primary, borderRadius: 10, paddingVertical: spacing.sm, alignItems: 'center', marginTop: spacing.sm },
+  rolloverButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
 });

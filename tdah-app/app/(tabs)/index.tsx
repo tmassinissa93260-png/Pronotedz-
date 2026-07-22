@@ -39,6 +39,7 @@ type Task = {
   moment_journee: MomentJournee;
   niveau_dread: number | null;
   heure_debut: string | null;
+  ordre: number;
   subtasks: Subtask[];
 };
 
@@ -77,8 +78,9 @@ export default function AccueilScreen() {
       await ensureRoutinesForToday(session.user.id);
       const { data, error } = await supabase
         .from('tasks')
-        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, niveau_dread, heure_debut, subtasks(id, titre, fait, ordre)')
+        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, niveau_dread, heure_debut, ordre, subtasks(id, titre, fait, ordre)')
         .eq('date_prevue', today())
+        .order('ordre', { ascending: true })
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -149,6 +151,22 @@ export default function AccueilScreen() {
     loadTasks();
   }
 
+  // Réorganisation manuelle dans une section : la plainte la plus citée sur
+  // Tiimo dans les avis App Store est de ne pas pouvoir déplacer une tâche
+  // une fois ajoutée. On renumérote toute la section pour rester cohérent
+  // même si plusieurs tâches partagent le même ordre au départ.
+  async function moveTask(sectionData: Task[], taskId: string, direction: -1 | 1) {
+    const index = sectionData.findIndex((t) => t.id === taskId);
+    const swapIndex = index + direction;
+    if (index === -1 || swapIndex < 0 || swapIndex >= sectionData.length) return;
+
+    const reordered = [...sectionData];
+    [reordered[index], reordered[swapIndex]] = [reordered[swapIndex], reordered[index]];
+
+    await Promise.all(reordered.map((t, i) => supabase.from('tasks').update({ ordre: i }).eq('id', t.id)));
+    loadTasks();
+  }
+
   function startFocusOn(task: Task) {
     router.push(`/focus?tache=${encodeURIComponent(task.titre)}`);
   }
@@ -204,6 +222,20 @@ export default function AccueilScreen() {
     } finally {
       setDecomposingId(null);
     }
+  }
+
+  // "Too Hard Right Now" (Focus One) : reporter une tâche à demain sans aucune
+  // trace de culpabilité — pas de badge "en retard", pas de compteur d'échecs,
+  // juste un déplacement de date. Répond directement à la plainte la plus
+  // citée dans les avis Tiimo/Sunsama : aucune app ADHD ne gère bien le report.
+  async function reportToTomorrow(taskId: string) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    await supabase
+      .from('tasks')
+      .update({ date_prevue: tomorrow.toISOString().slice(0, 10) })
+      .eq('id', taskId);
+    loadTasks();
   }
 
   async function addToCalendar(task: Task) {
@@ -337,8 +369,17 @@ export default function AccueilScreen() {
             {section.title} <Text style={styles.sectionCount}>({section.data.length})</Text>
           </Text>
         )}
-        renderItem={({ item }) => (
+        renderItem={({ item, index, section }) => (
           <View style={[styles.taskCard, item.statut === 'fait' && styles.taskCardDone]}>
+            <View style={styles.reorderColumn}>
+              <Pressable hitSlop={4} disabled={index === 0} onPress={() => moveTask(section.data, item.id, -1)}>
+                <Ionicons name="chevron-up" size={16} color={index === 0 ? colors.border : colors.textMuted} />
+              </Pressable>
+              <Pressable hitSlop={4} disabled={index === section.data.length - 1} onPress={() => moveTask(section.data, item.id, 1)}>
+                <Ionicons name="chevron-down" size={16} color={index === section.data.length - 1 ? colors.border : colors.textMuted} />
+              </Pressable>
+            </View>
+            <View style={styles.taskBody}>
             <View style={styles.taskHeader}>
               <Pressable style={styles.taskHeaderMain} onPress={() => markTaskDone(item)}>
                 <Ionicons
@@ -356,6 +397,11 @@ export default function AccueilScreen() {
               <Pressable hitSlop={8} onPress={() => addToCalendar(item)}>
                 <Ionicons name="calendar-outline" size={18} color={colors.textMuted} />
               </Pressable>
+              {item.statut !== 'fait' && (
+                <Pressable hitSlop={8} onPress={() => reportToTomorrow(item.id)}>
+                  <Ionicons name="arrow-redo-outline" size={18} color={colors.textMuted} />
+                </Pressable>
+              )}
             </View>
 
             {item.estimation_minutes && (
@@ -446,6 +492,7 @@ export default function AccueilScreen() {
                 </Pressable>
               </View>
             )}
+            </View>
           </View>
         )}
       />
@@ -538,6 +585,7 @@ const styles = StyleSheet.create({
   empty: { ...typography.body, color: colors.textMuted, marginTop: spacing.lg },
   caption: { ...typography.caption, marginTop: spacing.xs },
   taskCard: {
+    flexDirection: 'row',
     backgroundColor: colors.surface,
     borderRadius: 14,
     padding: spacing.md,
@@ -546,6 +594,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   taskCardDone: { opacity: 0.6 },
+  reorderColumn: { justifyContent: 'center', alignItems: 'center', gap: 2, marginRight: spacing.sm },
+  taskBody: { flex: 1 },
   taskHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   taskHeaderMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   taskTitle: { ...typography.body, fontWeight: '600', flex: 1 },
