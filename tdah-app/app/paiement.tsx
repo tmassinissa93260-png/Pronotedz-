@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { Stack } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../lib/supabase/AuthProvider';
 import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../constants/theme';
@@ -30,7 +31,7 @@ export default function PaiementScreen() {
     setStarting(plan);
     try {
       const url = await startCheckout(session.user.id, plan);
-      await WebBrowser.openAuthSessionAsync(url, 'tdahapp://checkout-retour');
+      await WebBrowser.openAuthSessionAsync(url, Linking.createURL('checkout-retour'));
     } catch {
       Alert.alert('Erreur', 'Impossible d’ouvrir la page de paiement pour le moment. Réessaie dans un instant.');
     } finally {

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import * as Linking from 'expo-linking';
 import { supabase } from '../supabase/client';
 import { useAuth } from '../supabase/AuthProvider';
 
@@ -6,7 +7,15 @@ export type SubscriptionStatus = 'gratuit' | 'actif' | 'annule' | 'expire';
 export type Plan = 'mensuel' | 'annuel';
 
 export async function startCheckout(userId: string, plan: Plan): Promise<string> {
-  const { data, error } = await supabase.rpc('create_checkout_session', { p_user_id: userId, p_plan: plan });
+  // Linking.createURL calcule le bon schéma pour l'environnement courant
+  // (exp://... sous Expo Go, tdahapp://... dans un build EAS) — le coder en
+  // dur aurait cassé le retour dans l'app pendant les tests sous Expo Go.
+  const redirectBase = Linking.createURL('checkout-retour');
+  const { data, error } = await supabase.rpc('create_checkout_session', {
+    p_user_id: userId,
+    p_plan: plan,
+    p_redirect_base: redirectBase,
+  });
   if (error) throw error;
   return (data as { url: string }).url;
 }

@@ -38,8 +38,13 @@ create policy "subscriptions: lecture de son propre abonnement"
 -- ---------------------------------------------------------------------------
 -- Crée (ou réutilise) un client Stripe pour l'utilisateur, puis une session
 -- Checkout pour le plan choisi. Retourne l'URL à ouvrir dans le navigateur.
+--
+-- p_redirect_base est fourni par le client (Linking.createURL('checkout-retour'))
+-- plutôt que codé en dur ici : le schéma d'URL qui rouvre l'app diffère entre
+-- Expo Go (exp://...) et un vrai build EAS (tdahapp://...) — en dur, ça
+-- aurait marché en build mais pas pendant les tests sous Expo Go.
 -- ---------------------------------------------------------------------------
-create or replace function public.create_checkout_session(p_user_id uuid, p_plan text)
+create or replace function public.create_checkout_session(p_user_id uuid, p_plan text, p_redirect_base text)
 returns jsonb
 language plpgsql
 security definer
@@ -121,8 +126,8 @@ begin
       'customer', v_customer_id,
       'client_reference_id', p_user_id::text,
       'line_items', jsonb_build_array(jsonb_build_object('price', v_price_id, 'quantity', 1)),
-      'success_url', 'tdahapp://checkout-retour?session_id={CHECKOUT_SESSION_ID}',
-      'cancel_url', 'tdahapp://checkout-retour?annule=1'
+      'success_url', p_redirect_base || '?session_id={CHECKOUT_SESSION_ID}',
+      'cancel_url', p_redirect_base || '?annule=1'
     ),
     timeout_milliseconds := 15000
   ) into v_request_id;
@@ -144,7 +149,7 @@ begin
 end;
 $$;
 
-grant execute on function public.create_checkout_session(uuid, text) to authenticated;
+grant execute on function public.create_checkout_session(uuid, text, text) to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- Appelée juste après le retour dans l'app depuis Stripe Checkout (via le
