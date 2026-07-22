@@ -105,6 +105,7 @@ export default function AccueilScreen() {
   const [assistantInput, setAssistantInput] = useState('');
   const [assistantLoading, setAssistantLoading] = useState(false);
   const [assistantMessages, setAssistantMessages] = useState<{ role: 'user' | 'assistant'; text: string }[]>([]);
+  const [toolsMenuVisible, setToolsMenuVisible] = useState(false);
 
   const loadTasks = useCallback(async () => {
     if (!session) return;
@@ -529,6 +530,17 @@ export default function AccueilScreen() {
     completeTask(task);
   }
 
+  // Menu "Outils" : regroupe les actions secondaires derrière un seul bouton
+  // plutôt que d'aligner 6 chips en permanence dans l'en-tête — la ligne de
+  // boutons avait fini par déborder sur deux lignes au fil des ajouts.
+  const TOOLS: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }[] = [
+    { icon: 'sparkles-outline', label: 'Assistant', onPress: () => setAssistantVisible(true) },
+    { icon: 'albums-outline', label: 'Backlog', onPress: () => router.push('/backlog') },
+    { icon: 'repeat-outline', label: 'Routines', onPress: () => router.push('/routines') },
+    { icon: 'moon-outline', label: 'Fin de journée', onPress: () => router.push('/rituel-fin-journee') },
+    { icon: 'leaf-outline', label: 'Respirer', onPress: () => router.push('/respiration') },
+  ];
+
   if (isLoading) {
     return (
       <View style={styles.centered}>
@@ -574,32 +586,16 @@ export default function AccueilScreen() {
           <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
           <Text style={styles.braindumpButtonText}>Vide-tête</Text>
         </Pressable>
-        <Pressable style={styles.braindumpButton} onPress={() => setAssistantVisible(true)}>
-          <Ionicons name="sparkles-outline" size={16} color={colors.primary} />
-          <Text style={styles.braindumpButtonText}>Assistant</Text>
-        </Pressable>
-        <Pressable style={styles.braindumpButton} onPress={() => router.push('/backlog')}>
-          <Ionicons name="albums-outline" size={16} color={colors.primary} />
-          <Text style={styles.braindumpButtonText}>Backlog</Text>
-        </Pressable>
-        <Pressable style={styles.braindumpButton} onPress={() => router.push('/routines')}>
-          <Ionicons name="repeat-outline" size={16} color={colors.primary} />
-          <Text style={styles.braindumpButtonText}>Routines</Text>
-        </Pressable>
-        <Pressable style={styles.braindumpButton} onPress={() => router.push('/rituel-fin-journee')}>
-          <Ionicons name="moon-outline" size={16} color={colors.primary} />
-          <Text style={styles.braindumpButtonText}>Fin de journée</Text>
-        </Pressable>
-        <Pressable style={styles.braindumpButton} onPress={() => router.push('/respiration')}>
-          <Ionicons name="leaf-outline" size={16} color={colors.primary} />
-          <Text style={styles.braindumpButtonText}>Respirer</Text>
-        </Pressable>
         <Pressable
           style={styles.braindumpButton}
           onPress={() => setVueMode((v) => (v === 'liste' ? 'timeline' : 'liste'))}
         >
           <Ionicons name={vueMode === 'liste' ? 'time-outline' : 'list-outline'} size={16} color={colors.primary} />
           <Text style={styles.braindumpButtonText}>{vueMode === 'liste' ? 'Frise' : 'Liste'}</Text>
+        </Pressable>
+        <Pressable style={styles.braindumpButton} onPress={() => setToolsMenuVisible(true)}>
+          <Ionicons name="ellipsis-horizontal" size={16} color={colors.primary} />
+          <Text style={styles.braindumpButtonText}>Outils</Text>
         </Pressable>
       </View>
       {calibrationInsight && <Text style={styles.insight}>💡 {calibrationInsight}</Text>}
@@ -959,6 +955,30 @@ export default function AccueilScreen() {
         </View>
       </Modal>
 
+      <Modal visible={toolsMenuVisible} transparent animationType="slide" onRequestClose={() => setToolsMenuVisible(false)}>
+        <View style={styles.braindumpBackdrop}>
+          <View style={styles.braindumpCard}>
+            <Text style={styles.braindumpTitle}>Outils</Text>
+            {TOOLS.map((tool) => (
+              <Pressable
+                key={tool.label}
+                style={styles.toolRow}
+                onPress={() => {
+                  setToolsMenuVisible(false);
+                  tool.onPress();
+                }}
+              >
+                <Ionicons name={tool.icon} size={20} color={colors.primary} />
+                <Text style={styles.toolRowText}>{tool.label}</Text>
+              </Pressable>
+            ))}
+            <Pressable onPress={() => setToolsMenuVisible(false)} style={{ marginTop: spacing.sm }}>
+              <Text style={styles.braindumpCancel}>Fermer</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
       <Modal
         visible={assistantVisible}
         transparent
@@ -1143,6 +1163,8 @@ const styles = StyleSheet.create({
     color: colors.text,
     backgroundColor: colors.background,
   },
+  toolRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.md, borderBottomWidth: 1, borderBottomColor: colors.border },
+  toolRowText: { ...typography.body, fontSize: 15 },
   assistantScroll: { maxHeight: 220, marginBottom: spacing.sm },
   assistantBubble: { borderRadius: 12, padding: spacing.sm, marginBottom: spacing.xs, maxWidth: '85%' },
   assistantBubbleUser: { backgroundColor: colors.primary, alignSelf: 'flex-end' },
