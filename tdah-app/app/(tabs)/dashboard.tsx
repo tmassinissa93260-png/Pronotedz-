@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase/client';
 import { useAuth } from '../../lib/supabase/AuthProvider';
 import { colors, spacing, typography } from '../../constants/theme';
 import { generatePatternInsight, type PatternInsight } from '../../lib/supabase/patternInsight';
+import { StreakHeatmap } from '../../components/StreakHeatmap';
 
 type Badge = { code: string; titre: string; description: string; emoji: string; obtenu: boolean };
 
@@ -31,6 +32,7 @@ export default function DashboardScreen() {
   const [insight, setInsight] = useState<PatternInsight | null>(null);
   const [insightLoading, setInsightLoading] = useState(false);
   const [badges, setBadges] = useState<Badge[]>([]);
+  const [heatmapCounts, setHeatmapCounts] = useState<Record<string, number>>({});
 
   async function loadInsight() {
     if (!session) return;
@@ -84,6 +86,21 @@ export default function DashboardScreen() {
       const obtenus = new Set((userBadgesRes.data ?? []).map((b) => b.badge_code));
       setBadges((badgesRes.data ?? []).map((b) => ({ ...b, obtenu: obtenus.has(b.code) })));
     });
+
+    const start = new Date();
+    start.setDate(start.getDate() - 83);
+    supabase
+      .from('tasks')
+      .select('date_prevue')
+      .eq('statut', 'fait')
+      .gte('date_prevue', start.toISOString().slice(0, 10))
+      .then(({ data }) => {
+        const counts: Record<string, number> = {};
+        for (const row of data ?? []) {
+          counts[row.date_prevue] = (counts[row.date_prevue] ?? 0) + 1;
+        }
+        setHeatmapCounts(counts);
+      });
   }, [session]);
 
   return (
@@ -171,6 +188,13 @@ export default function DashboardScreen() {
           </Text>
         </View>
       )}
+
+      <View style={styles.heatmapCard}>
+        <Text style={styles.cardTitle}>Historique</Text>
+        <View style={{ marginTop: spacing.sm }}>
+          <StreakHeatmap countsByDate={heatmapCounts} />
+        </View>
+      </View>
     </ScrollView>
   );
 }
@@ -212,4 +236,5 @@ const styles = StyleSheet.create({
   badgeItemLocked: { opacity: 0.4 },
   badgeEmoji: { fontSize: 26 },
   badgeLabel: { fontSize: 10.5, color: colors.textMuted, textAlign: 'center' },
+  heatmapCard: { backgroundColor: colors.surface, borderRadius: 14, padding: spacing.md, marginTop: spacing.sm, borderWidth: 1, borderColor: colors.border },
 });

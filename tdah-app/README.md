@@ -44,6 +44,7 @@
 - Timeboxing : lancer une session focus directement sur une tâche précise depuis le planning (bouton ▶️ sur chaque tâche)
 - Routines récurrentes (façon Tiimo) : modèles de tâches qui se reproduisent automatiquement les jours choisis, gérables sur un écran dédié (créer, mettre en pause, supprimer)
 - Vue frise horaire (façon Tiimo) en alternative à la liste : tâches positionnées visuellement sur une timeline colorée par moment de journée, basculable via le bouton "Frise"/"Liste"
+- Historique en heatmap (façon GitHub contributions) sur le Dashboard, 12 dernières semaines — volontairement sans case "rouge" pour un jour manqué, cohérent avec le système de streak à réparation
 
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 
