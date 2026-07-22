@@ -9,6 +9,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_PREFIX = 'notif:';
 const MINUTES_BEFORE = 5;
+// TickTick a un "rappel constant" qui sonne en boucle tant que la tâche
+// n'est pas traitée — on fait volontairement plus doux : un seul rappel de
+// relance, pas une alarme qui insiste. Une notif qui harcèle irait à
+// l'encontre du "discrète et non intrusive" qu'on vise.
+const FOLLOWUP_AFTER_MINUTES = 10;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -26,33 +31,57 @@ export async function requestNotificationPermission(): Promise<boolean> {
   return requested.granted;
 }
 
-// Programme un rappel N minutes avant l'heure de début d'une tâche. Annule
+// Programme un rappel N minutes avant l'heure de début d'une tâche, plus une
+// relance douce si elle n'a toujours pas été traitée un peu après. Annule
 // d'abord tout rappel précédent pour cette tâche pour éviter les doublons
 // si l'heure est modifiée.
 export async function scheduleTaskReminder(taskId: string, titre: string, dateISO: string, heureDebut: string) {
   await cancelTaskReminder(taskId);
 
   const [h, m] = heureDebut.split(':').map(Number);
-  const target = new Date(`${dateISO}T00:00:00`);
-  target.setHours(h, m - MINUTES_BEFORE, 0, 0);
-  if (target.getTime() <= Date.now()) return;
+  const reminderAt = new Date(`${dateISO}T00:00:00`);
+  reminderAt.setHours(h, m - MINUTES_BEFORE, 0, 0);
+  const followUpAt = new Date(`${dateISO}T00:00:00`);
+  followUpAt.setHours(h, m + FOLLOWUP_AFTER_MINUTES, 0, 0);
 
   const granted = await requestNotificationPermission();
   if (!granted) return;
 
-  const id = await Notifications.scheduleNotificationAsync({
-    content: {
-      title: `Dans ${MINUTES_BEFORE} min : ${titre}`,
-      body: `Prévu à ${heureDebut.slice(0, 5)}`,
-    },
-    trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: target },
-  });
-  await AsyncStorage.setItem(`${STORAGE_PREFIX}${taskId}`, id);
+  const ids: string[] = [];
+
+  if (reminderAt.getTime() > Date.now()) {
+    ids.push(
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: `Dans ${MINUTES_BEFORE} min : ${titre}`,
+          body: `Prévu à ${heureDebut.slice(0, 5)}`,
+        },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: reminderAt },
+      })
+    );
+  }
+
+  if (followUpAt.getTime() > Date.now()) {
+    ids.push(
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: `Toujours partant pour "${titre}" ?`,
+          body: 'Pas de souci si ce n’est pas encore fait — juste un petit rappel.',
+        },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: followUpAt },
+      })
+    );
+  }
+
+  if (ids.length > 0) {
+    await AsyncStorage.setItem(`${STORAGE_PREFIX}${taskId}`, JSON.stringify(ids));
+  }
 }
 
 export async function cancelTaskReminder(taskId: string) {
-  const id = await AsyncStorage.getItem(`${STORAGE_PREFIX}${taskId}`);
-  if (!id) return;
-  await Notifications.cancelScheduledNotificationAsync(id).catch(() => {});
+  const raw = await AsyncStorage.getItem(`${STORAGE_PREFIX}${taskId}`);
+  if (!raw) return;
+  const ids: string[] = JSON.parse(raw);
+  await Promise.all(ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})));
   await AsyncStorage.removeItem(`${STORAGE_PREFIX}${taskId}`);
 }

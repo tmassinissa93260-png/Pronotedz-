@@ -57,6 +57,8 @@
 - Pause/reprise pendant une session focus (bouton ⏸/▶️ à côté de "+5 min")
 - Rappels locaux 5 min avant l'heure d'une tâche (notifications programmées sur l'appareil, sans push distant — ça marche encore dans Expo Go) + réglage manuel de l'heure d'une tâche pour en profiter même sans passer par le Vide-tête
 - Bilan hebdomadaire réflexif (3 questions : ce qui a marché / ce qui a été dur / la priorité de la semaine prochaine), accessible depuis le Dashboard, en plus du rituel quotidien
+- Respiration guidée (façon RespiRelax) accessible à tout moment depuis le planning, pas seulement pendant une session focus — respiration carrée (4-4-4-4) avec durée 1/3/5 min ou libre
+- Rappel de relance douce ~10 min après l'heure prévue d'une tâche si elle n'est toujours pas faite, en plus du rappel 5 min avant — volontairement pas un rappel qui insiste en boucle (façon TickTick), pour rester cohérent avec le principe "discrète et non intrusive"
 
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
 

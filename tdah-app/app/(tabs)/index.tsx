@@ -436,6 +436,10 @@ export default function AccueilScreen() {
           <Ionicons name="moon-outline" size={16} color={colors.primary} />
           <Text style={styles.braindumpButtonText}>Fin de journée</Text>
         </Pressable>
+        <Pressable style={styles.braindumpButton} onPress={() => router.push('/respiration')}>
+          <Ionicons name="leaf-outline" size={16} color={colors.primary} />
+          <Text style={styles.braindumpButtonText}>Respirer</Text>
+        </Pressable>
         <Pressable
           style={styles.braindumpButton}
           onPress={() => setVueMode((v) => (v === 'liste' ? 'timeline' : 'liste'))}
