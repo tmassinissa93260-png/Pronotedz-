@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, FlatList, Alert } from 'react-native';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../lib/supabase/AuthProvider';
-import { colors, spacing, typography, fonts, radius, shadow } from '../constants/theme';
+import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../constants/theme';
+import { useTheme } from '../lib/theme/ThemeProvider';
 import { listRoutines, createRoutine, toggleRoutine, deleteRoutine, type Routine } from '../lib/supabase/routines';
 
 type MomentJournee = 'n_importe_quand' | 'matin' | 'jour' | 'soir';
@@ -27,6 +28,8 @@ const JOURS: { label: string; value: number }[] = [
 
 export default function RoutinesScreen() {
   const { session } = useAuth();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [routines, setRoutines] = useState<Routine[]>([]);
   const [titre, setTitre] = useState('');
   const [moment, setMoment] = useState<MomentJournee>('n_importe_quand');
@@ -82,7 +85,15 @@ export default function RoutinesScreen() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ headerShown: true, title: 'Routines', headerBackTitle: 'Retour' }} />
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: 'Routines',
+          headerBackTitle: 'Retour',
+          headerStyle: { backgroundColor: colors.surface },
+          headerTintColor: colors.text,
+        }}
+      />
 
       <FlatList
         contentContainerStyle={{ padding: spacing.lg }}
@@ -161,47 +172,50 @@ export default function RoutinesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  subtitle: { ...typography.body, color: colors.textMuted, marginBottom: spacing.md },
-  label: { ...typography.caption, marginTop: spacing.md, marginBottom: spacing.xs },
-  input: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    fontSize: 15,
-    fontFamily: fonts.regular,
-    color: colors.text,
-  },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
-  chip: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingVertical: spacing.xs, paddingHorizontal: spacing.md },
-  dayChip: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 18,
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  chipActive: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
-  chipText: { color: colors.textMuted, fontSize: 13, fontFamily: fonts.medium },
-  chipTextActive: { color: colors.primary, fontFamily: fonts.semibold },
-  saveButton: { backgroundColor: colors.primary, borderRadius: radius.md, padding: spacing.md, alignItems: 'center', marginTop: spacing.lg, ...shadow.soft },
-  saveButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 16 },
-  listTitle: { ...typography.heading, fontSize: 16, marginTop: spacing.xl, marginBottom: spacing.sm },
-  routineCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    ...shadow.soft,
-  },
-  routineCardInactive: { opacity: 0.5 },
-  routineTitle: { ...typography.body, fontFamily: fonts.semibold },
-  caption: { ...typography.caption, marginTop: 2 },
-});
+function makeStyles(colors: ThemeColors) {
+  const typography = makeTypography(colors);
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    subtitle: { ...typography.body, color: colors.textMuted, marginBottom: spacing.md },
+    label: { ...typography.caption, marginTop: spacing.md, marginBottom: spacing.xs },
+    input: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      fontSize: 15,
+      fontFamily: fonts.regular,
+      color: colors.text,
+    },
+    chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+    chip: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingVertical: spacing.xs, paddingHorizontal: spacing.md },
+    dayChip: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 18,
+      width: 36,
+      height: 36,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    chipActive: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
+    chipText: { color: colors.textMuted, fontSize: 13, fontFamily: fonts.medium },
+    chipTextActive: { color: colors.primary, fontFamily: fonts.semibold },
+    saveButton: { backgroundColor: colors.primary, borderRadius: radius.md, padding: spacing.md, alignItems: 'center', marginTop: spacing.lg, ...shadow.soft },
+    saveButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 16 },
+    listTitle: { ...typography.heading, fontSize: 16, marginTop: spacing.xl, marginBottom: spacing.sm },
+    routineCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+      ...shadow.soft,
+    },
+    routineCardInactive: { opacity: 0.5 },
+    routineTitle: { ...typography.body, fontFamily: fonts.semibold },
+    caption: { ...typography.caption, marginTop: 2 },
+  });
+}

@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, SectionList, Alert } from 'react-native';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../lib/supabase/AuthProvider';
 import { supabase } from '../lib/supabase/client';
-import { colors, spacing, typography, fonts, radius, shadow } from '../constants/theme';
+import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../constants/theme';
+import { useTheme } from '../lib/theme/ThemeProvider';
 import { resolveTaskIcon } from '../lib/taskIcon';
 
 // Backlog façon Tiimo (liste de tâches "à placer" → glissées sur le calendrier).
@@ -43,6 +44,8 @@ function nextRoundedTime() {
 
 export default function BacklogScreen() {
   const { session } = useAuth();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
@@ -94,7 +97,15 @@ export default function BacklogScreen() {
 
   return (
     <View style={styles.container}>
-      <Stack.Screen options={{ headerShown: true, title: 'Backlog', headerBackTitle: 'Retour' }} />
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: 'Backlog',
+          headerBackTitle: 'Retour',
+          headerStyle: { backgroundColor: colors.surface },
+          headerTintColor: colors.text,
+        }}
+      />
 
       <Text style={styles.subtitle}>
         Tes tâches sans horaire fixé aujourd'hui — place-les sur ton planning d'un tap, comme un glisser-déposer sans le geste.
@@ -152,36 +163,39 @@ export default function BacklogScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  subtitle: { ...typography.body, color: colors.textMuted, padding: spacing.lg, paddingBottom: spacing.sm },
-  empty: { ...typography.body, color: colors.textMuted, paddingHorizontal: spacing.lg },
-  sectionHeader: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: fonts.bold, marginTop: spacing.md, marginBottom: spacing.xs },
-  card: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    ...shadow.soft,
-  },
-  cardRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  iconBubble: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  iconEmoji: { fontSize: 16 },
-  cardTitle: { ...typography.body, fontFamily: fonts.semibold },
-  caption: { ...typography.caption, marginTop: 2 },
-  nowButton: { backgroundColor: colors.primaryMuted, borderRadius: radius.pill, paddingVertical: 6, paddingHorizontal: spacing.sm },
-  nowButtonText: { color: colors.primary, fontSize: 12, fontFamily: fonts.semibold },
-  timeRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
-  timeInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
-    padding: spacing.sm,
-    fontSize: 14,
-    fontFamily: fonts.regular,
-    color: colors.text,
-  },
-  placeButton: { backgroundColor: colors.primary, borderRadius: radius.sm, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, justifyContent: 'center' },
-  placeButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 13 },
-});
+function makeStyles(colors: ThemeColors) {
+  const typography = makeTypography(colors);
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    subtitle: { ...typography.body, color: colors.textMuted, padding: spacing.lg, paddingBottom: spacing.sm },
+    empty: { ...typography.body, color: colors.textMuted, paddingHorizontal: spacing.lg },
+    sectionHeader: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: fonts.bold, marginTop: spacing.md, marginBottom: spacing.xs },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+      ...shadow.soft,
+    },
+    cardRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+    iconBubble: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+    iconEmoji: { fontSize: 16 },
+    cardTitle: { ...typography.body, fontFamily: fonts.semibold },
+    caption: { ...typography.caption, marginTop: 2 },
+    nowButton: { backgroundColor: colors.primaryMuted, borderRadius: radius.pill, paddingVertical: 6, paddingHorizontal: spacing.sm },
+    nowButtonText: { color: colors.primary, fontSize: 12, fontFamily: fonts.semibold },
+    timeRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
+    timeInput: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.sm,
+      padding: spacing.sm,
+      fontSize: 14,
+      fontFamily: fonts.regular,
+      color: colors.text,
+    },
+    placeButton: { backgroundColor: colors.primary, borderRadius: radius.sm, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, justifyContent: 'center' },
+    placeButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 13 },
+  });
+}

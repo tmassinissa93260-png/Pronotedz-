@@ -7,6 +7,7 @@ import { useFonts, Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, M
 import { AuthProvider, useAuth } from '../lib/supabase/AuthProvider';
 import { supabase } from '../lib/supabase/client';
 import { RewardProvider } from '../lib/rewards/RewardProvider';
+import { ThemeProvider, useTheme } from '../lib/theme/ThemeProvider';
 import { colors } from '../constants/theme';
 
 function RootNavigation() {
@@ -48,6 +49,20 @@ function RootNavigation() {
   return <Stack screenOptions={{ headerShown: false }} />;
 }
 
+function ThemedApp() {
+  const { scheme } = useTheme();
+  return (
+    <>
+      <AuthProvider>
+        <RewardProvider>
+          <RootNavigation />
+        </RewardProvider>
+      </AuthProvider>
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+    </>
+  );
+}
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     Manrope_400Regular,
@@ -67,12 +82,9 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <RewardProvider>
-          <RootNavigation />
-          <StatusBar style="auto" />
-        </RewardProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <ThemedApp />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

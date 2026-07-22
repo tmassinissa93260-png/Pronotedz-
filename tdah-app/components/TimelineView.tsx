@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, spacing, typography, fonts } from '../constants/theme';
+import { spacing, fonts, makeTypography, type ThemeColors } from '../constants/theme';
+import { useTheme } from '../lib/theme/ThemeProvider';
 import { resolveTaskIcon } from '../lib/taskIcon';
 
 // Vue frise horaire façon Tiimo : la vue liste reste la vue "détails" (édition,
@@ -36,12 +38,14 @@ function formatDuration(minutes: number) {
   return `${h} h ${m}`;
 }
 
-const MOMENT_COLOR: Record<MomentJournee, string> = {
-  matin: '#F0A860',
-  jour: colors.primary,
-  soir: '#8B6FD8',
-  n_importe_quand: colors.textMuted,
-};
+function momentColors(colors: ThemeColors): Record<MomentJournee, string> {
+  return {
+    matin: '#F0A860',
+    jour: colors.primary,
+    soir: '#8B6FD8',
+    n_importe_quand: colors.textMuted,
+  };
+}
 
 function parseMinutes(heureDebut: string) {
   const [h, m] = heureDebut.split(':').map(Number);
@@ -92,6 +96,9 @@ export function TimelineView({
   onToggleDone: (task: TimelineTask) => void;
   onFocus: (task: TimelineTask) => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const MOMENT_COLOR = useMemo(() => momentColors(colors), [colors]);
   const placed = tasks.filter((t) => t.heure_debut);
   const sansHoraire = tasks.filter((t) => !t.heure_debut);
   const hours = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i);
@@ -167,41 +174,44 @@ export function TimelineView({
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: { flex: 1 },
-  grid: { position: 'relative', marginLeft: spacing.sm },
-  hourRow: { flexDirection: 'row', alignItems: 'flex-start' },
-  hourLabel: { ...typography.caption, width: 44, fontSize: 11 },
-  hourLine: { flex: 1, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 6 },
-  block: {
-    position: 'absolute',
-    left: 52,
-    right: spacing.sm,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.xs,
-  },
-  blockText: { ...typography.body, fontSize: 13, fontFamily: fonts.semibold, flex: 1 },
-  blockTextDone: { textDecorationLine: 'line-through', color: colors.textMuted },
-  gapBlock: {
-    position: 'absolute',
-    left: 52,
-    right: spacing.sm,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  gapText: { ...typography.caption, fontSize: 11 },
-  sansHoraireSection: { marginTop: spacing.lg, paddingHorizontal: spacing.sm },
-  sansHoraireTitle: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: spacing.xs, fontFamily: fonts.bold },
-  sansHoraireRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
-  sansHoraireText: { ...typography.body, fontSize: 14 },
-});
+function makeStyles(colors: ThemeColors) {
+  const typography = makeTypography(colors);
+  return StyleSheet.create({
+    scroll: { flex: 1 },
+    grid: { position: 'relative', marginLeft: spacing.sm },
+    hourRow: { flexDirection: 'row', alignItems: 'flex-start' },
+    hourLabel: { ...typography.caption, width: 44, fontSize: 11 },
+    hourLine: { flex: 1, borderTopWidth: 1, borderTopColor: colors.border, marginTop: 6 },
+    block: {
+      position: 'absolute',
+      left: 52,
+      right: spacing.sm,
+      borderRadius: 10,
+      borderWidth: 1.5,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 4,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: spacing.xs,
+    },
+    blockText: { ...typography.body, fontSize: 13, fontFamily: fonts.semibold, flex: 1 },
+    blockTextDone: { textDecorationLine: 'line-through', color: colors.textMuted },
+    gapBlock: {
+      position: 'absolute',
+      left: 52,
+      right: spacing.sm,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    gapText: { ...typography.caption, fontSize: 11 },
+    sansHoraireSection: { marginTop: spacing.lg, paddingHorizontal: spacing.sm },
+    sansHoraireTitle: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: spacing.xs, fontFamily: fonts.bold },
+    sansHoraireRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
+    sansHoraireText: { ...typography.body, fontSize: 14 },
+  });
+}

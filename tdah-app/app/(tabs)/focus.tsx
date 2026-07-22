@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Animated, Easing, Modal, TextInput, Share, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,7 +13,8 @@ import { useReward } from '../../lib/rewards/RewardProvider';
 import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
 import { generateRoomCode, joinDuoRoom, sendDuoEvent, leaveDuoRoom, joinLobby, leaveLobby, type DuoEvent } from '../../lib/realtime/duoFocus';
 import { CircularTimer } from '../../components/CircularTimer';
-import { colors, spacing, typography, fonts, radius, shadow } from '../../constants/theme';
+import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../../constants/theme';
+import { useTheme } from '../../lib/theme/ThemeProvider';
 
 type Mode = 'responsabilisation' | 'coregulation';
 const CHECKIN_THRESHOLD_MINUTES = 45;
@@ -28,6 +29,8 @@ export default function FocusScreen() {
   const { session } = useAuth();
   const profile = useProfile();
   const { celebrate } = useReward();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
   const { tache: tacheParam, tacheId } = useLocalSearchParams<{ tache?: string; tacheId?: string }>();
   const [targetMinutes, setTargetMinutes] = useState<number | null>(25);
   const [activeSession, setActiveSession] = useState<{ id: string; mode: Mode; startedAt: number } | null>(null);
@@ -556,7 +559,9 @@ export default function FocusScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  const typography = makeTypography(colors);
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, padding: spacing.lg },
   title: { ...typography.title, marginBottom: spacing.xs },
   subtitle: { ...typography.body, color: colors.textMuted, marginBottom: spacing.lg },
@@ -662,4 +667,5 @@ const styles = StyleSheet.create({
   },
   duoShareText: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 14 },
   lobbySpinnerRow: { alignItems: 'center', marginVertical: spacing.lg },
-});
+  });
+}

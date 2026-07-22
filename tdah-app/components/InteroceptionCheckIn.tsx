@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Modal, View, Text, Pressable, StyleSheet } from 'react-native';
 import { supabase } from '../lib/supabase/client';
 import { useAuth } from '../lib/supabase/AuthProvider';
 import { bumpStreak } from '../lib/supabase/streak';
 import { useReward } from '../lib/rewards/RewardProvider';
-import { colors, spacing, typography, fonts } from '../constants/theme';
+import { spacing, fonts, makeTypography, type ThemeColors } from '../constants/theme';
+import { useTheme } from '../lib/theme/ThemeProvider';
 
 // Question fermée plutôt qu'ouverte : les signaux internes (faim, fatigue...)
 // n'atteignent pas toujours le seuil de conscience chez un cerveau TDAH.
@@ -28,6 +29,8 @@ export function InteroceptionCheckIn({ visible, contexteDeclencheur, gamificatio
   const { session } = useAuth();
   const [question] = useState(() => QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)]);
   const { celebrate } = useReward();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   async function answer(reponse: string) {
     if (!session) return;
@@ -66,24 +69,27 @@ export function InteroceptionCheckIn({ visible, contexteDeclencheur, gamificatio
   );
 }
 
-const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
-  card: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: spacing.lg,
-    paddingBottom: spacing.xl,
-  },
-  title: { ...typography.heading, marginBottom: spacing.md, textAlign: 'center' },
-  options: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
-  option: {
-    flex: 1,
-    backgroundColor: colors.primaryMuted,
-    borderRadius: 12,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  optionText: { color: colors.primary, fontFamily: fonts.semibold },
-  dismiss: { ...typography.caption, textAlign: 'center' },
-});
+function makeStyles(colors: ThemeColors) {
+  const typography = makeTypography(colors);
+  return StyleSheet.create({
+    backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
+    card: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      padding: spacing.lg,
+      paddingBottom: spacing.xl,
+    },
+    title: { ...typography.heading, marginBottom: spacing.md, textAlign: 'center' },
+    options: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+    option: {
+      flex: 1,
+      backgroundColor: colors.primaryMuted,
+      borderRadius: 12,
+      paddingVertical: spacing.md,
+      alignItems: 'center',
+    },
+    optionText: { color: colors.primary, fontFamily: fonts.semibold },
+    dismiss: { ...typography.caption, textAlign: 'center' },
+  });
+}

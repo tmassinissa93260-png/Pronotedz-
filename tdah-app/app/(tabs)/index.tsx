@@ -20,7 +20,8 @@ import { breakdownTask } from '../../lib/ai/breakdownTask';
 import { planFromBraindump, planWeekFromBraindump } from '../../lib/ai/braindump';
 import { interpretScheduleCommand } from '../../lib/ai/scheduleAssistant';
 import { getHighDreadMomentStats, type MomentStats } from '../../lib/supabase/momentStats';
-import { colors, spacing, typography, fonts, radius, shadow } from '../../constants/theme';
+import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../../constants/theme';
+import { useTheme } from '../../lib/theme/ThemeProvider';
 import { useAuth } from '../../lib/supabase/AuthProvider';
 import { useProfile } from '../../lib/supabase/useProfile';
 import { bumpStreak } from '../../lib/supabase/streak';
@@ -54,11 +55,13 @@ type Task = {
 const today = () => new Date().toISOString().slice(0, 10);
 const GRANULARITE_LABELS: Record<1 | 2 | 3, string> = { 1: 'Grandes lignes', 2: 'Standard', 3: 'Petits pas' };
 const PRIORITE_CYCLE: (Task['niveau_priorite'])[] = [null, 'haute', 'moyenne', 'basse'];
-const PRIORITE_COLOR: Record<'haute' | 'moyenne' | 'basse', string> = {
-  haute: colors.danger,
-  moyenne: colors.warning,
-  basse: colors.textMuted,
-};
+function prioriteColors(colors: ThemeColors): Record<'haute' | 'moyenne' | 'basse', string> {
+  return {
+    haute: colors.danger,
+    moyenne: colors.warning,
+    basse: colors.textMuted,
+  };
+}
 const MOMENT_LABELS: Record<MomentJournee, string> = {
   n_importe_quand: 'N’importe quand',
   matin: 'Matin',
@@ -80,6 +83,9 @@ export default function AccueilScreen() {
   const router = useRouter();
   const profile = useProfile();
   const { celebrate } = useReward();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const PRIORITE_COLOR = useMemo(() => prioriteColors(colors), [colors]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newTitle, setNewTitle] = useState('');
@@ -1023,7 +1029,9 @@ export default function AccueilScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function makeStyles(colors: ThemeColors) {
+  const typography = makeTypography(colors);
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, paddingHorizontal: spacing.lg, paddingTop: spacing.lg },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background },
   title: { ...typography.title, marginBottom: spacing.xs },
@@ -1183,4 +1191,5 @@ const styles = StyleSheet.create({
   braindumpCancel: { color: colors.textMuted, fontSize: 14 },
   braindumpSubmit: { backgroundColor: colors.primary, borderRadius: 20, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg },
   braindumpSubmitText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 14 },
-});
+  });
+}

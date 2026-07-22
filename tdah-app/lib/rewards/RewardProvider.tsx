@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type PropsWithChildren } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
 import { AccessibilityInfo, Animated, StyleSheet, Text } from 'react-native';
 import { pickReward, type Reward } from './rewardPool';
-import { colors, spacing, fonts } from '../../constants/theme';
+import { spacing, fonts, type ThemeColors } from '../../constants/theme';
+import { useTheme } from '../theme/ThemeProvider';
 
 type RewardContextValue = {
   celebrate: (gamificationPref: string) => void;
@@ -13,6 +14,8 @@ export function RewardProvider({ children }: PropsWithChildren) {
   const [current, setCurrent] = useState<Reward | null>(null);
   const opacity = useRef(new Animated.Value(0)).current;
   const reduceMotion = useRef(false);
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
 
   // Respecte le réglage "Réduire les animations" du téléphone — l'animation
   // (même discrète) peut capter l'attention de façon disproportionnée chez
@@ -66,15 +69,17 @@ export function useReward() {
   return useContext(RewardContext);
 }
 
-const styles = StyleSheet.create({
-  toast: {
-    position: 'absolute',
-    top: 80,
-    alignSelf: 'center',
-    backgroundColor: colors.primary,
-    borderRadius: 20,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
-  },
-  toastText: { color: '#fff', fontSize: 15, fontFamily: fonts.semibold },
-});
+function makeStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    toast: {
+      position: 'absolute',
+      top: 80,
+      alignSelf: 'center',
+      backgroundColor: colors.primary,
+      borderRadius: 20,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.lg,
+    },
+    toastText: { color: '#fff', fontSize: 15, fontFamily: fonts.semibold },
+  });
+}

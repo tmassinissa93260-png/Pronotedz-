@@ -1,6 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
-import { colors } from '../constants/theme';
+import { useTheme } from '../lib/theme/ThemeProvider';
 
 // Anneau de progression façon Tiimo — remplace le simple texte de minuteur
 // par un repère visuel périphérique, plus facile à lire d'un coup d'œil
@@ -12,6 +12,7 @@ const RADIUS = (SIZE - STROKE) / 2;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 export function CircularTimer({ progress, children }: { progress: number; children: React.ReactNode }) {
+  const { colors } = useTheme();
   const clamped = Math.max(0, Math.min(1, progress));
   const dashOffset = CIRCUMFERENCE * (1 - clamped);
 
