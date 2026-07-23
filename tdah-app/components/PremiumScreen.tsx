@@ -29,7 +29,7 @@ export function PremiumScreen({ label, children }: { label: string; children: Re
       <View style={styles.centered}>
         <Ionicons name="lock-closed-outline" size={40} color={colors.primary} />
         <Text style={styles.title}>{label}</Text>
-        <Text style={styles.body}>Cette fonctionnalité fait partie de l'abonnement — l'app reste gratuite pour ton planning quotidien et tes check-ins.</Text>
+        <Text style={styles.body}>Cette fonctionnalité fait partie de l'abonnement — l'app reste gratuite pour le planning, le focus et les check-ins du quotidien.</Text>
         <Pressable style={styles.button} onPress={() => router.push('/paiement')}>
           <Text style={styles.buttonText}>Voir les offres</Text>
         </Pressable>

@@ -65,7 +65,7 @@ export default function PaiementScreen() {
               ? `Ton essai gratuit se termine dans ${essaiJoursRestants} jour${essaiJoursRestants > 1 ? 's' : ''} — passe à l’abonnement maintenant pour ne rien perdre ensuite.`
               : statut === 'annule' || statut === 'expire'
               ? 'Ton abonnement précédent est terminé — tu peux le reprendre à tout moment.'
-              : 'Ton essai gratuit est terminé, mais l’app reste utilisable pour ton planning quotidien.'}
+              : 'Ton essai gratuit est terminé, mais l’app reste utilisable pour le planning et le focus au quotidien.'}
           </Text>
 
           <Pressable style={styles.planCard} onPress={() => choisirPlan('mensuel')} disabled={starting !== null}>

@@ -21,6 +21,7 @@ import { planFromBraindump, planWeekFromBraindump } from '../../lib/ai/braindump
 import { interpretScheduleCommand } from '../../lib/ai/scheduleAssistant';
 import { getHighDreadMomentStats, type MomentStats } from '../../lib/supabase/momentStats';
 import { usePremiumGate } from '../../lib/billing/stripe';
+import { useAiQuota } from '../../lib/billing/aiQuota';
 import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../../constants/theme';
 import { useTheme } from '../../lib/theme/ThemeProvider';
 import { useAuth } from '../../lib/supabase/AuthProvider';
@@ -88,6 +89,7 @@ export default function AccueilScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const PRIORITE_COLOR = useMemo(() => prioriteColors(colors), [colors]);
   const { isPremium, gate, statut } = usePremiumGate();
+  const { canUse: aiQuotaOk, remaining: aiRemaining, limit: aiLimit, recordUsage: markAiUsage } = useAiQuota();
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -343,6 +345,7 @@ export default function AccueilScreen() {
         }));
       const result = await interpretScheduleCommand(session.user.id, texte, taches);
       setAssistantMessages((prev) => [...prev, { role: 'assistant', text: result.message }]);
+      await markAiUsage();
 
       if (result.action === 'decaler_tout') {
         await delayRemainingTasks(result.minutes ?? 10);
@@ -424,6 +427,7 @@ export default function AccueilScreen() {
       setBraindumpText('');
       setBraindumpVisible(false);
       await loadTasks();
+      await markAiUsage();
       const lieu = braindumpScope === 'semaine' ? 'ta semaine' : 'ta journée';
       Alert.alert('Planning généré', `${count} tâche${count > 1 ? 's' : ''} ajoutée${count > 1 ? 's' : ''} à ${lieu}.`);
     } catch {
@@ -559,13 +563,31 @@ export default function AccueilScreen() {
     completeTask(task);
   }
 
+  // IA gratuite mais LIMITÉE (façon Tiimo), jamais totalement bloquée — le
+  // blocage complet d'une fonctionnalité déjà essayée est le vrai
+  // déclencheur de désinstalls/avis 1 étoile. Usage illimité en premium.
+  function requireAi(label: string, action: () => void) {
+    if (aiQuotaOk) {
+      action();
+      return;
+    }
+    Alert.alert(
+      'Limite gratuite atteinte',
+      `Tu as utilisé tes ${aiLimit} essais gratuits de ${label} ce mois-ci — l’app reste gratuite pour le planning, le focus et les check-ins du quotidien. Passe à l’abonnement pour un usage illimité.`,
+      [
+        { text: 'Plus tard', style: 'cancel' },
+        { text: 'Voir les offres', onPress: () => router.push('/paiement') },
+      ]
+    );
+  }
+
   // Menu "Outils" : regroupe les actions secondaires derrière un seul bouton
   // plutôt que d'aligner 6 chips en permanence dans l'en-tête — la ligne de
   // boutons avait fini par déborder sur deux lignes au fil des ajouts.
-  const TOOLS: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; premium?: boolean }[] = [
-    { icon: 'sparkles-outline', label: 'Assistant', onPress: () => gate('L’assistant conversationnel', () => setAssistantVisible(true)), premium: true },
-    { icon: 'albums-outline', label: 'Backlog', onPress: () => gate('Le backlog', () => router.push('/backlog')), premium: true },
-    { icon: 'repeat-outline', label: 'Routines', onPress: () => gate('Les routines récurrentes', () => router.push('/routines')), premium: true },
+  const TOOLS: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; premium?: boolean; quota?: boolean }[] = [
+    { icon: 'sparkles-outline', label: 'Assistant', onPress: () => requireAi('l’assistant conversationnel', () => setAssistantVisible(true)), quota: true },
+    { icon: 'albums-outline', label: 'Backlog', onPress: () => router.push('/backlog') },
+    { icon: 'repeat-outline', label: 'Routines', onPress: () => router.push('/routines') },
     { icon: 'moon-outline', label: 'Fin de journée', onPress: () => router.push('/rituel-fin-journee') },
     { icon: 'leaf-outline', label: 'Respirer', onPress: () => router.push('/respiration') },
     { icon: 'bed-outline', label: 'Sommeil', onPress: () => gate('Le suivi du sommeil', () => router.push('/sommeil')), premium: true },
@@ -612,10 +634,10 @@ export default function AccueilScreen() {
       </View>
 
       <View style={styles.headerButtons}>
-        <Pressable style={styles.braindumpButton} onPress={() => gate('Le Vide-tête', () => setBraindumpVisible(true))}>
+        <Pressable style={styles.braindumpButton} onPress={() => requireAi('Vide-tête', () => setBraindumpVisible(true))}>
           <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
           <Text style={styles.braindumpButtonText}>Vide-tête</Text>
-          {!isPremium && <Ionicons name="sparkles" size={11} color={colors.primary} />}
+          {!isPremium && <Text style={styles.aiQuotaBadge}>{aiRemaining}</Text>}
         </Pressable>
         <Pressable
           style={styles.braindumpButton}
@@ -872,7 +894,7 @@ export default function AccueilScreen() {
                 </View>
                 <Pressable
                   style={styles.decomposeButton}
-                  onPress={() => gate('Le découpage de tâche par l’IA', () => decompose(item.id, item.titre, item.niveau_dread))}
+                  onPress={() => decompose(item.id, item.titre, item.niveau_dread)}
                   disabled={decomposingId === item.id}
                 >
                   {decomposingId === item.id ? (
@@ -881,7 +903,6 @@ export default function AccueilScreen() {
                     <>
                       <Ionicons name="sparkles-outline" size={16} color={colors.primary} />
                       <Text style={styles.decomposeText}>Découper avec l’IA</Text>
-                      {!isPremium && <Ionicons name="sparkles" size={11} color={colors.primary} />}
                     </>
                   )}
                 </Pressable>
@@ -1029,6 +1050,9 @@ export default function AccueilScreen() {
                     <Text style={styles.premiumChipText}>✨ Premium</Text>
                   </View>
                 )}
+                {tool.quota && !isPremium && (
+                  <Text style={styles.toolQuotaBadge}>{aiRemaining}/{aiLimit}</Text>
+                )}
               </Pressable>
             ))}
             <Pressable onPress={() => setToolsMenuVisible(false)} style={{ marginTop: spacing.sm }}>
@@ -1134,6 +1158,16 @@ function makeStyles(colors: ThemeColors) {
     paddingHorizontal: spacing.sm + 2,
   },
   braindumpButtonText: { color: colors.primary, fontSize: 12, fontFamily: fonts.semibold },
+  aiQuotaBadge: {
+    fontSize: 10,
+    color: colors.textMuted,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    fontFamily: fonts.semibold,
+  },
+  toolQuotaBadge: { marginLeft: 'auto', fontSize: 11, color: colors.textMuted, fontFamily: fonts.semibold },
   premiumChip: {
     marginLeft: 'auto',
     backgroundColor: colors.accentMuted,
