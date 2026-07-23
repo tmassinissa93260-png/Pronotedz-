@@ -22,24 +22,27 @@ export const lightColors = {
   danger: '#E0564F',
 };
 
-// Mode sombre : pas de noir pur (halation/éblouissement plus fort en faible
-// luminosité, inconfortable pour un usage prolongé) — un anthracite à peine
-// teinté violet, cohérent avec l'indigo de la marque. Couleurs vives éclaircies
-// pour rester lisibles (contraste) sur fond sombre, jamais juste "inversées".
+// Mode sombre : noir bleu nuit — pas un noir plat façon Tiimo (qui perd tout
+// relief entre les cartes et le fond), et pas non plus de noir pur (halation/
+// éblouissement plus fort en faible luminosité, inconfortable en usage
+// prolongé). La base est un anthracite à dominante bleu nuit plutôt que
+// violette : le bleu nuit lit plus "calme, nuit, sommeil" — cohérent avec un
+// compagnon qu'on ouvre aussi le soir — tandis que l'indigo de la marque,
+// légèrement rafraîchi vers le bleu, garde son identité sans détonner dessus.
 export const darkColors = {
-  background: '#17151F',
-  surface: '#211E2C',
-  surfaceAlt: '#2A2638',
-  border: '#332F42',
-  primary: '#8A7FF5',
-  primaryDark: '#6C61D8',
-  primaryMuted: '#2E2A4A',
+  background: '#0A0D16',
+  surface: '#12151F',
+  surfaceAlt: '#1B2032',
+  border: '#262C40',
+  primary: '#7C82F0',
+  primaryDark: '#5F63D6',
+  primaryMuted: '#232A4A',
   accent: '#F0A47E',
-  accentMuted: '#3A2B26',
-  text: '#EDEBF5',
-  textMuted: '#9A96AC',
+  accentMuted: '#332720',
+  text: '#ECEFF8',
+  textMuted: '#8891AC',
   success: '#57C08A',
-  successMuted: '#1E3328',
+  successMuted: '#1B3327',
   warning: '#E8A85C',
   danger: '#EA6F68',
 };
