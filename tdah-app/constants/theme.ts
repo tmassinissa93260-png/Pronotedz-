@@ -102,14 +102,22 @@ export const shadow = {
 };
 
 // Manrope : géométrique, terminaisons arrondies — moderne sans être froid,
-// cohérent avec le ton bienveillant de l'app. Une seule famille, plusieurs
-// graisses, pour rester simple à maintenir sur tous les écrans.
+// cohérent avec le ton bienveillant de l'app. Reste la seule famille pour
+// tout ce qui est fonctionnel (boutons, corps de texte, étiquettes) : c'est
+// elle qui porte la lisibilité au quotidien.
+//
+// Fraunces (serif) vient seulement sur le titre de chaque écran principal —
+// exactement où Tiimo la réserve elle-même ("Jeudi", "Concentration", "À
+// faire"). Le pairing serif/grotesque est ce qui donne à une app l'air
+// "designée" plutôt que gabarit générique ; l'utiliser partout diluerait cet
+// effet, d'où la retenue à un seul point d'usage par écran.
 export const fonts = {
   regular: 'Manrope_400Regular',
   medium: 'Manrope_500Medium',
   semibold: 'Manrope_600SemiBold',
   bold: 'Manrope_700Bold',
   extrabold: 'Manrope_800ExtraBold',
+  displaySemibold: 'Fraunces_600SemiBold',
 };
 
 // Espacement généreux plutôt que resserré : la recherche sur la lecture chez
@@ -119,7 +127,7 @@ export const fonts = {
 // line-height nettement supérieur à la taille de police par défaut.
 export function makeTypography(c: ThemeColors) {
   return {
-    title: { fontSize: 28, lineHeight: 36, fontFamily: fonts.extrabold, color: c.text, letterSpacing: 0.1 },
+    title: { fontSize: 32, lineHeight: 39, fontFamily: fonts.displaySemibold, color: c.text, letterSpacing: 0 },
     heading: { fontSize: 20, lineHeight: 27, fontFamily: fonts.bold, color: c.text },
     body: { fontSize: 16, lineHeight: 24, fontFamily: fonts.regular, color: c.text },
     caption: { fontSize: 13, lineHeight: 19, fontFamily: fonts.medium, color: c.textMuted, letterSpacing: 0.1 },
