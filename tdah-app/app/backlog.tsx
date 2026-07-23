@@ -135,7 +135,7 @@ export default function BacklogScreen() {
                 <Pressable style={styles.nowButton} onPress={() => placeNow(item.id)}>
                   <Text style={styles.nowButtonText}>Maintenant</Text>
                 </Pressable>
-                <Pressable hitSlop={8} onPress={() => setOpenTaskId(isOpen ? null : item.id)}>
+                <Pressable hitSlop={12} onPress={() => setOpenTaskId(isOpen ? null : item.id)}>
                   <Ionicons name={isOpen ? 'chevron-up' : 'time-outline'} size={20} color={colors.textMuted} />
                 </Pressable>
               </View>
@@ -181,7 +181,7 @@ function makeStyles(colors: ThemeColors) {
     iconEmoji: { fontSize: 16 },
     cardTitle: { ...typography.body, fontFamily: fonts.semibold },
     caption: { ...typography.caption, marginTop: 2 },
-    nowButton: { backgroundColor: colors.primaryMuted, borderRadius: radius.pill, paddingVertical: 6, paddingHorizontal: spacing.sm },
+    nowButton: { backgroundColor: colors.primaryMuted, borderRadius: radius.pill, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, minHeight: 44, justifyContent: 'center' },
     nowButtonText: { color: colors.primary, fontSize: 12, fontFamily: fonts.semibold },
     timeRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
     timeInput: {

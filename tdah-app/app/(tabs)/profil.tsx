@@ -16,7 +16,7 @@ const THEME_OPTIONS: { value: ThemePreference; label: string; icon: keyof typeof
 
 export default function ProfilScreen() {
   const { session } = useAuth();
-  const { colors, preference, setPreference, focusMode, setFocusMode } = useTheme();
+  const { colors, preference, setPreference, focusMode, setFocusMode, hapticsEnabled, setHapticsEnabled } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { statut, isEssaiActif, essaiJoursRestants, reload } = useSubscription();
 
@@ -94,6 +94,19 @@ export default function ProfilScreen() {
             onValueChange={setFocusMode}
             trackColor={{ false: colors.border, true: colors.primaryMuted }}
             thumbColor={focusMode ? colors.primary : undefined}
+          />
+        </View>
+
+        <View style={styles.focusModeRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.focusModeTitle}>Retour haptique</Text>
+            <Text style={styles.caption}>Petite vibration légère quand tu coches une tâche. Désactivable à tout moment.</Text>
+          </View>
+          <Switch
+            value={hapticsEnabled}
+            onValueChange={setHapticsEnabled}
+            trackColor={{ false: colors.border, true: colors.primaryMuted }}
+            thumbColor={hapticsEnabled ? colors.primary : undefined}
           />
         </View>
       </View>
@@ -190,12 +203,14 @@ function makeStyles(colors: ThemeColors) {
     themeChip: {
       flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
       gap: 6,
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: radius.pill,
-      paddingVertical: spacing.xs,
+      paddingVertical: spacing.sm,
       paddingHorizontal: spacing.md,
+      minHeight: 44,
     },
     themeChipActive: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
     themeChipText: { fontSize: 13, fontFamily: fonts.medium, color: colors.textMuted },

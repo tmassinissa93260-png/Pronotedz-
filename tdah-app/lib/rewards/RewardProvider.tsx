@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
-import { AccessibilityInfo, Animated, StyleSheet, Text } from 'react-native';
+import { AccessibilityInfo, Animated, Platform, StyleSheet, Text } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { pickReward, type Reward } from './rewardPool';
 import { spacing, fonts, type ThemeColors } from '../../constants/theme';
 import { useTheme } from '../theme/ThemeProvider';
@@ -14,7 +15,7 @@ export function RewardProvider({ children }: PropsWithChildren) {
   const [current, setCurrent] = useState<Reward | null>(null);
   const opacity = useRef(new Animated.Value(0)).current;
   const reduceMotion = useRef(false);
-  const { colors, focusMode } = useTheme();
+  const { colors, focusMode, hapticsEnabled } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
   // Respecte le réglage "Réduire les animations" du téléphone — l'animation
@@ -33,6 +34,9 @@ export function RewardProvider({ children }: PropsWithChildren) {
   const celebrate = useCallback(
     (gamificationPref: string) => {
       const reward = pickReward(gamificationPref);
+      if (hapticsEnabled && Platform.OS !== 'web') {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+      }
       if (!reward || (!reward.text && !reward.emoji)) return; // le "rien" fait aussi partie du cycle
 
       setCurrent(reward);
@@ -48,7 +52,7 @@ export function RewardProvider({ children }: PropsWithChildren) {
         Animated.timing(opacity, { toValue: 0, duration: 300, useNativeDriver: true }),
       ]).start(() => setCurrent(null));
     },
-    [opacity, focusMode]
+    [opacity, focusMode, hapticsEnabled]
   );
 
   return (

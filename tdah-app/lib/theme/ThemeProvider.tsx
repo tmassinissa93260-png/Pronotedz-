@@ -6,6 +6,7 @@ import { lightColors, darkColors, applyFocusMode, makeTypography, shadow, spacin
 export type ThemePreference = 'system' | 'light' | 'dark';
 const STORAGE_KEY = 'theme_preference';
 const FOCUS_MODE_KEY = 'focus_mode';
+const HAPTICS_KEY = 'haptics_enabled';
 
 type ThemeContextValue = {
   scheme: 'light' | 'dark';
@@ -19,6 +20,8 @@ type ThemeContextValue = {
   setPreference: (p: ThemePreference) => void;
   focusMode: boolean;
   setFocusMode: (v: boolean) => void;
+  hapticsEnabled: boolean;
+  setHapticsEnabled: (v: boolean) => void;
 };
 
 const light = { scheme: 'light' as const, colors: lightColors, typography: makeTypography(lightColors), spacing, radius, shadow, fonts };
@@ -28,12 +31,15 @@ const ThemeContext = createContext<ThemeContextValue>({
   setPreference: () => {},
   focusMode: false,
   setFocusMode: () => {},
+  hapticsEnabled: true,
+  setHapticsEnabled: () => {},
 });
 
 export function ThemeProvider({ children }: PropsWithChildren) {
   const systemScheme = useColorScheme();
-  const [preference, setPreferenceState] = useState<ThemePreference>('system');
+  const [preference, setPreferenceState] = useState<ThemePreference>('dark');
   const [focusMode, setFocusModeState] = useState(false);
+  const [hapticsEnabled, setHapticsEnabledState] = useState(true);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY).then((v) => {
@@ -41,6 +47,9 @@ export function ThemeProvider({ children }: PropsWithChildren) {
     });
     AsyncStorage.getItem(FOCUS_MODE_KEY).then((v) => {
       if (v === '1') setFocusModeState(true);
+    });
+    AsyncStorage.getItem(HAPTICS_KEY).then((v) => {
+      if (v === '0') setHapticsEnabledState(false);
     });
   }, []);
 
@@ -52,6 +61,11 @@ export function ThemeProvider({ children }: PropsWithChildren) {
   function setFocusMode(v: boolean) {
     setFocusModeState(v);
     AsyncStorage.setItem(FOCUS_MODE_KEY, v ? '1' : '0');
+  }
+
+  function setHapticsEnabled(v: boolean) {
+    setHapticsEnabledState(v);
+    AsyncStorage.setItem(HAPTICS_KEY, v ? '1' : '0');
   }
 
   const scheme: 'light' | 'dark' = preference === 'system' ? (systemScheme === 'dark' ? 'dark' : 'light') : preference;
@@ -71,8 +85,10 @@ export function ThemeProvider({ children }: PropsWithChildren) {
       setPreference,
       focusMode,
       setFocusMode,
+      hapticsEnabled,
+      setHapticsEnabled,
     };
-  }, [scheme, preference, focusMode]);
+  }, [scheme, preference, focusMode, hapticsEnabled]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

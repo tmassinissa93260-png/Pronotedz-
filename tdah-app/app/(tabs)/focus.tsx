@@ -17,6 +17,7 @@ import { CircularTimer } from '../../components/CircularTimer';
 import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../../constants/theme';
 import { useTheme } from '../../lib/theme/ThemeProvider';
 import { usePremiumGate } from '../../lib/billing/stripe';
+import { setNotificationsSuspended } from '../../lib/notifications';
 
 type Mode = 'responsabilisation' | 'coregulation';
 const CHECKIN_THRESHOLD_MINUTES = 45;
@@ -54,6 +55,7 @@ export default function FocusScreen() {
   const [paused, setPaused] = useState(false);
   const [focusSubtasks, setFocusSubtasks] = useState<{ id: string; titre: string; fait: boolean }[]>([]);
   const breathAnim = useRef(new Animated.Value(1)).current;
+  const transitionOpacity = useRef(new Animated.Value(0)).current;
   const focusedTaskTitle = tacheParam ? decodeURIComponent(tacheParam) : null;
 
   const [bruitActif, setBruitActif] = useState<Bruit>('aucun');
@@ -89,6 +91,14 @@ export default function FocusScreen() {
       bruitRosePlayer.pause();
       setBruitActif('aucun');
     }
+  }, [activeSession]);
+
+  // Coupe l'affichage des notifications tant que la session est active — pas
+  // de rupture d'attention pendant le focus, tout reprend normalement à la
+  // sortie (fin normale ou anticipée, l'un ou l'autre passe par ce même effet).
+  useEffect(() => {
+    setNotificationsSuspended(!!activeSession);
+    return () => setNotificationsSuspended(false);
   }, [activeSession]);
 
   // Sous-tâches visibles et cochables pendant la session (façon Tiimo) —
@@ -298,6 +308,18 @@ export default function FocusScreen() {
     return () => loop.stop();
   }, [activeSession?.mode, focusMode]);
 
+  // Transition douce entre l'écran de réglage et la session active (et
+  // retour) — un fondu plutôt qu'une bascule brutale entre les deux vues.
+  useEffect(() => {
+    transitionOpacity.setValue(0);
+    Animated.timing(transitionOpacity, {
+      toValue: 1,
+      duration: 350,
+      easing: Easing.out(Easing.ease),
+      useNativeDriver: true,
+    }).start();
+  }, [activeSession, duoPhase]);
+
   // "Juste 5 secondes" (hack psychologique) : le vrai obstacle TDAH n'est pas
   // de faire la tâche mais de la commencer. Demander "5 secondes" plutôt que
   // "une session de 25 min" contourne la paralysie de démarrage — une fois la
@@ -384,7 +406,7 @@ export default function FocusScreen() {
 
   if (duoPhase === 'actif') {
     return (
-      <View style={styles.sessionContainer}>
+      <Animated.View style={[styles.sessionContainer, { opacity: transitionOpacity }]}>
         <Text style={styles.checkinLabel}>👥 Session à deux · {duoPeerIds.length > 0 ? '1 binôme connecté' : 'en solo pour l\'instant'}</Text>
         <Text style={styles.timer}>{duoMinutes}:{duoSeconds}</Text>
         <Text style={styles.sessionMode}>{duoTargetMinutes != null ? `Objectif ${duoTargetMinutes} min` : 'Durée libre'}</Text>
@@ -403,13 +425,13 @@ export default function FocusScreen() {
             <Text style={styles.duoToastText}>{duoToast}</Text>
           </View>
         )}
-      </View>
+      </Animated.View>
     );
   }
 
   if (activeSession) {
     return (
-      <View style={styles.sessionContainer}>
+      <Animated.View style={[styles.sessionContainer, { opacity: transitionOpacity }]}>
         {focusedTaskTitle && <Text style={styles.focusedTask}>🎯 {focusedTaskTitle}</Text>}
         {activeSession.mode === 'coregulation' && !paused && (
           <Animated.View style={[styles.breathCircle, { transform: [{ scale: breathAnim }] }]} />
@@ -491,12 +513,12 @@ export default function FocusScreen() {
             </View>
           </View>
         </Modal>
-      </View>
+      </Animated.View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <Animated.View style={[styles.container, { opacity: transitionOpacity }]}>
       <Text style={styles.title}>Focus</Text>
       <Text style={styles.subtitle}>Travailler à côté de quelqu’un — même une présence IA — aide à démarrer et à tenir.</Text>
 
@@ -643,7 +665,7 @@ export default function FocusScreen() {
           </View>
         </View>
       </Modal>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -692,7 +714,7 @@ function makeStyles(colors: ThemeColors) {
   sessionMode: { ...typography.caption, marginTop: spacing.xs, marginBottom: spacing.sm },
   moveAllowedCaption: { ...typography.caption, textAlign: 'center', maxWidth: 280, marginBottom: spacing.md },
   bruitRow: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.xl },
-  bruitChip: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingVertical: 6, paddingHorizontal: spacing.md },
+  bruitChip: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingVertical: spacing.md, paddingHorizontal: spacing.md, minHeight: 44, justifyContent: 'center' },
   bruitChipActive: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
   bruitChipText: { fontSize: 13, color: colors.textMuted },
   bruitChipTextActive: { color: colors.primary, fontFamily: fonts.semibold },

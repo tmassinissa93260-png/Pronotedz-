@@ -97,7 +97,6 @@ export default function AccueilScreen() {
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [newTitle, setNewTitle] = useState('');
   const [estimationInput, setEstimationInput] = useState<Record<string, string>>({});
   const [timeInput, setTimeInput] = useState<Record<string, string>>({});
   const [siAlorsEditId, setSiAlorsEditId] = useState<string | null>(null);
@@ -118,6 +117,7 @@ export default function AccueilScreen() {
   const [retardPickerVisible, setRetardPickerVisible] = useState(false);
   const [iconPickerTaskId, setIconPickerTaskId] = useState<string | null>(null);
   const [pickerColor, setPickerColor] = useState(COLOR_CHOICES[0]);
+  const [overflowTask, setOverflowTask] = useState<Task | null>(null);
   const [assistantVisible, setAssistantVisible] = useState(false);
   const [assistantInput, setAssistantInput] = useState('');
   const [assistantLoading, setAssistantLoading] = useState(false);
@@ -128,8 +128,6 @@ export default function AccueilScreen() {
   const [ghostReplyContext, setGhostReplyContext] = useState('');
   const [ghostReplyLoading, setGhostReplyLoading] = useState(false);
   const [ghostReplyResult, setGhostReplyResult] = useState('');
-  const nightAddCountRef = useRef(0);
-  const nightWarnedRef = useRef(false);
   const [retourApresPauseVisible, setRetourApresPauseVisible] = useState(false);
   const [joursAbsence, setJoursAbsence] = useState(0);
   const retourPauseShownRef = useRef(false);
@@ -508,37 +506,6 @@ export default function AccueilScreen() {
     }
   }
 
-  async function addTask() {
-    if (!newTitle.trim() || !session) return;
-    const { error } = await supabase.from('tasks').insert({
-      user_id: session.user.id,
-      titre: newTitle.trim(),
-      date_prevue: selectedDate,
-    });
-    if (error) {
-      Alert.alert('Erreur', error.message);
-      return;
-    }
-    setNewTitle('');
-    loadTasks();
-    signalerAjoutNocturne();
-  }
-
-  // Maintenance prédictive nocturne : beaucoup de tâches ajoutées d'un coup
-  // en pleine nuit est un signe classique d'hyperfocus — jamais bloquant
-  // (on ne réprime rien), juste un signal doux et unique par nuit pour
-  // inviter à laisser reposer ces idées plutôt que s'y engager à froid.
-  function signalerAjoutNocturne() {
-    if (new Date().getHours() >= 5) return;
-    nightAddCountRef.current += 1;
-    if (nightAddCountRef.current < 6 || nightWarnedRef.current) return;
-    nightWarnedRef.current = true;
-    Alert.alert(
-      'Le système chauffe 🌙',
-      'Beaucoup d’idées d’un coup à cette heure-ci — bon signe d’énergie. Elles sont bien enregistrées ; pense à les relire à tête reposée demain avant de t’y engager.'
-    );
-  }
-
   async function saveEstimation(taskId: string) {
     const value = parseInt(estimationInput[taskId] ?? '', 10);
     if (!value || Number.isNaN(value)) return;
@@ -843,7 +810,7 @@ export default function AccueilScreen() {
       </View>
 
       <View style={styles.weekRow}>
-        <Pressable hitSlop={8} onPress={() => shiftWeek(-7)}>
+        <Pressable hitSlop={13} onPress={() => shiftWeek(-7)}>
           <Ionicons name="chevron-back" size={18} color={colors.textMuted} />
         </Pressable>
         {weekDays.map((d) => {
@@ -858,7 +825,7 @@ export default function AccueilScreen() {
             </Pressable>
           );
         })}
-        <Pressable hitSlop={8} onPress={() => shiftWeek(7)}>
+        <Pressable hitSlop={13} onPress={() => shiftWeek(7)}>
           <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
         </Pressable>
       </View>
@@ -968,17 +935,17 @@ export default function AccueilScreen() {
           return (
           <View style={[styles.taskCard, item.statut === 'fait' && styles.taskCardDone]}>
             <View style={styles.reorderColumn}>
-              <Pressable hitSlop={4} disabled={index === 0} onPress={() => moveTask(section.data, item.id, -1)}>
+              <Pressable hitSlop={8} disabled={index === 0} onPress={() => moveTask(section.data, item.id, -1)}>
                 <Ionicons name="chevron-up" size={16} color={index === 0 ? colors.border : colors.textMuted} />
               </Pressable>
-              <Pressable hitSlop={4} disabled={index === section.data.length - 1} onPress={() => moveTask(section.data, item.id, 1)}>
+              <Pressable hitSlop={8} disabled={index === section.data.length - 1} onPress={() => moveTask(section.data, item.id, 1)}>
                 <Ionicons name="chevron-down" size={16} color={index === section.data.length - 1 ? colors.border : colors.textMuted} />
               </Pressable>
             </View>
             <View style={styles.taskBody}>
             <View style={styles.taskHeader}>
               {item.statut !== 'fait' && (
-                <Pressable hitSlop={6} onPress={() => cyclePriorite(item)}>
+                <Pressable hitSlop={8} onPress={() => cyclePriorite(item)}>
                   <Ionicons
                     name={item.niveau_priorite ? 'flag' : 'flag-outline'}
                     size={16}
@@ -987,7 +954,7 @@ export default function AccueilScreen() {
                 </Pressable>
               )}
               {item.statut !== 'fait' && (
-                <Pressable hitSlop={6} onPress={() => cycleCoutEnergie(item)}>
+                <Pressable hitSlop={8} onPress={() => cycleCoutEnergie(item)}>
                   <Ionicons
                     name={item.cout_energie ? 'flash' : 'flash-outline'}
                     size={16}
@@ -1029,14 +996,9 @@ export default function AccueilScreen() {
                   <Ionicons name="play-circle-outline" size={20} color={colors.textMuted} />
                 </Pressable>
               )}
-              <Pressable hitSlop={8} onPress={() => gate('La synchronisation calendrier', () => addToCalendar(item))}>
-                <Ionicons name="calendar-outline" size={18} color={colors.textMuted} />
+              <Pressable hitSlop={13} style={styles.overflowButton} onPress={() => setOverflowTask(item)}>
+                <Ionicons name="ellipsis-vertical" size={18} color={colors.textMuted} />
               </Pressable>
-              {item.statut !== 'fait' && (
-                <Pressable hitSlop={8} onPress={() => reportToTomorrow(item.id)}>
-                  <Ionicons name="arrow-redo-outline" size={18} color={colors.textMuted} />
-                </Pressable>
-              )}
             </View>
 
             {item.estimation_minutes && (
@@ -1199,20 +1161,6 @@ export default function AccueilScreen() {
       />
       )}
 
-      <View style={styles.addRow}>
-        <TextInput
-          style={styles.addInput}
-          placeholder="Ajouter une tâche..."
-          placeholderTextColor={colors.textMuted}
-          value={newTitle}
-          onChangeText={setNewTitle}
-          onSubmitEditing={addTask}
-        />
-        <Pressable style={styles.addButton} onPress={addTask}>
-          <Ionicons name="add" size={24} color="#fff" />
-        </Pressable>
-      </View>
-
       <InteroceptionCheckIn
         visible={checkInVisible}
         contexteDeclencheur="session_prolongee_planning"
@@ -1341,6 +1289,41 @@ export default function AccueilScreen() {
             ))}
             <Pressable onPress={() => setToolsMenuVisible(false)} style={{ marginTop: spacing.sm }}>
               <Text style={styles.braindumpCancel}>Fermer</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={!!overflowTask} transparent animationType="fade" onRequestClose={() => setOverflowTask(null)}>
+        <View style={styles.braindumpBackdrop}>
+          <View style={styles.overflowSheet}>
+            <Text style={styles.overflowTitle} numberOfLines={1}>{overflowTask?.titre}</Text>
+            <Pressable
+              style={styles.overflowRow}
+              onPress={() => {
+                const task = overflowTask;
+                setOverflowTask(null);
+                if (task) gate('La synchronisation calendrier', () => addToCalendar(task));
+              }}
+            >
+              <Ionicons name="calendar-outline" size={20} color={colors.text} />
+              <Text style={styles.overflowRowText}>Synchroniser au calendrier</Text>
+            </Pressable>
+            {overflowTask?.statut !== 'fait' && (
+              <Pressable
+                style={styles.overflowRow}
+                onPress={() => {
+                  const task = overflowTask;
+                  setOverflowTask(null);
+                  if (task) reportToTomorrow(task.id);
+                }}
+              >
+                <Ionicons name="arrow-redo-outline" size={20} color={colors.text} />
+                <Text style={styles.overflowRowText}>Reporter à demain</Text>
+              </Pressable>
+            )}
+            <Pressable style={{ marginTop: spacing.sm, alignSelf: 'center', minHeight: 44, justifyContent: 'center' }} onPress={() => setOverflowTask(null)}>
+              <Text style={styles.braindumpCancel}>Annuler</Text>
             </Pressable>
           </View>
         </View>
@@ -1567,6 +1550,7 @@ function makeStyles(colors: ThemeColors) {
   taskBody: { flex: 1 },
   taskHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   taskHeaderMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  overflowButton: { alignItems: 'center', justifyContent: 'center' },
   taskIconBubble: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   taskIconEmoji: { fontSize: 16 },
   taskIconCheckBadge: { position: 'absolute', bottom: -3, right: -3, backgroundColor: colors.surface, borderRadius: 8 },
@@ -1609,29 +1593,12 @@ function makeStyles(colors: ThemeColors) {
     alignSelf: 'flex-start',
   },
   decomposeText: { color: colors.primary, fontSize: 14, fontFamily: fonts.medium },
-  addRow: { flexDirection: 'row', gap: spacing.sm, paddingVertical: spacing.md },
-  addInput: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    fontSize: 16,
-    fontFamily: fonts.regular,
-    color: colors.text,
-  },
-  addButton: {
-    width: 48,
-    height: 48,
-    borderRadius: radius.md,
-    backgroundColor: colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...shadow.soft,
-  },
   braindumpBackdrop: { flex: 1, backgroundColor: 'rgba(28,27,41,0.45)', justifyContent: 'flex-end' },
   braindumpCard: { backgroundColor: colors.surface, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: spacing.lg, paddingBottom: spacing.xl, ...shadow.card },
+  overflowSheet: { backgroundColor: colors.surface, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: spacing.lg, paddingBottom: spacing.xl, ...shadow.card },
+  overflowTitle: { ...typography.caption, color: colors.textMuted, marginBottom: spacing.sm },
+  overflowRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.md, minHeight: 44 },
+  overflowRowText: { ...typography.body, fontFamily: fonts.medium },
   braindumpTitle: { ...typography.heading, marginBottom: spacing.xs },
   braindumpSubtitle: { ...typography.caption, marginBottom: spacing.md },
   braindumpScopeRow: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.md },

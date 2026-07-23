@@ -15,11 +15,21 @@ const MINUTES_BEFORE = 5;
 // l'encontre du "discrète et non intrusive" qu'on vise.
 const FOLLOWUP_AFTER_MINUTES = 10;
 
+// Suspendu automatiquement pendant une session de focus (voir focus.tsx) —
+// transition douce plutôt que rupture : les notifs continuent d'être
+// programmées normalement, seul leur affichage est coupé tant que le mode
+// focus est actif, et tout reprend dès la fin de session.
+let notificationsSuspended = false;
+
+export function setNotificationsSuspended(suspended: boolean) {
+  notificationsSuspended = suspended;
+}
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
+    shouldShowBanner: !notificationsSuspended,
+    shouldShowList: !notificationsSuspended,
+    shouldPlaySound: !notificationsSuspended,
     shouldSetBadge: false,
   }),
 });

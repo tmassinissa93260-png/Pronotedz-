@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase/client';
 import { RewardProvider } from '../lib/rewards/RewardProvider';
 import { ThemeProvider, useTheme } from '../lib/theme/ThemeProvider';
 import { colors } from '../constants/theme';
+import QuickCaptureFab from '../components/QuickCaptureFab';
 
 function RootNavigation() {
   const { session, isLoading } = useAuth();
@@ -47,7 +48,16 @@ function RootNavigation() {
     }
   }, [session, isLoading, segments, onboardingComplete]);
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  const segmentList = segments as string[];
+  const showCapture =
+    !!session && onboardingComplete === true && segmentList[0] !== '(auth)' && segmentList[0] !== 'onboarding' && segmentList[1] !== 'focus';
+
+  return (
+    <View style={{ flex: 1 }}>
+      <Stack screenOptions={{ headerShown: false }} />
+      {showCapture && <QuickCaptureFab />}
+    </View>
+  );
 }
 
 function ThemedApp() {

@@ -158,10 +158,10 @@ export default function RoutinesScreen() {
                 {MOMENT_LABELS[item.moment_journee]} · {item.jours.length === 7 ? 'tous les jours' : `${item.jours.length} j/semaine`}
               </Text>
             </View>
-            <Pressable hitSlop={8} onPress={() => onToggle(item)} style={{ marginRight: spacing.md }}>
+            <Pressable hitSlop={10} onPress={() => onToggle(item)} style={{ marginRight: spacing.md }}>
               <Ionicons name={item.actif ? 'pause-circle-outline' : 'play-circle-outline'} size={24} color={colors.primary} />
             </Pressable>
-            <Pressable hitSlop={8} onPress={() => onDelete(item)}>
+            <Pressable hitSlop={12} onPress={() => onDelete(item)}>
               <Ionicons name="trash-outline" size={20} color={colors.warning} />
             </Pressable>
           </View>
