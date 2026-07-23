@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "tdah-app",
+    "slug": "tdah-app",
+    "version": "1.0.0",
+    "scheme": "tdahapp",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "L'app a besoin d'accéder à ton calendrier pour y ajouter tes tâches si tu le souhaites."
+        }
+      ],
+      "expo-notifications"
+    ],
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
