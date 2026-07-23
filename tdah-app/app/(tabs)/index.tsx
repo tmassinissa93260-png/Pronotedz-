@@ -88,8 +88,9 @@ export default function AccueilScreen() {
   const { colors, focusMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const PRIORITE_COLOR = useMemo(() => prioriteColors(colors), [colors]);
-  const { isPremium, gate } = usePremiumGate();
+  const { isPremium, gate, statut } = usePremiumGate();
   const { canUse: aiQuotaOk, remaining: aiRemaining, limit: aiLimit, recordUsage: markAiUsage } = useAiQuota();
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newTitle, setNewTitle] = useState('');
@@ -256,6 +257,17 @@ export default function AccueilScreen() {
     const fin = new Date(Date.now() + totalMinutes * 60 * 1000);
     return fin.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   }, [tasks]);
+
+  // Nudge premium au bon moment : proposer l'abonnement pendant une lancée
+  // (streak qui passe un palier), pas quand on vient de bloquer quelque
+  // chose. Non-abonné uniquement (couvre gratuit ET essai en cours, pour
+  // convertir avant sa fin) — jamais pour un abonnement déjà actif.
+  const STREAK_MILESTONES = [3, 7, 14, 30, 60, 100];
+  const streakNudge = useMemo(() => {
+    if (statut === 'actif' || nudgeDismissed) return null;
+    if (streakDays == null || !STREAK_MILESTONES.includes(streakDays)) return null;
+    return streakDays;
+  }, [statut, streakDays, nudgeDismissed]);
 
   async function setDread(taskId: string, niveau: number) {
     await supabase.from('tasks').update({ niveau_dread: niveau }).eq('id', taskId);
@@ -664,6 +676,26 @@ export default function AccueilScreen() {
         </Pressable>
       )}
 
+      {streakNudge != null && (
+        <View style={styles.nudgeBanner}>
+          <Text style={styles.nudgeText}>🔥 {streakNudge} jours d’affilée — tu es sur une vraie lancée.</Text>
+          <View style={styles.nudgeActions}>
+            <Pressable onPress={() => setNudgeDismissed(true)}>
+              <Text style={styles.nudgeDismiss}>Plus tard</Text>
+            </Pressable>
+            <Pressable
+              style={styles.nudgeCta}
+              onPress={() => {
+                setNudgeDismissed(true);
+                router.push('/paiement');
+              }}
+            >
+              <Text style={styles.nudgeCtaText}>✨ Passer à l’illimité</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
       {vueMode === 'timeline' ? (
         tasks.length === 0 ? (
           <Text style={styles.empty}>Rien de prévu pour l’instant — ajoute une première tâche en bas, ou décris ta journée avec "Vide-tête".</Text>
@@ -1014,7 +1046,9 @@ export default function AccueilScreen() {
                 <Ionicons name={tool.icon} size={20} color={colors.primary} />
                 <Text style={styles.toolRowText}>{tool.label}</Text>
                 {tool.premium && !isPremium && (
-                  <Ionicons name="lock-closed" size={13} color={colors.textMuted} style={{ marginLeft: 'auto' }} />
+                  <View style={styles.premiumChip}>
+                    <Text style={styles.premiumChipText}>✨ Premium</Text>
+                  </View>
                 )}
                 {tool.quota && !isPremium && (
                   <Text style={styles.toolQuotaBadge}>{aiRemaining}/{aiLimit}</Text>
@@ -1097,6 +1131,17 @@ function makeStyles(colors: ThemeColors) {
   },
   grenouilleText: { ...typography.body, fontSize: 14, fontFamily: fonts.semibold, color: colors.text },
   grenouilleAction: { ...typography.caption, color: colors.accent, marginTop: 2, fontFamily: fonts.semibold },
+  nudgeBanner: {
+    backgroundColor: colors.primaryMuted,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.md,
+  },
+  nudgeText: { ...typography.body, fontSize: 14, fontFamily: fonts.semibold, color: colors.text, marginBottom: spacing.xs },
+  nudgeActions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: spacing.md },
+  nudgeDismiss: { color: colors.textMuted, fontSize: 13, fontFamily: fonts.medium },
+  nudgeCta: { backgroundColor: colors.primary, borderRadius: radius.pill, paddingVertical: 6, paddingHorizontal: spacing.md },
+  nudgeCtaText: { color: '#fff', fontSize: 13, fontFamily: fonts.semibold },
   dreadRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: spacing.xs },
   coachWarning: { backgroundColor: colors.accentMuted, borderRadius: radius.sm, padding: spacing.sm, marginTop: spacing.sm },
   coachWarningText: { ...typography.caption, fontSize: 12, color: colors.text },
@@ -1123,6 +1168,14 @@ function makeStyles(colors: ThemeColors) {
     fontFamily: fonts.semibold,
   },
   toolQuotaBadge: { marginLeft: 'auto', fontSize: 11, color: colors.textMuted, fontFamily: fonts.semibold },
+  premiumChip: {
+    marginLeft: 'auto',
+    backgroundColor: colors.accentMuted,
+    borderRadius: radius.pill,
+    paddingVertical: 2,
+    paddingHorizontal: spacing.sm,
+  },
+  premiumChipText: { fontSize: 11, color: colors.accent, fontFamily: fonts.semibold },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: spacing.md, marginBottom: spacing.xs },
   sectionHeader: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, fontFamily: fonts.bold },
   sectionCount: { fontFamily: fonts.regular, textTransform: 'none', letterSpacing: 0 },

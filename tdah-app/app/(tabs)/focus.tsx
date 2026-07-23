@@ -459,7 +459,14 @@ export default function FocusScreen() {
       </Pressable>
 
       <Pressable style={[styles.modeCard, styles.duoCard]} onPress={() => gate('Focus à deux', () => setDuoModalVisible(true))}>
-        <Text style={styles.modeTitle}>👥 Focus à deux {!isPremium && '🔒'}</Text>
+        <View style={styles.duoTitleRow}>
+          <Text style={styles.modeTitle}>👥 Focus à deux</Text>
+          {!isPremium && (
+            <View style={styles.premiumChip}>
+              <Text style={styles.premiumChipText}>✨ Premium</Text>
+            </View>
+          )}
+        </View>
         <Text style={styles.modeDesc}>Une vraie personne, en même temps que toi, avec un minuteur partagé. Pas de vidéo — juste une présence réelle.</Text>
       </Pressable>
 
@@ -586,6 +593,15 @@ function makeStyles(colors: ThemeColors) {
   },
   modeTitle: { ...typography.heading, marginBottom: spacing.xs },
   modeDesc: { ...typography.body, color: colors.textMuted },
+  duoTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  premiumChip: {
+    backgroundColor: colors.accentMuted,
+    borderRadius: radius.pill,
+    paddingVertical: 2,
+    paddingHorizontal: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  premiumChipText: { fontSize: 11, color: colors.accent, fontFamily: fonts.semibold },
   sessionContainer: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: spacing.lg },
   breathCircle: { width: 140, height: 140, borderRadius: 70, backgroundColor: colors.primaryMuted, marginBottom: spacing.xl },
   checkinLabel: { ...typography.body, marginBottom: spacing.xl },

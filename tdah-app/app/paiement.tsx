@@ -20,7 +20,7 @@ export default function PaiementScreen() {
   const { session } = useAuth();
   const { colors } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { statut, isPremium, loading } = useSubscription();
+  const { statut, isEssaiActif, essaiJoursRestants, loading } = useSubscription();
   const [starting, setStarting] = useState<Plan | null>(null);
 
   // La confirmation réelle (vérification auprès de Stripe + activation) se
@@ -53,7 +53,7 @@ export default function PaiementScreen() {
 
       {loading ? (
         <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xl }} />
-      ) : isPremium ? (
+      ) : statut === 'actif' ? (
         <View style={styles.activeBox}>
           <Ionicons name="checkmark-circle" size={28} color={colors.success} />
           <Text style={styles.activeText}>Ton abonnement est actif — merci de soutenir l’app 💜</Text>
@@ -61,9 +61,11 @@ export default function PaiementScreen() {
       ) : (
         <>
           <Text style={styles.subtitle}>
-            {statut === 'annule' || statut === 'expire'
+            {isEssaiActif
+              ? `Ton essai gratuit se termine dans ${essaiJoursRestants} jour${essaiJoursRestants > 1 ? 's' : ''} — passe à l’abonnement maintenant pour ne rien perdre ensuite.`
+              : statut === 'annule' || statut === 'expire'
               ? 'Ton abonnement précédent est terminé — tu peux le reprendre à tout moment.'
-              : 'Toutes les fonctionnalités sont gratuites pour l’instant. Cet écran servira quand on activera l’offre payante.'}
+              : 'Ton essai gratuit est terminé, mais l’app reste utilisable pour le planning et le focus au quotidien.'}
           </Text>
 
           <Pressable style={styles.planCard} onPress={() => choisirPlan('mensuel')} disabled={starting !== null}>

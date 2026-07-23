@@ -18,7 +18,7 @@ export default function ProfilScreen() {
   const { session } = useAuth();
   const { colors, preference, setPreference, focusMode, setFocusMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { statut, isPremium, reload } = useSubscription();
+  const { statut, isEssaiActif, essaiJoursRestants, reload } = useSubscription();
 
   // Seul écran qui interroge Stripe pour rester à jour (renouvellements,
   // annulations) — pas de webhook dans cette architecture, voir la
@@ -122,14 +122,27 @@ export default function ProfilScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Abonnement</Text>
-        {isPremium ? (
+        {statut === 'actif' ? (
           <Text style={styles.caption}>Abonnement actif — merci de soutenir l’app 💜</Text>
+        ) : isEssaiActif ? (
+          <>
+            <View style={styles.essaiBox}>
+              <Text style={styles.essaiTitle}>✨ Essai premium en cours</Text>
+              <Text style={styles.caption}>
+                Encore {essaiJoursRestants} jour{essaiJoursRestants > 1 ? 's' : ''} avec tout débloqué — passe à l’abonnement pour ne rien perdre ensuite.
+              </Text>
+            </View>
+            <Pressable style={styles.row} onPress={() => router.push('/paiement')}>
+              <Ionicons name="star-outline" size={20} color={colors.primary} />
+              <Text style={[styles.rowText, { color: colors.primary }]}>Voir les offres</Text>
+            </Pressable>
+          </>
         ) : (
           <>
             <Text style={styles.caption}>
               {statut === 'annule' || statut === 'expire'
                 ? 'Ton abonnement précédent est terminé.'
-                : 'Toutes les fonctionnalités sont gratuites pour l’instant.'}
+                : 'Ton essai gratuit est terminé — certaines fonctionnalités restent limitées.'}
             </Text>
             <Pressable style={styles.row} onPress={() => router.push('/paiement')}>
               <Ionicons name="star-outline" size={20} color={colors.primary} />
@@ -192,6 +205,8 @@ function makeStyles(colors: ThemeColors) {
     row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm },
     rowText: { ...typography.body },
     caption: { ...typography.caption },
+    essaiBox: { backgroundColor: colors.primaryMuted, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.xs },
+    essaiTitle: { ...typography.body, fontFamily: fonts.semibold, marginBottom: 2 },
     signOutButton: { marginTop: spacing.lg, alignItems: 'center', padding: spacing.md },
     signOutText: { color: colors.warning, fontSize: 16, fontFamily: fonts.semibold },
   });

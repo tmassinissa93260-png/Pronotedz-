@@ -6,8 +6,10 @@ import { useSubscription } from './stripe';
 // Limite mensuelle d'usage IA en gratuit — façon Tiimo, qui garde son
 // générateur de sous-tâches et son Co-Planner accessibles en gratuit mais
 // LIMITÉS plutôt que totalement bloqués (le blocage total d'une fonctionnalité
-// déjà essayée est le vrai déclencheur de désinstalls/avis 1 étoile).
-export const LIMITE_IA_GRATUITE = 5;
+// déjà essayée est le vrai déclencheur de désinstalls/avis 1 étoile). Volontairement
+// serré (3, pas 5) : le compteur reste toujours visible à l'écran pour que la
+// rareté se construise progressivement plutôt que de surprendre au dernier essai.
+export const LIMITE_IA_GRATUITE = 3;
 
 export async function recordAiUsage(userId: string): Promise<number> {
   const { data, error } = await supabase.rpc('record_ai_usage', { p_user_id: userId });

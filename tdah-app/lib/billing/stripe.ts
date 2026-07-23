@@ -44,6 +44,18 @@ export async function getSubscription(userId: string): Promise<{ statut: Subscri
   return data;
 }
 
+async function getEssaiPremiumFin(userId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('essai_premium_fin')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.essai_premium_fin ?? null;
+}
+
+const MS_PAR_JOUR = 24 * 60 * 60 * 1000;
+
 // Lecture seule et légère (pas d'appel Stripe) — utilisable partout, y
 // compris par usePremiumGate() et <PremiumScreen>. Le rafraîchissement réel
 // côté Stripe (refreshSubscription) reste réservé à l'écran Profil pour
@@ -51,12 +63,16 @@ export async function getSubscription(userId: string): Promise<{ statut: Subscri
 export function useSubscription() {
   const { session } = useAuth();
   const [statut, setStatut] = useState<SubscriptionStatus>('gratuit');
+  const [essaiFin, setEssaiFin] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const reload = useCallback(() => {
     if (!session) return;
-    getSubscription(session.user.id)
-      .then((sub) => setStatut(sub?.statut ?? 'gratuit'))
+    Promise.all([getSubscription(session.user.id), getEssaiPremiumFin(session.user.id)])
+      .then(([sub, essai]) => {
+        setStatut(sub?.statut ?? 'gratuit');
+        setEssaiFin(essai);
+      })
       .finally(() => setLoading(false));
   }, [session]);
 
@@ -64,14 +80,27 @@ export function useSubscription() {
     reload();
   }, [reload]);
 
-  return { statut, isPremium: statut === 'actif', loading, reload };
+  const essaiActif = essaiFin != null && new Date(essaiFin).getTime() > Date.now();
+  const essaiJoursRestants = essaiActif ? Math.max(1, Math.ceil((new Date(essaiFin!).getTime() - Date.now()) / MS_PAR_JOUR)) : 0;
+  const abonnementActif = statut === 'actif';
+
+  return {
+    statut,
+    isPremium: abonnementActif || essaiActif,
+    // Essai en cours, distinct d'un vrai abonnement — sert à afficher la
+    // bannière de relance avant la fin de l'essai plutôt que le badge "actif".
+    isEssaiActif: essaiActif && !abonnementActif,
+    essaiJoursRestants,
+    loading,
+    reload,
+  };
 }
 
 // Point d'entrée unique pour verrouiller une action derrière l'abonnement —
 // un seul endroit pour le ton du message (jamais culpabilisant, cohérent
 // avec le reste de l'app) plutôt que du texte de paywall dupliqué partout.
 export function usePremiumGate() {
-  const { isPremium } = useSubscription();
+  const { isPremium, statut, isEssaiActif, essaiJoursRestants } = useSubscription();
   const router = useRouter();
 
   function gate(label: string, action: () => void) {
@@ -89,5 +118,5 @@ export function usePremiumGate() {
     );
   }
 
-  return { isPremium, gate };
+  return { isPremium, gate, statut, isEssaiActif, essaiJoursRestants };
 }
