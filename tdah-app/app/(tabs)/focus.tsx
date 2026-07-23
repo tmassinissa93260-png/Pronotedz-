@@ -14,7 +14,8 @@ import { useReward } from '../../lib/rewards/RewardProvider';
 import { InteroceptionCheckIn } from '../../components/InteroceptionCheckIn';
 import { generateRoomCode, joinDuoRoom, sendDuoEvent, leaveDuoRoom, joinLobby, leaveLobby, type DuoEvent } from '../../lib/realtime/duoFocus';
 import { CircularTimer } from '../../components/CircularTimer';
-import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../../constants/theme';
+import { spacing, fonts, radius, shadow, makeTypography, makeGradients, type ThemeColors } from '../../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../lib/theme/ThemeProvider';
 import { usePremiumGate } from '../../lib/billing/stripe';
 import { setNotificationsSuspended } from '../../lib/notifications';
@@ -43,6 +44,7 @@ export default function FocusScreen() {
   const { celebrate } = useReward();
   const { colors, focusMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const gradients = useMemo(() => makeGradients(colors), [colors]);
   const { isPremium, gate } = usePremiumGate();
   const { tache: tacheParam, tacheId } = useLocalSearchParams<{ tache?: string; tacheId?: string }>();
   const [targetMinutes, setTargetMinutes] = useState<number | null>(25);
@@ -417,8 +419,10 @@ export default function FocusScreen() {
             </Pressable>
           ))}
         </View>
-        <Pressable style={styles.endButton} onPress={endDuoSession}>
-          <Text style={styles.endButtonText}>Terminer la session</Text>
+        <Pressable onPress={endDuoSession}>
+          <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.endButton}>
+            <Text style={styles.endButtonText}>Terminer la session</Text>
+          </LinearGradient>
         </Pressable>
         {duoToast && (
           <View style={styles.duoToast}>
@@ -485,8 +489,10 @@ export default function FocusScreen() {
           <Pressable style={styles.pauseButton} onPress={togglePause}>
             <Ionicons name={paused ? 'play' : 'pause'} size={20} color={colors.text} />
           </Pressable>
-          <Pressable style={styles.endButton} onPress={requestEndSession}>
-            <Text style={styles.endButtonText}>Terminer la session</Text>
+          <Pressable onPress={requestEndSession}>
+            <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.endButton}>
+              <Text style={styles.endButtonText}>Terminer la session</Text>
+            </LinearGradient>
           </Pressable>
         </View>
         {checkInModal}
@@ -725,7 +731,7 @@ function makeStyles(colors: ThemeColors) {
   focusSubtaskTextDone: { textDecorationLine: 'line-through', color: colors.textMuted },
   plusFiveButton: { borderWidth: 1, borderColor: colors.border, borderRadius: 12, paddingVertical: spacing.md, paddingHorizontal: spacing.md },
   plusFiveText: { color: colors.text, fontFamily: fonts.semibold, fontSize: 14 },
-  endButton: { backgroundColor: colors.primary, borderRadius: radius.md, paddingVertical: spacing.md, paddingHorizontal: spacing.xl, ...shadow.soft },
+  endButton: { alignItems: 'center', borderRadius: radius.md, paddingVertical: spacing.md, paddingHorizontal: spacing.xl, ...shadow.soft },
   endButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 16 },
   pauseButton: {
     width: 48,

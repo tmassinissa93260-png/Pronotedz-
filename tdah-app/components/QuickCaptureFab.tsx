@@ -1,11 +1,12 @@
 import { useMemo, useRef, useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, Modal, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '../lib/supabase/AuthProvider';
 import { supabase } from '../lib/supabase/client';
 import { useTheme } from '../lib/theme/ThemeProvider';
-import { spacing, radius, shadow, fonts, makeTypography, type ThemeColors } from '../constants/theme';
+import { spacing, radius, shadow, fonts, makeTypography, makeGradients, type ThemeColors } from '../constants/theme';
 
 // Capture rapide : accessible partout, texte libre, aucun champ obligatoire.
 // On range la note dans le backlog du jour (sans horaire) — elle se structure
@@ -35,6 +36,7 @@ export default function QuickCaptureFab() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const gradients = useMemo(() => makeGradients(colors), [colors]);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   const [saved, setSaved] = useState(false);
@@ -68,11 +70,13 @@ export default function QuickCaptureFab() {
     <>
       <Pressable
         onPress={() => setOpen(true)}
-        style={[styles.fab, { bottom: insets.bottom + 84 }]}
+        style={[styles.fabWrap, { bottom: insets.bottom + 84 }]}
         accessibilityLabel="Capture rapide"
         hitSlop={8}
       >
-        <Ionicons name="add" size={28} color="#fff" />
+        <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.fab}>
+          <Ionicons name="add" size={28} color="#fff" />
+        </LinearGradient>
       </Pressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={close}>
@@ -107,8 +111,10 @@ export default function QuickCaptureFab() {
                   <Pressable onPress={close} style={styles.cancelButton} hitSlop={8}>
                     <Text style={styles.cancelText}>Annuler</Text>
                   </Pressable>
-                  <Pressable onPress={capture} style={styles.saveButton} hitSlop={8}>
-                    <Ionicons name="arrow-up" size={20} color="#fff" />
+                  <Pressable onPress={capture} hitSlop={8}>
+                    <LinearGradient colors={gradients.primary} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.saveButton}>
+                      <Ionicons name="arrow-up" size={20} color="#fff" />
+                    </LinearGradient>
                   </Pressable>
                 </View>
               </>
@@ -123,17 +129,21 @@ export default function QuickCaptureFab() {
 function makeStyles(colors: ThemeColors) {
   const typography = makeTypography(colors);
   return StyleSheet.create({
-    fab: {
+    fabWrap: {
       position: 'absolute',
       right: spacing.lg,
       width: 56,
       height: 56,
       borderRadius: 28,
-      backgroundColor: colors.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
       ...shadow.card,
       zIndex: 50,
+    },
+    fab: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
     sheet: {
@@ -161,7 +171,6 @@ function makeStyles(colors: ThemeColors) {
       width: 44,
       height: 44,
       borderRadius: 22,
-      backgroundColor: colors.primary,
       alignItems: 'center',
       justifyContent: 'center',
     },

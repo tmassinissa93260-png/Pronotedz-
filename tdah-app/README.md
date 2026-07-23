@@ -131,6 +131,11 @@ Deuxième passe de refonte, en deux temps.
 - Rayons de carte légèrement agrandis (`radius.md/lg/xl`) pour des cartes plus aérées.
 - **Abandon du pairing serif/sans** : Fraunces retiré (police et dépendance `@expo-google-fonts/fraunces` supprimées) — le titre d'écran passe en Manrope ExtraBold. Le duo serif/grotesque lisait plus "édito" que "outil premium" ; la hiérarchie vient maintenant du poids et de la taille, pas du changement de famille.
 
+**Touches "fintech premium"** (`expo-linear-gradient`, `makeGradients()` dans `constants/theme.ts`), suite à une référence Dribbble (app fintech fond noir/vert à dégradés) — appliquées avec parcimonie, jamais sous du texte en pleine largeur :
+- Dégradé vert (`gradients.primary`) sur les boutons les plus visibles : capture rapide (bouton flottant + envoi), "Terminer la session" en focus.
+- Jauge d'énergie ("batterie mentale", écran du jour) passée d'un badge texte plat à une mini-barre en dégradé jaune→vert (`gradients.energy`), qui représente une valeur plutôt qu'une surface décorative.
+- Reste volontairement limité à ces quelques éléments à forte visibilité — pas de dégradé sur les cartes de tâche ni les fonds d'écran, pour ne pas surcharger.
+
 ### Ajustements suite à une recherche sur le design et le TDAH
 
 Après la refonte visuelle ci-dessus, recherche ciblée sur la littérature UX/accessibilité cognitive pour vérifier (et corriger) les choix faits :

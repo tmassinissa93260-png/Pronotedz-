@@ -47,6 +47,20 @@ export const darkColors = {
 
 export type ThemeColors = typeof lightColors;
 
+// Dégradés — réservés à quelques éléments à forte visibilité (bouton
+// principal, capture rapide, jauge d'énergie) pour une touche "premium
+// fintech" (cartes/barres en dégradé plutôt que couleur plate), jamais sur
+// de grandes surfaces ni sous du texte (le point de contraste le plus faible
+// du dégradé resterait illisible en blanc).
+export function makeGradients(c: ThemeColors) {
+  return {
+    primary: [c.primaryDark, c.primary] as const,
+    // Jaune-vert façon jauge d'énergie/progression — fixe (pas dérivé du
+    // thème) car il représente une valeur (0-100%), pas une surface.
+    energy: ['#FBBF24', '#4ADE80'] as const,
+  };
+}
+
 // "Mode focus" : neutralise les touches de couleur purement décoratives
 // (bannière grenouille, badge de série, bulle d'icône de tâche) en réutilisant
 // les tokens neutres déjà là — les couleurs fonctionnelles (priorité, succès,

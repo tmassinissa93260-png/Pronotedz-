@@ -24,7 +24,8 @@ import { generateGhostReply } from '../../lib/ai/ghostReply';
 import { getHighDreadMomentStats, type MomentStats } from '../../lib/supabase/momentStats';
 import { usePremiumGate } from '../../lib/billing/stripe';
 import { useAiQuota } from '../../lib/billing/aiQuota';
-import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../../constants/theme';
+import { spacing, fonts, radius, shadow, makeTypography, makeGradients, type ThemeColors } from '../../constants/theme';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../../lib/theme/ThemeProvider';
 import { useAuth } from '../../lib/supabase/AuthProvider';
 import { useProfile } from '../../lib/supabase/useProfile';
@@ -91,6 +92,7 @@ export default function AccueilScreen() {
   const { celebrate } = useReward();
   const { colors, focusMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const gradients = useMemo(() => makeGradients(colors), [colors]);
   const PRIORITE_COLOR = useMemo(() => prioriteColors(colors), [colors]);
   const { isPremium, gate, statut } = usePremiumGate();
   const { canUse: aiQuotaOk, remaining: aiRemaining, limit: aiLimit, recordUsage: markAiUsage } = useAiQuota();
@@ -803,8 +805,16 @@ export default function AccueilScreen() {
           </View>
         )}
         {tasks.some((t) => t.cout_energie) && (
-          <View style={styles.streakBadge}>
-            <Text style={styles.streakBadgeText}>🔋 {batterieRestante}%</Text>
+          <View style={styles.energyGauge}>
+            <Text style={styles.energyGaugeText}>{batterieRestante}%</Text>
+            <View style={styles.energyGaugeTrack}>
+              <LinearGradient
+                colors={gradients.energy}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.energyGaugeFill, { width: `${batterieRestante}%` }]}
+              />
+            </View>
           </View>
         )}
       </View>
@@ -1464,6 +1474,19 @@ function makeStyles(colors: ThemeColors) {
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   streakBadge: { backgroundColor: colors.accentMuted, borderRadius: radius.pill, paddingVertical: 3, paddingHorizontal: spacing.sm, marginBottom: spacing.xs },
   streakBadgeText: { color: colors.accent, fontFamily: fonts.bold, fontSize: 13 },
+  energyGauge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.pill,
+    paddingVertical: 3,
+    paddingHorizontal: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  energyGaugeText: { color: colors.text, fontFamily: fonts.bold, fontSize: 13, fontVariant: ['tabular-nums'] },
+  energyGaugeTrack: { width: 34, height: 6, borderRadius: 3, backgroundColor: colors.border, overflow: 'hidden' },
+  energyGaugeFill: { height: '100%', borderRadius: 3 },
   weekRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
   dayChip: { width: 38, alignItems: 'center', paddingVertical: 6, borderRadius: radius.md },
   dayChipActive: { backgroundColor: colors.primary, ...shadow.soft },
