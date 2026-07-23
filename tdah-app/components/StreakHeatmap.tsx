@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { colors, spacing, typography } from '../constants/theme';
+import { spacing, makeTypography, type ThemeColors } from '../constants/theme';
 
 // Heatmap façon GitHub contributions, mais volontairement sans notion de
 // "trou = échec" : une case vide est juste vide, jamais rouge ni alarmante —
@@ -9,7 +9,7 @@ const WEEKS = 12;
 const DAYS = WEEKS * 7;
 const SQUARE = 11;
 
-function colorForCount(count: number) {
+function colorForCount(colors: ThemeColors, count: number) {
   if (count <= 0) return colors.border;
   if (count === 1) return `${colors.primary}40`;
   if (count === 2) return `${colors.primary}80`;
@@ -17,7 +17,8 @@ function colorForCount(count: number) {
   return colors.primary;
 }
 
-export function StreakHeatmap({ countsByDate }: { countsByDate: Record<string, number> }) {
+export function StreakHeatmap({ countsByDate, colors }: { countsByDate: Record<string, number>; colors: ThemeColors }) {
+  const typography = makeTypography(colors);
   const today = new Date();
   const days: { date: string; count: number }[] = [];
   for (let i = DAYS - 1; i >= 0; i--) {
@@ -40,12 +41,12 @@ export function StreakHeatmap({ countsByDate }: { countsByDate: Record<string, n
         {columns.map((col, i) => (
           <View key={i} style={styles.column}>
             {col.map((d) => (
-              <View key={d.date} style={[styles.square, { backgroundColor: colorForCount(d.count) }]} />
+              <View key={d.date} style={[styles.square, { backgroundColor: colorForCount(colors, d.count) }]} />
             ))}
           </View>
         ))}
       </View>
-      <Text style={styles.caption}>
+      <Text style={[typography.caption, { marginTop: spacing.sm }]}>
         {activeDays} jour{activeDays > 1 ? 's' : ''} actif{activeDays > 1 ? 's' : ''} sur les {WEEKS} dernières semaines.
       </Text>
     </View>
@@ -56,5 +57,4 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', gap: 3 },
   column: { gap: 3 },
   square: { width: SQUARE, height: SQUARE, borderRadius: 3 },
-  caption: { ...typography.caption, marginTop: spacing.sm },
 });

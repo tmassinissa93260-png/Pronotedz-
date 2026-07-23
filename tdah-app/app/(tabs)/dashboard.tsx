@@ -1,14 +1,36 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase/client';
 import { useAuth } from '../../lib/supabase/AuthProvider';
-import { colors, spacing, typography, fonts } from '../../constants/theme';
+import { spacing, fonts, radius, makeTypography, makeGradients, type ThemeColors } from '../../constants/theme';
+import { useTheme } from '../../lib/theme/ThemeProvider';
 import { generatePatternInsight, type PatternInsight } from '../../lib/supabase/patternInsight';
 import { StreakHeatmap } from '../../components/StreakHeatmap';
 import { usePremiumGate } from '../../lib/billing/stripe';
 import { useAiQuota } from '../../lib/billing/aiQuota';
+
+type DayBucket = { date: string; minutes: number };
+
+function formatDuration(minutes: number): string {
+  if (minutes <= 0) return '0 min';
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m} min`;
+  if (m === 0) return `${h}h`;
+  return `${h}h${String(m).padStart(2, '0')}`;
+}
+
+function isoDaysAgo(n: number) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+const WEEKDAY_LETTERS = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
 
 type Badge = { code: string; titre: string; description: string; emoji: string; obtenu: boolean };
 
@@ -29,6 +51,10 @@ function startOfWeekISO() {
 export default function DashboardScreen() {
   const { session } = useAuth();
   const router = useRouter();
+  const { colors } = useTheme();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const typography = useMemo(() => makeTypography(colors), [colors]);
+  const gradients = useMemo(() => makeGradients(colors), [colors]);
   const { isPremium, gate } = usePremiumGate();
   const { canUse: aiQuotaOk, remaining: aiRemaining, limit: aiLimit, recordUsage: markAiUsage } = useAiQuota();
   const [autonomie, setAutonomie] = useState(0);
@@ -39,6 +65,8 @@ export default function DashboardScreen() {
   const [insightLoading, setInsightLoading] = useState(false);
   const [badges, setBadges] = useState<Badge[]>([]);
   const [heatmapCounts, setHeatmapCounts] = useState<Record<string, number>>({});
+  const [progressRange, setProgressRange] = useState<7 | 30>(7);
+  const [dailyMinutes, setDailyMinutes] = useState<Record<string, number>>({});
 
   async function loadInsight() {
     if (!session) return;
@@ -97,6 +125,22 @@ export default function DashboardScreen() {
       .gte('started_at', since)
       .then(({ count }) => setConnexion(count ?? 0));
 
+    // Fenêtre unique de 30 jours pour les deux vues (7j/30j) — basculer entre
+    // les deux ne redemande rien au serveur, juste un re-découpage local.
+    supabase
+      .from('sessions')
+      .select('started_at, duree_minutes')
+      .not('duree_minutes', 'is', null)
+      .gte('started_at', isoDaysAgo(29).toISOString())
+      .then(({ data }) => {
+        const buckets: Record<string, number> = {};
+        for (const row of data ?? []) {
+          const key = row.started_at.slice(0, 10);
+          buckets[key] = (buckets[key] ?? 0) + (row.duree_minutes ?? 0);
+        }
+        setDailyMinutes(buckets);
+      });
+
     supabase
       .from('streaks')
       .select('jours_consecutifs, reparations_disponibles')
@@ -128,10 +172,83 @@ export default function DashboardScreen() {
       });
   }, [session, isPremium]);
 
+  const progressDays = useMemo<DayBucket[]>(() => {
+    const days: DayBucket[] = [];
+    for (let i = progressRange - 1; i >= 0; i--) {
+      const d = isoDaysAgo(i);
+      const key = d.toISOString().slice(0, 10);
+      days.push({ date: key, minutes: dailyMinutes[key] ?? 0 });
+    }
+    return days;
+  }, [dailyMinutes, progressRange]);
+
+  const progressStats = useMemo(() => {
+    const totalMinutes = progressDays.reduce((sum, d) => sum + d.minutes, 0);
+    const activeDays = progressDays.filter((d) => d.minutes > 0).length;
+    const bestDayMinutes = progressDays.reduce((max, d) => Math.max(max, d.minutes), 0);
+    const maxForChart = Math.max(bestDayMinutes, 1);
+    return { totalMinutes, activeDays, bestDayMinutes, maxForChart };
+  }, [progressDays]);
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: spacing.lg }}>
       <Text style={styles.title}>Ton bilan de la semaine</Text>
       <Text style={styles.subtitle}>Pas de note sur 100 ici — juste ce que tu as vraiment vécu.</Text>
+
+      <View style={styles.progressCard}>
+        <View style={styles.progressHeader}>
+          <Text style={styles.cardTitle}>Progression</Text>
+          <View style={styles.rangeToggle}>
+            {([7, 30] as const).map((r) => (
+              <Pressable key={r} style={[styles.rangeChip, progressRange === r && styles.rangeChipActive]} onPress={() => setProgressRange(r)}>
+                <Text style={[styles.rangeChipText, progressRange === r && styles.rangeChipTextActive]}>{r} jours</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.statsRow}>
+          <View style={styles.statTile}>
+            <Text style={styles.statValue}>{formatDuration(progressStats.totalMinutes)}</Text>
+            <Text style={styles.statLabel}>Concentré</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statTile}>
+            <Text style={styles.statValue}>{progressStats.activeDays}</Text>
+            <Text style={styles.statLabel}>Jour{progressStats.activeDays > 1 ? 's' : ''} actif{progressStats.activeDays > 1 ? 's' : ''}</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statTile}>
+            <Text style={styles.statValue}>{formatDuration(progressStats.bestDayMinutes)}</Text>
+            <Text style={styles.statLabel}>Meilleur jour</Text>
+          </View>
+        </View>
+
+        {progressStats.totalMinutes === 0 ? (
+          <Text style={styles.cardValue}>Aucune session de focus sur cette période — lance-en une depuis l'onglet Focus.</Text>
+        ) : (
+          <View style={styles.chartRow}>
+            {progressDays.map((d) => {
+              const heightPct = Math.max(4, Math.round((d.minutes / progressStats.maxForChart) * 100));
+              const dateObj = new Date(`${d.date}T00:00:00`);
+              const showLabel = progressRange === 7;
+              return (
+                <View key={d.date} style={styles.chartBarColumn}>
+                  <View style={styles.chartBarTrack}>
+                    <LinearGradient
+                      colors={gradients.energy}
+                      start={{ x: 0, y: 1 }}
+                      end={{ x: 0, y: 0 }}
+                      style={[styles.chartBarFill, { height: `${heightPct}%` }]}
+                    />
+                  </View>
+                  {showLabel && <Text style={styles.chartBarLabel}>{WEEKDAY_LETTERS[dateObj.getDay()]}</Text>}
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </View>
 
       <Pressable style={styles.weeklyReviewButton} onPress={() => gate('Le bilan réflexif de la semaine', () => router.push('/bilan-hebdomadaire'))}>
         <Ionicons name="chatbubbles-outline" size={16} color={colors.primary} />
@@ -229,59 +346,86 @@ export default function DashboardScreen() {
       <View style={styles.heatmapCard}>
         <Text style={styles.cardTitle}>Historique</Text>
         <View style={{ marginTop: spacing.sm }}>
-          <StreakHeatmap countsByDate={heatmapCounts} />
+          <StreakHeatmap countsByDate={heatmapCounts} colors={colors} />
         </View>
       </View>
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  title: { ...typography.title, marginBottom: spacing.xs },
-  subtitle: { ...typography.body, color: colors.textMuted, marginBottom: spacing.lg },
-  weeklyReviewButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: colors.primaryMuted,
-    borderRadius: 12,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-  },
-  weeklyReviewButtonText: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 14 },
-  card: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'flex-start',
-  },
-  cardText: { flex: 1 },
-  cardTitle: { ...typography.heading, fontSize: 16, marginBottom: 2 },
-  cardValue: { ...typography.body, color: colors.textMuted, fontSize: 14 },
-  streakCard: { backgroundColor: colors.primaryMuted, borderRadius: 14, padding: spacing.md, marginTop: spacing.sm },
-  streakText: { ...typography.body, fontFamily: fonts.semibold },
-  caption: { ...typography.caption, marginTop: spacing.xs },
-  insightCard: {
-    backgroundColor: colors.surface,
-    borderRadius: 14,
-    padding: spacing.md,
-    marginBottom: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.primaryMuted,
-  },
-  insightPattern: { ...typography.body, fontFamily: fonts.medium },
-  refreshText: { color: colors.primary, fontSize: 13, fontFamily: fonts.medium },
-  badgesCard: { backgroundColor: colors.surface, borderRadius: 14, padding: spacing.md, marginBottom: spacing.sm, borderWidth: 1, borderColor: colors.border },
-  badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
-  badgeItem: { width: 76, alignItems: 'center', gap: 4 },
-  badgeItemLocked: { opacity: 0.4 },
-  badgeEmoji: { fontSize: 26 },
-  badgeLabel: { fontSize: 10.5, color: colors.textMuted, textAlign: 'center' },
-  heatmapCard: { backgroundColor: colors.surface, borderRadius: 14, padding: spacing.md, marginTop: spacing.sm, borderWidth: 1, borderColor: colors.border },
-});
+function makeStyles(colors: ThemeColors) {
+  const typography = makeTypography(colors);
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    title: { ...typography.title, marginBottom: spacing.xs },
+    subtitle: { ...typography.body, color: colors.textMuted, marginBottom: spacing.lg },
+    weeklyReviewButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      backgroundColor: colors.primaryMuted,
+      borderRadius: 12,
+      padding: spacing.md,
+      marginBottom: spacing.lg,
+    },
+    weeklyReviewButtonText: { color: colors.primary, fontFamily: fonts.semibold, fontSize: 14 },
+    card: {
+      flexDirection: 'row',
+      gap: spacing.md,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.sm,
+      borderWidth: 1,
+      borderColor: colors.border,
+      alignItems: 'flex-start',
+    },
+    cardText: { flex: 1 },
+    cardTitle: { ...typography.heading, fontSize: 16, marginBottom: 2 },
+    cardValue: { ...typography.body, color: colors.textMuted, fontSize: 14 },
+    streakCard: { backgroundColor: colors.primaryMuted, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.sm },
+    streakText: { ...typography.body, fontFamily: fonts.semibold },
+    caption: { ...typography.caption, marginTop: spacing.xs },
+    insightCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.primaryMuted,
+    },
+    insightPattern: { ...typography.body, fontFamily: fonts.medium },
+    refreshText: { color: colors.primary, fontSize: 13, fontFamily: fonts.medium },
+    badgesCard: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.sm, borderWidth: 1, borderColor: colors.border },
+    badgesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginTop: spacing.sm },
+    badgeItem: { width: 76, alignItems: 'center', gap: 4 },
+    badgeItemLocked: { opacity: 0.4 },
+    badgeEmoji: { fontSize: 26 },
+    badgeLabel: { fontSize: 10.5, color: colors.textMuted, textAlign: 'center' },
+    heatmapCard: { backgroundColor: colors.surface, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.sm, borderWidth: 1, borderColor: colors.border },
+    progressCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      marginBottom: spacing.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    progressHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md },
+    rangeToggle: { flexDirection: 'row', backgroundColor: colors.surfaceAlt, borderRadius: radius.pill, padding: 2 },
+    rangeChip: { paddingVertical: 6, paddingHorizontal: spacing.sm, borderRadius: radius.pill },
+    rangeChipActive: { backgroundColor: colors.primary },
+    rangeChipText: { fontSize: 12, fontFamily: fonts.semibold, color: colors.textMuted },
+    rangeChipTextActive: { color: '#fff' },
+    statsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: spacing.md },
+    statTile: { flex: 1, alignItems: 'center' },
+    statValue: { ...typography.heading, fontSize: 19, fontVariant: ['tabular-nums'] },
+    statLabel: { ...typography.caption, marginTop: 2 },
+    statDivider: { width: 1, height: 32, backgroundColor: colors.border },
+    chartRow: { flexDirection: 'row', alignItems: 'flex-end', height: 90, gap: 3 },
+    chartBarColumn: { flex: 1, alignItems: 'center', height: '100%', justifyContent: 'flex-end' },
+    chartBarTrack: { width: '100%', flex: 1, borderRadius: 4, backgroundColor: colors.surfaceAlt, justifyContent: 'flex-end', overflow: 'hidden' },
+    chartBarFill: { width: '100%', borderRadius: 4 },
+    chartBarLabel: { ...typography.caption, fontSize: 10, marginTop: 4 },
+  });
+}

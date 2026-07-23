@@ -136,6 +136,14 @@ Deuxième passe de refonte, en deux temps.
 - Jauge d'énergie ("batterie mentale", écran du jour) passée d'un badge texte plat à une mini-barre en dégradé jaune→vert (`gradients.energy`), qui représente une valeur plutôt qu'une surface décorative.
 - Reste volontairement limité à ces quelques éléments à forte visibilité — pas de dégradé sur les cartes de tâche ni les fonds d'écran, pour ne pas surcharger.
 
+### Tableau de bord hebdo (onglet Bilan)
+
+Inspiré de l'écran "Progress" de FocusFirst (App Store) : une carte "Progression" en haut du Bilan, basée sur les vraies sessions de focus (`sessions.duree_minutes`/`started_at`, aucune saisie manuelle) :
+- Bascule 7 jours / 30 jours (fenêtre de 30 jours chargée une seule fois, le découpage 7j est fait localement — pas de nouvel appel réseau au changement de vue).
+- 3 indicateurs : temps total concentré, nombre de jours actifs, meilleur jour.
+- Graphique en barres (dégradé jaune→vert, `gradients.energy`) — une barre par jour, étiquette du jour de la semaine affichée seulement en vue 7 jours (30 barres sans étiquette individuelle, trop dense).
+- Au passage, `app/(tabs)/dashboard.tsx` et `components/StreakHeatmap.tsx` sont passés de la palette claire statique (`import { colors }`) à `useTheme()` — ils ne suivaient pas encore le dark mode par défaut, ce qui aurait détonné à côté du nouveau tableau de bord.
+
 ### Ajustements suite à une recherche sur le design et le TDAH
 
 Après la refonte visuelle ci-dessus, recherche ciblée sur la littérature UX/accessibilité cognitive pour vérifier (et corriger) les choix faits :
