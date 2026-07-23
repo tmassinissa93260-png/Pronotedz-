@@ -85,3 +85,34 @@ export async function cancelTaskReminder(taskId: string) {
   await Promise.all(ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})));
   await AsyncStorage.removeItem(`${STORAGE_PREFIX}${taskId}`);
 }
+
+const LIGHT_REMINDER_KEY = 'notif:lumiere-matin';
+
+// Rappel lumière du matin : complément direct à la chronothérapie sommeil —
+// la lumière matinale est le levier le mieux documenté pour avancer une
+// horloge biologique en retard de phase, très fréquent en TDAH (jusqu'à 75%
+// des adultes selon la littérature sur les rythmes circadiens et le TDAH).
+export async function scheduleLightReminder(hour: number, minute: number) {
+  await cancelLightReminder();
+  const granted = await requestNotificationPermission();
+  if (!granted) return;
+  const id = await Notifications.scheduleNotificationAsync({
+    content: {
+      title: '☀️ Lumière du matin',
+      body: '10 minutes de lumière (fenêtre, dehors) aident ton horloge biologique à se recaler.',
+    },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour, minute },
+  });
+  await AsyncStorage.setItem(LIGHT_REMINDER_KEY, id);
+}
+
+export async function cancelLightReminder() {
+  const id = await AsyncStorage.getItem(LIGHT_REMINDER_KEY);
+  if (!id) return;
+  await Notifications.cancelScheduledNotificationAsync(id).catch(() => {});
+  await AsyncStorage.removeItem(LIGHT_REMINDER_KEY);
+}
+
+export async function isLightReminderScheduled(): Promise<boolean> {
+  return (await AsyncStorage.getItem(LIGHT_REMINDER_KEY)) != null;
+}

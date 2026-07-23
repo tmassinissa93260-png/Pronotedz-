@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, FlatList, Alert } from 'react-native';
+import { View, Text, TextInput, Pressable, StyleSheet, FlatList, Alert, Switch } from 'react-native';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../lib/supabase/AuthProvider';
 import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../constants/theme';
 import { useTheme } from '../lib/theme/ThemeProvider';
 import { logSleep, listRecentSleep, getSleepTaskCorrelation, type SleepEntry, type SleepInsight } from '../lib/supabase/sleep';
+import { scheduleLightReminder, cancelLightReminder, isLightReminderScheduled } from '../lib/notifications';
 import { PremiumScreen } from '../components/PremiumScreen';
 
 function formatDuration(minutes: number) {
@@ -24,6 +25,7 @@ export default function SommeilScreen() {
   const [saving, setSaving] = useState(false);
   const [entries, setEntries] = useState<SleepEntry[]>([]);
   const [insight, setInsight] = useState<SleepInsight | null>(null);
+  const [lightReminderOn, setLightReminderOn] = useState(false);
 
   const load = useCallback(async () => {
     if (!session) return;
@@ -42,6 +44,28 @@ export default function SommeilScreen() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useEffect(() => {
+    isLightReminderScheduled().then(setLightReminderOn);
+  }, []);
+
+  // Rappel programmé ~15 min après l'heure de lever renseignée — la lumière
+  // matinale est le complément naturel à la chronothérapie sommeil déjà ici,
+  // les deux agissant sur le même axe circadien.
+  async function toggleLightReminder(value: boolean) {
+    if (value) {
+      const [h, m] = leve.split(':').map(Number);
+      if (Number.isNaN(h) || Number.isNaN(m)) {
+        Alert.alert('Heure de lever invalide', 'Renseigne une heure de lever au format HH:MM avant d’activer ce rappel.');
+        return;
+      }
+      const total = (h * 60 + m + 15 + 1440) % 1440;
+      await scheduleLightReminder(Math.floor(total / 60), total % 60);
+    } else {
+      await cancelLightReminder();
+    }
+    setLightReminderOn(value);
+  }
 
   async function submit() {
     if (!session) return;
@@ -98,6 +122,21 @@ export default function SommeilScreen() {
               </View>
             </View>
 
+            <View style={styles.lightReminderRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.lightReminderTitle}>☀️ Rappel lumière du matin</Text>
+                <Text style={styles.caption}>
+                  15 min après ton heure de lever — le levier le mieux prouvé pour recaler une horloge biologique en retard de phase.
+                </Text>
+              </View>
+              <Switch
+                value={lightReminderOn}
+                onValueChange={toggleLightReminder}
+                trackColor={{ false: colors.border, true: colors.primaryMuted }}
+                thumbColor={lightReminderOn ? colors.primary : undefined}
+              />
+            </View>
+
             <Text style={styles.label}>Qualité ressentie</Text>
             <View style={styles.qualiteRow}>
               {([1, 2, 3, 4, 5] as const).map((n) => (
@@ -141,6 +180,18 @@ function makeStyles(colors: ThemeColors) {
     insightBox: { backgroundColor: colors.primaryMuted, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
     insightText: { ...typography.caption, color: colors.primary, fontSize: 13 },
     timeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+    lightReminderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+      ...shadow.soft,
+    },
+    lightReminderTitle: { ...typography.body, fontFamily: fonts.semibold, marginBottom: 2 },
+    caption: { ...typography.caption },
     label: { ...typography.caption, marginBottom: spacing.xs },
     input: {
       backgroundColor: colors.surface,

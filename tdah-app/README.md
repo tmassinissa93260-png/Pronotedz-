@@ -4,7 +4,7 @@
 
 1. **Créer un projet Supabase** (gratuit) sur [supabase.com](https://supabase.com), région **Europe (Frankfurt ou Paris)** — important pour l'argument RGPD.
 2. Copier `.env.example` en `.env` et remplir avec l'URL et la clé anon du projet (Project Settings → API).
-3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`, `0007_routines.sql`, `0008_ordre_tasks.sql`, `0009_weekly_review.sql`, `0010_weekly_ai_plan.sql`, `0011_priorite.sql`, `0012_icone_manuelle.sql`, `0013_schedule_assistant.sql`, `0014_sommeil_humeur.sql`, `0015_stripe_subscriptions.sql`, `0016_ai_usage_limits.sql`, `0017_essai_premium.sql`.
+3. Appliquer le schéma dans l'ordre, dans le SQL Editor du dashboard Supabase : `0001_init.sql`, `0002_streak_and_drafts.sql`, `0003_ai_via_pg_net.sql`, `0004_pattern_insights.sql`, `0005_braindump_badges_moments.sql`, `0006_dread_shutdown_ritual.sql`, `0007_routines.sql`, `0008_ordre_tasks.sql`, `0009_weekly_review.sql`, `0010_weekly_ai_plan.sql`, `0011_priorite.sql`, `0012_icone_manuelle.sql`, `0013_schedule_assistant.sql`, `0014_sommeil_humeur.sql`, `0015_stripe_subscriptions.sql`, `0016_ai_usage_limits.sql`, `0017_essai_premium.sql`, `0018_si_alors_energie_ghost_reply.sql`.
 4. Stocker la clé Anthropic dans Supabase Vault (SQL Editor) :
    ```sql
    select vault.create_secret('sk-ant-...', 'anthropic_api_key');
@@ -83,6 +83,14 @@ Trois recherches menées en parallèle : bases physiologiques/scientifiques du T
 - **Amnistie générale** (menu Outils) : remet d'un coup toutes les tâches en retard à aujourd'hui, sans compteur d'échec ni notification culpabilisante — étend la logique déjà en place pour le report d'une tâche individuelle à un geste global.
 - **Mode Crash** (menu Outils) : pour les moments de surcharge où choisir quoi faire est lui-même un obstacle — annule les rappels du jour, reporte tout à demain sauf la tâche la moins angoissante (facultative même dans ce cas), avec accès direct à la respiration guidée avant de confirmer.
 - **Maintenance prédictive nocturne** : signal doux (jamais bloquant, une seule fois par nuit) quand beaucoup de tâches sont ajoutées d'un coup après minuit — signe possible d'hyperfocus nocturne, sans jamais empêcher d'ajouter quoi que ce soit.
+
+Deuxième lot, qui demande une migration (`0018_si_alors_energie_ghost_reply.sql` : colonnes `tasks.si_alors`/`tasks.cout_energie`, fonction IA `generate_ghost_reply`) :
+
+- **Plans "si...alors..."** (implementation intentions, `tasks.si_alors`) : champ optionnel par tâche, ajoutable/modifiable d'un tap — preuve scientifique solide (Gawrilow & Gollwitzer et suivants) que ce type de plan transfère le contrôle de l'action vers un déclencheur environnemental plutôt que de compter sur la volonté seule, contournant le déficit exécutif au lieu de le combattre.
+- **Batterie mentale** (`tasks.cout_energie`, `faible`/`moyen`/`eleve`) : coût en énergie par tâche indépendant de sa durée, cyclable d'un tap (icône éclair à côté du drapeau de priorité). Une jauge (`🔋 XX%`) apparaît dans l'en-tête dès qu'une tâche du jour en a un — budget arbitraire de 10 points/jour, juste un signal relatif. Verrouillage doux (jamais bloquant) : lancer le focus sur une tâche coûteuse quand la batterie est basse déclenche une confirmation, jamais un blocage.
+- **Générateur de réponses aux messages fantômes** (menu Outils, `lib/ai/ghostReply.ts`, fonction SQL `generate_ghost_reply`, même schéma pg_net que `interpret_schedule_command`) : décrire un message resté sans réponse trop longtemps par évitement/anxiété fait générer un brouillon court par l'IA — jamais envoyé automatiquement, copiable en un tap (`expo-clipboard`).
+- **Rétention par le pardon** (`streaks.derniere_activite`, déjà en base depuis la logique de streak) : après 4 jours ou plus sans activité, un message chaleureux unique par ouverture ("Content de te revoir") propose de tout ramener à aujourd'hui plutôt que d'afficher un compteur cassé ou une notification culpabilisante.
+- **Rappel lumière du matin** (`lib/notifications.ts`, écran Sommeil) : notification locale quotidienne programmée ~15 min après l'heure de lever renseignée — la lumière matinale est le levier le mieux documenté pour avancer une horloge biologique en retard de phase, très fréquent en TDAH (jusqu'à 75% des adultes selon la littérature sur les rythmes circadiens), en complément direct de la chronothérapie sommeil déjà en place.
 
 ### Suite à l'analyse de 15 captures d'écran Tiimo (App Store + site)
 

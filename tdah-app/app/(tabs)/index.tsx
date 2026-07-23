@@ -14,11 +14,13 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase/client';
 import { breakdownTask } from '../../lib/ai/breakdownTask';
 import { planFromBraindump, planWeekFromBraindump } from '../../lib/ai/braindump';
 import { interpretScheduleCommand } from '../../lib/ai/scheduleAssistant';
+import { generateGhostReply } from '../../lib/ai/ghostReply';
 import { getHighDreadMomentStats, type MomentStats } from '../../lib/supabase/momentStats';
 import { usePremiumGate } from '../../lib/billing/stripe';
 import { useAiQuota } from '../../lib/billing/aiQuota';
@@ -51,6 +53,8 @@ type Task = {
   ordre: number;
   icone_manuelle: string | null;
   couleur_manuelle: string | null;
+  si_alors: string | null;
+  cout_energie: 'faible' | 'moyen' | 'eleve' | null;
   subtasks: Subtask[];
 };
 
@@ -96,6 +100,8 @@ export default function AccueilScreen() {
   const [newTitle, setNewTitle] = useState('');
   const [estimationInput, setEstimationInput] = useState<Record<string, string>>({});
   const [timeInput, setTimeInput] = useState<Record<string, string>>({});
+  const [siAlorsEditId, setSiAlorsEditId] = useState<string | null>(null);
+  const [siAlorsInput, setSiAlorsInput] = useState<Record<string, string>>({});
   const [decomposingId, setDecomposingId] = useState<string | null>(null);
   const [granulariteByTask, setGranulariteByTask] = useState<Record<string, 1 | 2 | 3>>({});
   const [checkInVisible, setCheckInVisible] = useState(false);
@@ -118,8 +124,15 @@ export default function AccueilScreen() {
   const [assistantMessages, setAssistantMessages] = useState<{ role: 'user' | 'assistant'; text: string }[]>([]);
   const [toolsMenuVisible, setToolsMenuVisible] = useState(false);
   const [modeCrashVisible, setModeCrashVisible] = useState(false);
+  const [ghostReplyVisible, setGhostReplyVisible] = useState(false);
+  const [ghostReplyContext, setGhostReplyContext] = useState('');
+  const [ghostReplyLoading, setGhostReplyLoading] = useState(false);
+  const [ghostReplyResult, setGhostReplyResult] = useState('');
   const nightAddCountRef = useRef(0);
   const nightWarnedRef = useRef(false);
+  const [retourApresPauseVisible, setRetourApresPauseVisible] = useState(false);
+  const [joursAbsence, setJoursAbsence] = useState(0);
+  const retourPauseShownRef = useRef(false);
 
   const loadTasks = useCallback(async () => {
     if (!session) return;
@@ -132,7 +145,7 @@ export default function AccueilScreen() {
       }
       const { data, error } = await supabase
         .from('tasks')
-        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, niveau_dread, niveau_priorite, heure_debut, ordre, icone_manuelle, couleur_manuelle, subtasks(id, titre, fait, ordre)')
+        .select('id, titre, statut, estimation_minutes, temps_reel_minutes, moment_journee, niveau_dread, niveau_priorite, heure_debut, ordre, icone_manuelle, couleur_manuelle, si_alors, cout_energie, subtasks(id, titre, fait, ordre)')
         .eq('date_prevue', selectedDate)
         .order('ordre', { ascending: true })
         .order('created_at', { ascending: true });
@@ -156,10 +169,25 @@ export default function AccueilScreen() {
     if (!session) return;
     supabase
       .from('streaks')
-      .select('jours_consecutifs')
+      .select('jours_consecutifs, derniere_activite')
       .eq('user_id', session.user.id)
       .single()
-      .then(({ data }) => setStreakDays(data?.jours_consecutifs ?? null));
+      .then(({ data }) => {
+        setStreakDays(data?.jours_consecutifs ?? null);
+        // "Rétention par le pardon" : après une longue absence, un compteur
+        // cassé et des notifications rouges poussent à désinstaller plutôt
+        // qu'à revenir — un seul message chaleureux, une seule fois par
+        // ouverture, jamais répété à chaque rafraîchissement.
+        if (data?.derniere_activite && !retourPauseShownRef.current) {
+          const derniere = new Date(`${data.derniere_activite}T00:00:00`);
+          const jours = Math.floor((Date.now() - derniere.getTime()) / (24 * 60 * 60 * 1000));
+          if (jours >= 4) {
+            retourPauseShownRef.current = true;
+            setJoursAbsence(jours);
+            setRetourApresPauseVisible(true);
+          }
+        }
+      });
   }, [session, tasks]);
 
   // Coach proactif : on regarde si les tâches très angoissantes passées ont
@@ -261,6 +289,20 @@ export default function AccueilScreen() {
     return fin.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   }, [tasks]);
 
+  // Batterie mentale : les tâches ne coûtent pas toutes la même chose
+  // indépendamment de leur durée — un appel administratif de 5 min peut
+  // coûter bien plus qu'une heure de rangement. Budget arbitraire mais
+  // cohérent (10 points/jour) juste pour donner un signal relatif, pas une
+  // mesure clinique.
+  const COUT_POINTS: Record<'faible' | 'moyen' | 'eleve', number> = { faible: 1, moyen: 2, eleve: 3 };
+  const BUDGET_ENERGIE_JOUR = 10;
+  const batterieRestante = useMemo(() => {
+    const utilisee = tasks
+      .filter((t) => t.statut === 'fait' && t.cout_energie)
+      .reduce((sum, t) => sum + COUT_POINTS[t.cout_energie!], 0);
+    return Math.max(0, Math.round(100 - (utilisee / BUDGET_ENERGIE_JOUR) * 100));
+  }, [tasks]);
+
   // Nudge premium au bon moment : proposer l'abonnement pendant une lancée
   // (streak qui passe un palier), pas quand on vient de bloquer quelque
   // chose. Non-abonné uniquement (couvre gratuit ET essai en cours, pour
@@ -304,6 +346,14 @@ export default function AccueilScreen() {
     const currentIndex = PRIORITE_CYCLE.indexOf(task.niveau_priorite);
     const next = PRIORITE_CYCLE[(currentIndex + 1) % PRIORITE_CYCLE.length];
     await supabase.from('tasks').update({ niveau_priorite: next }).eq('id', task.id);
+    loadTasks();
+  }
+
+  const COUT_ENERGIE_CYCLE: (Task['cout_energie'])[] = [null, 'faible', 'moyen', 'eleve'];
+  async function cycleCoutEnergie(task: Task) {
+    const currentIndex = COUT_ENERGIE_CYCLE.indexOf(task.cout_energie);
+    const next = COUT_ENERGIE_CYCLE[(currentIndex + 1) % COUT_ENERGIE_CYCLE.length];
+    await supabase.from('tasks').update({ cout_energie: next }).eq('id', task.id);
     loadTasks();
   }
 
@@ -408,6 +458,24 @@ export default function AccueilScreen() {
 
   function startFocusOn(task: Task) {
     router.push(`/focus?tache=${encodeURIComponent(task.titre)}&tacheId=${task.id}`);
+  }
+
+  // Verrouillage doux (jamais bloquant) : avertir avant de s'engager sur une
+  // tâche coûteuse en énergie quand la batterie du jour est basse, sans
+  // jamais empêcher de le faire quand même.
+  function lancerFocusAvecCheck(task: Task) {
+    if (task.cout_energie === 'eleve' && batterieRestante < 25) {
+      Alert.alert(
+        'Batterie mentale basse',
+        `Il te reste environ ${batterieRestante}% — cette tâche coûte cher en énergie. Tu veux t'y lancer quand même ?`,
+        [
+          { text: 'Plus tard', style: 'cancel' },
+          { text: 'Je me lance', onPress: () => startFocusOn(task) },
+        ]
+      );
+      return;
+    }
+    startFocusOn(task);
   }
 
   // Mode focus : garde l'emoji (utile pour reconnaître une tâche d'un coup
@@ -534,6 +602,16 @@ export default function AccueilScreen() {
       return;
     }
     await supabase.from('tasks').update({ heure_debut: `${hhmm}:00` }).eq('id', taskId);
+    loadTasks();
+  }
+
+  // Plan "si...alors..." (implementation intention) : preuve scientifique
+  // solide pour contourner le déficit exécutif — un déclencheur
+  // environnemental prend le relais plutôt que de compter sur la volonté.
+  async function saveSiAlors(taskId: string) {
+    const value = (siAlorsInput[taskId] ?? '').trim();
+    await supabase.from('tasks').update({ si_alors: value || null }).eq('id', taskId);
+    setSiAlorsEditId(null);
     loadTasks();
   }
 
@@ -701,11 +779,35 @@ export default function AccueilScreen() {
     );
   }
 
+  // Générateur de réponses aux messages fantômes : un message resté sans
+  // réponse trop longtemps par évitement/anxiété devient une source
+  // d'angoisse qui s'auto-alimente. L'IA propose un brouillon court, jamais
+  // envoyé automatiquement — l'utilisateur reste seul maître de l'envoi.
+  async function submitGhostReply() {
+    if (!ghostReplyContext.trim() || !session) return;
+    setGhostReplyLoading(true);
+    try {
+      const reply = await generateGhostReply(session.user.id, ghostReplyContext.trim());
+      setGhostReplyResult(reply);
+      await markAiUsage();
+    } catch {
+      Alert.alert('L’IA n’a pas pu générer de réponse', 'Réessaie dans un instant.');
+    } finally {
+      setGhostReplyLoading(false);
+    }
+  }
+
+  async function copierReponseFantome() {
+    await Clipboard.setStringAsync(ghostReplyResult);
+    Alert.alert('Copié', 'Le brouillon est dans ton presse-papiers.');
+  }
+
   // Menu "Outils" : regroupe les actions secondaires derrière un seul bouton
   // plutôt que d'aligner 6 chips en permanence dans l'en-tête — la ligne de
   // boutons avait fini par déborder sur deux lignes au fil des ajouts.
   const TOOLS: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; premium?: boolean; quota?: boolean }[] = [
     { icon: 'sparkles-outline', label: 'Assistant', onPress: () => requireAi('l’assistant conversationnel', () => setAssistantVisible(true)), quota: true },
+    { icon: 'chatbox-ellipses-outline', label: 'Réponse à un message', onPress: () => requireAi('le générateur de réponses', () => setGhostReplyVisible(true)), quota: true },
     { icon: 'shuffle-outline', label: 'Choisis pour moi', onPress: choisirPourMoi },
     { icon: 'albums-outline', label: 'Backlog', onPress: () => router.push('/backlog') },
     { icon: 'repeat-outline', label: 'Routines', onPress: () => router.push('/routines') },
@@ -731,6 +833,11 @@ export default function AccueilScreen() {
         {streakDays != null && streakDays > 0 && (
           <View style={styles.streakBadge}>
             <Text style={styles.streakBadgeText}>🔥 {streakDays}</Text>
+          </View>
+        )}
+        {tasks.some((t) => t.cout_energie) && (
+          <View style={styles.streakBadge}>
+            <Text style={styles.streakBadgeText}>🔋 {batterieRestante}%</Text>
           </View>
         )}
       </View>
@@ -879,6 +986,23 @@ export default function AccueilScreen() {
                   />
                 </Pressable>
               )}
+              {item.statut !== 'fait' && (
+                <Pressable hitSlop={6} onPress={() => cycleCoutEnergie(item)}>
+                  <Ionicons
+                    name={item.cout_energie ? 'flash' : 'flash-outline'}
+                    size={16}
+                    color={
+                      item.cout_energie === 'eleve'
+                        ? colors.danger
+                        : item.cout_energie === 'moyen'
+                        ? colors.warning
+                        : item.cout_energie === 'faible'
+                        ? colors.success
+                        : colors.border
+                    }
+                  />
+                </Pressable>
+              )}
               <Pressable
                 hitSlop={4}
                 onPress={() =>
@@ -901,7 +1025,7 @@ export default function AccueilScreen() {
                 <Text style={[styles.taskTitle, item.statut === 'fait' && styles.taskTitleDone]}>{item.titre}</Text>
               </Pressable>
               {item.statut !== 'fait' && (
-                <Pressable hitSlop={8} onPress={() => startFocusOn(item)}>
+                <Pressable hitSlop={8} onPress={() => lancerFocusAvecCheck(item)}>
                   <Ionicons name="play-circle-outline" size={20} color={colors.textMuted} />
                 </Pressable>
               )}
@@ -952,6 +1076,37 @@ export default function AccueilScreen() {
                 </Pressable>
               </View>
             )}
+
+            {item.statut !== 'fait' && siAlorsEditId === item.id ? (
+              <View style={styles.inputPairRow}>
+                <TextInput
+                  style={[styles.estimationInput, { flex: 1 }]}
+                  placeholder="Si je bloque, alors je..."
+                  placeholderTextColor={colors.textMuted}
+                  value={siAlorsInput[item.id] ?? item.si_alors ?? ''}
+                  onChangeText={(v) => setSiAlorsInput((prev) => ({ ...prev, [item.id]: v }))}
+                  onSubmitEditing={() => saveSiAlors(item.id)}
+                  autoFocus
+                />
+                <Pressable style={styles.siAlorsSaveButton} onPress={() => saveSiAlors(item.id)}>
+                  <Ionicons name="checkmark" size={18} color="#fff" />
+                </Pressable>
+              </View>
+            ) : item.statut !== 'fait' && item.si_alors ? (
+              <Pressable
+                style={styles.siAlorsChip}
+                onPress={() => {
+                  setSiAlorsInput((prev) => ({ ...prev, [item.id]: item.si_alors ?? '' }));
+                  setSiAlorsEditId(item.id);
+                }}
+              >
+                <Text style={styles.siAlorsChipText}>🔗 {item.si_alors}</Text>
+              </Pressable>
+            ) : item.statut !== 'fait' ? (
+              <Pressable onPress={() => setSiAlorsEditId(item.id)}>
+                <Text style={styles.siAlorsAddLink}>+ Si... alors... (plan anti-blocage)</Text>
+              </Pressable>
+            ) : null}
 
             {item.statut !== 'fait' && (!item.estimation_minutes || !item.heure_debut) && (
               <View style={[styles.estimationRow, styles.inputPairRow]}>
@@ -1211,6 +1366,68 @@ export default function AccueilScreen() {
         </View>
       </Modal>
 
+      <Modal visible={retourApresPauseVisible} transparent animationType="fade" onRequestClose={() => setRetourApresPauseVisible(false)}>
+        <View style={styles.braindumpBackdrop}>
+          <View style={styles.braindumpCard}>
+            <Text style={styles.braindumpTitle}>👋 Content de te revoir</Text>
+            <Text style={styles.braindumpSubtitle}>
+              Ça fait {joursAbsence} jours — pas de souci, pas de compteur cassé. On peut repartir sur une seule micro-action aujourd'hui, le reste attend tranquillement.
+            </Text>
+            <Pressable style={styles.braindumpSubmit} onPress={() => { setRetourApresPauseVisible(false); confirmerAmnistie(); }}>
+              <Text style={styles.braindumpSubmitText}>Repartir doucement</Text>
+            </Pressable>
+            <Pressable onPress={() => setRetourApresPauseVisible(false)} style={{ marginTop: spacing.md, alignSelf: 'center' }}>
+              <Text style={styles.braindumpCancel}>Plus tard</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={ghostReplyVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setGhostReplyVisible(false)}
+      >
+        <View style={styles.braindumpBackdrop}>
+          <View style={styles.braindumpCard}>
+            <Text style={styles.braindumpTitle}>Réponse à un message</Text>
+            <Text style={styles.braindumpSubtitle}>
+              Décris le message auquel tu n'as pas répondu et le contexte — l'IA propose un brouillon court, à toi de l'envoyer, le modifier ou l'ignorer.
+            </Text>
+            <TextInput
+              style={styles.braindumpInput}
+              multiline
+              placeholder="Ex : ma collègue m'a demandé si je pouvais l'aider sur un dossier il y a 2 semaines, je n'ai jamais répondu..."
+              placeholderTextColor={colors.textMuted}
+              value={ghostReplyContext}
+              onChangeText={setGhostReplyContext}
+              autoFocus
+            />
+            {ghostReplyResult !== '' && (
+              <View style={styles.ghostReplyResultBox}>
+                <Text style={styles.ghostReplyResultText}>{ghostReplyResult}</Text>
+                <Pressable onPress={copierReponseFantome} style={{ marginTop: spacing.sm, alignSelf: 'flex-start' }}>
+                  <Text style={styles.refreshLink}>Copier</Text>
+                </Pressable>
+              </View>
+            )}
+            <View style={styles.braindumpActions}>
+              <Pressable onPress={() => { setGhostReplyVisible(false); setGhostReplyContext(''); setGhostReplyResult(''); }}>
+                <Text style={styles.braindumpCancel}>Fermer</Text>
+              </Pressable>
+              <Pressable style={styles.braindumpSubmit} onPress={submitGhostReply} disabled={ghostReplyLoading}>
+                {ghostReplyLoading ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.braindumpSubmitText}>Générer</Text>
+                )}
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <Modal
         visible={assistantVisible}
         transparent
@@ -1367,6 +1584,10 @@ function makeStyles(colors: ThemeColors) {
     color: colors.text,
   },
   taxeSuggestion: { ...typography.caption, color: colors.accent, marginTop: spacing.xs, fontFamily: fonts.semibold },
+  siAlorsAddLink: { ...typography.caption, color: colors.primary, marginTop: spacing.sm, fontFamily: fonts.semibold },
+  siAlorsChip: { backgroundColor: colors.primaryMuted, borderRadius: radius.sm, padding: spacing.sm, marginTop: spacing.sm, alignSelf: 'flex-start' },
+  siAlorsChipText: { ...typography.caption, color: colors.primary, fontFamily: fonts.semibold },
+  siAlorsSaveButton: { backgroundColor: colors.primary, borderRadius: radius.sm, width: 40, alignItems: 'center', justifyContent: 'center' },
   subtaskRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm, marginLeft: spacing.lg },
   subtaskText: { ...typography.body, fontSize: 14, flex: 1 },
   granulariteRow: { flexDirection: 'row', gap: spacing.xs, marginTop: spacing.sm },
@@ -1458,5 +1679,8 @@ function makeStyles(colors: ThemeColors) {
   crashSecondaryButtonText: { color: colors.text, fontFamily: fonts.semibold, fontSize: 15 },
   crashPrimaryButton: { backgroundColor: colors.danger, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
   crashPrimaryButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 15 },
+  ghostReplyResultBox: { backgroundColor: colors.primaryMuted, borderRadius: radius.md, padding: spacing.md, marginTop: spacing.md },
+  ghostReplyResultText: { ...typography.body, fontSize: 14 },
+  refreshLink: { color: colors.primary, fontSize: 13, fontFamily: fonts.semibold },
   });
 }
