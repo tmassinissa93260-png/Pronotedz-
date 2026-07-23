@@ -15,7 +15,7 @@ import { generateRoomCode, joinDuoRoom, sendDuoEvent, leaveDuoRoom, joinLobby, l
 import { CircularTimer } from '../../components/CircularTimer';
 import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../../constants/theme';
 import { useTheme } from '../../lib/theme/ThemeProvider';
-import { usePremiumGate } from '../../lib/billing/stripe';
+import { PremiumScreen } from '../../components/PremiumScreen';
 
 type Mode = 'responsabilisation' | 'coregulation';
 const CHECKIN_THRESHOLD_MINUTES = 45;
@@ -32,7 +32,6 @@ export default function FocusScreen() {
   const { celebrate } = useReward();
   const { colors, focusMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { isPremium, gate } = usePremiumGate();
   const { tache: tacheParam, tacheId } = useLocalSearchParams<{ tache?: string; tacheId?: string }>();
   const [targetMinutes, setTargetMinutes] = useState<number | null>(25);
   const [activeSession, setActiveSession] = useState<{ id: string; mode: Mode; startedAt: number } | null>(null);
@@ -425,6 +424,7 @@ export default function FocusScreen() {
   }
 
   return (
+    <PremiumScreen label="Le minuteur de concentration">
     <View style={styles.container}>
       <Text style={styles.title}>Focus</Text>
       <Text style={styles.subtitle}>Travailler à côté de quelqu’un — même une présence IA — aide à démarrer et à tenir.</Text>
@@ -458,15 +458,8 @@ export default function FocusScreen() {
         <Text style={styles.modeDesc}>Des points de contact ponctuels pour vérifier que tu avances.</Text>
       </Pressable>
 
-      <Pressable style={[styles.modeCard, styles.duoCard]} onPress={() => gate('Focus à deux', () => setDuoModalVisible(true))}>
-        <View style={styles.duoTitleRow}>
-          <Text style={styles.modeTitle}>👥 Focus à deux</Text>
-          {!isPremium && (
-            <View style={styles.premiumChip}>
-              <Text style={styles.premiumChipText}>✨ Premium</Text>
-            </View>
-          )}
-        </View>
+      <Pressable style={[styles.modeCard, styles.duoCard]} onPress={() => setDuoModalVisible(true)}>
+        <Text style={styles.modeTitle}>👥 Focus à deux</Text>
         <Text style={styles.modeDesc}>Une vraie personne, en même temps que toi, avec un minuteur partagé. Pas de vidéo — juste une présence réelle.</Text>
       </Pressable>
 
@@ -569,6 +562,7 @@ export default function FocusScreen() {
         </View>
       </Modal>
     </View>
+    </PremiumScreen>
   );
 }
 
@@ -593,15 +587,6 @@ function makeStyles(colors: ThemeColors) {
   },
   modeTitle: { ...typography.heading, marginBottom: spacing.xs },
   modeDesc: { ...typography.body, color: colors.textMuted },
-  duoTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  premiumChip: {
-    backgroundColor: colors.accentMuted,
-    borderRadius: radius.pill,
-    paddingVertical: 2,
-    paddingHorizontal: spacing.sm,
-    marginBottom: spacing.xs,
-  },
-  premiumChipText: { fontSize: 11, color: colors.accent, fontFamily: fonts.semibold },
   sessionContainer: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: spacing.lg },
   breathCircle: { width: 140, height: 140, borderRadius: 70, backgroundColor: colors.primaryMuted, marginBottom: spacing.xl },
   checkinLabel: { ...typography.body, marginBottom: spacing.xl },

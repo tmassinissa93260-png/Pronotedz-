@@ -110,7 +110,7 @@ export function usePremiumGate() {
     }
     Alert.alert(
       'Fonctionnalité Premium',
-      `${label} fait partie de l'abonnement — l'app reste gratuite pour le planning, le focus et les check-ins du quotidien.`,
+      `${label} fait partie de l'abonnement — l'app reste gratuite pour ton planning quotidien et tes check-ins.`,
       [
         { text: 'Plus tard', style: 'cancel' },
         { text: 'Voir les offres', onPress: () => router.push('/paiement') },

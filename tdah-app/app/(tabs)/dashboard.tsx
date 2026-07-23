@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase/client';
@@ -8,7 +8,6 @@ import { colors, spacing, typography, fonts } from '../../constants/theme';
 import { generatePatternInsight, type PatternInsight } from '../../lib/supabase/patternInsight';
 import { StreakHeatmap } from '../../components/StreakHeatmap';
 import { usePremiumGate } from '../../lib/billing/stripe';
-import { useAiQuota } from '../../lib/billing/aiQuota';
 
 type Badge = { code: string; titre: string; description: string; emoji: string; obtenu: boolean };
 
@@ -30,7 +29,6 @@ export default function DashboardScreen() {
   const { session } = useAuth();
   const router = useRouter();
   const { isPremium, gate } = usePremiumGate();
-  const { canUse: aiQuotaOk, remaining: aiRemaining, limit: aiLimit, recordUsage: markAiUsage } = useAiQuota();
   const [autonomie, setAutonomie] = useState(0);
   const [competence, setCompetence] = useState(0);
   const [connexion, setConnexion] = useState(0);
@@ -51,25 +49,6 @@ export default function DashboardScreen() {
     } finally {
       setInsightLoading(false);
     }
-  }
-
-  // IA gratuite mais LIMITÉE (façon Tiimo) plutôt que totalement bloquée —
-  // en gratuit, l'insight se déclenche à la demande pour ne pas grignoter le
-  // quota mensuel juste en ouvrant l'écran.
-  async function requestInsight() {
-    if (!isPremium && !aiQuotaOk) {
-      Alert.alert(
-        'Limite gratuite atteinte',
-        `Tu as utilisé tes ${aiLimit} analyses IA gratuites ce mois-ci — l’app reste gratuite pour le planning, le focus et les check-ins du quotidien. Passe à l’abonnement pour un usage illimité.`,
-        [
-          { text: 'Plus tard', style: 'cancel' },
-          { text: 'Voir les offres', onPress: () => router.push('/paiement') },
-        ]
-      );
-      return;
-    }
-    await loadInsight();
-    if (!isPremium) await markAiUsage();
   }
 
   useEffect(() => {
@@ -136,7 +115,7 @@ export default function DashboardScreen() {
       <Pressable style={styles.weeklyReviewButton} onPress={() => gate('Le bilan réflexif de la semaine', () => router.push('/bilan-hebdomadaire'))}>
         <Ionicons name="chatbubbles-outline" size={16} color={colors.primary} />
         <Text style={styles.weeklyReviewButtonText}>Faire le bilan réflexif de la semaine</Text>
-        {!isPremium && <Ionicons name="lock-closed" size={12} color={colors.primary} />}
+        {!isPremium && <Ionicons name="sparkles" size={12} color={colors.primary} />}
       </Pressable>
 
       <View style={styles.insightCard}>
@@ -144,26 +123,24 @@ export default function DashboardScreen() {
           <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
           <Text style={styles.cardTitle}>Insight personnalisé</Text>
         </View>
-        {insightLoading ? (
+        {!isPremium ? (
+          <Pressable onPress={() => gate('L’analyse de tes patterns long terme', () => {})}>
+            <Text style={styles.cardValue}>✨ Analyse de tes patterns long terme par l’IA — fait partie de l’abonnement.</Text>
+          </Pressable>
+        ) : insightLoading ? (
           <ActivityIndicator color={colors.primary} style={{ alignSelf: 'flex-start', marginTop: spacing.xs }} />
         ) : insight?.pret === true ? (
           <>
             <Text style={styles.insightPattern}>{insight.pattern}</Text>
             <Text style={styles.caption}>À essayer : {insight.suggestion}</Text>
           </>
-        ) : insight?.pret === false ? (
-          <Text style={styles.cardValue}>{insight.message}</Text>
-        ) : !isPremium ? (
-          <Pressable onPress={requestInsight}>
-            <Text style={styles.cardValue}>
-              Analyse de tes patterns long terme par l’IA — {aiRemaining} essai{aiRemaining > 1 ? 's' : ''} gratuit{aiRemaining > 1 ? 's' : ''} restant{aiRemaining > 1 ? 's' : ''} ce mois-ci. Touche pour lancer.
-            </Text>
-          </Pressable>
         ) : (
-          <Text style={styles.cardValue}>Utilise l’app pendant quelques semaines pour débloquer un premier insight basé sur tes vraies habitudes.</Text>
+          <Text style={styles.cardValue}>
+            {insight?.pret === false ? insight.message : 'Utilise l’app pendant quelques semaines pour débloquer un premier insight basé sur tes vraies habitudes.'}
+          </Text>
         )}
-        {(isPremium || insight) && !insightLoading && (
-          <Pressable onPress={requestInsight} style={{ marginTop: spacing.sm }}>
+        {isPremium && !insightLoading && (
+          <Pressable onPress={loadInsight} style={{ marginTop: spacing.sm }}>
             <Text style={styles.refreshText}>Actualiser</Text>
           </Pressable>
         )}
