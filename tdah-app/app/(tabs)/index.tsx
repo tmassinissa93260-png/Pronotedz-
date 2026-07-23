@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -117,6 +117,9 @@ export default function AccueilScreen() {
   const [assistantLoading, setAssistantLoading] = useState(false);
   const [assistantMessages, setAssistantMessages] = useState<{ role: 'user' | 'assistant'; text: string }[]>([]);
   const [toolsMenuVisible, setToolsMenuVisible] = useState(false);
+  const [modeCrashVisible, setModeCrashVisible] = useState(false);
+  const nightAddCountRef = useRef(0);
+  const nightWarnedRef = useRef(false);
 
   const loadTasks = useCallback(async () => {
     if (!session) return;
@@ -450,6 +453,22 @@ export default function AccueilScreen() {
     }
     setNewTitle('');
     loadTasks();
+    signalerAjoutNocturne();
+  }
+
+  // Maintenance prédictive nocturne : beaucoup de tâches ajoutées d'un coup
+  // en pleine nuit est un signe classique d'hyperfocus — jamais bloquant
+  // (on ne réprime rien), juste un signal doux et unique par nuit pour
+  // inviter à laisser reposer ces idées plutôt que s'y engager à froid.
+  function signalerAjoutNocturne() {
+    if (new Date().getHours() >= 5) return;
+    nightAddCountRef.current += 1;
+    if (nightAddCountRef.current < 6 || nightWarnedRef.current) return;
+    nightWarnedRef.current = true;
+    Alert.alert(
+      'Le système chauffe 🌙',
+      'Beaucoup d’idées d’un coup à cette heure-ci — bon signe d’énergie. Elles sont bien enregistrées ; pense à les relire à tête reposée demain avant de t’y engager.'
+    );
   }
 
   async function saveEstimation(taskId: string) {
@@ -457,6 +476,22 @@ export default function AccueilScreen() {
     if (!value || Number.isNaN(value)) return;
     await supabase.from('tasks').update({ estimation_minutes: value, statut: 'en_cours' }).eq('id', taskId);
     loadTasks();
+  }
+
+  // "Taxe TDAH" : le temps réellement nécessaire est presque toujours sous-
+  // estimé. Suggestion visible et tapable plutôt qu'une multiplication
+  // silencieuse — écraser la saisie fausserait aussi la calibration
+  // estimé/réel déjà en place ailleurs dans l'app.
+  function estimationSuggeree(taskId: string): number | null {
+    const brut = parseInt(estimationInput[taskId] ?? '', 10);
+    if (!brut || Number.isNaN(brut)) return null;
+    const suggeree = Math.round((brut * 1.4) / 5) * 5;
+    return suggeree > brut ? suggeree : null;
+  }
+
+  function appliquerEstimationSuggeree(taskId: string) {
+    const suggeree = estimationSuggeree(taskId);
+    if (suggeree) setEstimationInput((prev) => ({ ...prev, [taskId]: String(suggeree) }));
   }
 
   async function decompose(taskId: string, titre: string, niveauDread: number | null) {
@@ -581,16 +616,104 @@ export default function AccueilScreen() {
     );
   }
 
+  // Roulette des tâches : face à une longue liste, le choix lui-même devient
+  // un obstacle (fatigue décisionnelle) — supprimer la décision plutôt que
+  // d'aider à la prendre.
+  function choisirPourMoi() {
+    const candidats = tasks.filter((t) => t.statut !== 'fait');
+    if (candidats.length === 0) {
+      Alert.alert('Rien à choisir', 'Toutes tes tâches du jour sont déjà faites 🎉');
+      return;
+    }
+    const pick = candidats[Math.floor(Math.random() * candidats.length)];
+    Alert.alert('🎲 On y va', `"${pick.titre}"`, [
+      { text: 'Une autre', onPress: () => choisirPourMoi() },
+      { text: 'Plus tard', style: 'cancel' },
+      { text: 'Lancer le focus', onPress: () => startFocusOn(pick) },
+    ]);
+  }
+
+  // "Amnistie générale" : les tâches en retard deviennent vite une source de
+  // honte qui pousse à fuir l'app plutôt qu'à rattraper le retard. Un geste
+  // qui remet tout à aujourd'hui, sans compteur d'échec ni notification
+  // culpabilisante — page blanche assumée, cohérent avec le report non-
+  // punitif déjà en place tâche par tâche.
+  async function confirmerAmnistie() {
+    if (!session) return;
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('id')
+      .eq('user_id', session.user.id)
+      .lt('date_prevue', today())
+      .neq('statut', 'fait');
+    if (error) return;
+    if (!data || data.length === 0) {
+      Alert.alert('Rien à amnistier', 'Aucune tâche en retard en ce moment.');
+      return;
+    }
+    Alert.alert(
+      'Amnistie générale',
+      `${data.length} tâche${data.length > 1 ? 's' : ''} en retard reviendra${data.length > 1 ? 'ont' : ''} à aujourd’hui — pas de compteur, pas de jugement.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Je fais table rase',
+          onPress: async () => {
+            const ids = data.map((t) => t.id);
+            await supabase.from('tasks').update({ date_prevue: today() }).in('id', ids);
+            await Promise.all(ids.map((id) => cancelTaskReminder(id)));
+            await loadTasks();
+            Alert.alert('Page blanche', 'On repart de là, sans arriéré.');
+          },
+        },
+      ]
+    );
+  }
+
+  // Mode Crash : quand le cerveau "s'éteint" (surcharge sensorielle ou
+  // émotionnelle), choisir quoi faire est lui-même un obstacle. On coupe
+  // court plutôt que de laisser la liste du jour peser : les rappels
+  // s'arrêtent, tout est reporté à demain sauf la tâche la moins angoissante,
+  // même celle-là restant facultative.
+  async function activerModeCrash() {
+    if (!session) return;
+    const restantes = tasks.filter((t) => t.statut !== 'fait');
+    await Promise.all(restantes.map((t) => cancelTaskReminder(t.id)));
+    const aGarder = restantes.length > 0
+      ? [...restantes].sort((a, b) => (a.niveau_dread ?? 0) - (b.niveau_dread ?? 0))[0]
+      : null;
+    const aReporter = restantes.filter((t) => t.id !== aGarder?.id);
+    if (aReporter.length > 0) {
+      const demain = new Date(selectedDate);
+      demain.setDate(demain.getDate() + 1);
+      await supabase
+        .from('tasks')
+        .update({ date_prevue: demain.toISOString().slice(0, 10) })
+        .in('id', aReporter.map((t) => t.id));
+    }
+    setModeCrashVisible(false);
+    await loadTasks();
+    Alert.alert(
+      'Mode Crash activé',
+      aGarder
+        ? `Tout est reporté à demain sauf "${aGarder.titre}" — et même celle-là, seulement si tu en as la force.`
+        : 'Tout est reporté à demain. Repose-toi.'
+    );
+  }
+
   // Menu "Outils" : regroupe les actions secondaires derrière un seul bouton
   // plutôt que d'aligner 6 chips en permanence dans l'en-tête — la ligne de
   // boutons avait fini par déborder sur deux lignes au fil des ajouts.
   const TOOLS: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; premium?: boolean; quota?: boolean }[] = [
     { icon: 'sparkles-outline', label: 'Assistant', onPress: () => requireAi('l’assistant conversationnel', () => setAssistantVisible(true)), quota: true },
+    { icon: 'shuffle-outline', label: 'Choisis pour moi', onPress: choisirPourMoi },
     { icon: 'albums-outline', label: 'Backlog', onPress: () => router.push('/backlog') },
     { icon: 'repeat-outline', label: 'Routines', onPress: () => router.push('/routines') },
     { icon: 'moon-outline', label: 'Fin de journée', onPress: () => router.push('/rituel-fin-journee') },
     { icon: 'leaf-outline', label: 'Respirer', onPress: () => router.push('/respiration') },
     { icon: 'bed-outline', label: 'Sommeil', onPress: () => gate('Le suivi du sommeil', () => router.push('/sommeil')), premium: true },
+    { icon: 'refresh-circle-outline', label: 'Amnistie générale', onPress: confirmerAmnistie },
+    { icon: 'alert-circle-outline', label: 'Mode Crash', onPress: () => setModeCrashVisible(true) },
   ];
 
   if (isLoading) {
@@ -856,6 +979,12 @@ export default function AccueilScreen() {
               </View>
             )}
 
+            {item.statut !== 'fait' && !item.estimation_minutes && estimationSuggeree(item.id) != null && (
+              <Pressable onPress={() => appliquerEstimationSuggeree(item.id)}>
+                <Text style={styles.taxeSuggestion}>💡 Prévois plutôt {estimationSuggeree(item.id)} min — marge de sécurité TDAH</Text>
+              </Pressable>
+            )}
+
             {item.subtasks?.length > 0 ? (
               item.subtasks
                 .sort((a, b) => a.ordre - b.ordre)
@@ -1062,6 +1191,26 @@ export default function AccueilScreen() {
         </View>
       </Modal>
 
+      <Modal visible={modeCrashVisible} transparent animationType="fade" onRequestClose={() => setModeCrashVisible(false)}>
+        <View style={styles.braindumpBackdrop}>
+          <View style={styles.braindumpCard}>
+            <Text style={styles.braindumpTitle}>🆘 Mode Crash</Text>
+            <Text style={styles.braindumpSubtitle}>
+              Quand tout devient trop, le mieux n'est pas de choisir quoi faire — c'est d'arrêter d'avoir à choisir. Avant toute chose : un verre d'eau, et quelques respirations si tu peux.
+            </Text>
+            <Pressable style={styles.crashSecondaryButton} onPress={() => { setModeCrashVisible(false); router.push('/respiration'); }}>
+              <Text style={styles.crashSecondaryButtonText}>🫁 Respirer d’abord</Text>
+            </Pressable>
+            <Pressable style={styles.crashPrimaryButton} onPress={activerModeCrash}>
+              <Text style={styles.crashPrimaryButtonText}>Tout mettre en pause pour aujourd’hui</Text>
+            </Pressable>
+            <Pressable onPress={() => setModeCrashVisible(false)} style={{ marginTop: spacing.md, alignSelf: 'center' }}>
+              <Text style={styles.braindumpCancel}>Annuler</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
+
       <Modal
         visible={assistantVisible}
         transparent
@@ -1217,6 +1366,7 @@ function makeStyles(colors: ThemeColors) {
     fontFamily: fonts.regular,
     color: colors.text,
   },
+  taxeSuggestion: { ...typography.caption, color: colors.accent, marginTop: spacing.xs, fontFamily: fonts.semibold },
   subtaskRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm, marginLeft: spacing.lg },
   subtaskText: { ...typography.body, fontSize: 14, flex: 1 },
   granulariteRow: { flexDirection: 'row', gap: spacing.xs, marginTop: spacing.sm },
@@ -1297,5 +1447,16 @@ function makeStyles(colors: ThemeColors) {
   braindumpCancel: { color: colors.textMuted, fontSize: 14 },
   braindumpSubmit: { backgroundColor: colors.primary, borderRadius: 20, paddingVertical: spacing.sm, paddingHorizontal: spacing.lg },
   braindumpSubmitText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 14 },
+  crashSecondaryButton: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  crashSecondaryButtonText: { color: colors.text, fontFamily: fonts.semibold, fontSize: 15 },
+  crashPrimaryButton: { backgroundColor: colors.danger, borderRadius: radius.md, paddingVertical: spacing.md, alignItems: 'center' },
+  crashPrimaryButtonText: { color: '#fff', fontFamily: fonts.semibold, fontSize: 15 },
   });
 }

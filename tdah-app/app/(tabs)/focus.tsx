@@ -253,6 +253,15 @@ export default function FocusScreen() {
     return () => loop.stop();
   }, [activeSession?.mode, focusMode]);
 
+  // "Juste 5 secondes" (hack psychologique) : le vrai obstacle TDAH n'est pas
+  // de faire la tâche mais de la commencer. Demander "5 secondes" plutôt que
+  // "une session de 25 min" contourne la paralysie de démarrage — une fois la
+  // machine lancée, le cerveau continue souvent de lui-même. Zéro choix à
+  // faire (mode/durée déjà définis), un seul tap.
+  function startFiveSecondStarter() {
+    startSession('responsabilisation');
+  }
+
   async function startSession(mode: Mode) {
     if (!session) return;
     const { data, error } = await supabase
@@ -373,6 +382,10 @@ export default function FocusScreen() {
           {activeSession.mode === 'coregulation' ? 'Mode co-régulation' : 'Mode responsabilisation'}
           {sessionTarget != null ? ` · objectif ${sessionTarget} min` : ''}
         </Text>
+        {/* Le mouvement spontané (fidgeting) est associé à un meilleur maintien
+            de l'attention chez les profils TDAH — jamais une distraction à
+            combattre pendant une session. */}
+        <Text style={styles.moveAllowedCaption}>🤸 Bouger, gigoter, te lever si besoin — ça aide à rester concentré, pas l'inverse.</Text>
         {focusSubtasks.length > 0 && (
           <View style={styles.focusSubtasksBox}>
             {focusSubtasks.map((s) => (
@@ -428,6 +441,10 @@ export default function FocusScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>Focus</Text>
       <Text style={styles.subtitle}>Travailler à côté de quelqu’un — même une présence IA — aide à démarrer et à tenir.</Text>
+
+      <Pressable style={styles.starterButton} onPress={startFiveSecondStarter}>
+        <Text style={styles.starterButtonText}>⚡ Juste 5 secondes, on verra après</Text>
+      </Pressable>
 
       <Text style={styles.durationLabel}>Durée</Text>
       <View style={styles.durationRow}>
@@ -577,6 +594,14 @@ function makeStyles(colors: ThemeColors) {
   return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, padding: spacing.lg },
   title: { ...typography.title, marginBottom: spacing.xs },
+  starterButton: {
+    backgroundColor: colors.accentMuted,
+    borderRadius: radius.pill,
+    paddingVertical: spacing.sm + 2,
+    alignItems: 'center',
+    marginBottom: spacing.lg,
+  },
+  starterButtonText: { color: colors.accent, fontFamily: fonts.bold, fontSize: 15 },
   subtitle: { ...typography.body, color: colors.textMuted, marginBottom: spacing.lg },
   durationLabel: { ...typography.caption, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: spacing.xs },
   durationRow: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.lg },
@@ -606,7 +631,8 @@ function makeStyles(colors: ThemeColors) {
   breathCircle: { width: 140, height: 140, borderRadius: 70, backgroundColor: colors.primaryMuted, marginBottom: spacing.xl },
   checkinLabel: { ...typography.body, marginBottom: spacing.xl },
   timer: { fontSize: 48, fontFamily: fonts.bold, color: colors.text, fontVariant: ['tabular-nums'] },
-  sessionMode: { ...typography.caption, marginTop: spacing.xs, marginBottom: spacing.xl },
+  sessionMode: { ...typography.caption, marginTop: spacing.xs, marginBottom: spacing.sm },
+  moveAllowedCaption: { ...typography.caption, textAlign: 'center', maxWidth: 280, marginBottom: spacing.xl },
   sessionActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   focusSubtasksBox: { width: '100%', maxWidth: 320, marginBottom: spacing.lg, gap: spacing.xs },
   focusSubtaskRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

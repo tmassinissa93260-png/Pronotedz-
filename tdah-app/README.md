@@ -72,6 +72,18 @@
 - **Plan de semaine complet par IA** : le Vide-tête a maintenant un bascule "Aujourd'hui" / "Toute la semaine" — décrire toute sa semaine en vrac fait répartir les tâches sur les 7 jours par l'IA (`plan_week_from_braindump`), au lieu de tout entasser sur un seul jour.
 - **Matching automatique pour le Focus à deux** : en plus de créer une session et partager un code, un bouton "Trouver un binôme maintenant" met en relation avec un inconnu de l'app disponible au même moment, via une salle d'attente Supabase Realtime (élection déterministe, pas de table dédiée). Tiimo ne propose que du body doubling simulé par IA, jamais un vrai humain.
 
+### Suite à la recherche approfondie TDAH (science + témoignages + marché français)
+
+Trois recherches menées en parallèle : bases physiologiques/scientifiques du TDAH et approches non-médicamenteuses, impact relationnel (couple/famille) et professionnel avec témoignages réels, et marché/communauté TDAH française face à Tiimo. Premier lot de fonctionnalités qui en découle (aucune ne demande de nouvelle dépendance ni de migration SQL) :
+
+- **"Juste 5 secondes"** (`app/(tabs)/focus.tsx`) : bouton à friction quasi nulle qui démarre une session directement, sans choix de mode ni de durée — hack psychologique documenté contre la paralysie de démarrage (le vrai obstacle TDAH n'est pas de faire la tâche, c'est de la commencer).
+- **Mouvement autorisé pendant le focus** : mention explicite pendant une session ("bouger, gigoter, te lever si besoin") — la recherche scientifique montre que le fidgeting spontané est corrélé à un meilleur maintien de l'attention chez les profils TDAH (régulation de l'éveil cortical), jamais une distraction à réprimer.
+- **Roulette des tâches** ("Choisis pour moi" dans le menu Outils) : tire au sort une tâche du jour non terminée — supprime la fatigue décisionnelle face à une liste, avec possibilité de retirer et retirer jusqu'à en accepter une.
+- **Suggestion "marge de sécurité TDAH"** sur l'estimation d'une tâche : suggestion visible et tapable (×1.4, jamais imposée silencieusement) plutôt qu'une multiplication automatique qui aurait faussé la calibration estimé/réel déjà en place.
+- **Amnistie générale** (menu Outils) : remet d'un coup toutes les tâches en retard à aujourd'hui, sans compteur d'échec ni notification culpabilisante — étend la logique déjà en place pour le report d'une tâche individuelle à un geste global.
+- **Mode Crash** (menu Outils) : pour les moments de surcharge où choisir quoi faire est lui-même un obstacle — annule les rappels du jour, reporte tout à demain sauf la tâche la moins angoissante (facultative même dans ce cas), avec accès direct à la respiration guidée avant de confirmer.
+- **Maintenance prédictive nocturne** : signal doux (jamais bloquant, une seule fois par nuit) quand beaucoup de tâches sont ajoutées d'un coup après minuit — signe possible d'hyperfocus nocturne, sans jamais empêcher d'ajouter quoi que ce soit.
+
 ### Suite à l'analyse de 15 captures d'écran Tiimo (App Store + site)
 
 - **Niveau de priorité** (Haute/Moyenne/Basse, `niveau_priorite`) distinct du niveau d'angoisse — un drapeau à côté du titre, tap pour faire défiler les niveaux
