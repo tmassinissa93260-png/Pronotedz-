@@ -15,7 +15,15 @@
           "calendarPermission": "L'app a besoin d'accéder à ton calendrier pour y ajouter tes tâches si tu le souhaites."
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false
+        }
+      ]
     ],
     "newArchEnabled": true,
     "ios": {

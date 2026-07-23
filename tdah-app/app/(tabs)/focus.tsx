@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet, Animated, Easing, Modal, TextInput, 
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as Speech from 'expo-speech';
+import { useAudioPlayer } from 'expo-audio';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { supabase } from '../../lib/supabase/client';
 import { useAuth } from '../../lib/supabase/AuthProvider';
@@ -26,6 +27,15 @@ const DURATIONS = [15, 25, 45] as const;
 // de secondes pour laisser le choix redevenir conscient.
 const EARLY_EXIT_RATIO = 0.2;
 
+// Bruit blanc/rose : preuve modérée mais spécifique au TDAH (modèle de
+// l'hypo-éveil — le son compense un sous-éveil cortical, effet quasi neutre
+// voire délétère chez les profils sans TDAH). Deux boucles générées
+// localement (aucun service tiers), fondu aux extrémités pour un raccord
+// inaudible même sur une session de 45 min.
+const BRUIT_BLANC_SOURCE = require('../../assets/sounds/bruit-blanc.wav');
+const BRUIT_ROSE_SOURCE = require('../../assets/sounds/bruit-rose.wav');
+type Bruit = 'aucun' | 'blanc' | 'rose';
+
 export default function FocusScreen() {
   const { session } = useAuth();
   const profile = useProfile();
@@ -45,6 +55,41 @@ export default function FocusScreen() {
   const [focusSubtasks, setFocusSubtasks] = useState<{ id: string; titre: string; fait: boolean }[]>([]);
   const breathAnim = useRef(new Animated.Value(1)).current;
   const focusedTaskTitle = tacheParam ? decodeURIComponent(tacheParam) : null;
+
+  const [bruitActif, setBruitActif] = useState<Bruit>('aucun');
+  const bruitBlancPlayer = useAudioPlayer(BRUIT_BLANC_SOURCE);
+  const bruitRosePlayer = useAudioPlayer(BRUIT_ROSE_SOURCE);
+
+  useEffect(() => {
+    bruitBlancPlayer.loop = true;
+    bruitRosePlayer.loop = true;
+    bruitBlancPlayer.volume = 0.5;
+    bruitRosePlayer.volume = 0.5;
+  }, [bruitBlancPlayer, bruitRosePlayer]);
+
+  function choisirBruit(type: Bruit) {
+    setBruitActif(type);
+    if (type === 'blanc') {
+      bruitRosePlayer.pause();
+      bruitBlancPlayer.play();
+    } else if (type === 'rose') {
+      bruitBlancPlayer.pause();
+      bruitRosePlayer.play();
+    } else {
+      bruitBlancPlayer.pause();
+      bruitRosePlayer.pause();
+    }
+  }
+
+  // Coupe le bruit dès que la session se termine, quel que soit le chemin
+  // de sortie (fin normale, sortie anticipée, changement d'écran).
+  useEffect(() => {
+    if (!activeSession) {
+      bruitBlancPlayer.pause();
+      bruitRosePlayer.pause();
+      setBruitActif('aucun');
+    }
+  }, [activeSession]);
 
   // Sous-tâches visibles et cochables pendant la session (façon Tiimo) —
   // jusqu'ici elles n'existaient que dans la liste du planning, invisibles
@@ -386,6 +431,19 @@ export default function FocusScreen() {
             de l'attention chez les profils TDAH — jamais une distraction à
             combattre pendant une session. */}
         <Text style={styles.moveAllowedCaption}>🤸 Bouger, gigoter, te lever si besoin — ça aide à rester concentré, pas l'inverse.</Text>
+        <View style={styles.bruitRow}>
+          {(['aucun', 'blanc', 'rose'] as const).map((type) => (
+            <Pressable
+              key={type}
+              style={[styles.bruitChip, bruitActif === type && styles.bruitChipActive]}
+              onPress={() => choisirBruit(type)}
+            >
+              <Text style={[styles.bruitChipText, bruitActif === type && styles.bruitChipTextActive]}>
+                {type === 'aucun' ? 'Silence' : type === 'blanc' ? '🌊 Blanc' : '🌸 Rose'}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
         {focusSubtasks.length > 0 && (
           <View style={styles.focusSubtasksBox}>
             {focusSubtasks.map((s) => (
@@ -632,7 +690,12 @@ function makeStyles(colors: ThemeColors) {
   checkinLabel: { ...typography.body, marginBottom: spacing.xl },
   timer: { fontSize: 48, fontFamily: fonts.bold, color: colors.text, fontVariant: ['tabular-nums'] },
   sessionMode: { ...typography.caption, marginTop: spacing.xs, marginBottom: spacing.sm },
-  moveAllowedCaption: { ...typography.caption, textAlign: 'center', maxWidth: 280, marginBottom: spacing.xl },
+  moveAllowedCaption: { ...typography.caption, textAlign: 'center', maxWidth: 280, marginBottom: spacing.md },
+  bruitRow: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.xl },
+  bruitChip: { borderWidth: 1, borderColor: colors.border, borderRadius: radius.pill, paddingVertical: 6, paddingHorizontal: spacing.md },
+  bruitChipActive: { backgroundColor: colors.primaryMuted, borderColor: colors.primary },
+  bruitChipText: { fontSize: 13, color: colors.textMuted },
+  bruitChipTextActive: { color: colors.primary, fontFamily: fonts.semibold },
   sessionActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   focusSubtasksBox: { width: '100%', maxWidth: 320, marginBottom: spacing.lg, gap: spacing.xs },
   focusSubtaskRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
