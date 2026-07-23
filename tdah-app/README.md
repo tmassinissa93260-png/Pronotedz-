@@ -112,6 +112,25 @@ Deuxième lot, qui demande une migration (`0018_si_alors_energie_ghost_reply.sql
 - **Échelle de rayons unifiée** (`radius.sm/md/lg/xl/pill`) pour des coins de carte, bouton et chip cohérents sur tout l'app.
 - Traitement le plus poussé sur les écrans les plus utilisés (Planning, Focus, Backlog, Routines) ; les écrans secondaires (Bilan, Rituel de fin de journée, Respiration, Profil, Auth, Onboarding) héritent automatiquement de la nouvelle police et palette via les tokens partagés, mais n'ont pas encore reçu le traitement ombre/rayon dédié.
 
+### Redesign "focus-first" et palette sobre/premium
+
+Deuxième passe de refonte, en deux temps.
+
+**Approche focus-first** (hiérarchie, capture, feedback, mode focus, navigation) :
+- **Capture rapide globale** (`components/QuickCaptureFab.tsx`) : bouton flottant présent sur tout l'app (sauf pendant une session de focus active), texte libre sans champ obligatoire, la note atterrit directement dans le backlog du jour. Remplace l'ancien champ "Ajouter une tâche" de l'écran du jour, devenu redondant.
+- **Dark mode par défaut** (`lib/theme/ThemeProvider.tsx`) — le sélecteur Système/Clair/Sombre reste disponible dans Profil.
+- **Retour haptique optionnel** sur chaque complétion de tâche/sous-tâche (`expo-haptics`, branché dans `RewardProvider.celebrate()`), désactivable dans Profil.
+- **Mode focus renforcé** : notifications coupées automatiquement pendant une session (`lib/notifications.ts`, `setNotificationsSuspended`), transition en fondu à l'entrée/sortie de session (`Animated.Value` dans `focus.tsx`).
+- **Densité réduite** sur les cartes de tâche : actions secondaires (calendrier, report) regroupées dans un menu "..." plutôt qu'affichées en permanence.
+- **Zones cliquables** revues sur les écrans les plus utilisés pour viser 44px minimum (chips, boutons d'icônes).
+
+**Palette "sobre et premium vert"** (`constants/theme.ts`), suite à un retour direct sur la V1 (jugée trop "2018") et en s'inspirant du ton sobre de FocusFirst (App Store) :
+- Fond noir neutre profond en mode sombre (plus de teinte bleu-nuit/indigo, qui lisait comme un gabarit SaaS générique) ; fond clair recalibré vers un blanc légèrement vert-gris en cohérence.
+- Vert unique comme couleur de marque (primaire ET succès) — choisi assez soutenu (`#059669` sombre / `#15803D` clair) pour rester lisible en texte blanc sur fond plein, pas juste "joli" en grande surface claire.
+- Ombres neutres (noir pur) au lieu de la teinte violette précédente.
+- Rayons de carte légèrement agrandis (`radius.md/lg/xl`) pour des cartes plus aérées.
+- **Abandon du pairing serif/sans** : Fraunces retiré (police et dépendance `@expo-google-fonts/fraunces` supprimées) — le titre d'écran passe en Manrope ExtraBold. Le duo serif/grotesque lisait plus "édito" que "outil premium" ; la hiérarchie vient maintenant du poids et de la taille, pas du changement de famille.
+
 ### Ajustements suite à une recherche sur le design et le TDAH
 
 Après la refonte visuelle ci-dessus, recherche ciblée sur la littérature UX/accessibilité cognitive pour vérifier (et corriger) les choix faits :

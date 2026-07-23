@@ -4,7 +4,6 @@ import { View, ActivityIndicator } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts, Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold } from '@expo-google-fonts/manrope';
-import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces';
 import { AuthProvider, useAuth } from '../lib/supabase/AuthProvider';
 import { supabase } from '../lib/supabase/client';
 import { RewardProvider } from '../lib/rewards/RewardProvider';
@@ -81,7 +80,6 @@ export default function RootLayout() {
     Manrope_600SemiBold,
     Manrope_700Bold,
     Manrope_800ExtraBold,
-    Fraunces_600SemiBold,
   });
 
   if (!fontsLoaded) {
