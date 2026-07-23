@@ -1,4 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
+import { Alert } from 'react-native';
+import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
 import { supabase } from '../supabase/client';
 import { useAuth } from '../supabase/AuthProvider';
@@ -43,9 +45,9 @@ export async function getSubscription(userId: string): Promise<{ statut: Subscri
 }
 
 // Lecture seule et légère (pas d'appel Stripe) — utilisable partout, y
-// compris dans un futur <PremiumGate>. Le rafraîchissement réel côté
-// Stripe (refreshSubscription) reste réservé à l'écran Profil pour éviter
-// de multiplier les appels API à chaque montage de composant.
+// compris par usePremiumGate() et <PremiumScreen>. Le rafraîchissement réel
+// côté Stripe (refreshSubscription) reste réservé à l'écran Profil pour
+// éviter de multiplier les appels API à chaque montage de composant.
 export function useSubscription() {
   const { session } = useAuth();
   const [statut, setStatut] = useState<SubscriptionStatus>('gratuit');
@@ -63,4 +65,29 @@ export function useSubscription() {
   }, [reload]);
 
   return { statut, isPremium: statut === 'actif', loading, reload };
+}
+
+// Point d'entrée unique pour verrouiller une action derrière l'abonnement —
+// un seul endroit pour le ton du message (jamais culpabilisant, cohérent
+// avec le reste de l'app) plutôt que du texte de paywall dupliqué partout.
+export function usePremiumGate() {
+  const { isPremium } = useSubscription();
+  const router = useRouter();
+
+  function gate(label: string, action: () => void) {
+    if (isPremium) {
+      action();
+      return;
+    }
+    Alert.alert(
+      'Fonctionnalité Premium',
+      `${label} fait partie de l'abonnement — l'app reste gratuite pour le planning, le focus et les check-ins du quotidien.`,
+      [
+        { text: 'Plus tard', style: 'cancel' },
+        { text: 'Voir les offres', onPress: () => router.push('/paiement') },
+      ]
+    );
+  }
+
+  return { isPremium, gate };
 }

@@ -6,6 +6,7 @@ import { useAuth } from '../lib/supabase/AuthProvider';
 import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../constants/theme';
 import { useTheme } from '../lib/theme/ThemeProvider';
 import { listRoutines, createRoutine, toggleRoutine, deleteRoutine, type Routine } from '../lib/supabase/routines';
+import { PremiumScreen } from '../components/PremiumScreen';
 
 type MomentJournee = 'n_importe_quand' | 'matin' | 'jour' | 'soir';
 const MOMENT_LABELS: Record<MomentJournee, string> = {
@@ -94,7 +95,7 @@ export default function RoutinesScreen() {
           headerTintColor: colors.text,
         }}
       />
-
+      <PremiumScreen label="Routines">
       <FlatList
         contentContainerStyle={{ padding: spacing.lg }}
         data={routines}
@@ -168,6 +169,7 @@ export default function RoutinesScreen() {
           </View>
         )}
       />
+      </PremiumScreen>
     </View>
   );
 }

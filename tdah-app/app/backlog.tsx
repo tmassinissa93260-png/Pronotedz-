@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase/client';
 import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../constants/theme';
 import { useTheme } from '../lib/theme/ThemeProvider';
 import { resolveTaskIcon } from '../lib/taskIcon';
+import { PremiumScreen } from '../components/PremiumScreen';
 
 // Backlog façon Tiimo (liste de tâches "à placer" → glissées sur le calendrier).
 // Un vrai glisser-déposer ne peut pas être vérifié fiablement depuis ce
@@ -106,7 +107,7 @@ export default function BacklogScreen() {
           headerTintColor: colors.text,
         }}
       />
-
+      <PremiumScreen label="Backlog">
       <Text style={styles.subtitle}>
         Tes tâches sans horaire fixé aujourd'hui — place-les sur ton planning d'un tap, comme un glisser-déposer sans le geste.
       </Text>
@@ -159,6 +160,7 @@ export default function BacklogScreen() {
           );
         }}
       />
+      </PremiumScreen>
     </View>
   );
 }

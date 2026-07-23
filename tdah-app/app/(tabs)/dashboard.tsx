@@ -7,6 +7,7 @@ import { useAuth } from '../../lib/supabase/AuthProvider';
 import { colors, spacing, typography, fonts } from '../../constants/theme';
 import { generatePatternInsight, type PatternInsight } from '../../lib/supabase/patternInsight';
 import { StreakHeatmap } from '../../components/StreakHeatmap';
+import { usePremiumGate } from '../../lib/billing/stripe';
 
 type Badge = { code: string; titre: string; description: string; emoji: string; obtenu: boolean };
 
@@ -27,6 +28,7 @@ function startOfWeekISO() {
 export default function DashboardScreen() {
   const { session } = useAuth();
   const router = useRouter();
+  const { isPremium, gate } = usePremiumGate();
   const [autonomie, setAutonomie] = useState(0);
   const [competence, setCompetence] = useState(0);
   const [connexion, setConnexion] = useState(0);
@@ -52,7 +54,7 @@ export default function DashboardScreen() {
   useEffect(() => {
     if (!session) return;
     const since = startOfWeekISO();
-    loadInsight();
+    if (isPremium) loadInsight();
 
     supabase
       .from('tasks')
@@ -103,16 +105,17 @@ export default function DashboardScreen() {
         }
         setHeatmapCounts(counts);
       });
-  }, [session]);
+  }, [session, isPremium]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ padding: spacing.lg }}>
       <Text style={styles.title}>Ton bilan de la semaine</Text>
       <Text style={styles.subtitle}>Pas de note sur 100 ici — juste ce que tu as vraiment vécu.</Text>
 
-      <Pressable style={styles.weeklyReviewButton} onPress={() => router.push('/bilan-hebdomadaire')}>
+      <Pressable style={styles.weeklyReviewButton} onPress={() => gate('Le bilan réflexif de la semaine', () => router.push('/bilan-hebdomadaire'))}>
         <Ionicons name="chatbubbles-outline" size={16} color={colors.primary} />
         <Text style={styles.weeklyReviewButtonText}>Faire le bilan réflexif de la semaine</Text>
+        {!isPremium && <Ionicons name="lock-closed" size={12} color={colors.primary} />}
       </Pressable>
 
       <View style={styles.insightCard}>
@@ -120,7 +123,11 @@ export default function DashboardScreen() {
           <Ionicons name="sparkles-outline" size={18} color={colors.primary} />
           <Text style={styles.cardTitle}>Insight personnalisé</Text>
         </View>
-        {insightLoading ? (
+        {!isPremium ? (
+          <Pressable onPress={() => gate('L’analyse de tes patterns long terme', () => {})}>
+            <Text style={styles.cardValue}>🔒 Analyse de tes patterns long terme par l’IA — fait partie de l’abonnement.</Text>
+          </Pressable>
+        ) : insightLoading ? (
           <ActivityIndicator color={colors.primary} style={{ alignSelf: 'flex-start', marginTop: spacing.xs }} />
         ) : insight?.pret === true ? (
           <>
@@ -132,7 +139,7 @@ export default function DashboardScreen() {
             {insight?.pret === false ? insight.message : 'Utilise l’app pendant quelques semaines pour débloquer un premier insight basé sur tes vraies habitudes.'}
           </Text>
         )}
-        {!insightLoading && (
+        {isPremium && !insightLoading && (
           <Pressable onPress={loadInsight} style={{ marginTop: spacing.sm }}>
             <Text style={styles.refreshText}>Actualiser</Text>
           </Pressable>

@@ -123,12 +123,24 @@ Après la refonte visuelle ci-dessus, recherche ciblée sur la littérature UX/a
 
 ### Infrastructure d'abonnement (Stripe)
 
-- **Aucune fonctionnalité n'est verrouillée pour l'instant** — cette infrastructure existe pour que l'abonnement soit possible, la répartition gratuit/payant sera décidée plus tard une fois toutes les fonctionnalités terminées. `<PremiumGate>` (`components/PremiumGate.tsx`) est prêt à envelopper n'importe quel contenu le moment venu.
 - **Stripe Checkout** (page hébergée, ouverte dans le navigateur via `expo-web-browser`) plutôt que le SDK natif `@stripe/stripe-react-native`, qui casserait Expo Go.
 - **Aucun webhook** : confirmer un paiement nécessiterait normalement un point d'entrée HTTP public, hors du pattern pg_net sortant utilisé partout ailleurs dans ce projet. À la place : `confirm_checkout_session` vérifie activement auprès de Stripe juste après le retour dans l'app (lien `tdahapp://checkout-retour`), et `refresh_subscription_status` revérifie à chaque ouverture de l'écran Profil — capte les renouvellements/annulations avec un léger différé plutôt qu'en temps réel.
 - Nouvel écran **Profil → Abonnement → Voir les offres**, plans mensuel/annuel.
 
+### Stratégie gratuit/payant
+
+Recherche sur les benchmarks freemium 2026 (RevenueCat, ChartMogul) et sur le modèle réel de Tiimo (notre concurrent direct) avant de trancher :
+
+- **Le piège documenté à éviter** : un tier gratuit trop vide tue la conversion (personne ne reste assez longtemps pour découvrir la valeur), et verrouiller la fonctionnalité qui fait justement télécharger l'app se retourne contre le produit (cas cité : un concurrent a verrouillé son filtre le plus populaire → vague de 1 étoile et désinstalls en quelques heures). Tiimo lui-même garde son découpage IA de tâches **limité mais gratuit**, et réserve à Pro : sync calendrier, multi-appareils, personnalisation, IA illimitée.
+- **Répartition retenue** — gratuit : planning quotidien (priorité, angoisse, moment de journée), vues liste/frise, minuteur focus solo (co-régulation/responsabilisation), streak/badges/récompenses, check-ins, rappels locaux, **mode sombre et mode focus** (verrouiller de l'accessibilité sur une app pensée pour le TDAH contredirait la mission), découpage IA d'une tâche (le "aha moment"), report/réorganisation de tâche. Premium : Vide-tête, Assistant conversationnel, Plan de semaine IA, Coach IA proactif, Analyse de patterns long terme, Focus à deux, Routines, Backlog, personnalisation icône/couleur, synchronisation calendrier, Bilan hebdomadaire réflexif, suivi du sommeil.
+- **Mise en place** (`lib/billing/stripe.ts`) : `usePremiumGate()` expose `gate(label, action)` — exécute l'action si l'abonnement est actif, sinon affiche une alerte au ton cohérent avec le reste de l'app (jamais culpabilisante) puis propose `/paiement`. Utilisé sur chaque point d'entrée (bouton Vide-tête, menu Outils, bulle d'icône de tâche, bouton calendrier, carte Focus à deux, bouton bilan hebdo).
+- **`<PremiumScreen label="...">`** (`components/PremiumScreen.tsx`) enveloppe les écrans complets (Backlog, Routines, Sommeil, Bilan hebdomadaire) en filet de sécurité si quelqu'un y accède directement par lien profond plutôt que par un bouton déjà verrouillé.
+- **Limite connue** : la vérification est côté client uniquement pour l'instant — les fonctions SQL des fonctionnalités IA ne vérifient pas encore l'abonnement elles-mêmes. Suffisant pour une V1 sans utilisateurs adverses, mais une vraie protection des revenus demandera d'ajouter ce contrôle aussi côté serveur (voir "Pas encore fait" ci-dessous).
+
 ## Pas encore fait (V2, dans ~2-3 mois une fois qu'on a des utilisateurs actifs)
+
+- Vérification de l'abonnement côté serveur (pas seulement client) dans les fonctions SQL des fonctionnalités premium — actuellement, un appel direct à l'API contournerait le verrouillage
+- Stratégie marketing / contenu TikTok (le split gratuit/payant ci-dessus est la base sur laquelle s'appuyer)
 
 - Synchronisation automatique du sommeil (Apple Watch/Health Connect) — nécessite un build EAS, voir ci-dessus
 - Répartition effective des fonctionnalités entre gratuit et payant (l'infrastructure existe, mais rien n'est encore restreint)

@@ -4,6 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { supabase } from '../lib/supabase/client';
 import { useAuth } from '../lib/supabase/AuthProvider';
 import { colors, spacing, typography, fonts } from '../constants/theme';
+import { PremiumScreen } from '../components/PremiumScreen';
 
 // Équivalent hebdomadaire du rituel de fin de journée (0006) : trois
 // questions réflexives, pas une nouvelle page de stats — le Dashboard fait
@@ -65,9 +66,10 @@ export default function BilanHebdomadaireScreen() {
   }
 
   return (
+    <>
+    <Stack.Screen options={{ headerShown: true, title: 'Bilan de la semaine', headerBackTitle: 'Bilan' }} />
+    <PremiumScreen label="Bilan hebdomadaire réflexif">
     <ScrollView style={styles.container} contentContainerStyle={{ padding: spacing.lg, paddingBottom: spacing.xl }}>
-      <Stack.Screen options={{ headerShown: true, title: 'Bilan de la semaine', headerBackTitle: 'Bilan' }} />
-
       <Text style={styles.subtitle}>
         {dejaFait ? 'Tu peux revenir sur tes réponses de cette semaine.' : 'Trois minutes pour prendre du recul, pas pour te noter.'}
       </Text>
@@ -106,6 +108,8 @@ export default function BilanHebdomadaireScreen() {
         <Text style={styles.saveButtonText}>{saving ? 'Enregistrement...' : 'Enregistrer'}</Text>
       </Pressable>
     </ScrollView>
+    </PremiumScreen>
+    </>
   );
 }
 

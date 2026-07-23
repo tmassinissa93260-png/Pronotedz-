@@ -20,6 +20,7 @@ import { breakdownTask } from '../../lib/ai/breakdownTask';
 import { planFromBraindump, planWeekFromBraindump } from '../../lib/ai/braindump';
 import { interpretScheduleCommand } from '../../lib/ai/scheduleAssistant';
 import { getHighDreadMomentStats, type MomentStats } from '../../lib/supabase/momentStats';
+import { usePremiumGate } from '../../lib/billing/stripe';
 import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../../constants/theme';
 import { useTheme } from '../../lib/theme/ThemeProvider';
 import { useAuth } from '../../lib/supabase/AuthProvider';
@@ -86,6 +87,7 @@ export default function AccueilScreen() {
   const { colors, focusMode } = useTheme();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const PRIORITE_COLOR = useMemo(() => prioriteColors(colors), [colors]);
+  const { isPremium, gate } = usePremiumGate();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [newTitle, setNewTitle] = useState('');
@@ -548,13 +550,13 @@ export default function AccueilScreen() {
   // Menu "Outils" : regroupe les actions secondaires derrière un seul bouton
   // plutôt que d'aligner 6 chips en permanence dans l'en-tête — la ligne de
   // boutons avait fini par déborder sur deux lignes au fil des ajouts.
-  const TOOLS: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }[] = [
-    { icon: 'sparkles-outline', label: 'Assistant', onPress: () => setAssistantVisible(true) },
-    { icon: 'albums-outline', label: 'Backlog', onPress: () => router.push('/backlog') },
-    { icon: 'repeat-outline', label: 'Routines', onPress: () => router.push('/routines') },
+  const TOOLS: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void; premium?: boolean }[] = [
+    { icon: 'sparkles-outline', label: 'Assistant', onPress: () => gate('L’assistant conversationnel', () => setAssistantVisible(true)), premium: true },
+    { icon: 'albums-outline', label: 'Backlog', onPress: () => gate('Le backlog', () => router.push('/backlog')), premium: true },
+    { icon: 'repeat-outline', label: 'Routines', onPress: () => gate('Les routines récurrentes', () => router.push('/routines')), premium: true },
     { icon: 'moon-outline', label: 'Fin de journée', onPress: () => router.push('/rituel-fin-journee') },
     { icon: 'leaf-outline', label: 'Respirer', onPress: () => router.push('/respiration') },
-    { icon: 'bed-outline', label: 'Sommeil', onPress: () => router.push('/sommeil') },
+    { icon: 'bed-outline', label: 'Sommeil', onPress: () => gate('Le suivi du sommeil', () => router.push('/sommeil')), premium: true },
   ];
 
   if (isLoading) {
@@ -598,9 +600,10 @@ export default function AccueilScreen() {
       </View>
 
       <View style={styles.headerButtons}>
-        <Pressable style={styles.braindumpButton} onPress={() => setBraindumpVisible(true)}>
+        <Pressable style={styles.braindumpButton} onPress={() => gate('Le Vide-tête', () => setBraindumpVisible(true))}>
           <Ionicons name="chatbubble-ellipses-outline" size={16} color={colors.primary} />
           <Text style={styles.braindumpButtonText}>Vide-tête</Text>
+          {!isPremium && <Ionicons name="lock-closed" size={11} color={colors.primary} />}
         </Pressable>
         <Pressable
           style={styles.braindumpButton}
@@ -677,7 +680,7 @@ export default function AccueilScreen() {
           </Pressable>
         )}
         renderItem={({ item, index, section }) => {
-          const momentWarning = getMomentWarning(item);
+          const momentWarning = isPremium ? getMomentWarning(item) : null;
           return (
           <View style={[styles.taskCard, item.statut === 'fait' && styles.taskCardDone]}>
             <View style={styles.reorderColumn}>
@@ -701,10 +704,12 @@ export default function AccueilScreen() {
               )}
               <Pressable
                 hitSlop={4}
-                onPress={() => {
-                  setPickerColor(resolveTaskIcon(item).color);
-                  setIconPickerTaskId(item.id);
-                }}
+                onPress={() =>
+                  gate('La personnalisation d’icône', () => {
+                    setPickerColor(resolveTaskIcon(item).color);
+                    setIconPickerTaskId(item.id);
+                  })
+                }
               >
                 <View style={[styles.taskIconBubble, { backgroundColor: iconColorFor(item) }]}>
                   <Text style={styles.taskIconEmoji}>{resolveTaskIcon(item).emoji}</Text>
@@ -723,7 +728,7 @@ export default function AccueilScreen() {
                   <Ionicons name="play-circle-outline" size={20} color={colors.textMuted} />
                 </Pressable>
               )}
-              <Pressable hitSlop={8} onPress={() => addToCalendar(item)}>
+              <Pressable hitSlop={8} onPress={() => gate('La synchronisation calendrier', () => addToCalendar(item))}>
                 <Ionicons name="calendar-outline" size={18} color={colors.textMuted} />
               </Pressable>
               {item.statut !== 'fait' && (
@@ -986,6 +991,9 @@ export default function AccueilScreen() {
               >
                 <Ionicons name={tool.icon} size={20} color={colors.primary} />
                 <Text style={styles.toolRowText}>{tool.label}</Text>
+                {tool.premium && !isPremium && (
+                  <Ionicons name="lock-closed" size={13} color={colors.textMuted} style={{ marginLeft: 'auto' }} />
+                )}
               </Pressable>
             ))}
             <Pressable onPress={() => setToolsMenuVisible(false)} style={{ marginTop: spacing.sm }}>

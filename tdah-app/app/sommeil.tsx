@@ -6,6 +6,7 @@ import { useAuth } from '../lib/supabase/AuthProvider';
 import { spacing, fonts, radius, shadow, makeTypography, type ThemeColors } from '../constants/theme';
 import { useTheme } from '../lib/theme/ThemeProvider';
 import { logSleep, listRecentSleep, getSleepTaskCorrelation, type SleepEntry, type SleepInsight } from '../lib/supabase/sleep';
+import { PremiumScreen } from '../components/PremiumScreen';
 
 function formatDuration(minutes: number) {
   const h = Math.floor(minutes / 60);
@@ -66,7 +67,7 @@ export default function SommeilScreen() {
           headerTintColor: colors.text,
         }}
       />
-
+      <PremiumScreen label="Sommeil">
       <FlatList
         contentContainerStyle={{ padding: spacing.lg }}
         data={entries}
@@ -127,6 +128,7 @@ export default function SommeilScreen() {
           </View>
         )}
       />
+      </PremiumScreen>
     </View>
   );
 }
