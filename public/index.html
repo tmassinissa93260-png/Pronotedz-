@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<title>Agent IA - Demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; background: #0f1115; color: #eee; }
+  h1 { font-size: 1.3rem; }
+  select, input, button { font-size: 1rem; padding: 0.5rem; border-radius: 6px; border: 1px solid #333; }
+  select, input { width: 100%; margin-bottom: 0.75rem; background: #1a1d23; color: #eee; box-sizing: border-box; }
+  #log { border: 1px solid #333; border-radius: 8px; padding: 1rem; height: 420px; overflow-y: auto; background: #1a1d23; margin-bottom: 0.75rem; }
+  .msg { margin: 0.4rem 0; padding: 0.5rem 0.75rem; border-radius: 8px; max-width: 85%; white-space: pre-wrap; }
+  .user { background: #2b5fd9; margin-left: auto; text-align: right; }
+  .assistant { background: #2a2d35; }
+  form { display: flex; gap: 0.5rem; }
+  form input { flex: 1; margin-bottom: 0; }
+  button { background: #2b5fd9; color: white; border: none; cursor: pointer; }
+  button:disabled { opacity: 0.5; cursor: default; }
+</style>
+</head>
+<body>
+  <h1>Agent IA - demo (coiffeur / fast-food / restaurant)</h1>
+  <select id="business"></select>
+  <div id="log"></div>
+  <form id="form">
+    <input id="input" placeholder="Ecris ton message..." autocomplete="off" />
+    <button type="submit">Envoyer</button>
+  </form>
+
+<script>
+const sessionId = "demo-" + Math.random().toString(36).slice(2, 10);
+const log = document.getElementById("log");
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+const businessSelect = document.getElementById("business");
+
+function addMsg(role, text) {
+  const div = document.createElement("div");
+  div.className = "msg " + role;
+  div.textContent = text;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+
+async function loadBusinesses() {
+  const res = await fetch("/api/businesses");
+  const businesses = await res.json();
+  businessSelect.innerHTML = businesses.map(b => `<option value="${b.id}">${b.name} (${b.type})</option>`).join("");
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const message = input.value.trim();
+  if (!message) return;
+  addMsg("user", message);
+  input.value = "";
+  input.disabled = true;
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ business_id: businessSelect.value, session_id: sessionId, message }),
+    });
+    const data = await res.json();
+    addMsg("assistant", data.reply || data.error || "Erreur");
+  } catch (err) {
+    addMsg("assistant", "Erreur reseau: " + err.message);
+  } finally {
+    input.disabled = false;
+    input.focus();
+  }
+});
+
+loadBusinesses();
+</script>
+</body>
+</html>
