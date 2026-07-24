@@ -32,9 +32,21 @@ une option, avant toute exécution.
 ## Ce que ce squelette couvre
 
 - Le flux complet décrit dans `docs/concept-produit.md` section 6bis : attente 30s →
-  session 10 min → fermeture forcée → cooldown 2 min → redirection.
+  session (budget décroissant, voir `SessionBudgetPlan.swift`) → fermeture forcée →
+  cooldown 2 min → redirection.
+- Le "témoin" (accountability partner, `App/Accountability/`) : partage natif d'un
+  message pré-rempli vers un contact choisi par l'utilisateur en cas de réouverture forcée.
 - L'onboarding et le catalogue d'alternatives (section 6ter).
 - La structure des 4 extensions Apple nécessaires au blocage réel.
+
+## Fonctionnalité abandonnée : détection de vitesse de scroll
+
+La détection de pattern de scroll (vitesse/comportement pendant une session TikTok) a été
+écartée, y compris via les capteurs de mouvement (CoreMotion) — pas seulement à cause d'une
+restriction de vie privée ciblée, mais parce que **l'app ne s'exécute pas du tout** tant
+qu'une autre app est au premier plan sur iOS. Aucun capteur, quel qu'il soit, ne peut rien
+mesurer à ce moment-là. Remplacée par la récompense décroissante + le témoin, qui agissent
+avant/après la session plutôt que pendant.
 
 ## Ce que ce squelette ne couvre pas (volontairement)
 

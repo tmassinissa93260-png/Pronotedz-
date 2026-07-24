@@ -4,8 +4,9 @@ import FamilyControls
 import Foundation
 
 /// Tourne dans son propre process, géré par iOS, même si l'app principale est
-/// fermée. C'est ici que le budget de 10 minutes (AppConstants.sessionBudget)
-/// se traduit réellement en fermeture forcée de l'app surveillée.
+/// fermée. C'est ici que les paliers décroissants de SessionBudgetPlan (10,
+/// 5, 2, 2... min cumulées) se traduisent réellement en fermeture forcée de
+/// l'app surveillée, palier après palier.
 class DeviceActivityMonitorExtension: DeviceActivityMonitor {
     private let store = ManagedSettingsStore()
 
@@ -14,7 +15,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         activity: DeviceActivityName
     ) {
         super.eventDidReachThreshold(event, activity: activity)
-        guard event == .sessionBudgetReached else { return }
+        guard event.rawValue.hasPrefix("budgetStep") else { return }
 
         applyShieldToMonitoredSelection()
         SessionState.recordSessionEnd()

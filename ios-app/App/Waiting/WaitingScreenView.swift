@@ -32,6 +32,13 @@ struct WaitingScreenView: View {
                 .padding(.horizontal, 32)
                 .id(currentMessage.text)
                 .transition(.opacity)
+
+            // Le "témoin" (voir Accountability/AccountabilityPrompt.swift) :
+            // affiché seulement à partir de la 2e attente de la journée, pas
+            // la toute première, pour ne pas culpabiliser dès le premier essai.
+            if SessionState.overridesToday > 0 {
+                AccountabilityPromptButton(overrideCount: SessionState.overridesToday)
+            }
         }
         .onReceive(tick) { _ in
             guard remaining > 0 else { return }

@@ -7,9 +7,6 @@ enum AppConstants {
     static let appGroupID = "group.com.ancre.app"
     static let urlScheme = "ancre"
 
-    /// Budget de session avant fermeture forcée de l'app surveillée.
-    static let sessionBudget: TimeInterval = 10 * 60
-
     /// Attente avant le tout premier accès de la journée.
     static let firstAttemptWait: TimeInterval = 30
 
