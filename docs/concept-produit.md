@@ -101,6 +101,10 @@ Rempli à la première ouverture, avant toute activation du blocage. Objectif : 
 - L'écran de redirection tire 2-3 suggestions aléatoires parmi celles correspondant aux tags cochés, jamais les mêmes deux fois de suite.
 - Une échappatoire existe toujours vers l'app surveillée (pas un blocage total après la redirection) mais avec un léger rappel visuel ("tu peux toujours scroller, mais...") pour ne pas transformer l'app en prison et risquer la désinstallation.
 
+## 6quater. Coach IA
+
+Chat avec un modèle de langage tournant **directement sur l'appareil** (Foundation Models, iOS 26+ — aucune donnée envoyée à un serveur), accessible depuis l'écran d'accueil. Le coach connaît le nombre de réouvertures forcées du jour et le profil d'intérêts, pour rester concret plutôt que de faire un discours générique. Repose sur un écran de repli explicite si Apple Intelligence n'est pas activé/disponible sur l'appareil — ce n'est jamais un prérequis pour utiliser le reste de l'app. Détail d'implémentation : `ios-app/App/AICoach/`.
+
 ## 7. Modèle économique (pistes)
 
 - Freemium : friction de base + dashboard gratuits, rappels ergonomiques + mode avancé Android en payant.

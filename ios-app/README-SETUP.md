@@ -37,6 +37,21 @@ translucide qu'Apple généralise depuis iOS 26 ("Liquid Glass"). **Non prévisu
 simulateur iOS disponible ici, les couleurs/espacements sont un point de départ raisonnable,
 pas un résultat validé à l'œil — à ajuster dans Xcode Previews une fois ouvert sur un Mac.
 
+## Coach IA (`App/AICoach/`)
+
+Basé sur **Foundation Models**, le framework d'IA générative sur l'appareil qu'Apple a
+ouvert aux développeurs à partir d'iOS 26 — aucune donnée envoyée à un serveur. C'est du
+code jamais compilé ici (pas de Xcode), à considérer comme un point de départ crédible
+plutôt qu'une implémentation validée :
+- Nécessite iOS 26+ **et** que l'utilisateur ait Apple Intelligence activé sur son appareil
+  (pas garanti, dépend du modèle de téléphone et des réglages). Le code gère ce cas
+  explicitement (`CoachEntryView` bascule sur un écran de repli plutôt que de planter).
+- Volontairement gardé à l'écart du reste de l'app (target iOS minimum plus bas pour tout
+  le reste) : on ne veut pas priver les utilisateurs sur iOS 17/18 du produit entier juste
+  pour ce bonus.
+- Le nom exact des cas de `SystemLanguageModel.Availability` est reconstitué de mémoire —
+  à vérifier/corriger à la première compilation dans Xcode.
+
 ## Ce que ce squelette couvre
 
 - Le flux complet décrit dans `docs/concept-produit.md` section 6bis : attente 30s →
@@ -44,6 +59,8 @@ pas un résultat validé à l'œil — à ajuster dans Xcode Previews une fois o
   cooldown 2 min → redirection.
 - Le "témoin" (accountability partner, `App/Accountability/`) : partage natif d'un
   message pré-rempli vers un contact choisi par l'utilisateur en cas de réouverture forcée.
+- Un écran d'accueil (`App/Dashboard/`) servant d'état de repos entre deux événements
+  DeviceActivity, avec accès au coach IA et à la modification des apps surveillées.
 - L'onboarding et le catalogue d'alternatives (section 6ter).
 - La structure des 4 extensions Apple nécessaires au blocage réel.
 

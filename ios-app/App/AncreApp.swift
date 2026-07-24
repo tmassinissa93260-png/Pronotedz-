@@ -23,13 +23,20 @@ struct AncreApp: App {
 /// → écran d'attente → redirection.
 struct RootView: View {
     @EnvironmentObject private var authorization: ScreenTimeAuthorization
-    @State private var step: Step = InterestProfile.hasCompletedOnboarding ? .appSelection : .onboarding
+    @State private var step: Step = Self.initialStep()
 
     enum Step {
         case onboarding
         case appSelection
+        case dashboard
         case waiting(duration: TimeInterval)
         case redirect
+    }
+
+    private static func initialStep() -> Step {
+        guard InterestProfile.hasCompletedOnboarding else { return .onboarding }
+        guard AppSelectionPicker.hasSavedSelection else { return .appSelection }
+        return .dashboard
     }
 
     static func handleIncomingURL(_ url: URL) {
@@ -49,8 +56,18 @@ struct RootView: View {
                     }
                 }
             case .appSelection:
-                AppSelectionPicker()
-                    .task { await authorization.requestAuthorization() }
+                AppSelectionPicker {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        step = .dashboard
+                    }
+                }
+                .task { await authorization.requestAuthorization() }
+            case .dashboard:
+                DashboardView {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        step = .appSelection
+                    }
+                }
             case .waiting(let duration):
                 WaitingScreenView(totalWait: duration) {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
@@ -61,7 +78,9 @@ struct RootView: View {
                 RedirectSuggestionView(
                     suggestions: SuggestionCatalog.pick(for: InterestProfile.load())
                 ) {
-                    // Échappatoire assumée : voir RedirectSuggestionView.
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        step = .dashboard
+                    }
                 }
             }
         }
@@ -75,8 +94,9 @@ struct RootView: View {
         switch step {
         case .onboarding: return 0
         case .appSelection: return 1
-        case .waiting: return 2
-        case .redirect: return 3
+        case .dashboard: return 2
+        case .waiting: return 3
+        case .redirect: return 4
         }
     }
 }

@@ -7,8 +7,14 @@ import ManagedSettings
 /// seulement des tokens opaques, affichables uniquement via les vues fournies
 /// par FamilyControls (ex. `Label(token)`). C'est voulu par Apple pour la vie privée.
 struct AppSelectionPicker: View {
+    let onCompleted: () -> Void
+
     @State private var selection = FamilyActivitySelection()
     @State private var isPickerPresented = false
+
+    static var hasSavedSelection: Bool {
+        UserDefaults.shared.data(forKey: "monitoredSelection") != nil
+    }
 
     var body: some View {
         VStack(spacing: Theme.spacing) {
@@ -67,5 +73,6 @@ struct AppSelectionPicker: View {
             UserDefaults.shared.set(encoded, forKey: "monitoredSelection")
         }
         FrictionScheduler.startMonitoring(selection: selection)
+        onCompleted()
     }
 }
