@@ -83,6 +83,21 @@ Flux validé avec l'utilisateur, à implémenter dès le MVP :
 
 L'écran système de blocage d'Apple (`ManagedSettings` shield) est un template figé : titre, sous-titre, icône, couleur, et jusqu'à 2 boutons — pas de compte à rebours dynamique ni de messages qui changent seuls. Le compte à rebours (30 sec, puis 2 min) et la rotation des messages doivent donc être affichés **dans l'app elle-même**, ouverte via l'action d'un bouton du shield (`ShieldActionExtension`) plutôt que dans l'écran système. Aucun impact sur la faisabilité globale, juste sur l'endroit où vit l'UI.
 
+## 6ter. Questionnaire d'onboarding et catalogue d'alternatives
+
+Rempli à la première ouverture, avant toute activation du blocage. Objectif : construire un profil d'intérêts pour alimenter l'écran de redirection (étape 6 du flux ci-dessus).
+
+**Questions (choix multiples, 3-5 réponses max par catégorie pour ne pas décourager) :**
+1. Qu'est-ce que tu lirais si tu avais plus de temps ? (romans, essais, BD, presse, rien pour l'instant)
+2. Quel type de documentaire/vidéo longue tu regarderais volontiers ? (sciences, histoire, sport, société, aucun)
+3. Quelle activité physique te tente le plus en ce moment ? (course, foot, muscu, marche, aucune)
+4. Tu préfères sortir plutôt seul(e) ou avec quelqu'un quand tu décroches de l'écran ?
+
+**Catalogue d'alternatives (mappé aux réponses) :**
+- Chaque tag d'intérêt (ex. "sport/foot") est relié à 2-3 suggestions concrètes stockées localement (nom, type, courte description) — pas besoin d'API externe pour le MVP, un catalogue statique suffit.
+- L'écran de redirection tire 2-3 suggestions aléatoires parmi celles correspondant aux tags cochés, jamais les mêmes deux fois de suite.
+- Une échappatoire existe toujours vers l'app surveillée (pas un blocage total après la redirection) mais avec un léger rappel visuel ("tu peux toujours scroller, mais...") pour ne pas transformer l'app en prison et risquer la désinstallation.
+
 ## 7. Modèle économique (pistes)
 
 - Freemium : friction de base + dashboard gratuits, rappels ergonomiques + mode avancé Android en payant.
@@ -110,4 +125,5 @@ Voir bibliographie complète dans la recherche menée en amont (section recherch
 
 1. Valider ou changer le nom provisoire "Ancre".
 2. Décider : lancement Android-first (fonctionnalité complète immédiate) ou iOS+Android simultané (MVP réduit commun) ?
-3. Si "GO" : je pose la structure de projet (React Native / Flutter vs natif Swift+Kotlin séparés — à trancher selon la contrainte AccessibilityService/FamilyControls, qui pousse plutôt vers du natif) et code le MVP de la section 6.
+3. ~~Si "GO" : je pose la structure de projet et code le MVP de la section 6.~~ **Fait pour iOS** : squelette Swift/SwiftUI dans `ios-app/` (voir `ios-app/README-SETUP.md` pour les étapes restantes côté Xcode — entitlement Family Controls, App Groups, targets d'extension — qui ne peuvent pas être faites depuis ce dépôt).
+4. Reste à faire : version Android (Kotlin, `AccessibilityService` + `UsageStatsManager`), et ouverture réelle du projet iOS dans Xcode sur un Mac pour compiler/tester ce qui a été écrit ici à l'aveugle.
