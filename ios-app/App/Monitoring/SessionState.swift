@@ -7,6 +7,7 @@ struct SessionState {
     private static let lastSessionEndKey = "lastSessionEndDate"
     private static let overridesTodayKey = "overridesToday"
     private static let overridesDateKey = "overridesTodayDate"
+    private static let dailyCapDateKey = "dailyCapReachedDate"
 
     private static var defaults: UserDefaults { .shared }
 
@@ -56,5 +57,17 @@ struct SessionState {
 
     static func recordOverride() {
         overridesToday += 1
+    }
+
+    /// Vrai à partir du moment où l'événement "dailyCap" de FrictionScheduler
+    /// s'est déclenché aujourd'hui — plus aucune session accordée sans passer
+    /// par TimeRequestSync (demande au parent). Remis à zéro chaque jour.
+    static var hasReachedDailyCapToday: Bool {
+        guard let storedDate = defaults.object(forKey: dailyCapDateKey) as? Date else { return false }
+        return Calendar.current.isDateInToday(storedDate)
+    }
+
+    static func markDailyCapReached() {
+        defaults.set(Date(), forKey: dailyCapDateKey)
     }
 }

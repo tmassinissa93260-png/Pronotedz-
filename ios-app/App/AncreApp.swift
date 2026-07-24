@@ -32,6 +32,7 @@ struct RootView: View {
         case appSelection
         case dashboard
         case waiting(duration: TimeInterval)
+        case dailyLimitReached
         case redirect
     }
 
@@ -40,14 +41,23 @@ struct RootView: View {
         if role == .child, ParentSettings.load().parentPhoneNumber.isEmpty { return .parentSetup }
         guard InterestProfile.hasCompletedOnboarding else { return .onboarding }
         guard AppSelectionPicker.hasSavedSelection else { return .appSelection }
+        if SessionState.hasReachedDailyCapToday { return .dailyLimitReached }
         return .dashboard
     }
 
+    /// Choix entre .waiting et .dailyLimitReached selon que le plafond du
+    /// jour (ParentSettings.dailyLimitMinutes) a été atteint ou non — à
+    /// appeler depuis le vrai routage une fois câblé (voir note ci-dessous).
+    private static func nextStepAfterShieldTriggered(duration: TimeInterval) -> Step {
+        SessionState.hasReachedDailyCapToday ? .dailyLimitReached : .waiting(duration: duration)
+    }
+
     static func handleIncomingURL(_ url: URL) {
-        // Le routage réel (afficher WaitingScreenView avec la bonne durée)
-        // doit passer par un état partagé observable (ex. un ObservableObject
-        // injecté en @EnvironmentObject) plutôt que cette fonction statique —
-        // simplifié ici pour rester lisible dans ce squelette.
+        // Le routage réel (afficher WaitingScreenView/DailyLimitReachedView
+        // au bon moment, via nextStepAfterShieldTriggered) doit passer par un
+        // état partagé observable (ex. un ObservableObject injecté en
+        // @EnvironmentObject) plutôt que cette fonction statique — simplifié
+        // ici pour rester lisible dans ce squelette.
     }
 
     var body: some View {
@@ -91,6 +101,12 @@ struct RootView: View {
                         step = .redirect
                     }
                 }
+            case .dailyLimitReached:
+                DailyLimitReachedView {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        step = .redirect
+                    }
+                }
             case .redirect:
                 RedirectSuggestionView(
                     suggestions: SuggestionCatalog.pick(for: InterestProfile.load())
@@ -115,7 +131,8 @@ struct RootView: View {
         case .appSelection: return 3
         case .dashboard: return 4
         case .waiting: return 5
-        case .redirect: return 6
+        case .dailyLimitReached: return 6
+        case .redirect: return 7
         }
     }
 }

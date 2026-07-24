@@ -28,11 +28,19 @@ une option, avant toute exécution.
      pour permettre à `ShieldActionExtension` de rouvrir l'app sur le bon écran.
 5. Remplacer tous les identifiants placeholder (`group.com.ancre.app`, `com.ancre.app`,
    `ancre://`) par les vrais identifiants une fois le compte développeur configuré.
-6. Pour le mode école (voir plus bas) : activer la capacité **iCloud → CloudKit** sur le
-   target principal, créer un container, et dans le CloudKit Dashboard (console web
-   Apple, pas dans Xcode) définir le record type `ClassCheckIn` avec les champs
-   `classCode` (String, indexé "queryable"), `studentName` (String), `overridesToday`
-   (Int64), `date` (String) — sans l'index sur `classCode`, la requête du prof échouera.
+6. Pour le mode école ET le mode parent à distance (voir plus bas) : activer la capacité
+   **iCloud → CloudKit** sur le target principal, créer un container, et dans le CloudKit
+   Dashboard (console web Apple, pas dans Xcode) définir deux record types :
+   - `ClassCheckIn` : `classCode` (String, indexé "queryable"), `studentName` (String),
+     `overridesToday` (Int64), `date` (String).
+   - `TimeRequest` : `familyCode` (String, indexé "queryable"), `requestedMinutes` (Int64),
+     `status` (String), `grantedMinutes` (Int64, optionnel), `date` (String), `createdAt`
+     (Date/Time). Sans les index "queryable" sur `classCode`/`familyCode`, les requêtes
+     échoueront silencieusement.
+   - Pour de vraies notifications push côté parent (pas juste le bouton "Actualiser") :
+     activer aussi **Push Notifications** + **Background Modes → Remote notifications**,
+     et créer une `CKQuerySubscription` sur `TimeRequest` — non fait ici, voir la note dans
+     `TimeRequestSync.swift`.
 
 ## Design
 
@@ -60,6 +68,27 @@ concrètement ce qui se passe, pas juste l'apparence :
 - Le code à 4 chiffres des réglages parent (`ParentSettingsGateView`) est une friction
   applicative locale, pas une sécurité réelle : un enfant qui réinstalle l'app repart de
   zéro. Ne jamais le présenter comme protégeant plus que ça.
+- **Limite quotidienne réglable** (`ParentSettings.dailyLimitMinutes`, 2h par défaut) :
+  une fois atteinte, plus aucune session n'est accordée pour le reste de la journée (voir
+  `SessionBudgetPlan.cumulativeThresholdsInSeconds` et le cas `"dailyCap"` dans
+  `DeviceActivityMonitorExtension`) — l'enfant voit `DailyLimitReachedView` au lieu du
+  compte à rebours habituel.
+- **Demande d'autorisation** (`App/Parent/TimeRequestSync.swift`) : l'enfant peut demander
+  du temps en plus, envoyé au parent via le même mécanisme CloudKit que le mode école (code
+  famille plutôt que code de classe). Le parent répond depuis `ParentRemoteView`, installée
+  sur *son propre* téléphone (accessible via le lien discret sur `RoleSelectionView`). Deux
+  points non résolus ici, à traiter avant un vrai usage :
+  - Sans push CloudKit configuré (voir capacités CloudKit plus haut), la détection d'une
+    réponse côté enfant se fait par sondage toutes les 30s (`DailyLimitReachedView`), pas
+    par notification instantanée — fonctionnel mais pas idéal.
+  - Base CloudKit publique non durcie : même avertissement que le mode école, mais plus
+    grave ici, puisque ce flux contrôle un vrai accès (accorder du temps), pas juste des
+    statistiques en lecture. À sécuriser avant tout usage réel (voir
+    `TimeRequestSync.swift`).
+  - Incertitude technique non vérifiable ici (pas de Xcode) : est-ce que relancer
+    `DeviceActivityCenter.startMonitoring` en cours de journée pour relever le plafond
+    (`FrictionScheduler.grantExtraTime`) part bien du temps déjà écoulé, ou recompte à
+    zéro ? À vérifier en premier lors de la compilation, toute la mécanique en dépend.
 
 **Conformité à anticiper avant tout lancement réel** : une app installée par un parent pour
 un enfant tombe potentiellement dans la catégorie "Kids" de l'App Store (règles Apple

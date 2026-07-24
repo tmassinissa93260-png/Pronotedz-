@@ -15,8 +15,17 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         activity: DeviceActivityName
     ) {
         super.eventDidReachThreshold(event, activity: activity)
-        guard event.rawValue.hasPrefix("budgetStep") else { return }
 
+        if event.rawValue == "dailyCap" {
+            // Plafond dur du jour : on shield et on marque l'état, pour que
+            // l'app affiche l'écran "demander plus de temps" plutôt que le
+            // simple compte à rebours (voir AncreApp.swift, SessionState).
+            applyShieldToMonitoredSelection()
+            SessionState.markDailyCapReached()
+            return
+        }
+
+        guard event.rawValue.hasPrefix("budgetStep") else { return }
         applyShieldToMonitoredSelection()
         SessionState.recordSessionEnd()
     }

@@ -10,6 +10,7 @@ struct RoleSelectionView: View {
     let onSelected: (UserRole) -> Void
 
     @State private var isTeacherDashboardPresented = false
+    @State private var isParentRemotePresented = false
 
     var body: some View {
         VStack(spacing: Theme.spacing) {
@@ -54,12 +55,21 @@ struct RoleSelectionView: View {
             .font(.footnote)
             .foregroundStyle(.secondary)
 
+            Button("Je veux suivre mon enfant à distance") {
+                isParentRemotePresented = true
+            }
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+
             Spacer()
         }
         .padding(Theme.spacing)
         .ancreBackground()
         .sheet(isPresented: $isTeacherDashboardPresented) {
             TeacherDashboardView()
+        }
+        .sheet(isPresented: $isParentRemotePresented) {
+            ParentRemoteView()
         }
     }
 }

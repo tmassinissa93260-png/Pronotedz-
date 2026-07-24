@@ -105,6 +105,15 @@ Rempli à la première ouverture, avant toute activation du blocage. Objectif : 
 
 Chat avec un modèle de langage tournant **directement sur l'appareil** (Foundation Models, iOS 26+ — aucune donnée envoyée à un serveur), accessible depuis l'écran d'accueil. Le coach connaît le nombre de réouvertures forcées du jour et le profil d'intérêts, pour rester concret plutôt que de faire un discours générique. Repose sur un écran de repli explicite si Apple Intelligence n'est pas activé/disponible sur l'appareil — ce n'est jamais un prérequis pour utiliser le reste de l'app. Détail d'implémentation : `ios-app/App/AICoach/`.
 
+## 6quinquies. Parents et école
+
+Deux publics ajoutés au produit de base (moi-même) :
+
+- **Parent** : autorisation Screen Time `.child` plutôt que `.individual` (verrouillage réel par le code Temps d'écran du parent, pas juste un engagement volontaire), limite quotidienne réglable par le parent (2h par défaut) au-delà de laquelle plus aucune session n'est accordée, et un flux de demande d'autorisation — l'enfant qui a atteint sa limite peut demander du temps en plus, envoyé au téléphone du parent (via un code famille) qui approuve ou refuse à distance.
+- **École** : un élève rejoint une classe avec un code fourni par l'enseignant ; l'enseignant voit, sur son propre téléphone, le nombre de réouvertures forcées de chaque élève de sa classe (choix explicite du détail par élève plutôt qu'une moyenne anonyme).
+
+Les deux fonctionnent via CloudKit (compte Apple de chacun), pas un serveur propriétaire — choix fait explicitement pour éviter d'avoir à héberger et sécuriser nous-mêmes des données de mineurs. Deux réserves sérieuses à ne pas escamoter avant un vrai lancement : la base CloudKit publique utilisée n'est pas encore durcie (n'importe qui connaissant un code pourrait en théorie lire/modifier les données), et le détail élève par élève / la demande d'autorisation impliquent des obligations légales (RGPD mineurs, règles propres à l'Éducation nationale) qui dépassent largement ce qu'un bout de code peut garantir. Détail technique complet : `ios-app/README-SETUP.md`.
+
 ## 7. Modèle économique (pistes)
 
 - Freemium : friction de base + dashboard gratuits, rappels ergonomiques + mode avancé Android en payant.

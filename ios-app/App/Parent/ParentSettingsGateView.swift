@@ -72,6 +72,39 @@ private struct ParentSettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
+            GlassCard {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Limite quotidienne : \(settings.dailyLimitMinutes) min")
+                        .font(.subheadline.weight(.medium))
+                    Stepper(
+                        "",
+                        value: Binding(
+                            get: { settings.dailyLimitMinutes },
+                            set: {
+                                settings.dailyLimitMinutes = $0
+                                settings.save()
+                                FrictionScheduler.reregisterIfPossible()
+                            }
+                        ),
+                        in: 15...480,
+                        step: 15
+                    )
+                    .labelsHidden()
+                }
+            }
+
+            GlassCard {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Code famille").font(.subheadline.weight(.medium))
+                    Text(settings.familyCode)
+                        .font(.system(.title2, design: .monospaced, weight: .bold))
+                        .foregroundStyle(Theme.accentGradient)
+                    Text("À entrer sur ton propre téléphone, dans « Je veux suivre mon enfant à distance », pour recevoir ses demandes de temps en plus.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
             Spacer()
         }
         .padding(Theme.spacing)
