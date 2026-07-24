@@ -68,6 +68,21 @@ La fonctionnalité "détection de pattern doomscrolling" présentée en section 
 
 → **Détection fine du pattern de scroll (vitesse/contenu) : fonctionnalité Android-only, en V2**, présentée comme un "mode avancé" plutôt qu'un socle du produit, pour ne pas dépendre d'une asymétrie iOS/Android dès le lancement.
 
+## 6bis. Flux utilisateur détaillé — friction escaladée + redirection
+
+Flux validé avec l'utilisateur, à implémenter dès le MVP :
+
+1. **Ouverture d'une app surveillée (ex. TikTok)** → écran d'attente de **30 secondes**, avec un rappel scientifique qui défile (ex. "tu es dans la phase d'anticipation dopaminergique, pas la récompense").
+2. **Accès accordé** → l'app annonce le budget de session : **10 minutes par défaut** (choisi plutôt que 15 : cohérent avec la limite "usage continu <20 min" documentée pour l'œil/les TMS, et une durée courte crée plus d'occasions de "gagner" en sortant avant la limite).
+3. **Budget de 10 min atteint** → fermeture forcée de l'app surveillée (shield réappliqué).
+4. **Tentative de réouverture immédiate** → attente **2 minutes** (volontairement plus longue que l'attente initiale de 30 sec) : la friction augmente avec l'insistance plutôt que de rester fixe.
+5. **Pendant ces 2 minutes** → messages qui alternent entre confrontation directe ("tu devrais être en train de bosser") et reformulation positive orientée action ("il fait beau, va faire du foot ?"). Doser vers plus de messages positifs que de messages culpabilisants : la littérature sur le changement de comportement montre que la culpabilisation fonctionne à très court terme mais augmente le taux de désinstallation par rapport à des messages orientés action.
+6. **Retour dans l'app après les 2 minutes** → au lieu de renvoyer directement vers l'app surveillée, écran de proposition d'alternative (lecture, documentaire, activité) tirée du **questionnaire de centres d'intérêt rempli à la première utilisation** (onboarding).
+
+### Contrainte technique sur ce flux
+
+L'écran système de blocage d'Apple (`ManagedSettings` shield) est un template figé : titre, sous-titre, icône, couleur, et jusqu'à 2 boutons — pas de compte à rebours dynamique ni de messages qui changent seuls. Le compte à rebours (30 sec, puis 2 min) et la rotation des messages doivent donc être affichés **dans l'app elle-même**, ouverte via l'action d'un bouton du shield (`ShieldActionExtension`) plutôt que dans l'écran système. Aucun impact sur la faisabilité globale, juste sur l'endroit où vit l'UI.
+
 ## 7. Modèle économique (pistes)
 
 - Freemium : friction de base + dashboard gratuits, rappels ergonomiques + mode avancé Android en payant.
