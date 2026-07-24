@@ -28,6 +28,11 @@ une option, avant toute exécution.
      pour permettre à `ShieldActionExtension` de rouvrir l'app sur le bon écran.
 5. Remplacer tous les identifiants placeholder (`group.com.ancre.app`, `com.ancre.app`,
    `ancre://`) par les vrais identifiants une fois le compte développeur configuré.
+6. Pour le mode école (voir plus bas) : activer la capacité **iCloud → CloudKit** sur le
+   target principal, créer un container, et dans le CloudKit Dashboard (console web
+   Apple, pas dans Xcode) définir le record type `ClassCheckIn` avec les champs
+   `classCode` (String, indexé "queryable"), `studentName` (String), `overridesToday`
+   (Int64), `date` (String) — sans l'index sur `classCode`, la requête du prof échouera.
 
 ## Design
 
@@ -61,6 +66,29 @@ un enfant tombe potentiellement dans la catégorie "Kids" de l'App Store (règle
 spécifiques : pas de liens externes non filtrés, pas de publicité comportementale, etc.) et
 sous des obligations RGPD renforcées pour les mineurs. Rien de tout ça n'a été traité ici,
 volontairement — c'est un travail de conformité à part entière, pas une checkbox de code.
+
+## Mode école (`App/School/`)
+
+Un élève rejoint une classe avec un code fourni par l'enseignant ; l'enseignant consulte
+les chiffres de sa classe depuis un accès dédié (lien discret sur `RoleSelectionView`, pas
+mêlé au flux élève/parent). Fonctionne via une base **CloudKit publique** — pas de serveur à
+nous à héberger, mais deux limites réelles à ne pas perdre de vue :
+
+- **Donnée remontée volontairement limitée** au nombre de réouvertures forcées
+  (`SessionState.overridesToday`, déjà suivi localement) — **pas** le détail par app. Ce
+  détail-là vit dans `DeviceActivityReportExtension`, qu'Apple isole précisément pour
+  empêcher ce genre d'exfiltration vers un tiers ; essayer de le contourner reviendrait à
+  se heurter au même mur que la détection de vitesse de scroll abandonnée plus haut.
+- **Sécurité non traitée** : une base CloudKit publique est par défaut lisible et
+  modifiable par n'importe quel utilisateur de l'app qui connaît un code de classe. Avant
+  tout usage avec de vrais élèves, il faut durcir les "Security Roles" dans le CloudKit
+  Dashboard (restreindre l'écriture, valider les codes de classe) — non fait ici,
+  volontairement signalé plutôt que passé sous silence.
+- **Conformité** : afficher le détail élève par élève à un enseignant (choix fait
+  explicitement pour ce produit) est plus sensible légalement qu'une simple moyenne de
+  classe — traitement de données de mineurs par une institution, probablement soumis à
+  une analyse d'impact RGPD et aux règles propres à l'Éducation nationale selon le pays de
+  déploiement. Non traité ici, à ne pas négliger avant un vrai lancement en école.
 
 ## Coach IA (`App/AICoach/`)
 

@@ -9,6 +9,7 @@ struct DashboardView: View {
 
     @State private var isCoachPresented = false
     @State private var isParentSettingsPresented = false
+    @State private var isClassJoinPresented = false
 
     private var role: UserRole { UserRole.load() ?? .myself }
     private var isCoachAvailable: Bool {
@@ -71,6 +72,20 @@ struct DashboardView: View {
                     .buttonStyle(.bordered)
                     .frame(maxWidth: .infinity)
 
+                if let membership = ClassMembership.load() {
+                    GlassCard {
+                        Label("Classe : \(membership.classCode)", systemImage: "graduationcap.fill")
+                            .font(.subheadline)
+                    }
+                } else {
+                    Button("Rejoindre une classe") {
+                        isClassJoinPresented = true
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.secondary)
+                    .frame(maxWidth: .infinity)
+                }
+
                 if role == .child {
                     Button("Réglages parent") {
                         isParentSettingsPresented = true
@@ -93,6 +108,17 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $isParentSettingsPresented) {
             ParentSettingsGateView()
+        }
+        .sheet(isPresented: $isClassJoinPresented) {
+            ClassJoinView { isClassJoinPresented = false }
+        }
+        .task {
+            // Une synchro par affichage du tableau de bord est un choix de
+            // simplicité pour ce squelette, pas un vrai plan de synchro
+            // (idéalement : une seule fois par jour, en tâche de fond).
+            if let membership = ClassMembership.load() {
+                await SchoolSync.pushDailyCheckIn(membership: membership, overridesToday: SessionState.overridesToday)
+            }
         }
     }
 }

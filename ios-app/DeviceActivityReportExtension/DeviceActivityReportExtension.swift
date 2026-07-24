@@ -9,6 +9,14 @@ extension DeviceActivityReport.Context {
 /// données d'usage détaillées, mais l'app principale, elle, ne les voit jamais
 /// directement. C'est ici qu'on construit la propre UI de stats (plus lisible
 /// que l'écran Temps d'écran natif d'Apple, cf. concept-produit.md section 3).
+///
+/// Cette séparation de process n'est pas un détail d'implémentation anodin :
+/// c'est délibérément conçu par Apple pour empêcher un tiers de faire sortir
+/// ces données précises (temps par app) vers un serveur. C'est pour ça que
+/// SchoolSync.swift (mode école) ne remonte qu'un chiffre suivi par notre
+/// propre code (le nombre de réouvertures forcées) plutôt que d'essayer de
+/// faire sortir le détail par app de cette extension — cette dernière voie
+/// se heurterait au même mur que la détection de vitesse de scroll abandonnée.
 struct DeviceActivityReportExtension: DeviceActivityReportScene {
     let context: DeviceActivityReport.Context = .dailySummary
     let content: (DailySummaryData) -> DailySummaryView

@@ -9,6 +9,8 @@ import SwiftUI
 struct RoleSelectionView: View {
     let onSelected: (UserRole) -> Void
 
+    @State private var isTeacherDashboardPresented = false
+
     var body: some View {
         VStack(spacing: Theme.spacing) {
             Spacer()
@@ -46,10 +48,19 @@ struct RoleSelectionView: View {
                 .foregroundStyle(.secondary)
             }
 
+            Button("Je suis enseignant(e) — voir les stats de ma classe") {
+                isTeacherDashboardPresented = true
+            }
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+
             Spacer()
         }
         .padding(Theme.spacing)
         .ancreBackground()
+        .sheet(isPresented: $isTeacherDashboardPresented) {
+            TeacherDashboardView()
+        }
     }
 }
 
