@@ -37,6 +37,31 @@ translucide qu'Apple généralise depuis iOS 26 ("Liquid Glass"). **Non prévisu
 simulateur iOS disponible ici, les couleurs/espacements sont un point de départ raisonnable,
 pas un résultat validé à l'œil — à ajuster dans Xcode Previews une fois ouvert sur un Mac.
 
+## Mode parent (`App/Parent/`)
+
+Premier écran de l'app : "C'est pour qui ?" (moi-même / mon enfant). Ce choix change
+concrètement ce qui se passe, pas juste l'apparence :
+- Le type d'autorisation Screen Time demandée devient `.child` plutôt que `.individual`
+  (voir `ScreenTimeAuthorization.swift`) — **nécessite que l'appareil appartienne déjà à un
+  enfant dans le Partage familial Apple**, sinon la demande échoue. C'est Apple, via le code
+  Temps d'écran du parent, qui empêche ensuite la désinstallation/le contournement — pas
+  notre code.
+- Le "témoin" envoie toujours au numéro du parent enregistré (`ParentSettings`), via
+  `MFMessageComposeViewController` avec destinataire pré-rempli, plutôt qu'un choix libre.
+- Le coach IA est **désactivé par défaut** pour un profil enfant : aucun filtrage de sécurité
+  spécifique aux mineurs n'a été ajouté au-delà d'un system prompt, ce qui n'est pas une
+  garantie de sécurité de contenu suffisante en soi — à évaluer sérieusement avant
+  d'activer, pas à prendre pour acquis.
+- Le code à 4 chiffres des réglages parent (`ParentSettingsGateView`) est une friction
+  applicative locale, pas une sécurité réelle : un enfant qui réinstalle l'app repart de
+  zéro. Ne jamais le présenter comme protégeant plus que ça.
+
+**Conformité à anticiper avant tout lancement réel** : une app installée par un parent pour
+un enfant tombe potentiellement dans la catégorie "Kids" de l'App Store (règles Apple
+spécifiques : pas de liens externes non filtrés, pas de publicité comportementale, etc.) et
+sous des obligations RGPD renforcées pour les mineurs. Rien de tout ça n'a été traité ici,
+volontairement — c'est un travail de conformité à part entière, pas une checkbox de code.
+
 ## Coach IA (`App/AICoach/`)
 
 Basé sur **Foundation Models**, le framework d'IA générative sur l'appareil qu'Apple a

@@ -8,6 +8,12 @@ struct DashboardView: View {
     let onEditApps: () -> Void
 
     @State private var isCoachPresented = false
+    @State private var isParentSettingsPresented = false
+
+    private var role: UserRole { UserRole.load() ?? .myself }
+    private var isCoachAvailable: Bool {
+        role == .myself || ParentSettings.load().isCoachEnabledForChild
+    }
 
     var body: some View {
         ScrollView {
@@ -31,31 +37,48 @@ struct DashboardView: View {
                     }
                 }
 
-                Button {
-                    isCoachPresented = true
-                } label: {
-                    GlassCard {
-                        HStack(spacing: 14) {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 28))
-                                .foregroundStyle(Theme.accentGradient)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("Parler au coach").font(.headline)
-                                Text("Sur l'appareil, privé, disponible à tout moment.")
-                                    .font(.caption)
+                if isCoachAvailable {
+                    Button {
+                        isCoachPresented = true
+                    } label: {
+                        GlassCard {
+                            HStack(spacing: 14) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 28))
+                                    .foregroundStyle(Theme.accentGradient)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Parler au coach").font(.headline)
+                                    Text("Sur l'appareil, privé, disponible à tout moment.")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
                                     .foregroundStyle(.secondary)
                             }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(.secondary)
                         }
                     }
+                    .buttonStyle(.plain)
+                } else if role == .child {
+                    GlassCard {
+                        Label("Coach IA désactivé par le parent", systemImage: "sparkles")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                .buttonStyle(.plain)
 
                 Button("Modifier les apps surveillées", action: onEditApps)
                     .buttonStyle(.bordered)
                     .frame(maxWidth: .infinity)
+
+                if role == .child {
+                    Button("Réglages parent") {
+                        isParentSettingsPresented = true
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(.secondary)
+                    .frame(maxWidth: .infinity)
+                }
 
                 Spacer()
             }
@@ -67,6 +90,9 @@ struct DashboardView: View {
                 interestProfile: InterestProfile.load(),
                 overridesToday: SessionState.overridesToday
             )
+        }
+        .sheet(isPresented: $isParentSettingsPresented) {
+            ParentSettingsGateView()
         }
     }
 }

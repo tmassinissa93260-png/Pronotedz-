@@ -26,6 +26,8 @@ struct RootView: View {
     @State private var step: Step = Self.initialStep()
 
     enum Step {
+        case roleSelection
+        case parentSetup
         case onboarding
         case appSelection
         case dashboard
@@ -34,6 +36,8 @@ struct RootView: View {
     }
 
     private static func initialStep() -> Step {
+        guard let role = UserRole.load() else { return .roleSelection }
+        if role == .child, ParentSettings.load().parentPhoneNumber.isEmpty { return .parentSetup }
         guard InterestProfile.hasCompletedOnboarding else { return .onboarding }
         guard AppSelectionPicker.hasSavedSelection else { return .appSelection }
         return .dashboard
@@ -49,6 +53,19 @@ struct RootView: View {
     var body: some View {
         Group {
             switch step {
+            case .roleSelection:
+                RoleSelectionView { role in
+                    role.save()
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        step = role == .child ? .parentSetup : .onboarding
+                    }
+                }
+            case .parentSetup:
+                ParentSetupView {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        step = .onboarding
+                    }
+                }
             case .onboarding:
                 OnboardingQuestionnaire {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
@@ -61,7 +78,7 @@ struct RootView: View {
                         step = .dashboard
                     }
                 }
-                .task { await authorization.requestAuthorization() }
+                .task { await authorization.requestAuthorization(for: UserRole.load() ?? .myself) }
             case .dashboard:
                 DashboardView {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
@@ -92,11 +109,13 @@ struct RootView: View {
     /// (Step n'est pas Equatable à cause du TimeInterval associé).
     private var stepIdentity: Int {
         switch step {
-        case .onboarding: return 0
-        case .appSelection: return 1
-        case .dashboard: return 2
-        case .waiting: return 3
-        case .redirect: return 4
+        case .roleSelection: return 0
+        case .parentSetup: return 1
+        case .onboarding: return 2
+        case .appSelection: return 3
+        case .dashboard: return 4
+        case .waiting: return 5
+        case .redirect: return 6
         }
     }
 }
