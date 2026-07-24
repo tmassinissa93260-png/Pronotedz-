@@ -9,6 +9,8 @@ class ShieldConfigurationDataSource: ShieldConfigurationDataSource {
     override func configuration(shielding application: Application) -> ShieldConfiguration {
         ShieldConfiguration(
             backgroundBlurStyle: .systemMaterialDark,
+            icon: UIImage(systemName: "shield.lefthalf.filled")?
+                .withTintColor(.systemIndigo, renderingMode: .alwaysOriginal),
             title: ShieldConfiguration.Label(
                 text: "Pas tout de suite",
                 color: .white

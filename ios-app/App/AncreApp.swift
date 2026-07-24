@@ -44,14 +44,18 @@ struct RootView: View {
             switch step {
             case .onboarding:
                 OnboardingQuestionnaire {
-                    step = .appSelection
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        step = .appSelection
+                    }
                 }
             case .appSelection:
                 AppSelectionPicker()
                     .task { await authorization.requestAuthorization() }
             case .waiting(let duration):
                 WaitingScreenView(totalWait: duration) {
-                    step = .redirect
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        step = .redirect
+                    }
                 }
             case .redirect:
                 RedirectSuggestionView(
@@ -60,6 +64,19 @@ struct RootView: View {
                     // Échappatoire assumée : voir RedirectSuggestionView.
                 }
             }
+        }
+        .transition(.opacity.combined(with: .scale(scale: 0.98)))
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: stepIdentity)
+    }
+
+    /// Valeur simple pour piloter l'animation de transition entre étapes
+    /// (Step n'est pas Equatable à cause du TimeInterval associé).
+    private var stepIdentity: Int {
+        switch step {
+        case .onboarding: return 0
+        case .appSelection: return 1
+        case .waiting: return 2
+        case .redirect: return 3
         }
     }
 }

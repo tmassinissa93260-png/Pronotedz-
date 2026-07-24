@@ -29,6 +29,14 @@ une option, avant toute exécution.
 5. Remplacer tous les identifiants placeholder (`group.com.ancre.app`, `com.ancre.app`,
    `ancre://`) par les vrais identifiants une fois le compte développeur configuré.
 
+## Design
+
+`App/DesignSystem/Theme.swift` centralise le style (dégradé indigo/violet/bleu, cartes en
+verre dépoli `.ultraThinMaterial`, boutons avec retour haptique) inspiré du langage visuel
+translucide qu'Apple généralise depuis iOS 26 ("Liquid Glass"). **Non prévisualisé** : sans
+simulateur iOS disponible ici, les couleurs/espacements sont un point de départ raisonnable,
+pas un résultat validé à l'œil — à ajuster dans Xcode Previews une fois ouvert sur un Mac.
+
 ## Ce que ce squelette couvre
 
 - Le flux complet décrit dans `docs/concept-produit.md` section 6bis : attente 30s →

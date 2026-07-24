@@ -27,9 +27,14 @@ struct AccountabilityPromptButton: View {
     @State private var isShareSheetPresented = false
 
     var body: some View {
-        Button("Prévenir quelqu'un") {
+        Button {
             isShareSheetPresented = true
+        } label: {
+            Label("Prévenir quelqu'un", systemImage: "person.crop.circle.badge.exclamationmark")
+                .font(.footnote.weight(.medium))
         }
+        .buttonStyle(.bordered)
+        .tint(.secondary)
         .sheet(isPresented: $isShareSheetPresented) {
             ActivityShareSheet(text: AccountabilityMessage.text(overrideCount: overrideCount))
         }

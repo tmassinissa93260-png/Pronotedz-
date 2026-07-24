@@ -20,36 +20,71 @@ struct WaitingScreenView: View {
         _remaining = State(initialValue: totalWait)
     }
 
+    private var progress: Double {
+        guard totalWait > 0 else { return 1 }
+        return 1 - (remaining / totalWait)
+    }
+
     var body: some View {
-        VStack(spacing: 24) {
-            Text(timeString(remaining))
-                .font(.system(size: 48, weight: .bold, design: .rounded))
-                .monospacedDigit()
+        VStack(spacing: Theme.spacing * 1.5) {
+            Spacer()
 
-            Text(currentMessage.text)
-                .font(.body)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-                .id(currentMessage.text)
-                .transition(.opacity)
+            countdownRing
 
-            // Le "témoin" (voir Accountability/AccountabilityPrompt.swift) :
-            // affiché seulement à partir de la 2e attente de la journée, pas
-            // la toute première, pour ne pas culpabiliser dès le premier essai.
+            GlassCard {
+                Text(currentMessage.text)
+                    .font(.body.weight(.medium))
+                    .multilineTextAlignment(.center)
+                    .id(currentMessage.text)
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+            }
+            .padding(.horizontal, Theme.spacing)
+
+            Spacer()
+
             if SessionState.overridesToday > 0 {
                 AccountabilityPromptButton(overrideCount: SessionState.overridesToday)
+                    .padding(.bottom, Theme.spacing)
             }
         }
+        .ancreBackground()
         .onReceive(tick) { _ in
             guard remaining > 0 else { return }
-            remaining -= 1
+            withAnimation(.linear(duration: 1)) {
+                remaining -= 1
+            }
             if remaining <= 0 {
                 onWaitCompleted()
             }
         }
         .onReceive(messageRotation) { _ in
-            withAnimation { currentMessage = MessageBank.random() }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                currentMessage = MessageBank.random()
+            }
         }
+    }
+
+    private var countdownRing: some View {
+        ZStack {
+            Circle()
+                .stroke(.quaternary, lineWidth: 14)
+
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(
+                    Theme.accentGradient,
+                    style: StrokeStyle(lineWidth: 14, lineCap: .round)
+                )
+                .rotationEffect(.degrees(-90))
+                .animation(.easeInOut(duration: 1), value: progress)
+
+            Text(timeString(remaining))
+                .font(.system(size: 44, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .contentTransition(.numericText())
+        }
+        .frame(width: 220, height: 220)
+        .padding(.top, Theme.spacing)
     }
 
     private func timeString(_ interval: TimeInterval) -> String {

@@ -11,21 +11,52 @@ struct AppSelectionPicker: View {
     @State private var isPickerPresented = false
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Theme.spacing) {
+            Spacer()
+
+            Image(systemName: "shield.lefthalf.filled")
+                .font(.system(size: 56))
+                .foregroundStyle(Theme.accentGradient)
+
             Text("Choisis les apps à encadrer")
-                .font(.headline)
+                .font(.system(.title2, design: .rounded, weight: .bold))
+
+            Text("TikTok, Instagram, ce que tu veux — tu peux en changer plus tard.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+
+            GlassCard {
+                HStack {
+                    Image(systemName: "apps.iphone")
+                        .foregroundStyle(Theme.accentGradient)
+                    Text(selectionSummary)
+                        .font(.subheadline.weight(.medium))
+                    Spacer()
+                }
+            }
 
             Button("Ouvrir le sélecteur") {
                 isPickerPresented = true
             }
+            .buttonStyle(.bordered)
             .familyActivityPicker(isPresented: $isPickerPresented, selection: $selection)
+
+            Spacer()
 
             Button("Valider") {
                 saveSelectionAndApplyShield()
             }
+            .buttonStyle(PrimaryButtonStyle())
             .disabled(selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty)
         }
-        .padding()
+        .padding(Theme.spacing)
+        .ancreBackground()
+    }
+
+    private var selectionSummary: String {
+        let count = selection.applicationTokens.count + selection.categoryTokens.count
+        return count == 0 ? "Aucune app choisie pour l'instant" : "\(count) app(s)/catégorie(s) choisies"
     }
 
     private func saveSelectionAndApplyShield() {
