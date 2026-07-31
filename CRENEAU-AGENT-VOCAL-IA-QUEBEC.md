@@ -1,5 +1,9 @@
 # Choix du créneau — Agent vocal IA en français (Québec)
 
+> ⚠️ **CE DOCUMENT VISE LE QUÉBEC.** En France, le marché de l'agent vocal IA est déjà mature en
+> 2026 (offres dès 49 €/mois, acteurs français installés) : il n'y a pas de décalage à exploiter.
+> Pour la France, voir [`FRANCE-BUSINESS-DEBUTANT-2026.md`](./FRANCE-BUSINESS-DEBUTANT-2026.md).
+
 > Suite du dossier [`IDEES-BUSINESS-2026-CANADA.md`](./IDEES-BUSINESS-2026-CANADA.md), idée #1.
 > Objectif de ce document : **choisir un seul créneau**, le justifier avec des chiffres, et donner
 > le playbook opérationnel complet pour les 90 premiers jours.

@@ -1,5 +1,10 @@
 # Business en ligne 2026 — L'arbitrage USA → Canada / Québec
 
+> ⚠️ **CE DOCUMENT VISE LE QUÉBEC — il ne s'applique pas à la France.**
+> Pour la France, voir [`FRANCE-BUSINESS-DEBUTANT-2026.md`](./FRANCE-BUSINESS-DEBUTANT-2026.md).
+> Conservé ici à titre de référence : la méthode d'analyse du décalage reste valable, mais les
+> conclusions (marchés, réglementation, chiffres) sont propres au Québec.
+
 > **Hypothèse de travail :** tu es basé au Québec (ou au Canada francophone), tu veux un business
 > en ligne, et tu cherches spécifiquement des modèles **déjà validés aux États-Unis mais pas encore
 > installés ici**. Si tu es ailleurs, dis-le moi : la moitié de l'analyse change.
