@@ -19,7 +19,7 @@ flowchart TB
 
     subgraph app["L'agent — sur ma machine"]
         MOTEUR["Le moteur<br/>enchaîne les étapes<br/>sauvegarde après chacune"]
-        AGENTS["12 agents<br/>1 agent = 1 métier"]
+        AGENTS["18 agents<br/>1 agent = 1 métier"]
         FF["FFmpeg<br/>le montage"]
     end
 
@@ -60,9 +60,12 @@ Trois choses seulement à retenir :
 
 ```mermaid
 flowchart LR
-    I["💡 Mon idée"] --> A1["Angle<br/>trouve le bon<br/>point de vue"]
-    A1 --> A2["Script<br/>+ 3 accroches<br/>au choix"]
-    A2 --> G1{{"✋ Je valide<br/>le script"}}
+    I["💡 Mon idée"] --> A1["🎯 Angle<br/>trouve le bon<br/>point de vue"]
+    A1 --> A2["✍️ Script"]
+    A2 --> A2b["🧐 Critic<br/>note et exige<br/>des corrections"]
+    A2b -->|"note trop basse"| A2
+    A2b --> A2c["🔥 Hook Optimizer<br/>5 accroches notées"]
+    A2c --> G1{{"✋ Je valide<br/>le script"}}
     G1 --> A3["Découpage<br/>en scènes<br/>+ prompts images"]
     A3 --> G2{{"✋ Je valide<br/>les images"}}
     G2 --> A4["Images"] & A5["Voix"] & A6["Musique"]
@@ -74,7 +77,7 @@ flowchart LR
 ```
 
 **Temps** : ~2 min de réflexion IA + ~3 min de montage, plus mon temps de validation.
-**Coût** : environ 0,15 € pour une vidéo de 90 secondes.
+**Coût** : environ 0,20 € pour une vidéo de 90 secondes.
 
 ---
 
@@ -88,8 +91,9 @@ flowchart LR
     V --> M2["Détection<br/>des coupes"]
     V --> M3["Analyse<br/>des images"]
     V --> M4["Analyse du son<br/>BPM, énergie"]
-    M1 & M2 & M3 & M4 --> R["🧬 La recette"]
-    R --> N["Nettoyage<br/>on retire tout<br/>le contenu"]
+    M1 & M2 & M3 & M4 --> R["📊 Viral Analyst<br/>ce qui se passe"]
+    R --> PS["🧠 Psychology<br/>POURQUOI ça marche"]
+    PS --> N["🧬 Nettoyage<br/>on retire tout<br/>le contenu"]
     N --> BIB[("📚 Ma bibliothèque<br/>de recettes")]
 ```
 
@@ -105,13 +109,14 @@ flowchart LR
 | L'émotion | curiosité au début, surprise à 60 %, satisfaction à la fin |
 | Le visuel | plans serrés, texte au centre, 3 mots par carte |
 | L'appel à l'action | à 92 % de la vidéo, formulation impérative courte |
+| 🧠 **Les mécanismes psychologiques** | manque d'info ouvert à 0,8 s et refermé à 71 % ; aversion à la perte comme moteur ; signal d'appartenance à 12 s ← **c'est ça qui se transpose vraiment à un autre sujet** |
 
 **Important** : la recette ne contient **aucune phrase, aucun nom, aucune image** de la
 vidéo d'origine. Juste des chiffres et des catégories. Un squelette.
 C'est ce qui fait la différence entre s'inspirer et copier — et c'est pour ça que
 l'étape « nettoyage » n'est pas contournable.
 
-**Coût** : environ 0,06 € par vidéo analysée.
+**Coût** : environ 0,08 € par vidéo analysée.
 
 ---
 

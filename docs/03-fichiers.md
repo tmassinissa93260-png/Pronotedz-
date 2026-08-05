@@ -18,12 +18,17 @@ pronotedz/
 │   │   └── erreurs.py            # Quoi faire quand ça plante
 │   │
 │   ├── agents/
-│   │   ├── base.py               # Le socle commun à tous les agents
-│   │   ├── analyse/              # 1-ingest · 2-transcription · 3-decoupage
-│   │   │                         # 4-vision · 5-son
-│   │   ├── recette/              # 6-recette · 7-nettoyage
-│   │   ├── creation/             # 8-angle · 9-script · 10-decoupage-visuel
-│   │   └── production/           # 11-assets · 12-montage
+│   │   ├── base.py               # Le socle commun aux 18 agents
+│   │   ├── veille/               # 1-trend-hunter
+│   │   ├── analyse/              # 2-ingest · 3-transcription · 4-coupes
+│   │   │                         # 5-audio · 6-viral-analyst · 7-psychology
+│   │   ├── recette/              # 8-nettoyeur-adn
+│   │   ├── ecriture/             # 9-angle · 10-script-writer
+│   │   │                         # 11-script-critic · 12-hook-optimizer
+│   │   ├── direction/            # 13-storyboard · 14-image-director
+│   │   │                         # 15-voice-director
+│   │   └── production/           # 16-usine-assets · 17-video-director
+│   │                             # 18-quality-control
 │   │
 │   ├── ia/                       # ⚠️ LE SEUL ENDROIT qui connaît les fournisseurs
 │   │   ├── registre.py           # Lit modeles.yaml et choisit le bon modèle
@@ -41,8 +46,14 @@ pronotedz/
 │   │
 │   ├── memoire/
 │   │   ├── recettes.py           # Ma bibliothèque de recettes + recherche
+│   │   ├── idees.py              # La file d'idées remplie par le Trend Hunter
 │   │   ├── historique.py         # Ce qui a déjà été fait (anti-répétition)
 │   │   └── ma_marque.py          # Mon ton, mes sujets, ce que je ne veux jamais
+│   │
+│   ├── veille/                   # Sources du Trend Hunter
+│   │   ├── reddit.py             # API officielle — la meilleure source
+│   │   ├── google_trends.py
+│   │   └── youtube_trending.py   # API officielle
 │   │
 │   ├── video/
 │   │   ├── montage.py            # Construction de la commande FFmpeg
@@ -117,6 +128,7 @@ modeles:
 # ── C'est ICI que je pilote tout ──
 choix:
   qualite:  { principal: claude-sonnet-4-5, repli: claude-haiku-4-5 }
+  critique: { principal: claude-sonnet-4-5, temperature: 0.2 }   # ← sévère
   rapide:   { principal: claude-haiku-4-5 }
   images:   { principal: flux-dev,          repli: flux-schnell }
   voix:     { principal: eleven-turbo-v2-5, repli: kokoro-local }

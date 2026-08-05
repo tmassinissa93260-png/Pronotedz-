@@ -36,28 +36,33 @@ Sortie de cette étape : 5 MP4 de 90 s + une note « voilà ce qui fait la diff�
 **Objectif : une vraie vidéo, de bout en bout, en tapant une commande.**
 Moche, mais complète et réelle.
 
-- 6 agents seulement : angle, script, découpage, images, voix, montage.
+- 7 agents seulement : angle, script writer, **script critic**, storyboard,
+  images, voix, montage.
+  *(le Critic dès l'étape 1 : c'est lui qui décide si le squelette produit
+  quelque chose de regardable ou pas)*
 - Le moteur avec les sauvegardes par étape (**dès le début** — c'est le socle de tout le reste).
 - SQLite, cache par empreinte, `modeles.yaml`.
 - **1 seule validation** : le script.
 - Interface : ligne de commande uniquement.
 
-Pas de recette virale, pas de page web, pas de musique, pas de sous-titres fancy.
+Pas de recette virale, pas de Trend Hunter, pas de Psychology, pas de page web,
+pas de musique, pas de sous-titres fancy.
 
 ✅ **Critère de réussite** : `pdz new "mon idée"` produit un MP4 que je trouve regardable.
 
 ---
 
-## Étape 2 — La qualité vidéo (1 semaine)
+## Étape 2 — La qualité vidéo + la direction artistique (1,5 semaine)
 
 C'est ici qu'on transforme un diaporama en vidéo.
 
+- **🔥 Hook Optimizer** — les 3 premières secondes décident du reste.
+- **🎨 Image Director** — style cohérent, réutilisation d'images, b-roll Pexels.
+- **🎤 Voice Director** — ton et vitesse.
+- **✅ Quality Control** — séparé du montage, avec droit de refus.
 - Zoom lent sur chaque image.
-- **Réutilisation d'images** (1 image → 2 plans) + b-roll gratuit Pexels.
 - Sous-titres karaoké mot à mot.
-- Musique de fond + volume normalisé.
-- Coupes calées sur le rythme.
-- Contrôles automatiques : durée, images noires, son manquant.
+- Musique de fond + volume normalisé, coupes calées sur le rythme.
 
 ✅ **Critère de réussite** : je compare avec mes 5 vidéos de l'étape 0.
 Si c'est proche, on continue. Sinon, on reste ici — inutile d'aller plus loin.
@@ -68,8 +73,9 @@ Si c'est proche, on continue. Sinon, on reste ici — inutile d'aller plus loin.
 
 La partie qui rend l'outil vraiment intéressant.
 
-- Les 5 agents d'analyse (transcription, découpage, vision, son, ingestion).
-- L'agent recette + l'agent nettoyage.
+- Les 5 agents d'analyse (ingest, transcription, coupes, audio, Viral Analyst).
+- **🧠 Psychology Agent** — le pourquoi, pas seulement le quoi.
+- **🧬 Nettoyeur d'ADN** — obligatoire.
 - La bibliothèque de recettes, avec recherche.
 - L'application d'une recette à un nouveau sujet.
 
@@ -81,7 +87,9 @@ sans recette.
 
 ## Étape 4 — Le mode volume (1,5 semaine)
 
-- **La validation par lot** — 10 scripts sur un écran. C'est LA fonction qui rend 120 vidéos/mois tenable.
+- **La validation par lot** — 10 scripts sur un écran, avec la note du Critic et les
+  5 accroches du Hook Optimizer affichées. C'est LA fonction qui rend 120 vidéos/mois tenable.
+- **🔍 Trend Hunter** — remplit la file d'idées chaque semaine (Reddit + Google Trends).
 - **Le mode nuit** : `pdz batch build --nuit`, la machine monte pendant que je dors.
 - **La file d'attente** : je remplis quand j'ai des idées, il consomme à son rythme.
 - Le contrôle qualité bloquant (une vidéo ratée ne m'est jamais montrée).
@@ -106,12 +114,13 @@ sans recette.
 |---|---|---|
 | 0 · À la main | 3 jours | Je sais ce qui fait une bonne vidéo |
 | 1 · Squelette | 1 semaine | Une commande → une vidéo |
-| 2 · Qualité | 1 semaine | Une vidéo que j'oserais publier |
+| 2 · Qualité | 1,5 semaine | Une vidéo que j'oserais publier |
 | 3 · Recette | 1,5 semaine | Le vrai truc : copier la forme, pas le fond |
 | 4 · Volume | 1,5 semaine | **120 vidéos/mois en ~2 h par semaine** |
-| **Total** | **~5,5 semaines** | **Mon agent perso** |
+| **Total** | **~6 semaines** | **Mon agent perso, 18 agents** |
 
-Contre 12 semaines pour la version SaaS. **La simplification fait gagner 7 semaines.**
+Contre 12 semaines pour la version SaaS. **La simplification fait gagner 6 semaines**,
+et les 18 agents créatifs n'ajoutent qu'une demi-semaine — parce que le moteur ne change pas.
 
 ---
 

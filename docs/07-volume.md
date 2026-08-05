@@ -30,11 +30,12 @@ Une page où je vois **10 scripts d'un coup**, et je traite tout en un passage :
 ```
 ┌─ 10 scripts en attente ──────────────────────── tout valider ─┐
 │                                                                │
-│  ☑  Muscu · 3 erreurs de débutant          92s  ~0,15 €   ▸   │
-│  ☑  Cuisine · pourquoi tes pâtes collent   87s  ~0,14 €   ▸   │
-│  ☐  Finance · l'erreur du livret A         95s  ~0,15 €   ▸   │  ← à revoir
-│  ☑  Muscu · le mythe des abdos             78s  ~0,13 €   ▸   │
-│  ✗  Voyage · trop générique                        rejeté     │
+│      sujet                            durée  critic  accroche  ▸ │
+│  ☑  Muscu · 3 erreurs de débutant      92s   54/60  négation  ▸ │
+│  ☑  Cuisine · pourquoi tes pâtes collent 87s 51/60  question  ▸ │
+│  ☐  Finance · l'erreur du livret A      95s  49/60  chiffre   ▸ │ ← à revoir
+│  ☑  Muscu · le mythe des abdos          78s  57/60  contre-pied ▸│
+│  ✗  Voyage · trop générique             —    41/60  rejeté      │
 │  ...                                                           │
 │                                                                │
 │  [ ▸ ] déplie le script complet et permet de le corriger      │
@@ -43,6 +44,9 @@ Une page où je vois **10 scripts d'un coup**, et je traite tout en un passage :
 
 Passer de « 1 écran par vidéo » à « 1 écran pour 10 » divise le temps par 3 ou 4.
 C'est la fonctionnalité la plus rentable de tout le projet.
+
+**La note du Script Critic change tout ici** : je regarde d'abord les scripts sous
+48/60, je survole les autres. Sans cette note, je dois lire les 10 en entier.
 
 ### 2. Les validations passent de 3 à 2 (voire 1)
 
@@ -99,9 +103,13 @@ les **relances** — les moments où la vidéo repart (nouvelle question, retour
 changement de rythme, promesse d'une révélation à venir). Sans ça, la structure
 générée s'affaisse au milieu.
 
-C'est déjà dans le schéma de la recette (`structure.beats`, `open_loops`), mais ça
-devient le champ le plus important au lieu d'un détail. L'agent Script devra être
-explicitement contraint : « place une relance toutes les 18 secondes ».
+C'est exactement ce que capture le **🧠 Psychology Agent** : les boucles ouvertes, le
+moment où elles se referment, les ruptures de motif. Sur une vidéo de 30 s ça n'aurait
+servi à rien ; sur 90 s c'est le champ le plus important de la recette.
+
+Et le **🧐 Script Critic** a une ligne dédiée dans sa grille : *Relances — 4/10 ❌
+aucune relance entre 30 s et 70 s*. C'est le défaut le plus fréquent sur les scripts
+longs, et le plus facile à rater à la lecture.
 
 ---
 
@@ -147,6 +155,9 @@ Ces éléments passent de « plus tard » à **v1** :
 | Fonction | Pourquoi c'est devenu indispensable |
 |---|---|
 | **Validation par lot** | sinon 12 h/mois de clics |
+| **🧐 Script Critic** | sa note me dit quels scripts lire vraiment — il me fait gagner plus de temps qu'il n'en coûte |
+| **✅ Quality Control bloquant** | une vidéo ratée ne doit jamais arriver jusqu'à moi |
+| **🔍 Trend Hunter** | trouver 30 idées par semaine à la main, c'est le vrai goulot du dimanche soir |
 | **Mode nuit** (`--nuit`) | sinon ma machine est bloquée en journée |
 | **File d'attente** | sinon je dois lancer 120 fois une commande |
 | **Contrôle qualité bloquant** | sinon je regarde des vidéos ratées |

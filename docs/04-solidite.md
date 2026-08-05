@@ -7,7 +7,7 @@ SaaS, parce qu'ils servent autant à une personne qu'à mille.
 
 ## 1. Reprise après plantage
 
-**Le problème** : une vidéo de 90 s prend ~5 minutes et ~0,15 €. À 120 vidéos par mois,
+**Le problème** : une vidéo de 90 s prend ~5 minutes et ~0,20 €. À 120 vidéos par mois,
 si ça plante à l'étape 9 sur 12, je ne veux ni tout recommencer ni repayer.
 
 **La solution** : chaque étape terminée est enregistrée dans SQLite avec son résultat.
@@ -17,17 +17,20 @@ job_42 · étapes
 ─────────────────────────────────────────────
  1  angle              ✅ terminé   0,003 €
  2  script             ✅ terminé   0,045 €
- 3  validation script  ✅ validé
- 4  découpage          ✅ terminé   0,014 €
- 5  images (12)        ✅ terminé   0,074 €
- 6  voix               ✅ terminé   0,000 €
- 7  sous-titres        ✅ terminé   0,000 €
- 8  montage            ❌ PLANTÉ    (ffmpeg : plus d'espace disque)
- 9  contrôle           ⏸ en attente
+ 3  critique           ✅ 52/60      0,030 €
+ 4  hook optimizer     ✅ terminé   0,011 €
+ 5  validation script  ✅ validé
+ 6  storyboard         ✅ terminé   0,010 €
+ 7  image director     ✅ terminé   0,008 €
+ 8  images (12)        ✅ terminé   0,074 €
+  9  voix              ✅ terminé   0,000 €
+10  sous-titres        ✅ terminé   0,000 €
+11  montage            ❌ PLANTÉ    (ffmpeg : plus d'espace disque)
+12  quality control    ⏸ en attente
 ```
 
-`pdz resume 42` → il refait le parcours, saute les 7 étapes déjà faites,
-et **repart à l'étape 8**. Coût de la reprise : 0 €.
+`pdz resume 42` → il refait le parcours, saute les 10 étapes déjà faites,
+et **repart à l'étape 11**. Coût de la reprise : 0 €.
 
 En mode nuit, c'est automatique : au réveil, les vidéos plantées ont été relancées
 toutes seules. Je ne découvre le problème que s'il persiste.
@@ -52,10 +55,11 @@ Si l'empreinte existe déjà → on ressort le résultat sauvegardé, **sans app
 
 | Situation | Sans cache | Avec cache |
 |---|---|---|
-| Je corrige une faute dans les sous-titres | 0,15 € | **0,00 €** (seul le montage est refait) |
-| Je change la musique | 0,15 € | **0,00 €** |
-| Je refais une seule image sur 12 | 0,15 € | **0,006 €** |
-| Je réécris le script (le reste suit) | 0,15 € | 0,12 € |
+| Je corrige une faute dans les sous-titres | 0,20 € | **0,00 €** (seul le montage est refait) |
+| Je change la musique | 0,20 € | **0,00 €** |
+| Je refais une seule image sur 12 | 0,20 € | **0,006 €** |
+| Je change d'accroche parmi les 5 proposées | 0,20 € | **0,00 €** (déjà générées) |
+| Je réécris le script (le reste suit) | 0,20 € | 0,15 € |
 | J'analyse deux fois la même vidéo | 0,12 € | **0,06 €** |
 
 À 120 vidéos/mois avec 30 % de reprises, le cache économise **~5 €/mois** — mais
@@ -85,7 +89,9 @@ Chaque erreur tombe dans une catégorie, et la catégorie décide de la réactio
 | **Plus de budget** | plafond atteint | on s'arrête proprement |
 | **Bug dans mon code** | erreur Python | on s'arrête, trace complète dans le log |
 
-**Plafond global** : maximum 3 essais par étape **et** un plafond total par vidéo.
+**Plafond global** : maximum 3 essais par étape, **1 seule boucle de réécriture**
+(Critic → Writer) et **1 seule boucle de correction** (QC → Usine), **et** un plafond
+total par vidéo.
 Sans ce deuxième plafond, une boucle infinie peut vider un mois de budget en une nuit.
 C'est le scénario le plus probable de perte d'argent sur ce projet.
 
@@ -153,22 +159,25 @@ combien de jetons, combien ça a coûté, combien de temps.
 ```
 $ pdz cost --mois
 
-  Août 2026                         38,90 €  /  80,00 €   [████░░░░░░] 49 %
+  Août 2026                         46,00 €  /  80,00 €   [█████░░░░░] 58 %
 
   Abonnement ElevenLabs             22,00 €
-  Crédits IA                        16,90 €
+  Crédits IA                        24,00 €
 
   Par usage
-    Écriture scripts (Sonnet)        6,10 €   36 %  ← le plus gros poste
-    Images (schnell + 2 dev)         5,80 €   34 %
-    Découpage + contrôle (Haiku)     3,40 €   20 %
-    Analyse de vidéos virales        1,60 €   10 %
+    Écriture + critique (Sonnet)     9,00 €   41 %  ← le plus gros poste
+    Images (schnell + 2 dev)         5,80 €   26 %
+    Direction + contrôle (Haiku)     3,50 €   16 %
+    Hook Optimizer (Sonnet)          1,30 €    6 %
+    Analyse + psychologie            2,00 €    9 %
+    Trend Hunter                     0,40 €    2 %
 
-  118 vidéos · 90 s en moyenne · 0,143 € par vidéo
+  118 vidéos · 90 s en moyenne · 0,192 € par vidéo
   Reprises : 31 %                    ← à surveiller
-  Économisé par le cache : 5,20 €
+  Économisé par le cache : 6,80 €
+  Note moyenne du Critic : 51/60 · 22 % de réécritures
 
-  💡 Marge disponible : 41 € — tu peux passer en FLUX dev partout (+33 €/mois)
+  💡 Marge disponible : 34 € — assez pour FLUX dev sur les plans d'accroche
 ```
 
 Sans ça, je découvre le problème sur mon relevé bancaire. Avec ça, je le vois le jour même.

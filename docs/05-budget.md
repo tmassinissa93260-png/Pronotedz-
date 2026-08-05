@@ -29,41 +29,49 @@ Coût **par vidéo de 90 s** :
 |---|---|---|---|
 | Angle + légende (Haiku) | 0,006 € | 0,006 € | 0,006 € |
 | Script long (Sonnet) | 0,045 € | 0,045 € | 0,045 € |
-| Découpage 18 plans (Haiku) | 0,014 € | 0,014 € | 0,014 € |
-| Contrôle qualité (Haiku vision) | 0,009 € | 0,009 € | 0,009 € |
+| **Script Critic + réécriture** (Sonnet) | 0,030 € | 0,030 € | 0,030 € |
+| **Hook Optimizer** (Sonnet) | 0,011 € | 0,011 € | 0,011 € |
+| Storyboard 18 plans (Haiku) | 0,010 € | 0,010 € | 0,010 € |
+| **Image Director** (Haiku) | 0,008 € | 0,008 € | 0,008 € |
+| **Voice Director** (Haiku) | 0,002 € | 0,002 € | 0,002 € |
+| Quality Control (Haiku vision) | 0,009 € | 0,009 € | 0,009 € |
 | **Images** | 12 × FLUX schnell<br/>**0,034 €** | 2 dev + 10 schnell<br/>**0,074 €** | 12 × FLUX dev<br/>**0,276 €** |
 | Voix | Kokoro local<br/>0,000 € | ElevenLabs<br/>*(dans l'abo)* | ElevenLabs<br/>*(dans l'abo)* |
 | Musique · sous-titres · montage | 0,000 € | 0,000 € | 0,000 € |
-| **Total par vidéo** | **0,108 €** | **0,148 €** | **0,350 €** |
+| **Total par vidéo** | **0,155 €** | **0,195 €** | **0,397 €** |
 
 ### Budget mensuel complet
 
 | | 🟢 Économique | 🔵 Équilibré | 🟣 Premium |
 |---|---|---|---|
-| 120 vidéos × coût unitaire | 12,96 € | 17,76 € | 42,00 € |
+| 120 vidéos × coût unitaire | 18,60 € | 23,40 € | 47,64 € |
+| 20 analyses de vidéos virales | 1,62 € | 1,62 € | 1,62 € |
+| Trend Hunter (4×/mois) | 0,40 € | 0,40 € | 0,40 € |
 | Abonnement ElevenLabs Creator | — | 22,00 € | 22,00 € |
 | Sauvegarde | 2,00 € | 2,00 € | 2,00 € |
-| **Total** | **14,96 €** | **41,76 €** | **66,00 €** |
-| **Marge sur 80 €** | 65 € | **38 €** | 14 € |
-
-**Les trois tiennent dans le budget.** Même le premium.
+| **Total** | **22,62 €** | **49,42 €** | **73,66 €** |
+| **Marge sur 80 €** | 57 € | **31 €** | **6 €** ❌ |
 
 ### Ma recommandation : 🔵 Équilibré
 
-Pourquoi pas le premium directement, alors qu'il rentre ?
+**Le premium ne passe plus.** Avec les 6 agents ajoutés (Critic, Hook Optimizer,
+Psychology, Image Director, Voice Director, QC indépendant), il ne reste que 6 € de
+marge — et à 120 vidéos/mois, un taux de reprise de 30 % (réaliste) ajoute ~14 €.
+Le premium déborderait à ~88 €.
 
-Parce que **14 € de marge, c'est trop juste**. Il faut compter les ratés : régénérer
-un script, refaire des images, un essai qui ne donne rien. À 120 vidéos/mois, un taux
-de reprise de 30 % (réaliste) ajoute ~13 € — et le premium passe à 79 €. Aucune marge.
+L'équilibré laisse **31 € de marge**, ce qui absorbe largement les reprises.
+Après un mois de mesures réelles avec `pdz cost`, tu sauras exactement combien tu peux
+remonter en qualité. C'est le bon ordre.
 
-L'équilibré laisse **38 € de marge**. Après un mois de mesures réelles avec `pdz cost`,
-tu sauras exactement combien tu peux remonter en qualité. C'est le bon ordre.
+> **L'arbitrage à retenir** : mieux vaut un **bon script** en images correctes qu'un
+> script moyen en images sublimes. Les 6,50 €/mois d'agents créatifs supplémentaires
+> valent bien plus que le passage de FLUX schnell à FLUX dev.
 
 ---
 
 ## 3. Le vrai levier : 12 images, pas 18
 
-**83 % du coût d'une vidéo premium, ce sont les images.** C'est donc là qu'il faut réfléchir.
+**Sur une vidéo premium, plus de la moitié du coût, ce sont les images.** C'est donc là qu'il faut réfléchir.
 
 Pour 18 plans, on ne génère que **12 images**. Les 6 plans manquants viennent de :
 
@@ -129,7 +137,7 @@ l'opération la plus lourde de FFmpeg. C'est elle qui explique les 3 minutes.)*
 
 ## 6. Les garde-fous (à câbler avant le premier appel payant)
 
-1. **Plafond par vidéo** : 0,50 € en équilibré. Au-delà → dégradation puis arrêt.
+1. **Plafond par vidéo** : 0,60 € en équilibré. Au-delà → dégradation puis arrêt.
 2. **Plafond mensuel** : à 95 % des 80 €, refus de démarrer. `--force` pour passer outre.
 3. **`max_tokens` toujours écrit en dur.** Sur des scripts longs, c'est encore plus
    important qu'avant : une réponse qui part en boucle coûte cher.
@@ -141,7 +149,7 @@ l'opération la plus lourde de FFmpeg. C'est elle qui explique les 3 minutes.)*
 
 | À mesurer | Attendu | Si c'est dépassé |
 |---|---|---|
-| Coût réel par vidéo | 0,148 € | vérifier le nombre d'images réellement générées |
+| Coût réel par vidéo | 0,195 € | vérifier le nombre d'images réellement générées |
 | Taux de reprise (vidéos refaites) | < 30 % | **c'est un problème de prompt, pas de budget** |
 | Caractères de voix consommés | 1 600/vidéo | scripts trop bavards → raccourcir |
 | Temps de montage | 3 min | baisser la qualité d'encodage |

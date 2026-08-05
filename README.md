@@ -33,7 +33,7 @@ les vidéos — parce que valider un script dans un terminal, c'est pénible.
 | Doc | Contenu |
 |---|---|
 | [01 — Comment ça marche](./docs/01-comment-ca-marche.md) | Le schéma global, les 3 parcours |
-| [02 — Les agents](./docs/02-agents.md) | Les 12 agents et ce que fait chacun |
+| [02 — Les agents](./docs/02-agents.md) | Les 18 agents et ce que fait chacun |
 | [03 — Les fichiers](./docs/03-fichiers.md) | L'arborescence du projet |
 | [04 — Ce qui rend ça solide](./docs/04-solidite.md) | Reprise, cache, erreurs, prompts, modèles |
 | [05 — Budget](./docs/05-budget.md) | Où passent les 80 €/mois |
@@ -57,4 +57,5 @@ un produit un jour. **À ignorer pour l'instant.**
 | **Images** | FLUX via fal.ai |
 | **Voix** | ElevenLabs |
 | **Objectif** | **120 vidéos/mois, 1 à 2 min** |
-| **Coût** | ~0,15 € par vidéo · **41 €/mois** sur les 80 € |
+| **Agents** | 18 spécialistes, dont Script Critic, Hook Optimizer et Psychology |
+| **Coût** | ~0,20 € par vidéo · **49 €/mois** sur les 80 € |
