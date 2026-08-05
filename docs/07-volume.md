@@ -2,7 +2,7 @@
 
 ## Le vrai problème n'est pas l'argent
 
-À 120 vidéos/mois, le budget tient sans difficulté (38 € de marge en config équilibrée).
+À 120 vidéos/mois, le budget tient sans difficulté (31 € de marge en config équilibrée).
 Le calcul tient. La machine tient.
 
 **Ce qui ne tient pas, c'est toi.**
@@ -115,8 +115,8 @@ longs, et le plus facile à rater à la lecture.
 
 ## Le contrôle qualité automatique devient obligatoire
 
-À 4 vidéos par jour, je ne peux plus tout vérifier à l'œil. L'agent 12 doit bloquer
-tout seul ce qui est manifestement raté :
+À 4 vidéos par jour, je ne peux plus tout vérifier à l'œil. Le **✅ Quality Control**
+(agent 18) doit bloquer tout seul ce qui est manifestement raté :
 
 | Vérification | Seuil de rejet automatique |
 |---|---|
@@ -137,14 +137,15 @@ ou mise de côté avec la raison. Ça m'évite de perdre du temps sur des ratés
 
 | Quand | Quoi | Temps |
 |---|---|---|
-| **Dimanche soir** | Je note 30 idées, ou je choisis 30 recettes à appliquer | 30 min |
+| **Dimanche soir** | Le 🔍 Trend Hunter a rempli la file — je trie 30 idées | **10 min** |
 | **Lundi matin** | Je valide 30 scripts par lots de 10 | 25 min |
 | **Chaque nuit** | La machine monte 4 à 5 vidéos | 0 min (je dors) |
 | **Mardi → samedi** | Je regarde et valide les vidéos de la veille, par lot | 10 min/jour |
-| **Total** | **30 vidéos/semaine ≈ 120/mois** | **~2 h/semaine** |
+| **Total** | **30 vidéos/semaine ≈ 120/mois** | **~1 h 30/semaine** |
 
-2 heures par semaine pour 30 vidéos publiables. C'est ça, l'objectif réel du projet.
-Si l'outil demande plus de 2 h/semaine, il a raté sa cible — même s'il marche techniquement.
+Une heure et demie par semaine pour 30 vidéos publiables. C'est ça, l'objectif réel
+du projet. Si l'outil demande plus de 2 h/semaine, il a raté sa cible — même s'il
+marche parfaitement sur le plan technique.
 
 ---
 
@@ -160,7 +161,6 @@ Ces éléments passent de « plus tard » à **v1** :
 | **🔍 Trend Hunter** | trouver 30 idées par semaine à la main, c'est le vrai goulot du dimanche soir |
 | **Mode nuit** (`--nuit`) | sinon ma machine est bloquée en journée |
 | **File d'attente** | sinon je dois lancer 120 fois une commande |
-| **Contrôle qualité bloquant** | sinon je regarde des vidéos ratées |
 | **Réutilisation d'images + b-roll** | sinon le budget images explose |
 | **Relances dans le script** | sinon les vidéos longues s'affaissent au milieu |
 
@@ -172,5 +172,6 @@ En échange, ceux-ci passent en « plus tard » :
 | Édition fine des sous-titres dans l'interface | le contrôle auto suffit dans 95 % des cas |
 | Choix manuel de la musique | tirage automatique selon l'émotion de la recette |
 
-Le plan ([06](./06-plan.md)) est mis à jour en conséquence : le mode lot arrive dès
-l'étape 4, et l'étape 2 (qualité vidéo) intègre la réutilisation d'images.
+Le plan ([06](./06-plan.md)) est mis à jour en conséquence : le Script Critic arrive
+dès l'étape 1, le Hook Optimizer et le Quality Control à l'étape 2, le Psychology Agent
+à l'étape 3, le mode lot et le Trend Hunter à l'étape 4.

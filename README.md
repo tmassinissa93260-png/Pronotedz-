@@ -38,7 +38,7 @@ les vidéos — parce que valider un script dans un terminal, c'est pénible.
 | [04 — Ce qui rend ça solide](./docs/04-solidite.md) | Reprise, cache, erreurs, prompts, modèles |
 | [05 — Budget](./docs/05-budget.md) | Où passent les 80 €/mois |
 | [06 — Plan](./docs/06-plan.md) | Par quoi on commence |
-| [07 — Tenir le rythme](./docs/07-volume.md) | Produire 120 vidéos/mois sans y passer ses journées |
+| [07 — Tenir le rythme](./docs/07-volume.md) | Produire 120 vidéos/mois en ~1 h 30 par semaine |
 
 📦 [`docs/saas-plus-tard/`](./docs/saas-plus-tard/) — l'architecture SaaS complète
 (multi-clients, facturation, montée en charge). Gardée au cas où tu voudrais en faire
