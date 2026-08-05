@@ -68,7 +68,7 @@ autres. Avec lui, elle ne contient que des chiffres et des structures.
 |---|---|
 | **8 · Angle** | Mon idée brute → un point de vue précis, une promesse, une cible |
 | **9 · Script** | Le texte scène par scène + 3 accroches concurrentes. Respecte le rythme imposé par la recette |
-| **10 · Découpage visuel** | Chaque scène → une description d'image (même style partout, même graine aléatoire) |
+| **10 · Découpage visuel** | 18 plans → **seulement 12 images** à générer. Il décide quels plans réutilisent une image (recadrage, zoom inversé), lesquels prennent du b-roll gratuit, lesquels sont des cartes de texte |
 
 ### 🎬 Fabriquer (2 agents)
 
@@ -87,6 +87,8 @@ au-delà de coller les images bout à bout :
 | Technique | Pourquoi c'est indispensable |
 |---|---|
 | **Zoom lent sur chaque image** (Ken Burns) | Sans mouvement, c'est un diaporama. Avec, c'est une vidéo. C'est LE truc qui change tout. |
+| **Réutiliser une image sur 2 plans** | Recadrage différent = plan différent à l'œil. Économise 40 % du budget images **et** rend la vidéo plus cohérente. |
+| **Une relance toutes les 18 s** | Sur 90 s, c'est ça qui empêche de décrocher au milieu. Sur 30 s, ça ne servait à rien. |
 | **Coupes calées sur le rythme de la musique** | On utilise le BPM mesuré par l'agent 5. Le cerveau le perçoit même sans le remarquer. |
 | **Sous-titres karaoké mot à mot** | Le mot s'allume quand il est prononcé. Standard absolu sur TikTok. |
 | **Volume normalisé (−14 LUFS)** | Une vidéo trop faible ou saturée est zappée en 1 seconde. |
@@ -96,5 +98,9 @@ au-delà de coller les images bout à bout :
 **Avertissement honnête** : c'est le point le plus risqué du projet. Un enchaînement
 d'images IA avec une voix synthétique peut être techniquement parfait et rester
 inregardable. C'est pour ça que le plan ([06](./06-plan.md)) commence par **fabriquer
-10 vidéos à la main** avant d'automatiser quoi que ce soit. Savoir ce qui marche
+5 vidéos de 90 s à la main** avant d'automatiser quoi que ce soit. Savoir ce qui marche
 d'abord, automatiser ensuite.
+
+> Et à 120 vidéos/mois, le contrôle qualité de l'agent 12 devient **bloquant** : une
+> vidéo qui rate un seuil (silence, plan de 8 s, sous-titre décalé) n'est jamais
+> présentée — elle est relancée ou mise de côté. Voir [07 — Tenir le rythme](./07-volume.md).

@@ -9,18 +9,22 @@ que les vidéos produites sont inregardables. On fait l'inverse.
 
 ## Étape 0 — Avant le code (2 à 3 jours) ⚠️ la plus importante
 
-**Fabriquer 10 vidéos à la main.** Avec FFmpeg, des images générées à la main sur fal.ai,
+**Fabriquer 5 vidéos à la main, de 90 secondes.** Avec FFmpeg, des images générées à la main sur fal.ai,
 une voix ElevenLabs, des sous-titres faits à la main.
 
 Pourquoi c'est indispensable :
 - Je vais découvrir en 3 jours ce qui fait qu'une vidéo « marche » ou pas.
-- Ces 10 vidéos deviennent la référence : l'agent devra faire aussi bien.
+- Ces 5 vidéos deviennent la référence : l'agent devra faire aussi bien.
 - Je vais trouver 20 détails que je n'aurais jamais anticipés en théorie
   (la taille des sous-titres, la vitesse du zoom, où couper, la longueur des phrases).
 - Si les vidéos faites à la main ne sont pas bonnes, **automatiser ne les rendra pas
   meilleures** — et il vaut mieux le savoir maintenant qu'après 2 mois de code.
 
-Sortie de cette étape : 10 MP4 + une note « voilà ce qui fait la différence ».
+Sortie de cette étape : 5 MP4 de 90 s + une note « voilà ce qui fait la différence ».
+
+> ⚠️ **Fais-les en 90 secondes, pas en 30.** La difficulté d'une vidéo longue n'est pas
+> d'accrocher, c'est de **garder** l'attention au milieu. Si tu ne testes ça qu'à la fin,
+> tu vas construire un outil qui fait de bonnes vidéos de 30 s et de mauvaises de 90 s.
 
 **À faire en parallèle** : ouvrir les comptes et récupérer les clés d'API
 (Anthropic, fal.ai, Groq, ElevenLabs).
@@ -49,12 +53,13 @@ Pas de recette virale, pas de page web, pas de musique, pas de sous-titres fancy
 C'est ici qu'on transforme un diaporama en vidéo.
 
 - Zoom lent sur chaque image.
+- **Réutilisation d'images** (1 image → 2 plans) + b-roll gratuit Pexels.
 - Sous-titres karaoké mot à mot.
 - Musique de fond + volume normalisé.
 - Coupes calées sur le rythme.
 - Contrôles automatiques : durée, images noires, son manquant.
 
-✅ **Critère de réussite** : je compare avec mes 10 vidéos de l'étape 0.
+✅ **Critère de réussite** : je compare avec mes 5 vidéos de l'étape 0.
 Si c'est proche, on continue. Sinon, on reste ici — inutile d'aller plus loin.
 
 ---
@@ -74,11 +79,12 @@ sans recette.
 
 ---
 
-## Étape 4 — Le confort (1 semaine)
+## Étape 4 — Le mode volume (1,5 semaine)
 
-- La page web locale pour valider (script, images, vidéo finale).
-- Les 3 pauses de validation au lieu d'une.
-- Notification quand il attend mon avis.
+- **La validation par lot** — 10 scripts sur un écran. C'est LA fonction qui rend 120 vidéos/mois tenable.
+- **Le mode nuit** : `pdz batch build --nuit`, la machine monte pendant que je dors.
+- **La file d'attente** : je remplis quand j'ai des idées, il consomme à son rythme.
+- Le contrôle qualité bloquant (une vidéo ratée ne m'est jamais montrée).
 - `pdz cost`, `pdz list`, `pdz resume`.
 - Génération de la légende et des hashtags à coller.
 
@@ -102,8 +108,8 @@ sans recette.
 | 1 · Squelette | 1 semaine | Une commande → une vidéo |
 | 2 · Qualité | 1 semaine | Une vidéo que j'oserais publier |
 | 3 · Recette | 1,5 semaine | Le vrai truc : copier la forme, pas le fond |
-| 4 · Confort | 1 semaine | Agréable à utiliser tous les jours |
-| **Total** | **~5 semaines** | **Mon agent perso** |
+| 4 · Volume | 1,5 semaine | **120 vidéos/mois en ~2 h par semaine** |
+| **Total** | **~5,5 semaines** | **Mon agent perso** |
 
 Contre 12 semaines pour la version SaaS. **La simplification fait gagner 7 semaines.**
 

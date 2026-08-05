@@ -38,6 +38,7 @@ les vidéos — parce que valider un script dans un terminal, c'est pénible.
 | [04 — Ce qui rend ça solide](./docs/04-solidite.md) | Reprise, cache, erreurs, prompts, modèles |
 | [05 — Budget](./docs/05-budget.md) | Où passent les 80 €/mois |
 | [06 — Plan](./docs/06-plan.md) | Par quoi on commence |
+| [07 — Tenir le rythme](./docs/07-volume.md) | Produire 120 vidéos/mois sans y passer ses journées |
 
 📦 [`docs/saas-plus-tard/`](./docs/saas-plus-tard/) — l'architecture SaaS complète
 (multi-clients, facturation, montée en charge). Gardée au cas où tu voudrais en faire
@@ -55,4 +56,5 @@ un produit un jour. **À ignorer pour l'instant.**
 | **Cerveau** | Claude (Sonnet + Haiku) |
 | **Images** | FLUX via fal.ai |
 | **Voix** | ElevenLabs |
-| **Coût** | ~0,40 € par vidéo · ~130 vidéos/mois dans les 80 € |
+| **Objectif** | **120 vidéos/mois, 1 à 2 min** |
+| **Coût** | ~0,15 € par vidéo · **41 €/mois** sur les 80 € |

@@ -1,106 +1,151 @@
-# 05 — Budget : 80 €/mois
+# 05 — Budget : 80 €/mois pour 120 vidéos de 1 à 2 min
 
 > Les prix des IA bougent tous les 2-3 mois. Ce sont des ordres de grandeur à revérifier
-> au moment de payer. Ce qui compte ici, c'est la **structure** du budget.
+> au moment de payer. Ce qui compte, c'est la **structure** du budget et les leviers.
 
-## La bonne nouvelle
+**Objectif** : 120 vidéos/mois, durée 60 à 120 s. Hypothèse de calcul : **90 s en moyenne**.
 
-Pour une seule personne, **80 €/mois c'est confortable**. Dans la version SaaS, presque
-tout le budget partait dans les serveurs. Ici, il n'y a pas de serveur : tout tourne sur
-ma machine. Donc **presque tout le budget part dans les IA** — c'est-à-dire dans la qualité.
+---
 
-Concrètement : je peux me payer la **configuration premium** partout.
+## 1. Ce qui change quand on passe de 30 s à 90 s
 
-## Où passent les 80 €
+| | 30 s | 90 s | Facteur |
+|---|---|---|---|
+| Nombre de plans | 8 | ~18 | ×2,25 |
+| Texte lu (à 160 mots/min) | ~530 caractères | ~1 600 caractères | ×3 |
+| Longueur du script généré | courte | longue | ×2,5 en jetons |
+| Temps de montage | ~45 s | ~3 min | ×4 |
 
-| Poste | Détail | €/mois |
-|---|---|---|
-| **Serveur** | aucun — ça tourne sur ma machine | **0,00** |
-| **Base de données** | SQLite, un fichier | **0,00** |
-| **Stockage** | mon disque dur | **0,00** |
-| **ElevenLabs Creator** | belle voix, 100 000 caractères/mois ≈ 160 vidéos | 22,00 |
-| **Sauvegarde cloud** | Backblaze B2 ou un disque externe | 2,00 |
-| **Sous-total fixe** | | **24,00** |
-| **Crédits IA à l'usage** | Claude + FLUX + Whisper | **56,00** |
-| **TOTAL** | | **80,00** |
+**Le piège** : croire qu'il faut 18 images différentes pour 18 plans. C'est faux, et
+c'est ce qui ferait exploser le budget. Voir le point 3.
 
-*(Si un jour je veux qu'il tourne la nuit sans laisser mon ordi allumé : +5 €/mois pour
-un petit serveur Hetzner CX22. À prendre sur les crédits IA.)*
+---
 
-## Combien coûte une vidéo
+## 2. Les 3 scénarios possibles
 
-### Configuration premium — 30 secondes, 8 scènes
+Coût **par vidéo de 90 s** :
 
-| Étape | Avec quoi | Coût |
-|---|---|---|
-| Angle | Claude Haiku | 0,003 € |
-| Script + accroches | Claude Sonnet | 0,026 € |
-| Découpage visuel | Claude Haiku | 0,007 € |
-| **8 images** | **FLUX dev** | **0,184 €** ← le plus gros poste |
-| **Voix** | **ElevenLabs Turbo** | **0,090 €** |
-| Musique | ma banque locale | 0,000 € |
-| Sous-titres | libass | 0,000 € |
-| Montage | FFmpeg sur ma machine | 0,000 € |
-| Contrôle qualité | Claude Haiku vision | 0,006 € |
-| Légende + hashtags | Claude Haiku | 0,003 € |
-| **TOTAL** | | **≈ 0,42 €** |
+| Poste | 🟢 Économique | 🔵 Équilibré *(recommandé)* | 🟣 Premium |
+|---|---|---|---|
+| Angle + légende (Haiku) | 0,006 € | 0,006 € | 0,006 € |
+| Script long (Sonnet) | 0,045 € | 0,045 € | 0,045 € |
+| Découpage 18 plans (Haiku) | 0,014 € | 0,014 € | 0,014 € |
+| Contrôle qualité (Haiku vision) | 0,009 € | 0,009 € | 0,009 € |
+| **Images** | 12 × FLUX schnell<br/>**0,034 €** | 2 dev + 10 schnell<br/>**0,074 €** | 12 × FLUX dev<br/>**0,276 €** |
+| Voix | Kokoro local<br/>0,000 € | ElevenLabs<br/>*(dans l'abo)* | ElevenLabs<br/>*(dans l'abo)* |
+| Musique · sous-titres · montage | 0,000 € | 0,000 € | 0,000 € |
+| **Total par vidéo** | **0,108 €** | **0,148 €** | **0,350 €** |
 
-### Configuration économique — si je veux tenir plus longtemps
+### Budget mensuel complet
 
-FLUX schnell au lieu de dev, voix Kokoro locale, Haiku partout : **≈ 0,07 €**.
-Six fois moins cher. La différence se voit surtout sur les images et la voix.
+| | 🟢 Économique | 🔵 Équilibré | 🟣 Premium |
+|---|---|---|---|
+| 120 vidéos × coût unitaire | 12,96 € | 17,76 € | 42,00 € |
+| Abonnement ElevenLabs Creator | — | 22,00 € | 22,00 € |
+| Sauvegarde | 2,00 € | 2,00 € | 2,00 € |
+| **Total** | **14,96 €** | **41,76 €** | **66,00 €** |
+| **Marge sur 80 €** | 65 € | **38 €** | 14 € |
 
-### Analyser une vidéo TikTok
+**Les trois tiennent dans le budget.** Même le premium.
 
-| Étape | Coût |
+### Ma recommandation : 🔵 Équilibré
+
+Pourquoi pas le premium directement, alors qu'il rentre ?
+
+Parce que **14 € de marge, c'est trop juste**. Il faut compter les ratés : régénérer
+un script, refaire des images, un essai qui ne donne rien. À 120 vidéos/mois, un taux
+de reprise de 30 % (réaliste) ajoute ~13 € — et le premium passe à 79 €. Aucune marge.
+
+L'équilibré laisse **38 € de marge**. Après un mois de mesures réelles avec `pdz cost`,
+tu sauras exactement combien tu peux remonter en qualité. C'est le bon ordre.
+
+---
+
+## 3. Le vrai levier : 12 images, pas 18
+
+**83 % du coût d'une vidéo premium, ce sont les images.** C'est donc là qu'il faut réfléchir.
+
+Pour 18 plans, on ne génère que **12 images**. Les 6 plans manquants viennent de :
+
+| Technique | Comment |
 |---|---|
-| Transcription (Groq Whisper) | 0,001 € |
-| Découpage + son (outils gratuits) | 0,000 € |
-| Vision, 12 images clés (Haiku) | 0,018 € |
-| Extraction de la recette (Sonnet) | 0,031 € |
-| Nettoyage (Haiku) | 0,009 € |
-| **TOTAL** | **≈ 0,06 €** |
+| **Recadrage** | Une même image, zoomée sur deux zones différentes = 2 plans distincts à l'écran |
+| **Zoom avant puis arrière** | La même image en début et en fin de vidéo, avec un mouvement inversé |
+| **B-roll gratuit** | Pexels / Pixabay : vidéos de stock libres de droits, 0 € |
+| **Plans de texte** | Une carte de texte animée sur fond uni — souvent plus fort qu'une image IA |
 
-Une recette est **réutilisable à l'infini** : je la paie une fois, je m'en sers 50 fois.
+Et ce n'est pas qu'une économie : **c'est meilleur visuellement.** 18 images IA toutes
+différentes sur 90 secondes, ça part dans tous les sens. 12 images cohérentes avec du
+mouvement et du b-roll, ça tient ensemble. Les vidéos qui marchent réutilisent leurs plans.
 
-## Ce que je peux faire chaque mois
+**Économie : 0,14 €/vidéo = 16,60 €/mois**, pour un meilleur rendu.
 
-Avec 56 € de crédits :
+---
 
-| Ce que je fais | Nombre par mois |
-|---|---|
-| Tout en premium | **~133 vidéos** |
-| Moitié premium, moitié éco | ~230 vidéos |
-| Tout en économique | ~800 vidéos |
-| Analyses de vidéos virales | ~930 |
+## 4. Attention au quota de voix ElevenLabs ⚠️
 
-**En pratique** : si je publie 1 vidéo par jour, ça fait 30 vidéos/mois → environ **13 €**.
-Il me reste 43 € de marge pour rater des essais, refaire des vidéos, tester des prompts.
+C'est le seul vrai piège du plan à 120 vidéos.
 
-C'est très large. Le budget n'est pas la contrainte ici.
+```
+120 vidéos × 1 600 caractères = 192 000 caractères/mois
+Plan Creator (22 €)           = 100 000 caractères/mois
+                                ─────────────────────────
+                                Il manque 92 000 caractères
+```
 
-## Les 3 garde-fous (à câbler avant le premier appel payant)
+Le plan Creator ne couvre qu'**environ 62 vidéos sur 120**. Le plan supérieur
+(500 k caractères) coûte ~99 €/mois — hors budget.
 
-1. **Plafond par vidéo** — 0,60 €. Au-delà, l'agent dégrade la qualité puis s'arrête.
-2. **Plafond mensuel** — à 95 % des 80 €, il refuse de démarrer. `--force` pour passer outre.
-3. **`max_tokens` toujours écrit en dur** sur chaque appel.
-   Un `max_tokens` oublié est le bug le plus cher qui existe avec une API d'IA :
-   une réponse qui part en boucle peut coûter plusieurs euros en une fois.
+**Trois solutions :**
 
-## Ce que je surveille le premier mois
-
-- **Le coût réel par vidéo** contre les 0,42 € estimés ici. Un facteur 2 est plausible
-  (essais ratés, régénérations). À vérifier dès la première semaine avec `pdz cost`.
-- **Le nombre de régénérations par vidéo.** Si je refais 3 fois chaque vidéo,
-  le coût réel est ×3 — et ça veut dire que les prompts sont à revoir, pas le budget.
-
-## Si je veux dépenser moins
-
-| Changement | Économie | Ce que je perds |
+| Solution | Comment | Coût |
 |---|---|---|
-| Voix Kokoro locale au lieu d'ElevenLabs | **−22 €/mois fixes** −0,09 €/vidéo | voix correcte mais moins naturelle |
-| FLUX schnell au lieu de dev | −0,16 €/vidéo (−38 %) | images un peu moins fines |
-| Haiku au lieu de Sonnet pour le script | −0,02 €/vidéo | scripts nettement moins bons — **à ne pas faire** |
+| **Mixte** *(recommandé)* | ElevenLabs sur les 60 vidéos les plus importantes, Kokoro local sur les autres. Un réglage par vidéo : `pdz new "..." --voix=premium` | 22 € |
+| **Modèle Flash** | ElevenLabs Flash v2.5 consomme moins de crédits par caractère sur les plans payants — à vérifier au moment de souscrire, ça pourrait suffire | 22 € |
+| **Tout en local** | Kokoro pour les 120. Voix correcte, un peu robotique | **0 €** |
 
-Le meilleur rapport qualité/prix : **garder Sonnet pour le script** (c'est ce qui fait
-la vidéo) et économiser sur les images si besoin.
+Le mode mixte est déjà prévu dans l'architecture : c'est une ligne dans `modeles.yaml`.
+
+---
+
+## 5. Le temps de montage (ce n'est plus négligeable)
+
+| | 30 s | 90 s |
+|---|---|---|
+| Montage FFmpeg | ~45 s | **~3 min** |
+| Pour 120 vidéos | 1,5 h | **6 h de calcul/mois** |
+
+6 heures par mois, ce n'est pas un problème — **sauf si tu les subis en pleine journée.**
+120 vidéos, c'est 4 par jour ; si tu les lances d'un coup le lundi, ton ordinateur est
+bloqué 3 heures.
+
+**Solution** : `pdz batch --nuit`. Les scripts sont validés dans la journée, le montage
+tourne la nuit, les vidéos sont prêtes au réveil. C'est prévu dans le plan.
+
+*(Le zoom lent sur les images — l'effet qui transforme un diaporama en vidéo — est
+l'opération la plus lourde de FFmpeg. C'est elle qui explique les 3 minutes.)*
+
+---
+
+## 6. Les garde-fous (à câbler avant le premier appel payant)
+
+1. **Plafond par vidéo** : 0,50 € en équilibré. Au-delà → dégradation puis arrêt.
+2. **Plafond mensuel** : à 95 % des 80 €, refus de démarrer. `--force` pour passer outre.
+3. **`max_tokens` toujours écrit en dur.** Sur des scripts longs, c'est encore plus
+   important qu'avant : une réponse qui part en boucle coûte cher.
+4. **Alerte à 3× le coût moyen** sur une vidéo → il y a un problème, on s'arrête.
+
+---
+
+## 7. Ce que je surveille le premier mois
+
+| À mesurer | Attendu | Si c'est dépassé |
+|---|---|---|
+| Coût réel par vidéo | 0,148 € | vérifier le nombre d'images réellement générées |
+| Taux de reprise (vidéos refaites) | < 30 % | **c'est un problème de prompt, pas de budget** |
+| Caractères de voix consommés | 1 600/vidéo | scripts trop bavards → raccourcir |
+| Temps de montage | 3 min | baisser la qualité d'encodage |
+
+Le taux de reprise est le chiffre le plus important. À 120 vidéos/mois, chaque point
+de reprise en trop coûte de l'argent **et** du temps de validation — et le temps sera
+ta vraie limite, pas l'argent. Voir [07 — Tenir le rythme](./07-volume.md).

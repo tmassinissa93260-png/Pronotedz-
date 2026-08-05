@@ -7,20 +7,20 @@ SaaS, parce qu'ils servent autant à une personne qu'à mille.
 
 ## 1. Reprise après plantage
 
-**Le problème** : une vidéo prend 5 minutes et ~0,40 €. Si ça plante à l'étape 9 sur 12,
-je ne veux pas tout recommencer ni repayer.
+**Le problème** : une vidéo de 90 s prend ~5 minutes et ~0,15 €. À 120 vidéos par mois,
+si ça plante à l'étape 9 sur 12, je ne veux ni tout recommencer ni repayer.
 
 **La solution** : chaque étape terminée est enregistrée dans SQLite avec son résultat.
 
 ```
 job_42 · étapes
 ─────────────────────────────────────────────
- 1  angle              ✅ terminé   0,004 €
- 2  script             ✅ terminé   0,031 €
+ 1  angle              ✅ terminé   0,003 €
+ 2  script             ✅ terminé   0,045 €
  3  validation script  ✅ validé
- 4  découpage          ✅ terminé   0,007 €
- 5  images             ✅ terminé   0,184 €
- 6  voix               ✅ terminé   0,090 €
+ 4  découpage          ✅ terminé   0,014 €
+ 5  images (12)        ✅ terminé   0,074 €
+ 6  voix               ✅ terminé   0,000 €
  7  sous-titres        ✅ terminé   0,000 €
  8  montage            ❌ PLANTÉ    (ffmpeg : plus d'espace disque)
  9  contrôle           ⏸ en attente
@@ -28,6 +28,9 @@ job_42 · étapes
 
 `pdz resume 42` → il refait le parcours, saute les 7 étapes déjà faites,
 et **repart à l'étape 8**. Coût de la reprise : 0 €.
+
+En mode nuit, c'est automatique : au réveil, les vidéos plantées ont été relancées
+toutes seules. Je ne découvre le problème que s'il persiste.
 
 Ça marche même si j'ai éteint l'ordinateur, mis à jour le programme, ou attendu 3 jours.
 Le moteur ne « se souvient » pas de où il en était : il **relit** ce qui est fait et
@@ -49,11 +52,15 @@ Si l'empreinte existe déjà → on ressort le résultat sauvegardé, **sans app
 
 | Situation | Sans cache | Avec cache |
 |---|---|---|
-| Je corrige une faute dans les sous-titres | 0,40 € | **0,00 €** (seul le montage est refait) |
-| Je change la musique | 0,40 € | **0,00 €** |
-| Je refais une seule image sur 8 | 0,40 € | **0,023 €** |
-| Je réécris le script (le reste suit) | 0,40 € | 0,31 € |
+| Je corrige une faute dans les sous-titres | 0,15 € | **0,00 €** (seul le montage est refait) |
+| Je change la musique | 0,15 € | **0,00 €** |
+| Je refais une seule image sur 12 | 0,15 € | **0,006 €** |
+| Je réécris le script (le reste suit) | 0,15 € | 0,12 € |
 | J'analyse deux fois la même vidéo | 0,12 € | **0,06 €** |
+
+À 120 vidéos/mois avec 30 % de reprises, le cache économise **~5 €/mois** — mais
+surtout, il rend les corrections instantanées au lieu de coûteuses. C'est ce qui
+permet de corriger sans hésiter.
 
 Et si je change le prompt du script, l'empreinte change toute seule → le cache se
 renouvelle sans que j'aie rien à purger. C'est automatique.
@@ -146,18 +153,22 @@ combien de jetons, combien ça a coûté, combien de temps.
 ```
 $ pdz cost --mois
 
-  Août 2026                         31,42 €  /  80,00 €   [████░░░░░░] 39 %
+  Août 2026                         38,90 €  /  80,00 €   [████░░░░░░] 49 %
+
+  Abonnement ElevenLabs             22,00 €
+  Crédits IA                        16,90 €
 
   Par usage
-    Images (FLUX dev)               14,72 €   47 %  ← le plus gros poste
-    Voix (ElevenLabs)                8,10 €   26 %
-    Écriture (Sonnet)                6,20 €   20 %
-    Analyse vidéo (Haiku)            2,40 €    7 %
+    Écriture scripts (Sonnet)        6,10 €   36 %  ← le plus gros poste
+    Images (schnell + 2 dev)         5,80 €   34 %
+    Découpage + contrôle (Haiku)     3,40 €   20 %
+    Analyse de vidéos virales        1,60 €   10 %
 
-  74 vidéos · 0,42 € en moyenne
-  Économisé par le cache : 11,80 €   ← 27 % de dépense évitée
+  118 vidéos · 90 s en moyenne · 0,143 € par vidéo
+  Reprises : 31 %                    ← à surveiller
+  Économisé par le cache : 5,20 €
 
-  💡 Passer en FLUX schnell : −0,16 €/vidéo (−38 %)
+  💡 Marge disponible : 41 € — tu peux passer en FLUX dev partout (+33 €/mois)
 ```
 
 Sans ça, je découvre le problème sur mon relevé bancaire. Avec ça, je le vois le jour même.

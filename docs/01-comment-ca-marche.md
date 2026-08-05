@@ -4,7 +4,9 @@
 
 Un programme Python qui tourne chez moi, découpe le travail en petites étapes,
 appelle des IA pour chaque étape, sauvegarde le résultat de chacune, et me demande
-mon avis 3 fois avant de me rendre la vidéo.
+mon avis aux moments clés avant de me rendre la vidéo.
+
+**Objectif : 120 vidéos par mois, de 1 à 2 minutes, en ~2 h de mon temps par semaine.**
 
 ## Le schéma global
 
@@ -71,8 +73,8 @@ flowchart LR
     G3 --> OUT["📹 MP4 + légende<br/>+ hashtags"]
 ```
 
-**Temps** : environ 5 minutes de calcul, plus le temps que je mets à valider.
-**Coût** : environ 0,40 €.
+**Temps** : ~2 min de réflexion IA + ~3 min de montage, plus mon temps de validation.
+**Coût** : environ 0,15 € pour une vidéo de 90 secondes.
 
 ---
 
@@ -96,7 +98,8 @@ flowchart LR
 | Ce qu'on mesure | Exemple |
 |---|---|
 | L'accroche | type « question choc », dure 1,8 s |
-| Le rythme | 14 plans, 2,2 s en moyenne, 27 coupes/minute |
+| **Les relances** | une nouvelle question toutes les 18 s ← **le plus important sur 90 s** |
+| Le rythme | 18 plans, 2,5 s en moyenne, 24 coupes/minute |
 | La narration | 168 mots/minute, ton confiant, pauses courtes |
 | La structure | accroche → tension → révélation → appel à l'action |
 | L'émotion | curiosité au début, surprise à 60 %, satisfaction à la fin |
@@ -118,7 +121,7 @@ l'étape « nettoyage » n'est pas contournable.
 flowchart LR
     BIB[("📚 Recette<br/>choisie")] --> T["Traduction<br/>en contraintes"]
     S["💡 Mon sujet<br/>totalement différent"] --> T
-    T --> C["« Écris un script de 30 s,<br/>8 scènes de 2,2 s,<br/>accroche par question,<br/>168 mots/minute,<br/>CTA à 92 % »"]
+    T --> C["« Écris un script de 90 s,<br/>18 plans de 2,5 s,<br/>accroche par question,<br/>relance toutes les 18 s,<br/>168 mots/minute,<br/>CTA à 92 % »"]
     C --> P["→ Parcours 1<br/>avec ces contraintes"]
 ```
 
@@ -133,9 +136,9 @@ Il s'arrête, m'envoie une notification, et attend. Je peux valider, corriger, o
 
 | Quand | Ce que je vois | Ce que je peux faire |
 |---|---|---|
-| **Après le script** | l'angle, 3 accroches au choix, le texte scène par scène | valider · réécrire · relancer · annuler |
-| **Après le découpage** | les descriptions d'images, un aperçu, un extrait de la voix | valider · refaire une scène · changer de voix |
-| **Après le montage** | la vidéo finie + la légende et les hashtags | valider · refaire le montage · corriger les sous-titres |
+| **Après le script** | l'angle, 3 accroches au choix, le texte scène par scène — **par lot de 10** | valider · réécrire · relancer · annuler |
+| **Après le découpage** | les descriptions d'images, un aperçu, un extrait de la voix | *auto à 120 vidéos/mois, sauf alerte qualité* |
+| **Après le montage** | la vidéo finie + la légende et les hashtags — **par lot** | valider · refaire le montage · corriger les sous-titres |
 
 Si je ne réponds pas, **il attend**. Il n'annule rien, il ne publie rien tout seul.
 Je retrouve le travail en attente le lendemain avec `pdz list`.
