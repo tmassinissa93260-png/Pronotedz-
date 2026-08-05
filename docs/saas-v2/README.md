@@ -17,6 +17,7 @@ structure de performance, génération d'une nouvelle vidéo appliquant cette st
 | 1 | [Faisabilité d'abord](./01-faisabilite.md) | ✅ |
 | 2 | [Architecture globale](./02-architecture-globale.md) | ✅ |
 | 3 | [Ce qui va dans n8n — et ce qui n'y va pas](./03-n8n.md) | ✅ |
+| 3b | [Analyse du workflow n8n existant](./03b-analyse-existant.md) | ✅ |
 | 4 | Modèle de données Supabase | ⏳ |
 | 5 | Pipeline de génération et validations humaines | ⏳ |
 | 6 | Rendu vidéo — le trou de la stack | ⏳ |
@@ -38,6 +39,9 @@ ci-dessus a été proposée puis validée.)*
 3. **Aucune attente humaine dans n8n.** Chaque validation termine un workflow ;
    l'approbation en déclenche un neuf via Database Webhook. C'est ce qui découpe le
    pipeline en 4 workflows au lieu d'un.
+4. **Le gabarit de rendu à 4 slots est le verrou n°1.** Le workflow existant produit
+   toujours 4 plans / ~27 s ; une structure extraite d'une vraie vidéo en demande 15 à 25.
+   Passage obligatoire du mode « bulk CSV » au mode « API + source JSON à N scènes ».
 
 ## Rapport avec les autres dossiers du dépôt
 
