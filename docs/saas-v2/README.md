@@ -8,6 +8,10 @@ ingénierie classique. Budget infra < 200 €/mois. Cible : 50 utilisateurs paya
 structure de performance, génération d'une nouvelle vidéo appliquant cette structure
 à un sujet différent. Validation humaine à chaque étape clé.
 
+## 👉 [POINT DE SITUATION — 1 page](./POINT-DE-SITUATION.md)
+
+Ce qui marche, ce qui bloque, les solutions. À lire en premier.
+
 ## Sections
 
 **Automatisation** : Claude (IA) + n8n (orchestration), confirmé par le porteur du projet.
