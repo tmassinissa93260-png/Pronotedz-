@@ -1,0 +1,119 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  Le fichier que je toucherai le plus souvent.
+#  C'est ici que se pilote tout l'arbitrage qualité / coût.
+#  Ajouter un modèle = ajouter une entrée. Zéro ligne de Python.
+# ═══════════════════════════════════════════════════════════════════════
+
+# ⚠️ Les prix bougent tous les 2-3 mois. À revérifier avant de s'y fier.
+#    Ils servent au calcul du coût et aux garde-fous de budget.
+#    Unité : euros par million de jetons (texte), par image, par 1000 caractères.
+
+fournisseurs:
+  anthropic:
+    cle: anthropic_api_key
+    base_url: https://api.anthropic.com/v1
+  fal:
+    cle: fal_key
+    base_url: https://fal.run
+  elevenlabs:
+    cle: elevenlabs_api_key
+    base_url: https://api.elevenlabs.io/v1
+  groq:
+    cle: groq_api_key
+    base_url: https://api.groq.com/openai/v1
+    compatible_openai: true
+
+modeles:
+  # ── Texte ────────────────────────────────────────────────────────────
+  - id: claude-sonnet-5
+    fournisseur: anthropic
+    fait: [ecriture, analyse, critique, vision]
+    contexte: 200000
+    prix: { entree_par_million: 2.76, sortie_par_million: 13.80 }
+    # Anthropic facture la lecture de cache 10 % de l'entrée, l'écriture 125 %.
+    cache: { lecture: 0.10, ecriture: 1.25 }
+    sorties_structurees: true
+
+  - id: claude-haiku-4-5-20251001
+    fournisseur: anthropic
+    fait: [ecriture_rapide, vision, controle]
+    contexte: 200000
+    prix: { entree_par_million: 0.92, sortie_par_million: 4.60 }
+    cache: { lecture: 0.10, ecriture: 1.25 }
+    sorties_structurees: true
+
+  # ── Images ───────────────────────────────────────────────────────────
+  - id: fal-ai/flux/schnell
+    fournisseur: fal
+    fait: [images]
+    prix: { par_image: 0.0028 }
+    options: [seed, image_reference]
+
+  - id: fal-ai/flux/dev
+    fournisseur: fal
+    fait: [images]
+    prix: { par_image: 0.023 }        # ~8× le prix, nettement plus fin
+    options: [seed, image_reference]
+
+  # ── Animation (image → vidéo) ────────────────────────────────────────
+  # Le poste le plus cher du système. Voir docs/12-videos-a-personnages.md.
+  - id: fal-ai/kling-video/v2/standard/image-to-video
+    fournisseur: fal
+    fait: [animation]
+    prix: { par_seconde: 0.046 }
+    options: [image_depart, duree]
+
+  # ── Voix ─────────────────────────────────────────────────────────────
+  - id: eleven_turbo_v2_5
+    fournisseur: elevenlabs
+    fait: [voix]
+    prix: { par_1000_caracteres: 0.0 }   # inclus dans l'abonnement mensuel
+    options: [voice_id, stabilite, style]
+
+  # ── Transcription (analyse de vidéos) ────────────────────────────────
+  - id: whisper-large-v3-turbo
+    fournisseur: groq
+    fait: [transcription]
+    prix: { par_heure_audio: 0.037 }
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  LES ALIAS — c'est ICI que je pilote la qualité et le coût.
+#  Les agents ne demandent jamais un modèle, ils demandent un alias.
+# ═══════════════════════════════════════════════════════════════════════
+alias:
+  qualite:    { principal: claude-sonnet-5,            repli: claude-haiku-4-5-20251001 }
+  critique:   { principal: claude-sonnet-5,            temperature: 0.2 }
+  rapide:     { principal: claude-haiku-4-5-20251001 }
+  vision:     { principal: claude-haiku-4-5-20251001 }
+  images:     { principal: fal-ai/flux/dev,            repli: fal-ai/flux/schnell }
+  animation:  { principal: fal-ai/kling-video/v2/standard/image-to-video }
+  voix:       { principal: eleven_turbo_v2_5 }
+  transcription: { principal: whisper-large-v3-turbo }
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  PROFILS — trois réglages prêts à l'emploi.
+#  `pdz episode ... --profil economique`
+# ═══════════════════════════════════════════════════════════════════════
+profils:
+  economique:
+    images: fal-ai/flux/schnell
+    qualite: claude-haiku-4-5-20251001
+    animer: false                       # aucune animation, images fixes animées
+  equilibre:
+    images: fal-ai/flux/schnell
+    plans_animes_max: 6                 # on n'anime que les plans qui le méritent
+  premium:
+    images: fal-ai/flux/dev
+    plans_animes_max: 12
+
+
+# ═══════════════════════════════════════════════════════════════════════
+#  RÈGLES — appliquées dans l'ordre, la première qui correspond gagne.
+# ═══════════════════════════════════════════════════════════════════════
+regles:
+  - si: { budget_restant_pourcent: "<20" }
+    alors: { qualite: claude-haiku-4-5-20251001, images: fal-ai/flux/schnell, animer: false }
+  - si: { budget_restant_pourcent: "<5" }
+    alors: { stop: true }
