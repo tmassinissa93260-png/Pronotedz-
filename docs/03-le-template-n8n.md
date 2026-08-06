@@ -1,35 +1,24 @@
-# 3b. Analyse du workflow n8n existant
+# 03 — Le template n8n : ce qu'on en garde
 
-Document d'analyse de la chaîne fournie : agent conversationnel → Perplexity →
-Generate Script → Generate Image Descr → Generate .csv → génération vidéo.
-
-Il révise les sections [5](./05-pipeline.md) et [6](./06-rendu.md).
+> **Contexte** : ce document analyse le template n8n de référence (agent conversationnel →
+> Perplexity → Generate Script → Generate Image Descr → Generate .csv → rendu).
+> **Ce template ne sera pas utilisé tel quel** — le projet est construit en Python, sans
+> n8n ni outil de rendu par gabarit. Mais il contient de bonnes idées à reprendre, et
+> une erreur de conception importante à ne pas répéter.
 
 ---
 
-## 3b.1 La bonne nouvelle : le trou de la stack est déjà bouché
+## 3.1 Ce qu'on garde du template
 
-En [section 2](./02-architecture-globale.md), j'ai identifié la brique manquante : **rien
-dans Lovable/Supabase/n8n ne sait monter une vidéo**. Ton workflow répond déjà à ça.
-
-Le fichier `.csv` avec les clés `Audio-ZZC, Image-1, Voiceover-1, …, end-screen` est
-typique d'un **outil de rendu par gabarit** (Creatomate, JSON2Video, Shotstack) en mode
-génération par lot : les en-têtes de colonnes correspondent aux noms des éléments du
-gabarit, et l'outil remplit les trous.
-
-C'est un vrai acquis. Ce que ça de-risque :
-
-| Ce qui est déjà résolu | Impact |
+| Bonne idée | Pourquoi on la reprend |
 |---|---|
-| **Le rendu vidéo** | La question la plus dure de la stack, réglée |
-| **La synchro image ↔ voix** | Gérée par le gabarit |
-| **La plomberie n8n** | Tu connais l'outil, les workflows tournent |
-| **La validation humaine** | Déjà dans la boucle (approbation du script) |
-| **La discipline de prompt** | ACTION / ÉTAPES / PERSONA / CONTEXTE / CONTRAINTES / MODÈLE, appliqué partout |
-
-Cette structure de prompt constante est une bonne pratique et je la garde telle quelle
-dans toute l'architecture. C'est aussi ce qui rend le versionnement des prompts
-(section 3.5) simple à mettre en place chez toi.
+| **Structure de prompt constante**<br/>ACTION / ÉTAPES / PERSONA / CONTEXTE / CONTRAINTES / MODÈLE | Excellente discipline. Reprise telle quelle pour les 18 agents |
+| **« Ne jamais reformuler l'idée de l'utilisateur »** | Contrainte très juste : l'agent d'interface transmet, il n'interprète pas |
+| **Recherche Perplexity optionnelle** | Bonne idée, pas chère. Gardée comme étape facultative |
+| **Séparation script / descriptions d'images / assemblage** | C'est le bon découpage. Conservé |
+| **Descriptions d'images en anglais** | Les modèles d'images sont meilleurs en anglais |
+| **« 1 ou 2 éléments visuels max »** | Évite les images IA chargées et illisibles |
+| **Validation humaine du script** | C'est le bon endroit pour la première validation |
 
 ---
 
