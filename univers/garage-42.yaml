@@ -1,0 +1,55 @@
+# ── UNIVERS 2 : des voitures ─────────────────────────────────────────────
+# Structure RIGOUREUSEMENT identique. Seul le contenu change.
+id: garage-42
+nom: Garage 42
+format: serie_animee
+langue: fr
+duree_cible_s: 40
+
+style:
+  rendu: >-
+    3D render, anthropomorphic cars with expressive headlight eyes and
+    windshield mouths, worn garage setting, vertical 9:16 framing
+  palette: ["#E63946", "#F1FAEE", "#457B9D", "#1D3557"]
+  eclairage: warm workshop lamps, dust in the light beams
+  ambiance: comédie amère entre vieilles bagnoles jalouses
+  ratio: "9:16"
+  seed: 420077
+
+regles_du_monde:
+  - Les voitures parlent, leurs phares sont leurs yeux
+  - Le garage est leur maison, la casse est leur enfer
+  - Le kilométrage est un sujet tabou
+
+personnages:
+  - id: rusty
+    nom: Rusty
+    espece: vieille Renault 4L rouillée
+    apparence: >-
+      an old beige Renault 4 with heavy rust patches, one cracked headlight,
+      sagging suspension, mismatched hubcaps, expressive droopy headlight eyes
+    caractere: aigri, nostalgique, raconte toujours la même histoire de 1987
+    tics_de_langage: ["de mon temps", "j'ai connu la nationale 7"]
+    voix: { voice_id: "", stabilite: 0.7, style: 0.4 }
+
+  - id: turbo
+    nom: Turbo
+    espece: voiture de sport tape-à-l'œil
+    apparence: >-
+      a low bright red sports car, oversized rear spoiler, chrome rims,
+      tinted windshield, glossy paint with visible reflections, arrogant stance
+    caractere: frimeur, insupportable, parle constamment de ses chevaux
+    tics_de_langage: ["zéro à cent en", "toi tu peux pas comprendre"]
+    voix: { voice_id: "", stabilite: 0.4, style: 0.8 }
+
+decors:
+  - id: garage
+    nom: Le garage
+    description: cluttered mechanic garage, tools on walls, oil stains
+  - id: casse
+    nom: La casse
+    description: junkyard at dusk, stacked wrecks, crane in background
+
+interdits:
+  - marques automobiles réelles nommées
+  - accidents graves

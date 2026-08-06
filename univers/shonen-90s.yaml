@@ -1,0 +1,59 @@
+# ── UNIVERS 3 : style anime 90s, personnages ORIGINAUX ───────────────────
+# Le style est décrit par ses caractéristiques visuelles, jamais par le nom
+# d'une œuvre. C'est légal, et ça rend mieux. Voir docs/13-les-formats.md § B.
+id: shonen-90s
+nom: Shonen 90s
+format: serie_animee
+langue: fr
+duree_cible_s: 45
+
+style:
+  rendu: >-
+    90s cel-shaded anime, hand-painted backgrounds, visible film grain,
+    limited color palette, thick ink outlines, dramatic speed lines,
+    dutch angle close-ups, vertical 9:16 framing
+  palette: ["#2B2D42", "#EF233C", "#EDF2F4", "#8D99AE"]
+  eclairage: hard backlight, dusty sun rays, deep shadows
+  ambiance: rivalité d'apprentis, honneur, dépassement de soi
+  ratio: "9:16"
+  seed: 199401
+
+regles_du_monde:
+  - Les apprentis gagnent leur rang en duel
+  - Chaque combattant a un souffle intérieur qu'il doit maîtriser
+  - Perdre son souffle en public est la pire des humiliations
+
+personnages:
+  - id: kaito
+    nom: Kaito
+    espece: apprenti bretteur adolescent
+    apparence: >-
+      teenage boy with spiky black hair and a red headband, worn grey training
+      gi with rolled sleeves, bandaged forearms, determined narrow eyes,
+      thin scar across the left cheek
+    caractere: impulsif, loyal, incapable de reculer devant un défi
+    tics_de_langage: ["j'abandonne pas", "encore une fois"]
+    voix: { voice_id: "", stabilite: 0.45, style: 0.7 }
+
+  - id: rei
+    nom: Rei
+    espece: rivale silencieuse
+    apparence: >-
+      teenage girl with long white hair tied high, dark blue training uniform
+      with silver trim, calm half-closed eyes, straight posture, always holding
+      a wooden sword
+    caractere: froide, méthodique, cache qu'elle admire Kaito
+    tics_de_langage: ["tu es lent", "recommence"]
+    voix: { voice_id: "", stabilite: 0.8, style: 0.35 }
+
+decors:
+  - id: dojo
+    nom: Le dojo
+    description: old wooden dojo, tatami floor, paper screens, dust in sunbeams
+  - id: falaise
+    nom: La falaise
+    description: windswept cliff at sunset, tall grass, distant mountains
+
+interdits:
+  - noms d'œuvres ou de personnages existants
+  - sang, mutilation
