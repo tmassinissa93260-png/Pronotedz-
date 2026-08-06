@@ -1,12 +1,16 @@
 # 01 — Comment ça marche
 
+> ⚠️ **Ce document décrivait une version Python en ligne de commande.**
+> Le projet part en réalité de mon workflow n8n existant.
+> **Le document à jour est [04 — Ce qu'il faut changer](./04-ce-quil-faut-changer.md).**
+> Celui-ci reste utile pour comprendre les 3 parcours du produit.
+
 ## Le principe en une phrase
 
-Un programme Python qui tourne chez moi, découpe le travail en petites étapes,
-appelle des IA pour chaque étape, sauvegarde le résultat de chacune, et me demande
-mon avis aux moments clés avant de me rendre la vidéo.
+Mon workflow n8n découpe le travail en étapes, appelle Claude et les autres IA pour
+chacune, et me demande mon avis aux moments clés avant de me rendre la vidéo.
 
-**Objectif : 120 vidéos par mois, de 1 à 2 minutes, en ~2 h de mon temps par semaine.**
+**Objectif : 120 vidéos par mois, de 1 à 2 minutes, pour moi seul.**
 
 ## Le schéma global
 
