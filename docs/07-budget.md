@@ -120,8 +120,8 @@ Le mode mixte est déjà prévu dans l'architecture : c'est une ligne dans `mode
 
 | | 30 s | 90 s |
 |---|---|---|
-| Montage FFmpeg | ~45 s | **~3 min** |
-| Pour 120 vidéos | 1,5 h | **6 h de calcul/mois** |
+| Montage FFmpeg | ~15 s | **~45 s** |
+| Pour 120 vidéos | 30 min | **1,5 h de calcul/mois** |
 
 6 heures par mois, ce n'est pas un problème — **sauf si tu les subis en pleine journée.**
 120 vidéos, c'est 4 par jour ; si tu les lances d'un coup le lundi, ton ordinateur est
@@ -130,8 +130,11 @@ bloqué 3 heures.
 **Solution** : `pdz batch --nuit`. Les scripts sont validés dans la journée, le montage
 tourne la nuit, les vidéos sont prêtes au réveil. C'est prévu dans le plan.
 
-*(Le zoom lent sur les images — l'effet qui transforme un diaporama en vidéo — est
-l'opération la plus lourde de FFmpeg. C'est elle qui explique les 3 minutes.)*
+> **Mesure réelle du 6 août 2026.** La première version utilisait le filtre `zoompan`,
+> que recommandent la plupart des tutoriels : **8 à 14× le temps réel**, soit plus de
+> 10 minutes pour un épisode de 45 s. Remplacé par un recadrage à fenêtre mobile
+> (`crop`), qui ne rééchantillonne pas l'image : **0,5× le temps réel**.
+> Même effet visuel, **25 à 40 fois plus rapide**. Un test verrouille ce choix.
 
 ---
 
@@ -152,7 +155,7 @@ l'opération la plus lourde de FFmpeg. C'est elle qui explique les 3 minutes.)*
 | Coût réel par vidéo | 0,195 € | vérifier le nombre d'images réellement générées |
 | Taux de reprise (vidéos refaites) | < 30 % | **c'est un problème de prompt, pas de budget** |
 | Caractères de voix consommés | 1 600/vidéo | scripts trop bavards → raccourcir |
-| Temps de montage | 3 min | baisser la qualité d'encodage |
+| Temps de montage | ~22 s pour 45 s | vérifier qu'aucun filtre lent n'est revenu |
 
 Le taux de reprise est le chiffre le plus important. À 120 vidéos/mois, chaque point
 de reprise en trop coûte de l'argent **et** du temps de validation — et le temps sera
