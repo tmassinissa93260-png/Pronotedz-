@@ -41,6 +41,7 @@ Plus une petite page web locale pour valider les scripts et regarder les vidéos
 | [07 — Budget](./docs/07-budget.md) | Le coût par vidéo et par mois |
 | [08 — Tenir le rythme](./docs/08-volume.md) | 120 vidéos/mois sans y passer ses journées |
 | [09 — Les fichiers](./docs/09-les-fichiers.md) | L'arborescence du projet |
+| ⭐ [11 — État de l'art](./docs/11-etat-de-lart.md) | **Ce que font les autres, et les chiffres 2026 qui corrigent le projet** |
 
 📦 [`docs/archive/`](./docs/archive/) — versions écartées (SaaS multi-clients, SaaS
 Lovable/Supabase, outil Python en ligne de commande). **À ignorer.**
