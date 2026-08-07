@@ -20,8 +20,11 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from PIL import Image, ImageEnhance, ImageFilter  # noqa: E402
+
+from animer import Effets, animer  # noqa: E402
 
 from pdz.video import Montage, Mouvement, Plan  # noqa: E402
 from pdz.video.montage import MARGE_MOUVEMENT  # noqa: E402
@@ -45,22 +48,33 @@ STYLE = StyleSousTitres(
 
 # (zone à cadrer en fraction de l'image, mouvement, texte)
 #   zone = (x_centre, y_centre, largeur) — tout en fraction de la largeur.
+# (zone, mouvement, texte, sens du travelling, zone qui scintille)
 PLANS = [
     ((0.50, 0.55, 1.00), Mouvement.ZOOM_AVANT,
-     "Quand un module se pose sur la Lune, il n'y a pas d'air."),
+     "Quand un module se pose sur la Lune, il n'y a pas d'air.",
+     1, (0.50, 0.62, 0.16)),
     ((0.52, 0.82, 0.55), Mouvement.PAN_DROITE,
-     "La poussière ne retombe pas. Elle part en ligne droite."),
+     "La poussière ne retombe pas. Elle part en ligne droite.",
+     1, (0.50, 0.40, 0.22)),
     ((0.48, 0.30, 0.42), Mouvement.ZOOM_AVANT,
-     "Pendant les vingt dernières secondes, le pilote ne voit plus le sol."),
+     "Pendant les vingt dernières secondes, le pilote ne voit plus le sol.",
+     -1, None),
     ((0.68, 0.60, 0.50), Mouvement.PAN_GAUCHE,
-     "Le souffle du moteur soulève un voile qui masque tout."),
+     "Le souffle du moteur soulève un voile qui masque tout.",
+     1, None),
     ((0.50, 0.78, 0.34), Mouvement.ZOOM_ARRIERE,
-     "Il faut se poser à l'aveugle."),
+     "Il faut se poser à l'aveugle.",
+     -1, (0.48, 0.34, 0.26)),
     ((0.13, 0.16, 0.30), Mouvement.ZOOM_AVANT,
-     "Et derrière, la Terre regarde. Trois cent quatre-vingt mille kilomètres."),
+     "Et derrière, la Terre regarde. Trois cent quatre-vingt mille kilomètres.",
+     1, None),
 ]
 
 DEBIT_WPM = 150
+
+# Travelling + particules + scintillement. Coûte ~3 s de calcul par seconde
+# de vidéo, et rapporte beaucoup sur une image fixe.
+ANIME = "--simple" not in sys.argv
 
 
 def preparer_plan(source: Image.Image, zone, destination: Path,
@@ -124,7 +138,7 @@ def main(chemin_source: str) -> int:
     TRAVAIL.mkdir(parents=True, exist_ok=True)
     SORTIE.mkdir(parents=True, exist_ok=True)
 
-    durees = [max(2.2, len(t.split()) / DEBIT_WPM * 60) for _, _, t in PLANS]
+    durees = [max(2.2, len(p[2].split()) / DEBIT_WPM * 60) for p in PLANS]
     total = sum(durees)
 
     print(f"\n  Source : {source.size[0]}×{source.size[1]} — UNE seule image")
@@ -133,23 +147,44 @@ def main(chemin_source: str) -> int:
 
     debut = time.perf_counter()
     plans = []
-    for i, ((zone, mv, texte), duree) in enumerate(zip(PLANS, durees, strict=True)):
-        fichier = preparer_plan(source, zone, TRAVAIL / f"plan{i}.jpg")
-        plans.append(Plan(image=fichier, duree_s=duree, mouvement=mv))
-        print(f"  ✓ plan {i + 1}  cadre {zone[2] * 100:3.0f} %  "
-              f"{mv.value:12s} {duree:4.1f} s")
+    for i, ((zone, mv, texte, sens, feu), duree) in enumerate(
+            zip(PLANS, durees, strict=True)):
+        base = preparer_plan(source, zone, TRAVAIL / f"plan{i}.jpg")
 
-    print(f"\n  6 cadrages préparés en {time.perf_counter() - debut:.1f} s")
+        if ANIME:
+            # Travelling + poussières + scintillement des flammes.
+            clip = animer(
+                base, duree, TRAVAIL / f"clip{i}.mp4",
+                effets=Effets(
+                    dolly=0.065, sens=sens, derive_x=0.015 * sens,
+                    particules=100, vitesse_particules=30,
+                    # Les particules restent dans l'image nette, pas dans les
+                    # bandes noires du haut et du bas.
+                    zone_particules=(0.22, 0.80),
+                    scintillement=feu, force_scintillement=0.20,
+                    graine=i,
+                ),
+            )
+            plans.append(Plan(image=clip, duree_s=duree, anime=True))
+        else:
+            plans.append(Plan(image=base, duree_s=duree, mouvement=mv))
+
+        print(f"  ✓ plan {i + 1}  cadre {zone[2] * 100:3.0f} %  "
+              f"{'travelling' if ANIME else mv.value:12s} {duree:4.1f} s"
+              f"{'  + flammes' if (ANIME and feu) else ''}")
+
+    print(f"\n  6 plans préparés en {time.perf_counter() - debut:.0f} s")
 
     mots, curseur = [], 0.0
-    for (_, _, texte), duree in zip(PLANS, durees, strict=True):
+    for (_, _, texte, _, _), duree in zip(PLANS, durees, strict=True):
         mots += mots_depuis_texte(texte, round(curseur * 1000), round(duree * 1000))
         curseur += duree
     ass = TRAVAIL / "st.ass"
     ass.write_text(generer_ass(mots, style=STYLE), encoding="utf-8")
     print(f"  ✓ {len(mots)} mots")
 
-    fichier = SORTIE / "une-image-lune.mp4"
+    fichier = SORTIE / ("une-image-lune-anime.mp4" if ANIME
+                       else "une-image-lune.mp4")
     print("\n  Montage…")
     t = time.perf_counter()
     Montage(plans=plans, voix=voix_factice(total, TRAVAIL / "voix.wav"),
@@ -162,5 +197,5 @@ def main(chemin_source: str) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1
-                          else "donnees/sources/lune.png"))
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    raise SystemExit(main(args[0] if args else "donnees/sources/lune.png"))
