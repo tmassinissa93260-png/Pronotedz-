@@ -28,6 +28,7 @@ class Config(BaseSettings):
     elevenlabs_api_key: str = ""
     groq_api_key: str = ""          # transcription (parcours 2)
     perplexity_api_key: str = ""    # recherche web, optionnel
+    skyreels_api_key: str = ""      # animation, alternative à fal.ai
 
     # ── Chemins ───────────────────────────────────────────────────────────
     donnees: Path = RACINE / "donnees"

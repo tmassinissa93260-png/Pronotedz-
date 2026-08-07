@@ -18,6 +18,12 @@ fournisseurs:
   elevenlabs:
     cle: elevenlabs_api_key
     base_url: https://api.elevenlabs.io/v1
+  # SkyReels — animation. L'adresse exacte de l'API est à confirmer dans leur
+  # documentation avant usage ; elle n'a pas pu être vérifiée ici.
+  skyreels:
+    cle: skyreels_api_key
+    base_url: https://api.skyreels.ai/v1
+    a_verifier: true
   groq:
     cle: groq_api_key
     base_url: https://api.groq.com/openai/v1
@@ -61,6 +67,14 @@ modeles:
     fournisseur: fal
     fait: [animation]
     prix: { par_seconde: 0.046 }
+    options: [image_depart, duree]
+
+  # Alternative moins chère, même famille d'usage. À activer en changeant
+  # simplement l'alias « animation » plus bas.
+  - id: fal-ai/ltx-video-v097/image-to-video
+    fournisseur: fal
+    fait: [animation]
+    prix: { par_seconde: 0.018 }
     options: [image_depart, duree]
 
   # ── Voix ─────────────────────────────────────────────────────────────
