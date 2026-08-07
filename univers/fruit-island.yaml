@@ -31,6 +31,7 @@ personnages:
       thin cartoon arms and legs, confident smirk
     caractere: manipulatrice, charmeuse, joue systématiquement la victime
     tics_de_langage: ["mon cœur", "j'y peux rien si", "je dis ça je dis rien"]
+    # voice_id : à récupérer sur elevenlabs.io → Voices → ⋯ → Copy Voice ID
     voix: { voice_id: "", stabilite: 0.35, style: 0.75 }
     relations:
       bananito: l'a trahi à l'épisode 3, il ne le sait pas encore
