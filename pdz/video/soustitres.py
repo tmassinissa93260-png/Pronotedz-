@@ -45,6 +45,24 @@ class StyleSousTitres:
 
     mots_par_carte: int = 3              # 3 mots à l'écran : le repère du vertical
     marge_laterale: int = 90
+    majuscules: bool = False             # style documentaire : tout en capitales
+
+    # Largeur moyenne d'un caractère, en part de la taille de police. Mesuré
+    # sur DejaVu Sans Bold en capitales. Sert à rétrécir les mots trop longs
+    # plutôt que de les laisser déborder de l'écran.
+    largeur_caractere: float = 0.62
+
+    def taille_pour(self, texte: str, largeur_ecran: int) -> int:
+        """Réduit la police si le texte déborderait.
+
+        Un mot qui sort du cadre est un défaut visible immédiatement — et il
+        arrive dès qu'on affiche un mot à la fois (« quatre-vingt-trois »).
+        """
+        utile = largeur_ecran - 2 * self.marge_laterale
+        besoin = len(texte) * self.taille * self.largeur_caractere
+        if besoin <= utile:
+            return self.taille
+        return max(48, int(self.taille * utile / besoin))
 
 
 @dataclass
@@ -118,8 +136,19 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
     lignes = []
     for carte in cartes:
+        mots_carte = [
+            Mot(m.texte.upper() if st.majuscules else m.texte, m.debut_ms, m.fin_ms)
+            for m in carte.mots
+        ]
+        brut = " ".join(m.texte for m in mots_carte)
         # \k<centisecondes> : libass colore le mot pendant sa durée.
-        texte = "".join(f"{{\\k{m.duree_cs}}}{m.texte} " for m in carte.mots).strip()
+        texte = "".join(f"{{\\k{m.duree_cs}}}{m.texte} " for m in mots_carte).strip()
+
+        # Rétrécissement au cas par cas si le texte dépasserait du cadre.
+        taille = st.taille_pour(brut, largeur)
+        if taille != st.taille:
+            texte = f"{{\\fs{taille}}}" + texte
+
         lignes.append(
             f"Dialogue: 0,{_ass_temps(carte.debut_ms)},{_ass_temps(carte.fin_ms)},"
             f"Karaoke,,0,0,0,,{texte}"

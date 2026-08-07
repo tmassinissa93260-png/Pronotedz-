@@ -9,7 +9,7 @@ import pytest
 
 from pdz.moteur.erreurs import ErreurPdz
 from pdz.video import Montage, Mouvement, Plan, generer_ass, mots_depuis_texte
-from pdz.video.soustitres import Mot, decouper_en_cartes
+from pdz.video.soustitres import Mot, StyleSousTitres, decouper_en_cartes
 
 
 # ── Sous-titres ──────────────────────────────────────────────────────────
@@ -48,6 +48,39 @@ def test_le_texte_reste_au_dessus_des_boutons_tiktok():
     ligne = next(l for l in ass.splitlines() if l.startswith("Style:"))
     marge_basse = int(ligne.split(",")[-2])
     assert 600 <= marge_basse <= 850, marge_basse
+
+
+def test_un_mot_trop_long_est_retreci():
+    """Un mot qui sort du cadre est un défaut visible immédiatement.
+
+    Le cas arrive dès qu'on affiche un mot à la fois : « quatre-vingt-trois »
+    à 150 px déborde d'un écran de 1080.
+    """
+    st = StyleSousTitres(taille=150, mots_par_carte=1)
+    assert st.taille_pour("BIP", 1080) == 150
+    assert st.taille_pour("QUATRE-VINGT-TROIS", 1080) < 150
+    # Après réduction, le mot doit tenir dans la largeur utile.
+    t = st.taille_pour("QUATRE-VINGT-TROIS", 1080)
+    assert len("QUATRE-VINGT-TROIS") * t * st.largeur_caractere <= 1080 - 2 * st.marge_laterale
+
+
+def test_le_retrecissement_est_ecrit_dans_le_ass():
+    st = StyleSousTitres(taille=150, mots_par_carte=1)
+    ass = generer_ass(mots_depuis_texte("bip quatre-vingt-trois", 0, 2000), style=st)
+    lignes = [l for l in ass.splitlines() if l.startswith("Dialogue")]
+    assert "\\fs" not in lignes[0], "un mot court ne doit pas être retouché"
+    assert "\\fs" in lignes[1], "un mot long doit porter une taille réduite"
+
+
+def test_le_mode_majuscules():
+    st = StyleSousTitres(majuscules=True, mots_par_carte=1)
+    ass = generer_ass(mots_depuis_texte("spoutnik", 0, 500), style=st)
+    assert "SPOUTNIK" in ass and "spoutnik" not in ass
+
+
+def test_par_defaut_le_texte_nest_pas_transforme():
+    ass = generer_ass(mots_depuis_texte("Spoutnik", 0, 500))
+    assert "Spoutnik" in ass
 
 
 # ── Montage ──────────────────────────────────────────────────────────────
