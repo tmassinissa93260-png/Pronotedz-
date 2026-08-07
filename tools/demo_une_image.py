@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from PIL import Image, ImageEnhance, ImageFilter  # noqa: E402
 
-from animer import Effets, animer  # noqa: E402
+from pdz.video.vie import Effets, animer  # noqa: E402
 
 from pdz.video import Montage, Mouvement, Plan  # noqa: E402
 from pdz.video.montage import MARGE_MOUVEMENT  # noqa: E402

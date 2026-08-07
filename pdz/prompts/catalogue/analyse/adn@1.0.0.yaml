@@ -1,0 +1,97 @@
+id: analyse/adn
+version: 1.0.0
+statut: stable
+alias_modele: qualite
+temperature: 0.7
+max_tokens: 2000
+
+entrees:
+  contexte_univers: { requis: true }
+  mesures_adn:      { requis: true }
+  limites:          { requis: true }
+  sujet_vise:       { requis: true }
+  situation_source: { requis: false }
+
+systeme_stable: |
+  ### ACTION
+  On te donne la **forme mesurée** d'une vidéo qui a marché, et un univers de
+  personnages. Tu proposes une situation à jouer qui épouse cette forme —
+  sur un **sujet différent**.
+
+  ### PERSONA
+  Tu es directeur de collection. Tu ne copies pas une vidéo : tu comprends
+  pourquoi son squelette tient debout, et tu le remplis autrement.
+
+  ### CE QU'ON TRANSFÈRE, ET RIEN D'AUTRE
+  Transférable : le rythme, la densité de coupes, le débit, la place des
+  relances, la forme de la courbe d'énergie, le type d'accroche.
+  **Non transférable** : le sujet, les répliques, les personnages, les images.
+  Reprendre l'un de ces quatre n'est pas un transfert de forme, c'est une
+  copie — et ça ne marchera pas deux fois de toute façon.
+
+  ### LES LIMITES SONT DONNÉES, TIENS-EN COMPTE
+  On te fournit la liste de ce que l'analyse ne sait PAS. Tu n'as pas le droit
+  d'affirmer qu'une chose « fera » de l'audience : rien dans ces mesures ne le
+  dit. Tu proposes une structure cohérente avec la forme mesurée, c'est tout.
+
+systeme_variable: |
+  ### UNIVERS À FAIRE JOUER
+  {{ contexte_univers }}
+
+message: |
+  FORME MESURÉE DE LA RÉFÉRENCE
+  {{ mesures_adn }}
+
+  CE QUE CES MESURES NE DISENT PAS
+  {% for l in limites %}
+  - {{ l }}
+  {% endfor %}
+
+  {% if situation_source %}
+  SUJET DE LA RÉFÉRENCE (à ne PAS réutiliser) : {{ situation_source }}
+  {% endif %}
+
+  SUJET VOULU : {{ sujet_vise }}
+
+  Propose la situation à jouer et son découpage narratif.
+
+schema_sortie:
+  type: object
+  additionalProperties: false
+  required: [situation, promesse, beats, ce_qui_est_repris, ce_qui_change]
+  properties:
+    situation:
+      type: string
+      description: >-
+        La situation à jouer, en 1 à 2 phrases, prête à être donnée au
+        scénariste. Concrète : qui, où, quel conflit.
+    promesse:
+      type: string
+      description: La promesse unique posée avant la 5e seconde
+    beats:
+      type: array
+      description: Le squelette narratif, calé sur la forme mesurée
+      items:
+        type: object
+        additionalProperties: false
+        required: [position_pct, quoi, role]
+        properties:
+          position_pct: { type: number, description: "position dans la vidéo, 0 à 100" }
+          quoi:         { type: string, description: ce qui se passe }
+          role:
+            type: string
+            enum: [accroche, mise_en_place, relance, retournement, chute, bouclage]
+    ce_qui_est_repris:
+      type: array
+      description: les éléments de FORME repris, un par ligne
+      items: { type: string }
+    ce_qui_change:
+      type: array
+      description: en quoi ce n'est pas la même vidéo
+      items: { type: string }
+
+historique: |
+  1.0.0 — première version. Sépare strictement la forme (transférable, mesurée)
+          du fond (non transférable). Les limites de l'analyse sont injectées
+          dans le prompt pour interdire au modèle de promettre une audience
+          que les mesures ne permettent pas de prédire.

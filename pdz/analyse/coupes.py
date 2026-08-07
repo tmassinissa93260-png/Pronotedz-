@@ -93,7 +93,7 @@ def _detecter(chemin: Path, seuil: float, duree_totale: float) -> list[float]:
 
 def _durees(coupes: list[float], duree_totale: float) -> list[float]:
     bornes = [0.0, *coupes, duree_totale]
-    return [b - a for a, b in zip(bornes, bornes[1:])]
+    return [b - a for a, b in zip(bornes, bornes[1:], strict=False)]
 
 
 def _noter(durees: list[float], duree_totale: float) -> tuple[float, dict]:

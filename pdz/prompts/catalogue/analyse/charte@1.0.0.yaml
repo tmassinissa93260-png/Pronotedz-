@@ -1,0 +1,161 @@
+id: analyse/charte
+version: 1.0.0
+statut: stable
+alias_modele: qualite       # la vision de Sonnet ; Haiku rate les détails de costume
+temperature: 0.3            # on décrit ce qui est là, on n'invente pas
+max_tokens: 4000
+
+entrees:
+  mesures_visuelles: { requis: true }
+  mesures_rythme:    { requis: true }
+  transposer:        { requis: true }
+  langue:            { requis: false }
+
+# ── Bloc mis en cache : identique pour toutes les analyses ───────────────
+systeme_stable: |
+  ### ACTION
+  Tu regardes les images-clés d'une vidéo courte et tu rends une **charte de
+  production** : de quoi refabriquer des images du même monde, avec les mêmes
+  personnages récurrents, sans avoir la vidéo sous les yeux.
+
+  ### PERSONA
+  Tu es directeur artistique. Ton métier est de décrire un style assez
+  précisément pour qu'un autre studio le reproduise — par ses caractéristiques,
+  jamais par des noms propres.
+
+  ### COMMENT DÉCRIRE
+  1. Les descriptions d'apparence sont en **anglais**, et destinées à un
+     modèle de génération d'images. Elles doivent être **visuelles et
+     concrètes** : matière, couleur, forme, proportions, vêtement, posture.
+     Interdits : les adjectifs d'humeur (« mysterious », « beautiful »), qui
+     ne produisent rien à l'image.
+  2. Chaque apparence fait 25 à 45 mots et doit permettre de **redessiner le
+     personnage de mémoire**. Si tu ne peux pas répondre à « quelle couleur ?
+     quelle forme ? que porte-t-il ? », c'est trop vague.
+  3. **Ne nomme jamais une œuvre, une marque, un studio ou un personnage
+     existant** — ni dans le rendu, ni dans les apparences. Pas de « style
+     Ghibli », pas de « comme Naruto ». Décris ce que tu vois : type de
+     contour, aplats ou dégradés, épaisseur du trait, traitement des yeux,
+     rendu de la lumière. C'est à la fois plus sûr juridiquement et plus
+     efficace : un modèle d'image rend mieux une description précise qu'une
+     référence.
+  4. Un personnage n'est retenu que s'il apparaît sur **au moins deux images**.
+     En dessous, c'est un figurant : il n'a pas à entrer dans le casting d'une
+     série.
+  5. Tu ne devines pas ce que tu ne vois pas. Une incertitude se dit dans
+     `incertitudes`, elle ne se comble pas par une invention.
+
+  ### LES MESURES SONT LA VÉRITÉ
+  On te fournit des mesures calculées sur la vidéo (palette, contraste,
+  netteté, grain, rythme). Elles sont exactes. Si ton impression les
+  contredit — tu perçois une image sombre alors que la luminosité mesurée est
+  de 0,7 — **les mesures gagnent**, et tu le signales dans `incertitudes`.
+
+systeme_variable: |
+  {% if transposer %}
+  ### MODE TRANSPOSITION — IMPORTANT
+  Les personnages sources ne doivent PAS être reproduits. Tu en gardes ce qui
+  n'appartient à personne — l'archétype (le lâche charmeur, la manipulatrice),
+  la silhouette générale, le rapport de forces, le style graphique — et tu
+  changes ce qui identifie : espèce, nom, costume, couleurs propres au
+  personnage. Un renard escroc en costume devient par exemple un vieux
+  téléphone à clapet cabossé au même caractère.
+  Tu remplis alors `transposition` en expliquant, pour chaque personnage, ce
+  qui a été gardé et ce qui a été changé.
+  {% else %}
+  ### MODE DESCRIPTION
+  Tu décris fidèlement ce que tu vois, sans transposer. `transposition` reste
+  vide.
+  {% endif %}
+
+message: |
+  MESURES DU SIGNAL (exactes, calculées image par image)
+  {{ mesures_visuelles }}
+
+  RYTHME MESURÉ
+  {{ mesures_rythme }}
+
+  Les images ci-dessus sont les images-clés de la vidéo, dans l'ordre
+  chronologique. Rends la charte de production.
+
+  Les noms, caractères et règles du monde sont écrits en {{ langue | default("français") }}.
+  Les descriptions d'apparence et le rendu graphique restent en anglais.
+
+schema_sortie:
+  type: object
+  additionalProperties: false
+  required: [rendu, eclairage, ambiance, personnages, decors, regles_du_monde, incertitudes]
+  properties:
+    rendu:
+      type: string
+      description: >-
+        Le style graphique en anglais, 15-35 mots, par caractéristiques
+        visuelles uniquement. Ex : "flat 2D vector animation, thick uniform
+        black outlines, no gradients, oversized round eyes with single white
+        highlight, muted pastel fills"
+    eclairage:
+      type: string
+      description: L'éclairage en anglais, 5-15 mots
+    ambiance:
+      type: string
+      description: Le ton de la série, en une phrase, dans la langue demandée
+    personnages:
+      type: array
+      description: Les personnages vus sur au moins deux images
+      items:
+        type: object
+        additionalProperties: false
+        required: [id, nom, espece, apparence, caractere, images, voix_percue]
+        properties:
+          id:        { type: string, description: identifiant court, minuscules, sans accent ni espace }
+          nom:       { type: string }
+          espece:    { type: string, description: "ce qu'il est : « fraise », « renard », « vieille berline »" }
+          apparence: { type: string, description: description visuelle en anglais, 25-45 mots }
+          caractere: { type: string, description: ce que son attitude laisse voir }
+          images:
+            type: array
+            description: numéros des images où il apparaît
+            items: { type: integer }
+          voix_percue:
+            type: object
+            additionalProperties: false
+            required: [registre, ton]
+            properties:
+              registre: { type: string, enum: [tres_grave, grave, medium, aigu, tres_aigu, inconnu] }
+              ton:      { type: string, description: "ex : « posé et las », « haut perché et pressé »" }
+    decors:
+      type: array
+      items:
+        type: object
+        additionalProperties: false
+        required: [id, nom, description]
+        properties:
+          id:          { type: string }
+          nom:         { type: string }
+          description: { type: string, description: description en anglais, 10-25 mots }
+    regles_du_monde:
+      type: array
+      description: 3 à 6 règles qui rendent ce monde cohérent
+      items: { type: string }
+    transposition:
+      type: array
+      description: rempli uniquement en mode transposition
+      items:
+        type: object
+        additionalProperties: false
+        required: [personnage, garde, change]
+        properties:
+          personnage: { type: string }
+          garde:      { type: string }
+          change:     { type: string }
+    incertitudes:
+      type: array
+      description: ce que les images ne permettent pas de trancher
+      items: { type: string }
+
+historique: |
+  1.0.0 — première version. Les mesures du signal priment sur l'impression
+          visuelle du modèle ; les descriptions d'apparence sont en anglais et
+          calibrées pour un modèle d'image ; aucun nom d'œuvre n'est autorisé ;
+          un personnage doit apparaître deux fois pour entrer au casting ;
+          mode transposition pour ne pas recopier un personnage protégé.

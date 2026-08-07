@@ -76,8 +76,25 @@ class BandeVoix:
 
     @property
     def durees_repliques_s(self) -> list[float]:
-        """Ce qui pilotera la durée de chaque plan au montage."""
+        """Le temps de parole pur, silences exclus."""
         return [r.duree_ms / 1000 for r in self.repliques]
+
+    @property
+    def durees_couvrantes_s(self) -> list[float]:
+        """Les durées qui pilotent le montage : **silences compris**.
+
+        La différence entre les deux propriétés vaut une correction de bug.
+        Le temps de parole seul ne couvre pas la piste : il manque les
+        respirations entre répliques, soit 280 à 420 ms chacune. Sur douze
+        répliques, ça fait quatre secondes d'image en moins que de son —
+        la vidéo s'arrête, la voix continue.
+
+        Ici, chaque réplique s'étend jusqu'au début de la suivante. La somme
+        vaut exactement la durée de la piste, par construction.
+        """
+        bornes = [r.debut_ms for r in self.repliques] + [self.duree_ms]
+        return [(b - a) / 1000
+                for a, b in zip(bornes, bornes[1:], strict=False)]
 
     def resume(self) -> str:
         eco = ""

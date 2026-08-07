@@ -68,7 +68,7 @@ class Agent(Protocol):
         (version d'agent, version de prompt, modèle)."""
         ...
 
-    async def executer(self, entrees: dict[str, Any], ctx: "Contexte") -> dict[str, Any]:
+    async def executer(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
         ...
 
 

@@ -8,7 +8,7 @@ duree_cible_s: 45
 style:
   rendu: >-
     3D render, glossy cartoon fruits with thin cartoon arms and legs,
-    big expressive eyes, tropical villa setting, vertical 9:16 framing
+    big expressive eyes, soft subsurface scattering, vertical 9:16 framing
   palette: ["#FF4D6D", "#FFD166", "#06D6A0", "#118AB2"]
   eclairage: soft golden hour studio lighting, gentle rim light
   ambiance: comédie dramatique de télé-réalité, tension et trahisons

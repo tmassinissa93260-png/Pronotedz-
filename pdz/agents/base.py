@@ -9,6 +9,8 @@ et le garde-fou de budget.
 
 from __future__ import annotations
 
+import hashlib
+from pathlib import Path
 from typing import Any
 
 from pdz.ia import claude
@@ -43,6 +45,15 @@ class Agent:
         """Les variables à injecter dans le prompt."""
         raise NotImplementedError
 
+    def images(self, entrees: dict[str, Any], ctx: Contexte) -> list[Path] | None:
+        """Les images à faire regarder au modèle. Par défaut, aucune.
+
+        Utilisé par les agents de vision (analyse d'un style visuel, contrôle
+        qualité d'une image produite). Elles entrent dans l'empreinte de cache
+        par leur contenu, pas par leur chemin — voir `signature_images()`.
+        """
+        return None
+
     def apres(self, sortie: dict, entrees: dict, ctx: Contexte) -> dict:
         """Retouche ou vérification de la sortie. Par défaut, rien."""
         return sortie
@@ -52,6 +63,7 @@ class Agent:
     async def executer(self, entrees: dict[str, Any], ctx: Contexte) -> dict:
         prompt = prompts.charger(self.prompt_ref)
         stable, variable, message = prompt.rendre(**self.variables(entrees, ctx))
+        images = self.images(entrees, ctx)
 
         budget_pct = 100.0
         if ctx.budget_restant > 0:
@@ -63,6 +75,7 @@ class Agent:
             systeme_variable=variable,
             message=message,
             schema_sortie=prompt.schema_sortie,
+            images=images,
             nom_outil=self.nom,
             max_tokens=prompt.max_tokens,
             temperature=prompt.temperature,
@@ -75,6 +88,21 @@ class Agent:
         )
         ctx.facturer(reponse.cout)
         return self.apres(reponse.donnees, entrees, ctx)
+
+
+def signature_images(chemins: list[Path] | None) -> str:
+    """Empreinte du **contenu** d'une liste d'images.
+
+    Les chemins ne conviennent pas : deux jobs extraient les mêmes images-clés
+    d'une même vidéo dans deux dossiers de travail différents. Par le contenu,
+    la seconde analyse est gratuite ; par le chemin, elle serait repayée.
+    """
+    if not chemins:
+        return ""
+    h = hashlib.sha256()
+    for chemin in chemins:
+        h.update(hashlib.sha256(Path(chemin).read_bytes()).digest())
+    return h.hexdigest()[:24]
 
 
 # ── Réplique ≠ plan : deux choses différentes, souvent confondues ────────

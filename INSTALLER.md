@@ -68,7 +68,7 @@ toujours sur leur propre ligne.
 ## 4. Vérifier que les clés marchent
 
 ```bash
-docker compose run --rm pdz
+docker compose run --rm pdz pdz cles
 ```
 
 La première fois, Docker télécharge et construit — compte 3 à 5 minutes. Ensuite c'est instantané.
@@ -100,20 +100,69 @@ Ce test **ne coûte rien** : il lit les quotas, il ne génère rien.
 
 ## 5. Fabriquer une vidéo
 
-```bash
-# Test complet, sans aucune IA ni dépense
-docker compose run --rm pdz python tools/demo_montage.py
+D'abord un test **sans aucune IA ni dépense**, pour vérifier que ffmpeg marche :
 
-# Ta vidéo apparaît dans  donnees/sorties/
+```bash
+docker compose run --rm pdz python tools/demo_montage.py
+# ta vidéo apparaît dans  donnees/sorties/
 ```
 
-Puis avec les vraies IA :
+Ensuite, chaque personnage a besoin d'une voix. Une seule fois par univers :
 
 ```bash
-docker compose run --rm pdz python -m pdz.cli episode "Strawberina trahit Bananito"
+docker compose run --rm pdz pdz voix apparier fruit-island
+```
+
+Puis un vrai épisode :
+
+```bash
+docker compose run --rm pdz pdz episode fruit-island "Strawberina trahit Bananito"
 ```
 
 Tes fichiers sortent dans le dossier **`donnees/sorties/`** de ton ordinateur.
+
+### Si ça s'arrête en cours de route
+
+Coupure de réseau, quota atteint, ordinateur éteint : rien n'est perdu.
+
+```bash
+docker compose run --rm pdz pdz jobs          # retrouve l'identifiant
+docker compose run --rm pdz pdz reprendre job_a1b2c3
+```
+
+La reprise **ne repaie pas** ce qui est déjà fait : le script, la voix et les
+images déjà produites sont relus depuis la base.
+
+---
+
+## 6. Partir d'une vidéo que tu aimes
+
+```bash
+# Mesurer sa forme — quelques secondes, 0 €
+docker compose run --rm pdz pdz analyser donnees/sources/ma-reference.mp4
+
+# En tirer un univers jouable : style, personnages, décors
+docker compose run --rm pdz pdz charte donnees/sources/ma-reference.mp4 --id mon-monde
+
+# Des voix qui ressemblent à celles de la référence
+docker compose run --rm pdz pdz voix apparier mon-monde --source donnees/sources/ma-reference.mp4
+
+# Produire sur TON sujet, avec SA forme
+docker compose run --rm pdz pdz episode mon-monde "ton sujet" --forme str_a1b2c3
+```
+
+Les personnages sont **transposés**, pas recopiés : le système garde l'archétype
+et le style graphique, et change ce qui identifie. Voir
+[docs/14](./docs/14-reproduire-un-style.md).
+
+---
+
+## Suivre la dépense
+
+```bash
+docker compose run --rm pdz pdz cout          # par modèle, par agent
+docker compose run --rm pdz pdz web           # puis http://127.0.0.1:7777
+```
 
 ---
 
@@ -136,7 +185,7 @@ Si tu préfères, il faut Python 3.11+ et ffmpeg installés :
 ```bash
 brew install python ffmpeg      # Mac
 pip install -e .
-python -m tools.verifier_cles
+pdz cles
 ```
 
 ---

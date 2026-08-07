@@ -5,7 +5,7 @@
 Ce n'est pas une application pour des clients. C'est un outil, pour moi, qui tourne
 sur ma machine.
 
-> **État : construction en cours.** Projet Python autonome — pas de n8n,
+> **État : la chaîne complète tourne.** Projet Python autonome — pas de n8n,
 > pas d'outil de rendu payant. Tout est fait sur mesure.
 >
 > 👉 **[Comment l'installer sur ta machine](./INSTALLER.md)**
@@ -25,16 +25,32 @@ Dans tous les cas : il écrit, **me fait valider**, fabrique les images, la voix
 sous-titres, monte, et vérifie. Les séries gardent leurs personnages identiques d'un
 épisode à l'autre.
 
+**Il sait aussi partir d'une vidéo que j'aime** : mesurer son style, en tirer des
+personnages jouables et retrouver des voix qui ressemblent aux siennes — sans en
+recopier ni le sujet ni les personnages. Voir
+[14 — Reproduire un style](./docs/14-reproduire-un-style.md).
+
 ## Comment je m'en sers
 
 ```bash
-pdz univers creer "Fruit Island"              # les personnages, une fois
-pdz episode "Strawberina trahit Bananito"     # série animée
-pdz raconter "l'histoire du type qui a vendu Bitcoin en 2011"
-pdz list
+pdz cles                                   # tout est branché ?
+pdz univers                                # mes mondes
+
+# Partir d'une vidéo de référence
+pdz analyser ma-reference.mp4              # mesures + ADN — 0 €
+pdz charte ma-reference.mp4 --id mon-monde # style + personnages → univers/
+pdz voix apparier mon-monde --source ma-reference.mp4
+
+# Produire
+pdz episode fruit-island "Strawberina trahit Bananito"
+pdz episode mon-monde "une dispute" --forme str_a1b2c3d4
+
+# Suivre
+pdz jobs · pdz reprendre <job> · pdz cout · pdz web
 ```
 
-Plus une petite page web locale pour valider les scripts et regarder les vidéos.
+`pdz reprendre` finit une production interrompue **sans repayer** ce qui est déjà
+fait. Plus une petite page web locale pour valider les scripts et revoir les vidéos.
 
 ## Documentation
 
@@ -52,6 +68,7 @@ Plus une petite page web locale pour valider les scripts et regarder les vidéos
 | ⭐ [11 — État de l'art](./docs/11-etat-de-lart.md) | Ce que font les autres, les chiffres 2026 |
 | ⭐⭐ [12 — Vidéos à personnages](./docs/12-videos-a-personnages.md) | Séries animées : univers, personnages, constance |
 | ⭐⭐ [13 — Les formats](./docs/13-les-formats.md) | **Les 4 formats, leur coût, leur risque. Par quoi commencer** |
+| ⭐⭐ [14 — Reproduire un style](./docs/14-reproduire-un-style.md) | **Mesurer le visuel, les personnages et les voix d'une vidéo pour en refaire du même genre** |
 
 📦 [`docs/archive/`](./docs/archive/) — versions écartées (SaaS multi-clients, SaaS
 Lovable/Supabase, outil Python en ligne de commande). **À ignorer.**

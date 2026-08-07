@@ -4,10 +4,10 @@ L'appel réseau à Claude est remplacé par une réponse factice : on teste la
 chaîne complète (prompt → appel → validation → sortie) sans clé d'API.
 """
 
-import asyncio
+
+from pathlib import Path
 
 import pytest
-from pydantic import ValidationError as PydanticError
 
 from pdz.agents.base import mots_par_replique, nb_plans_pour, nb_repliques_pour
 from pdz.agents.ecriture.script import ScriptWriter
@@ -16,8 +16,6 @@ from pdz.moteur.erreurs import ErreurConfig, ErreurValidation
 from pdz.moteur.pipeline import Contexte
 from pdz.prompts import charger
 from pdz.univers import Univers
-
-from pathlib import Path
 
 FRUITS = Path("univers/fruit-island.yaml")
 
@@ -75,7 +73,11 @@ def test_les_repliques_font_une_longueur_dicible():
 
 def test_le_prompt_se_charge_et_se_rend():
     p = charger("ecriture/script")
-    assert p.ref == "ecriture/script@1.0.0"
+    # On n'attend pas un numéro de version précis : le figer ici obligerait à
+    # modifier ce test à chaque amélioration de prompt, ce qui est exactement
+    # ce que le versionnement doit éviter. On vérifie l'identité et le rendu.
+    assert p.id == "ecriture/script"
+    assert p.statut == "stable"
     stable, _, message = p.rendre(
         contexte_univers="UNIVERS : test",
         situation="une dispute",
@@ -85,6 +87,22 @@ def test_le_prompt_se_charge_et_se_rend():
     )
     assert "UNIVERS : test" in stable
     assert "une dispute" in message
+
+
+def test_les_entrees_optionnelles_sont_vraiment_optionnelles():
+    """Ne rien passer d'optionnel doit rendre, pas lever.
+
+    Avec StrictUndefined, un `{% if x %}` sur une variable absente échoue.
+    C'est le piège de l'ajout d'une entrée optionnelle à un prompt existant :
+    tous les appels qui marchaient se mettent à planter.
+    """
+    p = charger("ecriture/script")
+    _, variable, message = p.rendre(
+        contexte_univers="U", situation="s", duree_s=45, nb_repliques=13,
+        mots_par_replique=[9] * 13, nb_plans_vises=26,
+    )
+    assert "FORME À ÉPOUSER" not in variable
+    assert "SQUELETTE" not in message
 
 
 def test_une_variable_oubliee_echoue_tout_de_suite():
@@ -149,8 +167,11 @@ def test_lagent_refuse_un_script_sans_relance():
 def test_la_signature_change_avec_la_version_du_prompt():
     """C'est ce qui invalide le cache automatiquement quand un prompt bouge."""
     sig = ScriptWriter().signature()
-    assert sig["prompt"] == "ecriture/script@1.0.0"
+    assert sig["prompt"] == charger("ecriture/script").ref
     assert sig["agent"] == "script"
+    # Le point du test : la version du prompt est DANS la signature, donc
+    # publier un prompt invalide le cache sans purge manuelle.
+    assert "@" in sig["prompt"]
 
 
 def test_les_variables_du_prompt_sont_calculees_depuis_lunivers():

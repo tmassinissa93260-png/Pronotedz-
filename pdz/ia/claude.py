@@ -17,9 +17,11 @@ Trois choix qui font la différence en production :
 
 from __future__ import annotations
 
-import json
+import base64
 import logging
+import mimetypes
 import time
+from pathlib import Path
 from typing import Any
 
 import httpx
@@ -71,6 +73,7 @@ async def appeler(
     systeme_variable: str = "",
     message: str,
     schema_sortie: dict,
+    images: list[Path] | None = None,
     nom_outil: str = "reponse",
     max_tokens: int = 4000,
     temperature: float | None = None,
@@ -104,7 +107,7 @@ async def appeler(
         "model": modele.id,
         "max_tokens": max_tokens,          # jamais absent — voir docs/06-solidite.md
         "system": systeme,
-        "messages": [{"role": "user", "content": message}],
+        "messages": [{"role": "user", "content": _contenu(message, images)}],
         # Sortie structurée : on impose l'outil, donc la forme de la réponse.
         "tools": [{
             "name": nom_outil,
@@ -152,6 +155,44 @@ async def appeler(
         modele.id, duree_ms, reponse.cout, reponse.economie_cache,
     )
     return reponse
+
+
+def _contenu(message: str, images: list[Path] | None) -> Any:
+    """Construit le contenu du message — texte seul, ou images puis texte.
+
+    L'ordre compte : les images **avant** la consigne. C'est la
+    recommandation d'Anthropic, et l'écart est net quand on demande une
+    description structurée de plusieurs images à la fois.
+
+    Chaque image est étiquetée par son rang. Sans ces étiquettes, une réponse
+    qui dit « la troisième image » est inexploitable : on ne sait pas à quel
+    fichier elle correspond.
+    """
+    if not images:
+        return message
+
+    blocs: list[dict[str, Any]] = []
+    for i, chemin in enumerate(images, start=1):
+        chemin = Path(chemin)
+        if not chemin.exists():
+            raise ErreurValidation(f"Image introuvable : {chemin}")
+        mime = mimetypes.guess_type(chemin.name)[0] or "image/png"
+        if mime not in ("image/png", "image/jpeg", "image/gif", "image/webp"):
+            raise ErreurValidation(
+                f"Format d'image non accepté par l'API ({mime}) : {chemin.name}"
+            )
+        blocs.append({"type": "text", "text": f"Image {i} — {chemin.name}"})
+        blocs.append({
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": mime,
+                "data": base64.b64encode(chemin.read_bytes()).decode(),
+            },
+        })
+
+    blocs.append({"type": "text", "text": message})
+    return blocs
 
 
 def _lever_si_erreur(r: httpx.Response) -> None:

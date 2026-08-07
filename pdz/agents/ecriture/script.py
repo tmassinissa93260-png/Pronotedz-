@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import Any
 
 from pdz.agents.base import Agent, mots_par_replique, nb_plans_pour, nb_repliques_pour
+from pdz.analyse.adn import Adn
 from pdz.moteur.erreurs import ErreurValidation
 from pdz.moteur.pipeline import Contexte
 from pdz.univers import Univers
@@ -19,23 +20,47 @@ from pdz.univers import Univers
 
 class ScriptWriter(Agent):
     nom = "script"
-    version = "1.0.0"
+    version = "1.1.0"
     prompt_ref = "ecriture/script"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
         univers: Univers = entrees["univers"]
         duree = entrees.get("duree_s") or univers.duree_cible_s
-        repliques = nb_repliques_pour(duree)
+
+        # Avec un ADN mesuré sur une vidéo de référence, le format vient des
+        # mesures. Sans lui, des repères génériques. Les deux chemins donnent
+        # les mêmes clés au prompt — il n'a pas à savoir d'où elles viennent.
+        adn: Adn | None = entrees.get("adn")
+        if adn is not None:
+            forme = adn.contraintes(duree)
+            variables = {
+                "duree_s": forme["duree_s"],
+                "nb_repliques": forme["nb_repliques"],
+                "mots_par_replique": forme["mots_par_replique"],
+                "nb_plans_vises": forme["nb_plans_vises"],
+                "forme_mesuree": adn.bloc_pour_prompt(),
+                "repliques_de_relance": forme["repliques_de_relance"],
+                "duree_hook_s": forme["duree_hook_s"],
+            }
+        else:
+            repliques = nb_repliques_pour(duree)
+            variables = {
+                "duree_s": duree,
+                "nb_repliques": repliques,
+                "mots_par_replique": mots_par_replique(duree, repliques),
+                # Indicatif : le Storyboard fera le découpage réel.
+                "nb_plans_vises": nb_plans_pour(duree),
+                "forme_mesuree": "",
+                "repliques_de_relance": [],
+                "duree_hook_s": 0,
+            }
 
         return {
+            **variables,
             "contexte_univers": univers.contexte_script(),
             "situation": entrees["situation"],
-            "duree_s": duree,
-            "nb_repliques": repliques,
-            "mots_par_replique": mots_par_replique(duree, repliques),
-            # Indicatif pour le scénariste : le Storyboard fera le découpage réel.
-            "nb_plans_vises": nb_plans_pour(duree),
             "resume_precedent": entrees.get("resume_precedent", ""),
+            "beats": entrees.get("beats") or [],
         }
 
     def apres(self, sortie: dict, entrees: dict, ctx: Contexte) -> dict:
@@ -66,9 +91,12 @@ class ScriptWriter(Agent):
 
         duree = entrees.get("duree_s") or univers.duree_cible_s
         mots = sum(len(r["replique"].split()) for r in repliques)
+        adn: Adn | None = entrees.get("adn")
+        # Le débit mesuré sur la référence s'il existe, sinon 160 mots/minute.
+        debit = adn.debit_wpm if adn is not None else 160
+
         sortie["duree_cible_s"] = duree
         sortie["nb_repliques"] = len(repliques)
         sortie["mots_total"] = mots
-        # 160 mots/minute : la durée réellement parlée, à comparer à la cible.
-        sortie["duree_parlee_estimee_s"] = round(mots / 160 * 60, 1)
+        sortie["duree_parlee_estimee_s"] = round(mots / debit * 60, 1)
         return sortie

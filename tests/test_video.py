@@ -11,7 +11,6 @@ from pdz.moteur.erreurs import ErreurPdz
 from pdz.video import Montage, Mouvement, Plan, generer_ass, mots_depuis_texte
 from pdz.video.soustitres import Mot, StyleSousTitres, decouper_en_cartes
 
-
 # ── Sous-titres ──────────────────────────────────────────────────────────
 
 def test_les_mots_couvrent_exactement_la_duree():
@@ -19,7 +18,7 @@ def test_les_mots_couvrent_exactement_la_duree():
     assert mots[0].debut_ms == 1000
     assert mots[-1].fin_ms == 3000
     # Aucun trou ni chevauchement entre deux mots consécutifs.
-    for a, b in zip(mots, mots[1:]):
+    for a, b in zip(mots, mots[1:], strict=False):
         assert a.fin_ms == b.debut_ms
 
 
@@ -45,7 +44,7 @@ def test_le_ass_contient_les_balises_karaoke():
 def test_le_texte_reste_au_dessus_des_boutons_tiktok():
     """La marge basse doit laisser passer l'interface de la plateforme."""
     ass = generer_ass([Mot("x", 0, 500)], hauteur=1920)
-    ligne = next(l for l in ass.splitlines() if l.startswith("Style:"))
+    ligne = next(x for x in ass.splitlines() if x.startswith("Style:"))
     marge_basse = int(ligne.split(",")[-2])
     assert 600 <= marge_basse <= 850, marge_basse
 
@@ -67,7 +66,7 @@ def test_un_mot_trop_long_est_retreci():
 def test_le_retrecissement_est_ecrit_dans_le_ass():
     st = StyleSousTitres(taille=150, mots_par_carte=1)
     ass = generer_ass(mots_depuis_texte("bip quatre-vingt-trois", 0, 2000), style=st)
-    lignes = [l for l in ass.splitlines() if l.startswith("Dialogue")]
+    lignes = [x for x in ass.splitlines() if x.startswith("Dialogue")]
     assert "\\fs" not in lignes[0], "un mot court ne doit pas être retouché"
     assert "\\fs" in lignes[1], "un mot long doit porter une taille réduite"
 

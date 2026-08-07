@@ -38,6 +38,11 @@ class Voix(BaseModel):
     style: float = Field(0.5, ge=0, le=1)
     vitesse: float = Field(1.0, ge=0.5, le=2.0)
 
+    # Le registre attendu — « grave », « aigu »… Renseigné par l'analyse d'une
+    # vidéo de référence, ou à la main. Sert à choisir la voix quand on n'a
+    # aucun audio à mesurer : c'est une intention, pas une mesure.
+    registre_percu: str = ""
+
 
 class Personnage(BaseModel):
     id: str
@@ -60,7 +65,7 @@ class Personnage(BaseModel):
     # Relations : {"bananito": "l'a trahi à l'épisode 3"}
     relations: dict[str, str] = Field(default_factory=dict)
 
-    def prompt_image(self, situation: str, style: "Style") -> str:
+    def prompt_image(self, situation: str, style: Style) -> str:
         """Construit le prompt d'un plan. L'apparence passe TOUJOURS en entier :
         c'est le prix de la constance."""
         morceaux = [
@@ -183,7 +188,7 @@ class Univers(BaseModel):
     # ── Chargement / sauvegarde ──────────────────────────────────────────
 
     @classmethod
-    def charger(cls, chemin: Path) -> "Univers":
+    def charger(cls, chemin: Path) -> Univers:
         donnees = yaml.safe_load(Path(chemin).read_text(encoding="utf-8"))
         return cls.model_validate(donnees)
 

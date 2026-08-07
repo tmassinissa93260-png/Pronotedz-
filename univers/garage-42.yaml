@@ -9,7 +9,7 @@ duree_cible_s: 40
 style:
   rendu: >-
     3D render, anthropomorphic cars with expressive headlight eyes and
-    windshield mouths, worn garage setting, vertical 9:16 framing
+    windshield mouths, chipped weathered paint, vertical 9:16 framing
   palette: ["#E63946", "#F1FAEE", "#457B9D", "#1D3557"]
   eclairage: warm workshop lamps, dust in the light beams
   ambiance: comédie amère entre vieilles bagnoles jalouses

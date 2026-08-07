@@ -54,11 +54,14 @@ class AnalyseSon:
         return [round(float(v), 3) for v in np.interp(idx, np.arange(len(a)), a)]
 
 
-def _pcm(chemin: Path) -> np.ndarray:
-    """Extrait le son en mono 16 bits, via un tube — aucun fichier temporaire."""
+def pcm(chemin: Path, taux: int = TAUX) -> np.ndarray:
+    """Extrait le son en mono 16 bits, via un tube — aucun fichier temporaire.
+
+    Partagé avec `pdz.analyse.voix`, qui travaille sur le même signal brut.
+    """
     r = subprocess.run(
         ["ffmpeg", "-hide_banner", "-loglevel", "error", "-i", str(chemin),
-         "-vn", "-ac", "1", "-ar", str(TAUX), "-f", "s16le", "-"],
+         "-vn", "-ac", "1", "-ar", str(taux), "-f", "s16le", "-"],
         capture_output=True, timeout=600,
     )
     if r.returncode != 0 or not r.stdout:
@@ -133,23 +136,23 @@ def _tempo(rms: np.ndarray, fenetre_s: float) -> tuple[float | None, float]:
 
 
 def analyser(chemin: Path) -> AnalyseSon:
-    pcm = _pcm(chemin)
+    signal = pcm(chemin)
     taille = max(1, int(TAUX * FENETRE_MS / 1000))
-    n = pcm.size // taille
+    n = signal.size // taille
     if n == 0:
         raise ErreurPdz("Piste audio trop courte pour être analysée.")
 
-    trames = pcm[: n * taille].reshape(n, taille)
+    trames = signal[: n * taille].reshape(n, taille)
     rms = np.sqrt(np.mean(trames ** 2, axis=1))
     fenetre_s = taille / TAUX
-    duree = pcm.size / TAUX
+    duree = signal.size / TAUX
 
     crete = float(rms.max()) or 1.0
     courbe = (rms / crete).tolist()
 
     # Approximation de la loudness : le vrai LUFS demande le filtre K et une
     # intégration par blocs. Ici on veut juste savoir si c'est trop faible.
-    moyenne = float(np.sqrt(np.mean(pcm ** 2))) or 1e-9
+    moyenne = float(np.sqrt(np.mean(signal ** 2))) or 1e-9
     lufs = round(20 * np.log10(moyenne) - 0.7, 1)
 
     bpm, confiance = _tempo(rms, fenetre_s)

@@ -35,7 +35,7 @@ class Mouvement(str, Enum):
     FIXE = "fixe"
 
     @classmethod
-    def alterne(cls, index: int) -> "Mouvement":
+    def alterne(cls, index: int) -> Mouvement:
         cycle = [cls.ZOOM_AVANT, cls.PAN_DROITE, cls.ZOOM_ARRIERE, cls.PAN_GAUCHE]
         return cycle[index % len(cycle)]
 
