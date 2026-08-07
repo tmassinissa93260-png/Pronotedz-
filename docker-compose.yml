@@ -1,0 +1,12 @@
+services:
+  pdz:
+    build: .
+    env_file: .env
+    volumes:
+      # Tes vidéos, tes images et ta base restent chez toi.
+      - ./donnees:/app/donnees
+      # Les prompts et les univers restent modifiables sans rebuild.
+      - ./univers:/app/univers
+      - ./modeles.yaml:/app/modeles.yaml
+    ports:
+      - "7777:7777"

@@ -7,6 +7,8 @@ sur ma machine.
 
 > **État : construction en cours.** Projet Python autonome — pas de n8n,
 > pas d'outil de rendu payant. Tout est fait sur mesure.
+>
+> 👉 **[Comment l'installer sur ta machine](./INSTALLER.md)**
 
 ## Ce qu'il sait faire
 
