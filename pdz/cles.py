@@ -72,12 +72,30 @@ def verifier_elevenlabs(cle: str) -> tuple[bool, str]:
 
 
 def verifier_fal(cle: str) -> tuple[bool, str]:
-    r = httpx.get("https://rest.alpha.fal.ai/tokens/",
+    """Lit le solde de crédit plutôt que de générer quoi que ce soit.
+
+    L'ancien endpoint (`rest.alpha.fal.ai/tokens/`) renvoyait 405 : il a
+    changé ou n'a jamais accepté GET. Celui-ci correspond à la documentation
+    actuelle de fal.ai (`api-reference/platform-apis/for-accounts`).
+    ⚠️ Non vérifiable depuis l'environnement de développement — fal.ai y est
+    bloqué par la politique réseau. À confirmer sur la machine de l'utilisateur.
+    """
+    r = httpx.get("https://api.fal.ai/v1/account/billing",
                   headers={"Authorization": f"Key {cle}"}, timeout=30)
-    if r.status_code in (200, 201, 204):
+    if r.status_code == 200:
+        credits = (r.json().get("credits") or {})
+        solde = credits.get("current_balance")
+        if solde is not None:
+            return True, f"images et animation disponibles · {solde} {credits.get('currency', '$')} de crédit"
         return True, "images et animation disponibles"
-    if r.status_code in (401, 403):
+    if r.status_code == 401:
         return False, "clé refusée"
+    if r.status_code == 403:
+        # La documentation indique que cet endpoint demande une clé « Admin ».
+        # Une clé normale peut très bien marcher pour générer des images
+        # malgré ce refus-là : on ne l'annonce pas comme cassée à tort.
+        return False, ("accès refusé sur ce contrôle (demande une clé Admin) — "
+                       "la clé peut quand même fonctionner pour générer des images")
     return False, f"HTTP {r.status_code}"
 
 
