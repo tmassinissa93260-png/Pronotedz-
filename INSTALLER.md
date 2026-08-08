@@ -157,6 +157,38 @@ et le style graphique, et change ce qui identifie. Voir
 
 ---
 
+## 7. Reconnaître la musique d'une vidéo
+
+```bash
+docker compose run --rm pdz pdz musique donnees/sources/ma-video.mp4
+```
+
+Le tempo, la tonalité et les passages sans parole sortent toujours, sans
+aucune clé. Pour avoir le **titre** du morceau en plus, crée une clé gratuite
+sur [audd.io](https://audd.io) (300 identifications offertes) et colle-la
+dans `.env` sous `AUDD_API_KEY`.
+
+---
+
+## 8. Savoir ce qui marche vraiment
+
+Une fois tes épisodes publiés, c'est ton propre compte qui détient la vérité —
+personne d'autre n'a accès à ta courbe de rétention.
+
+```bash
+# après avoir publié
+docker compose run --rm pdz pdz resultats publie job_a1b2c3 --url https://...
+
+# TikTok Studio → Analytiques → exporter en CSV, puis
+docker compose run --rm pdz pdz resultats importer donnees/export.csv
+docker compose run --rm pdz pdz resultats bilan
+```
+
+Sous 10 épisodes publiés, le programme refuse de conclure quoi que ce soit :
+en dessous, l'écart entre deux groupes est du hasard.
+
+---
+
 ## Suivre la dépense
 
 ```bash

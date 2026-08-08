@@ -45,8 +45,16 @@ pdz voix apparier mon-monde --source ma-reference.mp4
 pdz episode fruit-island "Strawberina trahit Bananito"
 pdz episode mon-monde "une dispute" --forme str_a1b2c3d4
 
+# Reconnaître la musique d'une vidéo
+pdz musique ma-video.mp4
+
 # Suivre
 pdz jobs · pdz reprendre <job> · pdz cout · pdz web
+
+# Savoir ce qui marche, sur MON catalogue
+pdz resultats publie <job> --url ...
+pdz resultats importer export-tiktok.csv
+pdz resultats bilan
 ```
 
 `pdz reprendre` finit une production interrompue **sans repayer** ce qui est déjà
@@ -69,6 +77,7 @@ fait. Plus une petite page web locale pour valider les scripts et revoir les vid
 | ⭐⭐ [12 — Vidéos à personnages](./docs/12-videos-a-personnages.md) | Séries animées : univers, personnages, constance |
 | ⭐⭐ [13 — Les formats](./docs/13-les-formats.md) | **Les 4 formats, leur coût, leur risque. Par quoi commencer** |
 | ⭐⭐ [14 — Reproduire un style](./docs/14-reproduire-un-style.md) | **Mesurer le visuel, les personnages et les voix d'une vidéo pour en refaire du même genre** |
+| ⭐ [15 — Musique et résultats](./docs/15-musique-et-resultats.md) | **Reconnaître la musique de fond ; et pourquoi les outils qui « expliquent » une vidéo virale n'en expliquent aucune** |
 
 📦 [`docs/archive/`](./docs/archive/) — versions écartées (SaaS multi-clients, SaaS
 Lovable/Supabase, outil Python en ligne de commande). **À ignorer.**

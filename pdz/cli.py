@@ -121,6 +121,164 @@ def lister_univers(
     console.print(table)
 
 
+# ── Musique ──────────────────────────────────────────────────────────────
+
+@app.command()
+def musique(
+    video: Path = typer.Argument(..., help="la vidéo dont on veut la musique"),
+    sans_identification: bool = typer.Option(
+        False, "--sans-identification",
+        help="ne mesurer que le tempo, la tonalité et l'énergie — gratuit",
+    ),
+    verbeux: bool = typer.Option(False, "--verbeux", "-v"),
+) -> None:
+    """Reconnaître la musique de fond : quel morceau, quel tempo, quelle tonalité.
+
+    Le programme isole d'abord les passages où personne ne parle, puis n'envoie
+    que ceux-là à la reconnaissance : une voix par-dessus fait chuter le taux
+    de réussite. Les mesures, elles, sortent toujours — même sans clé AudD.
+    """
+    _journal(verbeux)
+    from pdz.analyse import musique as module_musique
+
+    try:
+        r = module_musique.reconnaitre(
+            video, dossier=config().dossier_travail,
+            identifier=not sans_identification,
+        )
+    except ErreurPdz as e:
+        _echouer(e)
+
+    console.print("\n[bold]Mesures[/bold]  [dim]locales, 0 €[/dim]")
+    console.print(f"  {r.analyse.resume()}")
+
+    if r.analyse.passages:
+        zones = ", ".join(f"{p.debut_s:.1f}–{p.fin_s:.1f} s"
+                          for p in r.analyse.passages[:5])
+        console.print(f"  [dim]Sans parole : {zones}[/dim]")
+
+    if r.identifie:
+        m = r.morceau
+        console.print(f"\n[bold green]♪ {m.resume()}[/bold green]")
+        for nom, lien in (("Écouter", m.lien), ("Spotify", m.spotify),
+                          ("Apple Music", m.apple_music)):
+            if lien:
+                console.print(f"  {nom} : {lien}")
+        console.print(
+            "\n[yellow]Attention :[/yellow] identifier un morceau ne donne pas "
+            "le droit de l'utiliser. Pour une vidéo monétisée, prends un titre "
+            "libre de droits qui sonne pareil."
+        )
+    elif r.echec_identification:
+        console.print(f"\n[yellow]Pas d'identification[/yellow] — "
+                      f"{r.echec_identification}")
+
+    if r.raison_extrait:
+        console.print(f"[dim]Extrait envoyé : {r.raison_extrait}[/dim]")
+
+    console.print("\n[bold]Pour retrouver une musique libre qui sonne pareil[/bold]")
+    console.print(f"  {r.analyse.pour_chercher_une_musique_libre()}")
+
+
+# ── Résultats des publications ───────────────────────────────────────────
+
+resultats_app = typer.Typer(no_args_is_help=True,
+                            help="Ce que mes vidéos donnent une fois publiées.")
+app.add_typer(resultats_app, name="resultats")
+
+
+@resultats_app.command("publie")
+def resultats_publie(
+    job_id: str = typer.Argument(..., help="l'épisode publié"),
+    plateforme: str = typer.Option("tiktok", "--plateforme"),
+    url: str = typer.Option("", "--url"),
+) -> None:
+    """Noter qu'un épisode a été publié, pour suivre ce qu'il donne."""
+    from pdz.analyse import retention
+
+    try:
+        publication_id = retention.enregistrer(job_id, plateforme, url=url)
+    except ErreurPdz as e:
+        _echouer(e)
+    console.print(f"[green]✓[/green] Publication enregistrée : {publication_id}")
+
+
+@resultats_app.command("importer")
+def resultats_importer(
+    export: Path = typer.Argument(..., help="le CSV exporté de TikTok Studio"),
+    plateforme: str = typer.Option("tiktok", "--plateforme"),
+) -> None:
+    """Importer l'export d'analytics de la plateforme.
+
+    TikTok Studio → Analytiques → exporter en CSV. YouTube Studio propose la
+    même chose. Les colonnes sont reconnues automatiquement, quel que soit
+    leur ordre ou leur langue.
+    """
+    from pdz.analyse import retention
+
+    try:
+        lus, associes = retention.importer(export, plateforme)
+    except ErreurPdz as e:
+        _echouer(e)
+
+    console.print(f"[green]✓[/green] {lus} ligne(s) lue(s), "
+                  f"{associes} associée(s) à un épisode produit ici.")
+    if associes < lus:
+        console.print(
+            "[dim]Les lignes non associées sont conservées, mais elles "
+            "n'entrent pas dans la comparaison : on ne connaît pas les "
+            "réglages qui les ont produites.[/dim]"
+        )
+
+
+@resultats_app.command("bilan")
+def resultats_bilan(
+    mesure: str = typer.Option(
+        "taux_completion", "--mesure",
+        help="taux_completion | duree_moyenne_s | vues",
+    ),
+) -> None:
+    """Quels réglages vont avec mes meilleurs résultats.
+
+    Sur MON catalogue — donc sans le biais qui rend l'analyse des vidéos des
+    autres illusoire : ici, on voit aussi les épisodes qui n'ont pas marché.
+    """
+    from pdz.analyse import retention
+
+    try:
+        b = retention.bilan(mesure)
+    except ErreurPdz as e:
+        _echouer(e)
+
+    console.print(f"\n{b.resume()}\n")
+
+    if b.facteurs:
+        table = Table("réglage", "groupe", "résultat médian", "épisodes")
+        for f in b.facteurs:
+            couleur = "" if f.exploitable else "dim "
+            table.add_row(
+                f"[{couleur}white]{f.nom}[/{couleur}white]",
+                f"{f.groupe_bas} → {f.groupe_haut}",
+                f"{f.valeur_bas:.2f} → {f.valeur_haut:.2f}"
+                + (f"  ({f.ecart_pct:+.0f} %)" if f.exploitable else ""),
+                f"{f.n_bas} / {f.n_haut}",
+            )
+        console.print(table)
+
+        exploitables = [f for f in b.facteurs if f.exploitable]
+        if exploitables and b.assez_de_donnees:
+            console.print("\n[bold]Ce qui ressort[/bold]")
+            for f in exploitables[:4]:
+                console.print(f"  · {f.resume()}")
+    elif b.publications:
+        console.print("[dim]Pas encore assez d'épisodes pour comparer "
+                      "quoi que ce soit.[/dim]")
+
+    console.print("\n[bold]À ne pas conclure de ce tableau[/bold]")
+    for message in b.avertissements():
+        console.print(f"  · {message}")
+
+
 # ── Analyse ──────────────────────────────────────────────────────────────
 
 @app.command()

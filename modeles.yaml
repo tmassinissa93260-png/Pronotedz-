@@ -24,6 +24,10 @@ fournisseurs:
     cle: skyreels_api_key
     base_url: https://api.skyreels.ai/v1
     a_verifier: true
+  # AudD — reconnaissance musicale. 300 requêtes offertes, puis ~5 $/1000.
+  audd:
+    cle: audd_api_key
+    base_url: https://api.audd.io
   groq:
     cle: groq_api_key
     base_url: https://api.groq.com/openai/v1
@@ -84,6 +88,12 @@ modeles:
     prix: { par_1000_caracteres: 0.0 }   # inclus dans l'abonnement mensuel
     options: [voice_id, stabilite, style]
 
+  # ── Reconnaissance de musique ────────────────────────────────────────
+  - id: audd/recognize
+    fournisseur: audd
+    fait: [reconnaissance_musique]
+    prix: { par_image: 0.0046 }        # facturé à la requête, pas au temps
+
   # ── Transcription (analyse de vidéos) ────────────────────────────────
   - id: whisper-large-v3-turbo
     fournisseur: groq
@@ -104,6 +114,7 @@ alias:
   animation:  { principal: fal-ai/kling-video/v2/standard/image-to-video }
   voix:       { principal: eleven_turbo_v2_5 }
   transcription: { principal: whisper-large-v3-turbo }
+  musique:       { principal: audd/recognize }
 
 
 # ═══════════════════════════════════════════════════════════════════════
