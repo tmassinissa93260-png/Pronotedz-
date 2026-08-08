@@ -1,0 +1,199 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  Faire tourner Pronotedz SANS ordinateur.
+#
+#  Depuis ton téléphone : onglet « Actions » du dépôt → « Produire » →
+#  « Run workflow ». Tu remplis le formulaire, GitHub fait le travail sur
+#  ses machines, et la vidéo t'attend en fin de page.
+#
+#  Voir TELEPHONE.md pour la marche à suivre en images.
+# ═══════════════════════════════════════════════════════════════════════
+
+name: Produire
+
+on:
+  workflow_dispatch:
+    inputs:
+      quoi:
+        description: "Ce que je veux faire"
+        required: true
+        default: episode
+        type: choice
+        options:
+          - episode          # écrire, dire, illustrer, monter → un .mp4
+          - analyser         # mesurer une vidéo de référence (gratuit)
+          - musique          # reconnaître la musique d'une vidéo
+          - charte           # faire d'une vidéo un univers jouable
+          - voix             # donner une voix à chaque personnage
+          - cles             # vérifier que mes clés marchent (gratuit)
+      univers:
+        description: "Univers (pour episode / voix), ou identifiant à créer (pour charte)"
+        required: false
+        default: fruit-island
+      sujet:
+        description: "Ce qui se passe dans l'épisode"
+        required: false
+        default: ""
+      fichier:
+        description: "Vidéo de référence : chemin dans le dépôt, ou URL directe"
+        required: false
+        default: ""
+      duree:
+        description: "Durée visée, en secondes"
+        required: false
+        default: "45"
+      profil:
+        description: "Qualité et coût"
+        required: false
+        default: equilibre
+        type: choice
+        options: [economique, equilibre, premium]
+
+# Une seule production à la fois : la base SQLite est partagée d'un lancement
+# à l'autre par le cache, et deux écritures simultanées la corrompraient.
+concurrency:
+  group: pronotedz-production
+  cancel-in-progress: false
+
+permissions:
+  contents: write          # `charte` et `voix` écrivent dans univers/
+
+jobs:
+  produire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      # ffmpeg fait tout le montage et toutes les mesures ; les polices
+      # DejaVu servent aux sous-titres karaoké.
+      - name: Installer ffmpeg et les polices
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-dejavu-core fonts-dejavu-extra
+
+      - name: Installer Pronotedz
+        run: pip install -e . --quiet
+
+      # Le cache est ce qui rend l'opération économique : les images, les
+      # voix et les sondes déjà payées sont réutilisées d'un lancement à
+      # l'autre au lieu d'être refacturées.
+      - name: Récupérer le cache et la base
+        uses: actions/cache@v4
+        with:
+          path: |
+            donnees/cache
+            donnees/pronotedz.db
+          key: pronotedz-donnees-${{ github.run_id }}
+          restore-keys: pronotedz-donnees-
+
+      - name: Récupérer la vidéo de référence
+        if: inputs.fichier != ''
+        run: |
+          mkdir -p donnees/sources
+          if [ -f "${{ inputs.fichier }}" ]; then
+            cp "${{ inputs.fichier }}" donnees/sources/reference.mp4
+            echo "Vidéo prise dans le dépôt : ${{ inputs.fichier }}"
+          else
+            # Une URL directe vers un fichier (Drive en lien direct, Dropbox
+            # en ?dl=1, un hébergeur…). Pas d'aspirateur de plateforme ici.
+            curl -fsSL --max-time 300 -o donnees/sources/reference.mp4 \
+              "${{ inputs.fichier }}"
+            echo "Vidéo téléchargée depuis l'URL fournie"
+          fi
+          ls -lh donnees/sources/reference.mp4
+
+      - name: Faire le travail
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          AUDD_API_KEY: ${{ secrets.AUDD_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          PROFIL: ${{ inputs.profil }}
+        run: |
+          set -o pipefail
+          SORTIE=$(mktemp)
+
+          case "${{ inputs.quoi }}" in
+            cles)
+              pdz cles | tee "$SORTIE"
+              ;;
+            episode)
+              if [ -z "${{ inputs.sujet }}" ]; then
+                echo "::error::Il faut un sujet pour écrire un épisode."
+                exit 1
+              fi
+              pdz episode "${{ inputs.univers }}" "${{ inputs.sujet }}" \
+                --duree "${{ inputs.duree }}" --profil "${{ inputs.profil }}" \
+                | tee "$SORTIE"
+              ;;
+            analyser)
+              pdz analyser donnees/sources/reference.mp4 | tee "$SORTIE"
+              ;;
+            musique)
+              pdz musique donnees/sources/reference.mp4 | tee "$SORTIE"
+              ;;
+            charte)
+              pdz charte donnees/sources/reference.mp4 \
+                --id "${{ inputs.univers }}" --duree "${{ inputs.duree }}" \
+                | tee "$SORTIE"
+              ;;
+            voix)
+              if [ -f donnees/sources/reference.mp4 ]; then
+                pdz voix apparier "${{ inputs.univers }}" \
+                  --source donnees/sources/reference.mp4 | tee "$SORTIE"
+              else
+                pdz voix apparier "${{ inputs.univers }}" | tee "$SORTIE"
+              fi
+              ;;
+          esac
+
+          # Le résumé s'affiche directement dans l'app GitHub : pas besoin
+          # d'ouvrir les journaux pour savoir ce qui s'est passé.
+          {
+            echo "## ${{ inputs.quoi }}"
+            echo '```'
+            cat "$SORTIE"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # `charte` crée un univers, `voix` y écrit les voix retenues. Sans ce
+      # renvoi, ce travail serait perdu à la fin du lancement.
+      - name: Garder l'univers créé ou modifié
+        if: inputs.quoi == 'charte' || inputs.quoi == 'voix'
+        run: |
+          if [ -n "$(git status --porcelain univers/)" ]; then
+            git config user.name "Pronotedz"
+            git config user.email "noreply@github.com"
+            git add univers/
+            git commit -m "univers: ${{ inputs.quoi }} sur ${{ inputs.univers }}"
+            git push
+            echo "Univers mis à jour et enregistré dans le dépôt." \
+              >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Récupérer la vidéo
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-${{ github.run_number }}
+          path: |
+            donnees/sorties/*.mp4
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Combien ça a coûté
+        if: always()
+        run: |
+          {
+            echo "### Dépense"
+            echo '```'
+            pdz cout --jours 30 2>/dev/null || echo "pas de dépense enregistrée"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

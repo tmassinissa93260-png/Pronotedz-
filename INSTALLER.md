@@ -2,6 +2,9 @@
 
 > Sur ta machine, **rien n'est bloqué**. Tes clés fonctionnent, l'outil appelle
 > Claude, fal.ai et ElevenLabs directement, et tout tourne tout seul.
+>
+> 📱 **Pas d'ordinateur qui marche ?** → [TELEPHONE.md](./TELEPHONE.md) :
+> tout se pilote depuis le téléphone, sans rien installer.
 
 Compte **20 minutes** la première fois.
 

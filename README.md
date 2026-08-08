@@ -9,6 +9,7 @@ sur ma machine.
 > pas d'outil de rendu payant. Tout est fait sur mesure.
 >
 > 👉 **[Comment l'installer sur ta machine](./INSTALLER.md)**
+> 📱 **[Pas d'ordinateur ? Le faire tourner depuis ton téléphone](./TELEPHONE.md)**
 
 ## Ce qu'il sait faire
 
