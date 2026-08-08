@@ -21,14 +21,18 @@ ton téléphone**, et la vidéo t'attend à la fin.
 ## Étape 1 — Mettre tes clés en lieu sûr (une seule fois)
 
 ⚠️ **L'app GitHub ne permet pas d'ajouter des clés.** Il faut passer par le
-navigateur de ton téléphone, en mode ordinateur.
+navigateur de ton téléphone.
 
-1. Ouvre **Chrome** (ou Safari) sur ton téléphone
-2. Va sur `github.com/tmassinissa93260-png/Pronotedz-`
-3. Menu ⋮ → coche **« Site pour ordinateur »** (Safari : « aA » → « Version
-   pour ordinateur »)
-4. **Settings** → à gauche **Secrets and variables** → **Actions**
-5. Bouton **New repository secret**, et tu ajoutes une par une :
+### Le raccourci
+
+Colle cette adresse dans ton navigateur — elle t'amène pile sur la bonne
+page, sans avoir à chercher dans les menus :
+
+```
+github.com/tmassinissa93260-png/Pronotedz-/settings/secrets/actions
+```
+
+Puis bouton vert **New repository secret**, et tu ajoutes une clé par une :
 
 | Name | Secret |
 |---|---|
@@ -40,6 +44,21 @@ navigateur de ton téléphone, en mode ordinateur.
 Ces clés sont chiffrées par GitHub. Elles n'apparaissent jamais dans le code,
 jamais dans les journaux, et personne d'autre que toi ne peut les relire —
 même toi, tu ne peux que les remplacer.
+
+### Si la page est trop serrée : le mode ordinateur
+
+Sur un écran de téléphone, le menu de gauche de GitHub se replie et devient
+difficile à trouver. Le mode ordinateur remet la mise en page complète :
+
+| Navigateur | Où c'est |
+|---|---|
+| **Chrome sur Android** | les **⋮** en haut à droite → descendre → cocher **« Site pour ordinateur »** |
+| **Safari sur iPhone** | le **ᴀA** à gauche de la barre d'adresse (en bas) → **« Afficher la version pour ordinateur »** |
+| **Chrome sur iPhone** | les **⋯** en bas à droite → **« Demander la version pour ordinateur »** |
+
+La page se recharge, le texte devient plus petit, et tu retrouves l'affichage
+d'un ordinateur. Le même réglage sert plus loin pour déposer une vidéo ou un
+export CSV dans le dépôt.
 
 ## Étape 2 — Vérifier que tout est branché
 
@@ -86,9 +105,9 @@ moyens de lui donner ta vidéo :
 lien de **téléchargement direct** (Dropbox : remplace `?dl=0` par `?dl=1`), et
 colle-le dans *Vidéo de référence*.
 
-**B. La déposer dans le dépôt.** Depuis le navigateur en mode ordinateur :
-dossier `donnees/sources` → **Add file** → **Upload files**. Puis écris
-`donnees/sources/ma-video.mp4` dans *Vidéo de référence*.
+**B. La déposer dans le dépôt.** Depuis le navigateur (mode ordinateur, voir
+l'étape 1) : dossier `donnees/sources` → **Add file** → **Upload files**. Puis
+écris `donnees/sources/ma-video.mp4` dans *Vidéo de référence*.
 
 Ensuite tu peux lancer `analyser` (mesurer sa forme), `musique` (reconnaître
 la musique) ou `charte` (en faire un univers avec ses personnages).
@@ -110,8 +129,8 @@ production repart exactement là où elle s'était arrêtée.
 ## Savoir ce qui marche, une fois publié
 
 1. TikTok Studio → Analytiques → exporter en CSV
-2. Dépose le CSV dans le dépôt (navigateur en mode ordinateur : dossier
-   `donnees/sources` → **Add file** → **Upload files**)
+2. Dépose le CSV dans le dépôt (navigateur en mode ordinateur, voir l'étape 1 :
+   dossier `donnees/sources` → **Add file** → **Upload files**)
 3. **Produire** → `resultats`, et dans *Vidéo de référence, ou export CSV* :
    `donnees/sources/export.csv`
 
