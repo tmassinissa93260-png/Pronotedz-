@@ -20,10 +20,12 @@ on:
         type: choice
         options:
           - episode          # écrire, dire, illustrer, monter → un .mp4
+          - reprendre        # finir un épisode interrompu, sans repayer
           - analyser         # mesurer une vidéo de référence (gratuit)
           - musique          # reconnaître la musique d'une vidéo
           - charte           # faire d'une vidéo un univers jouable
           - voix             # donner une voix à chaque personnage
+          - resultats        # importer mes stats TikTok et voir ce qui marche
           - cles             # vérifier que mes clés marchent (gratuit)
       univers:
         description: "Univers (pour episode / voix), ou identifiant à créer (pour charte)"
@@ -34,7 +36,11 @@ on:
         required: false
         default: ""
       fichier:
-        description: "Vidéo de référence : chemin dans le dépôt, ou URL directe"
+        description: "Vidéo de référence, ou export CSV : chemin dans le dépôt, ou URL directe"
+        required: false
+        default: ""
+      job:
+        description: "Identifiant de l'épisode à reprendre (job_xxx)"
         required: false
         default: ""
       duree:
@@ -92,21 +98,31 @@ jobs:
           key: pronotedz-donnees-${{ github.run_id }}
           restore-keys: pronotedz-donnees-
 
-      - name: Récupérer la vidéo de référence
+      - name: Récupérer le fichier d'entrée
         if: inputs.fichier != ''
+        env:
+          FICHIER: ${{ inputs.fichier }}
         run: |
           mkdir -p donnees/sources
-          if [ -f "${{ inputs.fichier }}" ]; then
-            cp "${{ inputs.fichier }}" donnees/sources/reference.mp4
-            echo "Vidéo prise dans le dépôt : ${{ inputs.fichier }}"
+          # Un export d'analytics est un CSV, une référence est une vidéo :
+          # ffmpeg et le lecteur CSV ne pardonnent pas l'inversion.
+          if [ "${{ inputs.quoi }}" = "resultats" ]; then
+            DEST=donnees/sources/export.csv
+          else
+            DEST=donnees/sources/reference.mp4
+          fi
+
+          if [ -f "$FICHIER" ]; then
+            cp "$FICHIER" "$DEST"
+            echo "Fichier pris dans le dépôt : $FICHIER"
           else
             # Une URL directe vers un fichier (Drive en lien direct, Dropbox
             # en ?dl=1, un hébergeur…). Pas d'aspirateur de plateforme ici.
-            curl -fsSL --max-time 300 -o donnees/sources/reference.mp4 \
-              "${{ inputs.fichier }}"
-            echo "Vidéo téléchargée depuis l'URL fournie"
+            curl -fsSL --max-time 300 -o "$DEST" "$FICHIER"
+            echo "Fichier téléchargé depuis l'URL fournie"
           fi
-          ls -lh donnees/sources/reference.mp4
+          ls -lh "$DEST"
+          echo "ENTREE=$DEST" >> "$GITHUB_ENV"
 
       - name: Faire le travail
         env:
@@ -116,6 +132,13 @@ jobs:
           AUDD_API_KEY: ${{ secrets.AUDD_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           PROFIL: ${{ inputs.profil }}
+          # Les valeurs saisies passent par l'environnement, jamais par une
+          # interpolation dans le script : un sujet contenant un guillemet ou
+          # un point-virgule serait sinon exécuté comme une commande.
+          UNIVERS: ${{ inputs.univers }}
+          SUJET: ${{ inputs.sujet }}
+          JOB: ${{ inputs.job }}
+          DUREE: ${{ inputs.duree }}
         run: |
           set -o pipefail
           SORTIE=$(mktemp)
@@ -125,13 +148,21 @@ jobs:
               pdz cles | tee "$SORTIE"
               ;;
             episode)
-              if [ -z "${{ inputs.sujet }}" ]; then
+              if [ -z "$SUJET" ]; then
                 echo "::error::Il faut un sujet pour écrire un épisode."
                 exit 1
               fi
-              pdz episode "${{ inputs.univers }}" "${{ inputs.sujet }}" \
-                --duree "${{ inputs.duree }}" --profil "${{ inputs.profil }}" \
+              pdz episode "$UNIVERS" "$SUJET" \
+                --duree "$DUREE" --profil "${{ inputs.profil }}" \
                 | tee "$SORTIE"
+              ;;
+            reprendre)
+              if [ -z "$JOB" ]; then
+                echo "::error::Donne l'identifiant de l'épisode à reprendre."
+                echo "::error::Il est écrit dans le résumé du lancement raté."
+                exit 1
+              fi
+              pdz reprendre "$JOB" | tee "$SORTIE"
               ;;
             analyser)
               pdz analyser donnees/sources/reference.mp4 | tee "$SORTIE"
@@ -139,17 +170,22 @@ jobs:
             musique)
               pdz musique donnees/sources/reference.mp4 | tee "$SORTIE"
               ;;
+            resultats)
+              if [ -f donnees/sources/export.csv ]; then
+                pdz resultats importer donnees/sources/export.csv | tee "$SORTIE"
+              fi
+              pdz resultats bilan | tee -a "$SORTIE"
+              ;;
             charte)
               pdz charte donnees/sources/reference.mp4 \
-                --id "${{ inputs.univers }}" --duree "${{ inputs.duree }}" \
-                | tee "$SORTIE"
+                --id "$UNIVERS" --duree "$DUREE" | tee "$SORTIE"
               ;;
             voix)
               if [ -f donnees/sources/reference.mp4 ]; then
-                pdz voix apparier "${{ inputs.univers }}" \
+                pdz voix apparier "$UNIVERS" \
                   --source donnees/sources/reference.mp4 | tee "$SORTIE"
               else
-                pdz voix apparier "${{ inputs.univers }}" | tee "$SORTIE"
+                pdz voix apparier "$UNIVERS" | tee "$SORTIE"
               fi
               ;;
           esac
@@ -167,18 +203,51 @@ jobs:
       # renvoi, ce travail serait perdu à la fin du lancement.
       - name: Garder l'univers créé ou modifié
         if: inputs.quoi == 'charte' || inputs.quoi == 'voix'
+        env:
+          UNIVERS: ${{ inputs.univers }}
+          QUOI: ${{ inputs.quoi }}
         run: |
           if [ -n "$(git status --porcelain univers/)" ]; then
             git config user.name "Pronotedz"
             git config user.email "noreply@github.com"
             git add univers/
-            git commit -m "univers: ${{ inputs.quoi }} sur ${{ inputs.univers }}"
+            git commit -m "univers: $QUOI sur $UNIVERS"
             git push
             echo "Univers mis à jour et enregistré dans le dépôt." \
               >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Récupérer la vidéo
+      # Deux façons de récupérer la vidéo, parce qu'elles ne se valent pas
+      # sur un téléphone. L'artefact arrive en ZIP, ce qui oblige à
+      # décompresser avant de pouvoir regarder. La « release », elle, donne un
+      # lien .mp4 direct qui se lit d'un doigt — et qui ne disparaît pas au
+      # bout de 30 jours.
+      - name: Publier la vidéo en lien direct
+        if: inputs.quoi == 'episode' || inputs.quoi == 'reprendre'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          VIDEOS=(donnees/sorties/*.mp4)
+          if [ ${#VIDEOS[@]} -eq 0 ]; then
+            echo "Aucune vidéo produite." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          TAG="episode-${{ github.run_number }}"
+          gh release create "$TAG" "${VIDEOS[@]}" \
+            --title "Épisode ${{ github.run_number }}" \
+            --notes "Produit le $(date '+%d/%m/%Y à %H:%M'). Touche le fichier .mp4 pour le regarder." \
+            || gh release upload "$TAG" "${VIDEOS[@]}" --clobber
+
+          {
+            echo "### 📹 Ta vidéo"
+            for v in "${VIDEOS[@]}"; do
+              echo "- [$(basename "$v")](${{ github.server_url }}/${{ github.repository }}/releases/download/$TAG/$(basename "$v"))"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Récupérer la vidéo (copie en ZIP)
         if: always()
         uses: actions/upload-artifact@v4
         with:

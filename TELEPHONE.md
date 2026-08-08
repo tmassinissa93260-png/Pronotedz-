@@ -71,9 +71,11 @@ le dépôt automatiquement** — tu n'as rien à recopier.
 
 Compte 5 à 15 minutes. Quand la coche verte apparaît, ouvre le lancement :
 
-- le **résumé** te montre le script écrit et ce que ça a coûté ;
-- tout en bas, **Artifacts** → **video-3** → la vidéo se télécharge sur ton
-  téléphone.
+- le **résumé** te montre le script écrit, ce que ça a coûté, et — sous
+  **📹 Ta vidéo** — un **lien direct vers le .mp4**. Tu le touches, il se lit.
+  C'est le chemin le plus court sur un téléphone ;
+- tout en bas, **Artifacts** garde une copie en ZIP pendant 30 jours. Le lien
+  direct, lui, reste dans l'onglet **Releases** du dépôt et ne disparaît pas.
 
 ## Étape 5 — Partir d'une vidéo que tu aimes
 
@@ -91,6 +93,31 @@ dossier `donnees/sources` → **Add file** → **Upload files**. Puis écris
 Ensuite tu peux lancer `analyser` (mesurer sa forme), `musique` (reconnaître
 la musique) ou `charte` (en faire un univers avec ses personnages).
 
+## Si ça s'arrête en cours de route
+
+Quota atteint, coupure, dépassement du temps imparti : **rien n'est perdu et
+rien ne sera repayé**.
+
+Le résumé du lancement raté contient une ligne du genre
+`job job_a1b2c3d4e5f6`. Relance **Produire** avec :
+
+- *Ce que je veux faire* : `reprendre`
+- *Identifiant de l'épisode* : `job_a1b2c3d4e5f6`
+
+Le script, la voix et les images déjà produits sont relus depuis la base ; la
+production repart exactement là où elle s'était arrêtée.
+
+## Savoir ce qui marche, une fois publié
+
+1. TikTok Studio → Analytiques → exporter en CSV
+2. Dépose le CSV dans le dépôt (navigateur en mode ordinateur : dossier
+   `donnees/sources` → **Add file** → **Upload files**)
+3. **Produire** → `resultats`, et dans *Vidéo de référence, ou export CSV* :
+   `donnees/sources/export.csv`
+
+Le résumé te dit alors quels réglages vont avec tes meilleurs résultats — et
+il refuse de conclure quoi que ce soit sous 10 épisodes publiés.
+
 ## Ce qu'il faut savoir
 
 - **Le temps de calcul est gratuit** si ton dépôt est public, et limité à
@@ -102,8 +129,9 @@ la musique) ou `charte` (en faire un univers avec ses personnages).
   déjà payée n'est jamais refacturée.
 - **Une seule production à la fois.** Si tu relances pendant qu'un épisode se
   fabrique, le second attend son tour.
-- Les vidéos restent téléchargeables **30 jours**. Passé ce délai, il faut
-  relancer — ou mieux, les enregistrer sur ton téléphone au fur et à mesure.
+- **Le lien direct de la vidéo ne périme pas** (onglet *Releases*). Seule la
+  copie ZIP disparaît au bout de 30 jours.
+- **Un lancement raté se reprend**, il ne se recommence pas : voir plus haut.
 
 ---
 
