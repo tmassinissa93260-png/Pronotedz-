@@ -58,6 +58,16 @@ class Agent:
         """Retouche ou vérification de la sortie. Par défaut, rien."""
         return sortie
 
+    def schema(self, base: dict, entrees: dict[str, Any], ctx: Contexte) -> dict:
+        """Le schéma de sortie, éventuellement resserré pour cette exécution.
+
+        Par défaut, celui du prompt tel quel. Un agent qui connaît, au moment
+        de l'appel, l'ensemble exact des valeurs valides pour un champ (les
+        identifiants d'un univers, par exemple) peut le transformer en `enum`
+        ici — ça guide le modèle bien mieux qu'une description en texte
+        libre, surtout un modèle moins strict sur les instructions."""
+        return base
+
     # ── Exécution ────────────────────────────────────────────────────────
 
     async def executer(self, entrees: dict[str, Any], ctx: Contexte) -> dict:
@@ -74,7 +84,7 @@ class Agent:
             systeme_stable=stable,
             systeme_variable=variable,
             message=message,
-            schema_sortie=prompt.schema_sortie,
+            schema_sortie=self.schema(prompt.schema_sortie, entrees, ctx),
             images=images,
             nom_outil=self.nom,
             max_tokens=prompt.max_tokens,

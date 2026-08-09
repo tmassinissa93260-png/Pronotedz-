@@ -9,6 +9,7 @@ est fourni par le moteur.
 
 from __future__ import annotations
 
+import copy
 from typing import Any
 
 from pdz.agents.base import Agent, mots_par_replique, nb_plans_pour, nb_repliques_pour
@@ -62,6 +63,27 @@ class ScriptWriter(Agent):
             "resume_precedent": entrees.get("resume_precedent", ""),
             "beats": entrees.get("beats") or [],
         }
+
+    def schema(self, base: dict, entrees: dict[str, Any], ctx: Contexte) -> dict:
+        """Ferme les identifiants de personnage/décor à ceux de l'univers.
+
+        Une description en texte libre (« identifiant du personnage qui
+        parle ») laisse un modèle moins strict — Llama via le profil gratuit,
+        mesuré en conditions réelles — répondre avec le nom affiché, une
+        casse différente, ou rien du tout. Un `enum` dans le schéma élimine
+        le problème à la source plutôt que de compter sur la relecture.
+        """
+        univers: Univers = entrees["univers"]
+        ids_personnages = sorted(p.id for p in univers.personnages)
+        ids_decors = sorted(d.id for d in univers.decors)
+
+        schema = copy.deepcopy(base)
+        proprietes = schema["properties"]["repliques"]["items"]["properties"]
+        proprietes["personnage"]["enum"] = ids_personnages
+        proprietes["reaction_de"]["enum"] = [*ids_personnages, ""]
+        if ids_decors:
+            proprietes["decor"]["enum"] = [*ids_decors, ""]
+        return schema
 
     def apres(self, sortie: dict, entrees: dict, ctx: Contexte) -> dict:
         """Vérifications que le schéma JSON ne peut pas faire.

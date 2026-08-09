@@ -114,7 +114,7 @@ def test_une_variable_oubliee_echoue_tout_de_suite():
 # ── L'agent, avec un Claude factice ──────────────────────────────────────
 
 def _reponse_factice(univers, nb=13, avec_relance=True, personnage=None):
-    perso = personnage or univers.personnages[0].id
+    perso = univers.personnages[0].id if personnage is None else personnage
     return {
         "titre": "La trahison",
         "promesse": "Elle va tout avouer",
@@ -154,6 +154,59 @@ def test_lagent_refuse_un_personnage_inconnu():
     with pytest.raises(ErreurValidation) as e:
         ScriptWriter().apres(mauvais, {"univers": u}, _contexte())
     assert "inconnu de l'univers" in str(e.value)
+
+
+def test_lagent_refuse_un_personnage_vide():
+    """Mesuré en conditions réelles avec Llama/Groq : le champ peut être
+    laissé complètement vide plutôt que mal orthographié."""
+    u = Univers.charger(FRUITS)
+    vide = _reponse_factice(u, personnage="")
+    with pytest.raises(ErreurValidation) as e:
+        ScriptWriter().apres(vide, {"univers": u}, _contexte())
+    assert "inconnu de l'univers" in str(e.value)
+
+
+def test_lagent_normalise_la_casse_du_personnage():
+    """Mesuré en conditions réelles : Llama renvoie « Strawberina » (le nom
+    affiché) plutôt que « strawberina » (l'identifiant). On rapproche par
+    casse au lieu de faire échouer tout l'épisode pour ça."""
+    u = Univers.charger(FRUITS)
+    id_reel = u.personnages[0].id
+    depareille = _reponse_factice(u, personnage=id_reel.upper())
+    sortie = ScriptWriter().apres(depareille, {"univers": u}, _contexte())
+    assert all(r["personnage"] == id_reel for r in sortie["repliques"])
+
+
+def test_le_schema_ferme_les_identifiants_a_lunivers():
+    """Un `enum` guide bien mieux un modèle qu'une description en texte
+    libre — surtout un modèle moins strict sur les instructions."""
+    u = Univers.charger(FRUITS)
+    base = charger("ecriture/script").schema_sortie
+    schema = ScriptWriter().schema(base, {"univers": u}, _contexte())
+    proprietes = schema["properties"]["repliques"]["items"]["properties"]
+
+    ids_attendus = sorted(p.id for p in u.personnages)
+    assert proprietes["personnage"]["enum"] == ids_attendus
+    assert "" not in proprietes["personnage"]["enum"], (
+        "le personnage n'est jamais optionnel, contrairement à decor/reaction_de"
+    )
+    assert set(proprietes["reaction_de"]["enum"]) == {*ids_attendus, ""}
+
+
+def test_le_schema_ne_modifie_pas_le_prompt_partage():
+    """`charger()` met le Prompt en cache (lru_cache) : un `schema()` qui
+    modifierait le dict en place corromprait tous les appels suivants,
+    y compris pour un autre univers."""
+    u = Univers.charger(FRUITS)
+    base_avant = charger("ecriture/script").schema_sortie
+    proprietes_avant = base_avant["properties"]["repliques"]["items"]["properties"]
+    assert "enum" not in proprietes_avant["personnage"]
+
+    ScriptWriter().schema(charger("ecriture/script").schema_sortie, {"univers": u}, _contexte())
+
+    base_apres = charger("ecriture/script").schema_sortie
+    proprietes_apres = base_apres["properties"]["repliques"]["items"]["properties"]
+    assert "enum" not in proprietes_apres["personnage"]
 
 
 def test_lagent_refuse_un_script_sans_relance():
