@@ -67,9 +67,14 @@ class ErreurValidation(ErreurPdz):
 
     Facturée : le modèle a bien consommé des tokens. On relance en lui
     montrant son erreur — ça passe environ 8 fois sur 10 au 2e essai.
+    Un modèle plus faible (Llama via le profil gratuit) rate parfois deux
+    fois de suite un champ obligatoire (mesuré : `personnage` laissé vide) ;
+    3 tentatives — le plafond que `pipeline.py` réserve déjà — coûte peu et
+    laisse une vraie chance au profil gratuit sans toucher Claude, qui
+    réussit presque toujours dès le premier essai.
     """
 
-    politique = Politique(True, 2, True, False, False)
+    politique = Politique(True, 3, True, False, False)
 
 
 class ErreurRefus(ErreurPdz):
