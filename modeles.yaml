@@ -32,6 +32,11 @@ fournisseurs:
     cle: groq_api_key
     base_url: https://api.groq.com/openai/v1
     compatible_openai: true
+  # Pollinations.ai — images gratuites, sans clé ni carte bancaire. Le module
+  # pdz/ia/pollinations.py n'appelle jamais `cle_fournisseur()` pour ce
+  # fournisseur : cette entrée est là pour la documentation, pas pour être lue.
+  pollinations:
+    base_url: https://image.pollinations.ai
 
 modeles:
   # ── Texte ────────────────────────────────────────────────────────────
@@ -65,6 +70,17 @@ modeles:
     contexte: 128000
     prix: { entree_par_million: 0.0, sortie_par_million: 0.0 }
     sorties_structurees: true
+
+  # Alternative GRATUITE à fal.ai, pour illustrer sans carte bancaire. Sert
+  # le profil « gratuit ». Contrepartie : pas d'image de référence en entrée,
+  # donc les personnages sont moins constants d'un plan à l'autre qu'avec
+  # fal.ai — voir pdz/ia/pollinations.py et pdz/production/images.py.
+  # ⚠️ Non vérifiable depuis l'environnement de développement, comme fal.ai
+  # et Groq — à confirmer sur la machine de l'utilisateur.
+  - id: pollinations/flux
+    fournisseur: pollinations
+    fait: [images]
+    prix: { par_image: 0.0 }
 
   # ── Images ───────────────────────────────────────────────────────────
   - id: fal-ai/flux/schnell
@@ -146,14 +162,16 @@ profils:
   premium:
     images: fal-ai/flux/dev
     plans_animes_max: 12
-  # Zéro euro d'écriture : sert Llama via Groq à la place de Claude. Demande
-  # une clé GROQ_API_KEY (gratuite, sans carte, sur console.groq.com) mais
-  # aucun crédit Anthropic. `pdz charte` (analyse d'une vidéo, qui a besoin
-  # de vision) reste hors de portée de ce profil — voir modeles.yaml plus haut.
+  # Zéro euro, aucune carte bancaire : Llama via Groq pour écrire, Pollinations
+  # pour illustrer. Demande une clé GROQ_API_KEY (gratuite, sans carte, sur
+  # console.groq.com) ; aucune clé pour les images. `pdz charte` (analyse
+  # d'une vidéo, qui a besoin de vision) reste hors de portée de ce profil —
+  # voir modeles.yaml plus haut. Les personnages seront moins constants d'un
+  # plan à l'autre qu'avec fal.ai — voir pdz/ia/pollinations.py.
   gratuit:
     qualite: llama-3.3-70b-versatile
     critique: llama-3.3-70b-versatile
-    images: fal-ai/flux/schnell
+    images: pollinations/flux
     animer: false
 
 

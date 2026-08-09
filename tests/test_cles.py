@@ -108,8 +108,14 @@ def test_anthropic_nest_plus_obligatoire():
     assert obligatoire["Anthropic"] is False
 
 
-def test_fal_et_elevenlabs_restent_obligatoires():
-    """Aucune alternative gratuite n'existe pour les images ou la voix."""
+def test_fal_nest_plus_obligatoire():
+    """Le profil « gratuit » illustre avec Pollinations (aucune clé) : fal.ai
+    manquant ne doit plus faire échouer `pdz cles` à lui seul."""
     obligatoire = {nom: o for nom, _, _, _, o in SERVICES}
-    assert obligatoire["fal.ai"] is True
+    assert obligatoire["fal.ai"] is False
+
+
+def test_elevenlabs_reste_obligatoire():
+    """Aucune alternative gratuite n'existe pour la voix."""
+    obligatoire = {nom: o for nom, _, _, _, o in SERVICES}
     assert obligatoire["ElevenLabs"] is True

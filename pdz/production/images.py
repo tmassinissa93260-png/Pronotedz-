@@ -27,7 +27,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from pdz.config import config
-from pdz.ia import fal
+from pdz.ia import images as ia_images
 from pdz.moteur.erreurs import ErreurBudget, ErreurConfig
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Personnage, Univers
@@ -161,7 +161,7 @@ def _produire(prompt: str, destination: Path, *, univers: Univers,
         shutil.copyfile(garde, destination)
         return 0.0, True
 
-    _, cout = fal.generer_image(
+    _, cout = ia_images.generer_image(
         prompt, destination,
         image_reference=reference,
         seed=univers.style.seed,

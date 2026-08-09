@@ -117,8 +117,12 @@ SERVICES = [
     # affichée, juste sans faire échouer la commande si elle manque.
     ("Anthropic", "anthropic_api_key", verifier_anthropic,
      "les scripts (qualité supérieure, vision)", False),
+    # fal.ai non plus : le profil « gratuit » illustre avec Pollinations
+    # (aucune clé, aucune carte), au prix d'une constance des personnages
+    # moins bonne d'un plan à l'autre. fal.ai reste le choix par défaut des
+    # autres profils, et le seul qui anime les plans.
     ("fal.ai", "fal_key", verifier_fal,
-     "les images et l'animation", True),
+     "les images de meilleure qualité, et l'animation", False),
     ("ElevenLabs", "elevenlabs_api_key", verifier_elevenlabs,
      "la voix", True),
     ("Groq", "groq_api_key", verifier_groq,

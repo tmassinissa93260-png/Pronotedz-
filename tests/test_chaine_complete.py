@@ -102,7 +102,7 @@ def atelier(tmp_path, monkeypatch):
         img.save(destination, quality=90)
         return destination, 0.0028
 
-    monkeypatch.setattr("pdz.production.images.fal.generer_image", fausses_images)
+    monkeypatch.setattr("pdz.production.images.ia_images.generer_image", fausses_images)
     return tmp_path, appels
 
 

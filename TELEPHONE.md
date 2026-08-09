@@ -51,16 +51,20 @@ même toi, tu ne peux que les remplacer.
 > (`console.anthropic.com`) n'a pas d'offre gratuite — il faut au moins
 > quelques euros de crédit (Billing) pour que `ANTHROPIC_API_KEY` fonctionne.
 >
-> Si tu veux écrire des épisodes **sans rien payer**, crée plutôt une clé sur
-> `console.groq.com` (gratuite, aucune carte bancaire demandée), ajoute-la
-> comme `GROQ_API_KEY`, et lance tes épisodes avec **`--profil gratuit`**
-> (étape 4). Le programme écrit alors avec Llama à la place de Claude.
+> Si tu veux produire des épisodes **sans rien payer et sans carte
+> bancaire**, crée une clé sur `console.groq.com` (gratuite, aucune carte
+> demandée), ajoute-la comme `GROQ_API_KEY`, et lance tes épisodes avec
+> **`--profil gratuit`** (étape 4). Ce profil écrit avec Llama à la place de
+> Claude, et illustre avec Pollinations (aucune clé, aucune inscription) à
+> la place de fal.ai — tu n'as alors ni `ANTHROPIC_API_KEY` ni `FAL_KEY` à
+> renseigner du tout.
 >
-> Deux limites à connaître : l'écriture est probablement un peu moins fine,
-> et **l'analyse d'une vidéo de référence** (`analyser`, `charte`) reste
-> hors de portée de ce profil — elle a besoin de « voir » les images, ce que
-> Llama ne sait pas faire. Tout le reste (écrire, dire, illustrer, monter)
-> fonctionne normalement.
+> Trois limites à connaître : l'écriture est probablement un peu moins fine,
+> les personnages sont moins constants d'un plan à l'autre qu'avec fal.ai
+> (Pollinations ne prend pas d'image de référence), et **l'analyse d'une
+> vidéo de référence** (`analyser`, `charte`) reste hors de portée de ce
+> profil — elle a besoin de « voir » les images, ce que Llama ne sait pas
+> faire. Dire et monter fonctionnent normalement.
 
 ### Si la page est trop serrée : le mode ordinateur
 
@@ -160,10 +164,11 @@ il refuse de conclure quoi que ce soit sous 10 épisodes publiés.
 - **Le temps de calcul est gratuit** si ton dépôt est public, et limité à
   2 000 minutes par mois s'il est privé. Un épisode prend 5 à 15 minutes :
   largement de quoi tenir tes 30 épisodes mensuels.
-- **Les clés d'API, elles, restent à ta charge.** GitHub prête la machine,
-  pas les crédits Claude ou fal.ai. Seule l'écriture peut passer à 0 € avec
-  `--profil gratuit` (Groq) — fal.ai et ElevenLabs restent payants, même si
-  leurs formules gratuites couvrent largement quelques épisodes par mois.
+- **Les clés d'API, elles, restent à ta charge** — sauf avec `--profil
+  gratuit` (Groq + Pollinations), qui n'a besoin d'aucun crédit ni carte
+  bancaire pour écrire et illustrer. Seule la voix (ElevenLabs) reste à
+  brancher, et sa formule gratuite (sans carte non plus) couvre largement
+  quelques épisodes par mois.
 - **Le cache est conservé d'un lancement à l'autre** : une image ou une voix
   déjà payée n'est jamais refacturée.
 - **Une seule production à la fois.** Si tu relances pendant qu'un épisode se
