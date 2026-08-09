@@ -52,6 +52,20 @@ modeles:
     cache: { lecture: 0.10, ecriture: 1.25 }
     sorties_structurees: true
 
+  # Alternative GRATUITE à Claude, pour écrire sans avoir de crédit Anthropic.
+  # Sert le profil « gratuit » ci-dessous. Limites à connaître : pas de
+  # vision (donc pas d'analyse de vidéo de référence), pas de cache de
+  # prompt, une écriture probablement moins fine que Claude.
+  # ⚠️ Nom de modèle non vérifiable depuis l'environnement de développement
+  # (api.groq.com y est bloqué) — si Groq l'a renommé, `pdz cles` le dira
+  # clairement plutôt que d'échouer en silence.
+  - id: llama-3.3-70b-versatile
+    fournisseur: groq
+    fait: [ecriture, critique]
+    contexte: 128000
+    prix: { entree_par_million: 0.0, sortie_par_million: 0.0 }
+    sorties_structurees: true
+
   # ── Images ───────────────────────────────────────────────────────────
   - id: fal-ai/flux/schnell
     fournisseur: fal
@@ -118,7 +132,7 @@ alias:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-#  PROFILS — trois réglages prêts à l'emploi.
+#  PROFILS — quatre réglages prêts à l'emploi.
 #  `pdz episode ... --profil economique`
 # ═══════════════════════════════════════════════════════════════════════
 profils:
@@ -132,6 +146,15 @@ profils:
   premium:
     images: fal-ai/flux/dev
     plans_animes_max: 12
+  # Zéro euro d'écriture : sert Llama via Groq à la place de Claude. Demande
+  # une clé GROQ_API_KEY (gratuite, sans carte, sur console.groq.com) mais
+  # aucun crédit Anthropic. `pdz charte` (analyse d'une vidéo, qui a besoin
+  # de vision) reste hors de portée de ce profil — voir modeles.yaml plus haut.
+  gratuit:
+    qualite: llama-3.3-70b-versatile
+    critique: llama-3.3-70b-versatile
+    images: fal-ai/flux/schnell
+    animer: false
 
 
 # ═══════════════════════════════════════════════════════════════════════

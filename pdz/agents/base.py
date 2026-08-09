@@ -13,7 +13,7 @@ import hashlib
 from pathlib import Path
 from typing import Any
 
-from pdz.ia import claude
+from pdz.ia import texte
 from pdz.moteur.pipeline import Contexte
 from pdz.prompts import registre as prompts
 
@@ -69,7 +69,7 @@ class Agent:
         if ctx.budget_restant > 0:
             budget_pct = min(100.0, ctx.budget_restant * 100.0)
 
-        reponse = await claude.appeler(
+        reponse = await texte.appeler(
             alias=prompt.alias_modele,
             systeme_stable=stable,
             systeme_variable=variable,

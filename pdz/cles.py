@@ -115,7 +115,7 @@ SERVICES = [
     ("ElevenLabs", "elevenlabs_api_key", verifier_elevenlabs,
      "la voix", True),
     ("Groq", "groq_api_key", verifier_groq,
-     "la transcription (analyse de vidéos)", False),
+     "la transcription, l'écriture en profil gratuit", False),
 ]
 
 

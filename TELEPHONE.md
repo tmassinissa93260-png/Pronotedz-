@@ -40,10 +40,27 @@ Puis bouton vert **New repository secret**, et tu ajoutes une clé par une :
 | `FAL_KEY` | ta clé fal.ai |
 | `ELEVENLABS_API_KEY` | ta clé ElevenLabs |
 | `AUDD_API_KEY` | ta clé AudD (facultatif) |
+| `GROQ_API_KEY` | ta clé Groq (facultatif — voir encadré ci-dessous) |
 
 Ces clés sont chiffrées par GitHub. Elles n'apparaissent jamais dans le code,
 jamais dans les journaux, et personne d'autre que toi ne peut les relire —
 même toi, tu ne peux que les remplacer.
+
+> **Pas envie de payer pour Anthropic tout de suite ?**
+> Contrairement à l'appli où tu me parles, la Console Anthropic
+> (`console.anthropic.com`) n'a pas d'offre gratuite — il faut au moins
+> quelques euros de crédit (Billing) pour que `ANTHROPIC_API_KEY` fonctionne.
+>
+> Si tu veux écrire des épisodes **sans rien payer**, crée plutôt une clé sur
+> `console.groq.com` (gratuite, aucune carte bancaire demandée), ajoute-la
+> comme `GROQ_API_KEY`, et lance tes épisodes avec **`--profil gratuit`**
+> (étape 4). Le programme écrit alors avec Llama à la place de Claude.
+>
+> Deux limites à connaître : l'écriture est probablement un peu moins fine,
+> et **l'analyse d'une vidéo de référence** (`analyser`, `charte`) reste
+> hors de portée de ce profil — elle a besoin de « voir » les images, ce que
+> Llama ne sait pas faire. Tout le reste (écrire, dire, illustrer, monter)
+> fonctionne normalement.
 
 ### Si la page est trop serrée : le mode ordinateur
 
@@ -86,7 +103,8 @@ le dépôt automatiquement** — tu n'as rien à recopier.
 - *Univers* : `fruit-island`
 - *Ce qui se passe* : `Strawberina découvre que Bananito a triché`
 - *Durée* : `45`
-- *Qualité* : `economique` pour un premier essai
+- *Qualité* : `economique` pour un premier essai — ou **`gratuit`** si tu n'as
+  pas mis de crédit sur Anthropic (voir l'encadré de l'étape 1)
 
 Compte 5 à 15 minutes. Quand la coche verte apparaît, ouvre le lancement :
 
@@ -142,8 +160,10 @@ il refuse de conclure quoi que ce soit sous 10 épisodes publiés.
 - **Le temps de calcul est gratuit** si ton dépôt est public, et limité à
   2 000 minutes par mois s'il est privé. Un épisode prend 5 à 15 minutes :
   largement de quoi tenir tes 30 épisodes mensuels.
-- **Les clés d'API, elles, sont payantes comme d'habitude.** GitHub prête la
-  machine, pas les crédits Claude ou fal.ai.
+- **Les clés d'API, elles, restent à ta charge.** GitHub prête la machine,
+  pas les crédits Claude ou fal.ai. Seule l'écriture peut passer à 0 € avec
+  `--profil gratuit` (Groq) — fal.ai et ElevenLabs restent payants, même si
+  leurs formules gratuites couvrent largement quelques épisodes par mois.
 - **Le cache est conservé d'un lancement à l'autre** : une image ou une voix
   déjà payée n'est jamais refacturée.
 - **Une seule production à la fois.** Si tu relances pendant qu'un épisode se

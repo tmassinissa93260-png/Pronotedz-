@@ -48,11 +48,11 @@ on:
         required: false
         default: "45"
       profil:
-        description: "Qualité et coût"
+        description: "Qualité et coût — « gratuit » n'utilise pas Claude, demande GROQ_API_KEY"
         required: false
         default: equilibre
         type: choice
-        options: [economique, equilibre, premium]
+        options: [economique, equilibre, premium, gratuit]
 
 # Une seule production à la fois : la base SQLite est partagée d'un lancement
 # à l'autre par le cache, et deux écritures simultanées la corrompraient.
