@@ -1,72 +1,91 @@
-# ── UNIVERS 1 : des fruits ───────────────────────────────────────────────
 id: fruit-island
 nom: Fruit Island
 format: serie_animee
 langue: fr
-duree_cible_s: 45
-
 style:
-  rendu: >-
-    3D render, glossy cartoon fruits with thin cartoon arms and legs,
-    big expressive eyes, soft subsurface scattering, vertical 9:16 framing
-  palette: ["#FF4D6D", "#FFD166", "#06D6A0", "#118AB2"]
+  rendu: 3D render, glossy cartoon fruits with thin cartoon arms and legs, big expressive
+    eyes, soft subsurface scattering, vertical 9:16 framing
+  palette:
+  - '#FF4D6D'
+  - '#FFD166'
+  - '#06D6A0'
+  - '#118AB2'
   eclairage: soft golden hour studio lighting, gentle rim light
   ambiance: comédie dramatique de télé-réalité, tension et trahisons
-  ratio: "9:16"
+  ratio: '9:16'
   seed: 771234
-
 regles_du_monde:
-  - Les fruits ont des bras et des jambes fins, style cartoon
-  - Ils vivent dans une villa tropicale et s'éliminent chaque semaine
-  - Les émotions sont exagérées, presque théâtrales
-  - Personne ne mange personne — c'est un tabou absolu du monde
-
+- Les fruits ont des bras et des jambes fins, style cartoon
+- Ils vivent dans une villa tropicale et s'éliminent chaque semaine
+- Les émotions sont exagérées, presque théâtrales
+- Personne ne mange personne — c'est un tabou absolu du monde
 personnages:
-  - id: strawberina
-    nom: Strawberina
-    espece: fraise
-    apparence: >-
-      a plump glossy strawberry character, deep red skin with tiny golden seeds,
-      long green leafy hair styled like a ponytail, thick dark eyelashes,
-      thin cartoon arms and legs, confident smirk
-    caractere: manipulatrice, charmeuse, joue systématiquement la victime
-    tics_de_langage: ["mon cœur", "j'y peux rien si", "je dis ça je dis rien"]
-    # voice_id : à récupérer sur elevenlabs.io → Voices → ⋯ → Copy Voice ID
-    voix: { voice_id: "", stabilite: 0.35, style: 0.75 }
-    relations:
-      bananito: l'a trahi à l'épisode 3, il ne le sait pas encore
-
-  - id: bananito
-    nom: Bananito
-    espece: banane
-    apparence: >-
-      a tall bright yellow banana character, slightly curved body, small brown
-      spots, slicked-back green stem like gelled hair, sunglasses pushed up,
-      thin cartoon arms and legs, cocky posture
-    caractere: charmeur lâche, promet à tout le monde, ne tient jamais parole
-    tics_de_langage: ["écoute", "c'est pas ce que tu crois"]
-    voix: { voice_id: "", stabilite: 0.5, style: 0.6 }
-
-  - id: avocado
-    nom: Avocado
-    espece: avocat
-    apparence: >-
-      a calm dark green avocado character, matte textured skin, large glossy
-      brown pit visible on the chest like a medallion, half-lidded tired eyes,
-      thin cartoon arms and legs, arms usually crossed
-    caractere: détaché, sarcastique, voit tout venir et ne dit rien
-    tics_de_langage: ["mmh", "on va dire ça"]
-    voix: { voice_id: "", stabilite: 0.7, style: 0.3 }
-
+- id: strawberina
+  nom: Strawberina
+  espece: fraise
+  apparence: a plump glossy strawberry character, deep red skin with tiny golden seeds,
+    long green leafy hair styled like a ponytail, thick dark eyelashes, thin cartoon
+    arms and legs, confident smirk
+  caractere: manipulatrice, charmeuse, joue systématiquement la victime
+  tics_de_langage:
+  - mon cœur
+  - j'y peux rien si
+  - je dis ça je dis rien
+  voix:
+    fournisseur: elevenlabs
+    voice_id: CwhRBWXzGAHq8TQ4Fs17
+    stabilite: 0.5
+    style: 0.25
+    vitesse: 1.09
+    registre_percu: ''
+  relations:
+    bananito: l'a trahi à l'épisode 3, il ne le sait pas encore
+- id: bananito
+  nom: Bananito
+  espece: banane
+  apparence: a tall bright yellow banana character, slightly curved body, small brown
+    spots, slicked-back green stem like gelled hair, sunglasses pushed up, thin cartoon
+    arms and legs, cocky posture
+  caractere: charmeur lâche, promet à tout le monde, ne tient jamais parole
+  tics_de_langage:
+  - écoute
+  - c'est pas ce que tu crois
+  voix:
+    fournisseur: elevenlabs
+    voice_id: Xb7hH8MSUJpSbSDYk0k2
+    stabilite: 0.5
+    style: 0.25
+    vitesse: 1.17
+    registre_percu: ''
+  relations: {}
+- id: avocado
+  nom: Avocado
+  espece: avocat
+  apparence: a calm dark green avocado character, matte textured skin, large glossy
+    brown pit visible on the chest like a medallion, half-lidded tired eyes, thin
+    cartoon arms and legs, arms usually crossed
+  caractere: détaché, sarcastique, voit tout venir et ne dit rien
+  tics_de_langage:
+  - mmh
+  - on va dire ça
+  voix:
+    fournisseur: elevenlabs
+    voice_id: XrExE9yKIg1WjnnlVkGX
+    stabilite: 0.5
+    style: 0.25
+    vitesse: 1.11
+    registre_percu: ''
+  relations: {}
 decors:
-  - id: villa
-    nom: La villa
-    description: tropical villa terrace, white stone, palm trees, infinity pool
-  - id: ceremonie
-    nom: La cérémonie
-    description: night ceremony platform, torches, dark ocean behind
-
+- id: villa
+  nom: La villa
+  description: tropical villa terrace, white stone, palm trees, infinity pool
+- id: ceremonie
+  nom: La cérémonie
+  description: night ceremony platform, torches, dark ocean behind
 interdits:
-  - marques réelles
-  - violence explicite
-  - toute référence à manger un fruit
+- marques réelles
+- violence explicite
+- toute référence à manger un fruit
+duree_cible_s: 45
+episodes_produits: 0
