@@ -11,7 +11,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from pdz.cles import GABARITS, _renseignee, verifier_fal
+from pdz.cles import GABARITS, SERVICES, _renseignee, verifier_fal
 
 
 def _reponse(code: int, json: dict | None = None) -> httpx.Response:
@@ -49,14 +49,15 @@ def test_401_est_une_cle_refusee(monkeypatch):
 
 
 def test_403_nest_pas_annonce_comme_une_cle_cassee(monkeypatch):
-    """La doc fal.ai réserve cet endpoint aux clés Admin : une clé normale
-    peut recevoir 403 ici et fonctionner très bien pour générer des images.
-    L'annoncer comme « cassée » ferait douter d'une clé qui marche."""
+    """La doc fal.ai réserve cet endpoint aux clés Admin : la plupart des
+    clés créées depuis le tableau de bord reçoivent 403 ici tout en
+    fonctionnant très bien pour générer des images. Mesuré en conditions
+    réelles : annoncer « échec » ici a fait échouer `pdz cles` pour un
+    utilisateur dont la clé marchait — d'où `ok=True` malgré le refus."""
     monkeypatch.setattr("httpx.get", lambda *a, **k: _reponse(403))
     ok, detail = verifier_fal("cle")
-    assert not ok
+    assert ok
     assert "Admin" in detail
-    assert "peut quand même fonctionner" in detail
 
 
 def test_une_panne_est_rapportee_avec_son_code(monkeypatch):
@@ -96,3 +97,19 @@ def test_une_vraie_cle_est_reconnue():
 def test_gabarits_couvre_les_formats_des_quatre_services():
     for prefixe in ("sk-ant-...", "sk_...", "..."):
         assert prefixe in GABARITS
+
+
+# ── Ce qui est réellement indispensable ──────────────────────────────────
+
+def test_anthropic_nest_plus_obligatoire():
+    """Le profil `gratuit` (Groq) écrit sans elle : l'absence d'Anthropic ne
+    doit plus faire échouer `pdz cles` à elle seule."""
+    obligatoire = {nom: o for nom, _, _, _, o in SERVICES}
+    assert obligatoire["Anthropic"] is False
+
+
+def test_fal_et_elevenlabs_restent_obligatoires():
+    """Aucune alternative gratuite n'existe pour les images ou la voix."""
+    obligatoire = {nom: o for nom, _, _, _, o in SERVICES}
+    assert obligatoire["fal.ai"] is True
+    assert obligatoire["ElevenLabs"] is True

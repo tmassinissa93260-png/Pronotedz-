@@ -91,11 +91,14 @@ def verifier_fal(cle: str) -> tuple[bool, str]:
     if r.status_code == 401:
         return False, "clé refusée"
     if r.status_code == 403:
-        # La documentation indique que cet endpoint demande une clé « Admin ».
-        # Une clé normale peut très bien marcher pour générer des images
-        # malgré ce refus-là : on ne l'annonce pas comme cassée à tort.
-        return False, ("accès refusé sur ce contrôle (demande une clé Admin) — "
-                       "la clé peut quand même fonctionner pour générer des images")
+        # La documentation fal.ai réserve cet endpoint précis aux clés
+        # « Admin ». Une clé normale — la plupart des clés créées depuis le
+        # tableau de bord — reçoit ce refus alors qu'elle fonctionne très
+        # bien pour générer des images : ce contrôle-là ne sait juste pas la
+        # confirmer. L'annoncer comme « échec » alarmerait pour rien.
+        return True, ("clé acceptée, mais ce contrôle précis demande une clé "
+                      "Admin pour lire le solde — sans conséquence pour "
+                      "générer des images")
     return False, f"HTTP {r.status_code}"
 
 
@@ -108,8 +111,12 @@ def verifier_groq(cle: str) -> tuple[bool, str]:
 
 
 SERVICES = [
+    # Anthropic n'est plus obligatoire : le profil « gratuit » (Groq) écrit
+    # les scripts sans lui. Elle reste utile — meilleure écriture, et seule
+    # capable de vision (`analyser`, `charte`) — donc toujours vérifiée et
+    # affichée, juste sans faire échouer la commande si elle manque.
     ("Anthropic", "anthropic_api_key", verifier_anthropic,
-     "les scripts", True),
+     "les scripts (qualité supérieure, vision)", False),
     ("fal.ai", "fal_key", verifier_fal,
      "les images et l'animation", True),
     ("ElevenLabs", "elevenlabs_api_key", verifier_elevenlabs,
