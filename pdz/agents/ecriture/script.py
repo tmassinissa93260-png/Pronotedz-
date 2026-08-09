@@ -76,12 +76,28 @@ class ScriptWriter(Agent):
             raise ErreurValidation("Script vide : aucune réplique produite.")
 
         connus = {p.id for p in univers.personnages}
+        # Le modèle échoue parfois à respecter la casse de l'identifiant même
+        # quand elle lui est montrée explicitement (mesuré avec Llama/Groq,
+        # qui renvoie « Strawberina » au lieu de « strawberina ») : on
+        # rapproche par casse plutôt que de faire échouer tout l'épisode.
+        connus_ci = {id_.lower(): id_ for id_ in connus}
+        decors_ci = {d.id.lower(): d.id for d in univers.decors}
         for r in repliques:
-            if r["personnage"] not in connus:
+            cle = r["personnage"].strip().lower()
+            if cle not in connus_ci:
                 raise ErreurValidation(
                     f"Réplique {r['numero']} : personnage « {r['personnage']} » "
                     f"inconnu de l'univers. Attendus : {', '.join(sorted(connus))}."
                 )
+            r["personnage"] = connus_ci[cle]
+            if r.get("reaction_de"):
+                cle_r = r["reaction_de"].strip().lower()
+                if cle_r in connus_ci:
+                    r["reaction_de"] = connus_ci[cle_r]
+            if r.get("decor"):
+                cle_d = r["decor"].strip().lower()
+                if cle_d in decors_ci:
+                    r["decor"] = decors_ci[cle_d]
 
         if not any(r.get("relance") for r in repliques[1:]):
             raise ErreurValidation(

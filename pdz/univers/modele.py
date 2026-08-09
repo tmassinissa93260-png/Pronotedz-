@@ -168,9 +168,10 @@ class Univers(BaseModel):
             lignes += [f"- {r}" for r in self.regles_du_monde]
             lignes.append("")
 
-        lignes.append("PERSONNAGES :")
+        lignes.append("PERSONNAGES (utilise l'identifiant entre crochets dans le champ "
+                      "« personnage » de chaque réplique, jamais le nom affiché) :")
         for p in self.personnages:
-            bout = f"- {p.nom} ({p.espece}) : {p.caractere}"
+            bout = f"- [{p.id}] {p.nom} ({p.espece}) : {p.caractere}"
             if p.tics_de_langage:
                 bout += f" — dit souvent : {', '.join(p.tics_de_langage)}"
             lignes.append(bout)
@@ -178,7 +179,9 @@ class Univers(BaseModel):
                 lignes.append(f"    · avec {autre} : {rel}")
 
         if self.decors:
-            lignes += ["", "DÉCORS :"] + [f"- {d.nom} : {d.description}" for d in self.decors]
+            lignes += ["", "DÉCORS (même règle, utilise l'identifiant entre crochets) :"] + [
+                f"- [{d.id}] {d.nom} : {d.description}" for d in self.decors
+            ]
 
         if self.interdits:
             lignes += ["", "INTERDITS :"] + [f"- {i}" for i in self.interdits]
