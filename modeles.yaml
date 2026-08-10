@@ -97,7 +97,13 @@ modeles:
 
   # ── Animation (image → vidéo) ────────────────────────────────────────
   # Le poste le plus cher du système. Voir docs/12-videos-a-personnages.md.
-  - id: fal-ai/kling-video/v2/standard/image-to-video
+  # ⚠️ L'identifiant doit correspondre EXACTEMENT à un endpoint publié par
+  # fal.ai. `v2/standard/image-to-video` n'existe pas — il a été mesuré en
+  # conditions réelles comme produisant des épisodes sans aucune animation :
+  # la soumission partait en 404, et l'échec était rattrapé en image fixe.
+  # Versions réellement publiées : v1/standard, v2.1/standard, v2.1/pro,
+  # v2.1/master, v2.6/pro.
+  - id: fal-ai/kling-video/v2.1/standard/image-to-video
     fournisseur: fal
     fait: [animation]
     prix: { par_seconde: 0.046 }
@@ -141,7 +147,7 @@ alias:
   rapide:     { principal: claude-haiku-4-5-20251001 }
   vision:     { principal: claude-haiku-4-5-20251001 }
   images:     { principal: fal-ai/flux/dev,            repli: fal-ai/flux/schnell }
-  animation:  { principal: fal-ai/kling-video/v2/standard/image-to-video }
+  animation:  { principal: fal-ai/kling-video/v2.1/standard/image-to-video }
   voix:       { principal: eleven_turbo_v2_5 }
   transcription: { principal: whisper-large-v3-turbo }
   musique:       { principal: audd/recognize }

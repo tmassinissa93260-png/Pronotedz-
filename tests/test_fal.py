@@ -77,7 +77,7 @@ def test_une_reponse_video_vide_est_signalee():
 
 @pytest.mark.parametrize("modele_id,attendu", [
     ("fal-ai/flux/dev", "https://queue.fal.run/fal-ai/flux"),
-    ("fal-ai/kling-video/v2/standard/image-to-video",
+    ("fal-ai/kling-video/v2.1/standard/image-to-video",
      "https://queue.fal.run/fal-ai/kling-video"),
     ("fal-ai/ltx-video-v097/image-to-video",
      "https://queue.fal.run/fal-ai/ltx-video-v097"),
@@ -108,7 +108,7 @@ def test_les_url_renvoyees_par_fal_ont_la_priorite(monkeypatch):
     monkeypatch.setattr(fal.time, "sleep", lambda _: None)
 
     url = fal._attendre(
-        "fal-ai/kling-video/v2/standard/image-to-video", "req1", 60,
+        "fal-ai/kling-video/v2.1/standard/image-to-video", "req1", 60,
         url_statut="https://queue.fal.run/donne/par/fal/status",
         url_resultat="https://queue.fal.run/donne/par/fal",
     )
@@ -132,7 +132,7 @@ def test_sans_url_donnee_le_suivi_retombe_sur_lurl_reconstruite(monkeypatch):
     monkeypatch.setattr(fal, "_entetes", lambda: {})
     monkeypatch.setattr(fal.time, "sleep", lambda _: None)
 
-    fal._attendre("fal-ai/kling-video/v2/standard/image-to-video", "req1", 60)
+    fal._attendre("fal-ai/kling-video/v2.1/standard/image-to-video", "req1", 60)
     assert vues[0] == (
         "https://queue.fal.run/fal-ai/kling-video/requests/req1/status"
     )
@@ -141,10 +141,19 @@ def test_sans_url_donnee_le_suivi_retombe_sur_lurl_reconstruite(monkeypatch):
 def test_lurl_de_file_du_modele_danimation_reellement_utilise():
     """Non-régression sur le modèle exact de modeles.yaml : c'est celui-ci
     qui a produit des épisodes sans animation."""
-    modele = registre().modeles["fal-ai/kling-video/v2/standard/image-to-video"]
+    modele = registre().resoudre("animation").modele
     base = base_file(modele.id)
     assert base.count("/") == 4, f"sous-chemin non retiré : {base}"
-    assert "v2" not in base and "standard" not in base
+    assert "standard" not in base
+
+
+def test_lendpoint_danimation_mort_nest_plus_reference():
+    """`v2/standard/image-to-video` n'a jamais été publié par fal.ai : la
+    soumission partait en 404 et l'épisode sortait en images fixes, sans
+    erreur visible. Versions réelles : v1, v2.1, v2.6."""
+    mort = "fal-ai/kling-video/v2/standard/image-to-video"
+    assert mort not in registre().modeles
+    assert registre().resoudre("animation").modele.id != mort
 
 
 # ── Image de référence ───────────────────────────────────────────────────
@@ -164,7 +173,7 @@ def test_limage_de_reference_est_encodee(tmp_path):
 
 def test_le_cout_de_lanimation_suit_la_duree():
     """L'animation est le poste le plus cher : le calcul doit être juste."""
-    m = registre().modeles["fal-ai/kling-video/v2/standard/image-to-video"]
+    m = registre().modeles["fal-ai/kling-video/v2.1/standard/image-to-video"]
     assert m.cout_unites(5, "seconde") == pytest.approx(m.prix.par_seconde * 5)
     # Un clip de 5 s doit coûter nettement plus qu'une image.
     img = registre().modeles["fal-ai/flux/schnell"]

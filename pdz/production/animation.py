@@ -203,7 +203,21 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
             resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
                                     duree_clip_s))
 
-    log.info("Animation terminée : %.3f € dépensés", depense)
+    reussis = sum(1 for r in resultats if r.anime)
+    if combien and not reussis:
+        # Un échec d'animation est délibérément rattrapé en image fixe pour ne
+        # pas perdre l'épisode. Sans ce cri, la vidéo sort complète et muette
+        # sur le sujet : c'est exactement comme ça qu'un identifiant de modèle
+        # périmé a produit des épisodes sans animation pendant plusieurs
+        # productions, sans que rien ne le signale.
+        log.error(
+            "AUCUN plan animé : les %d tentatives ont toutes échoué, l'épisode "
+            "sort en images fixes. Vérifie que l'identifiant du modèle "
+            "d'animation dans modeles.yaml correspond à un endpoint publié "
+            "par le fournisseur (voir les avertissements ci-dessus).", combien,
+        )
+    log.info("Animation terminée : %d plan(s) animé(s) sur %d tenté(s), "
+             "%.3f € dépensés", reussis, combien, depense)
     return resultats
 
 

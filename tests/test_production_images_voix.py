@@ -7,10 +7,12 @@ retenue. Ce sont ces décisions qui coûtent de l'argent, pas le transport HTTP.
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import numpy as np
 import pytest
+from PIL import Image
 
 from pdz.agents.analyse.charte import (
     CharteVisuelle,
@@ -227,6 +229,54 @@ def test_le_profil_economique_nanime_rien():
 def test_on_nanime_jamais_plus_de_plans_quil_nen_existe():
     combien, _ = animation.combien_animer(2, budget_restant=100.0, profil="premium")
     assert combien == 2
+
+
+def test_un_echec_total_danimation_est_crie_pas_chuchote(monkeypatch, caplog,
+                                                         tmp_path):
+    """Une animation ratée est rattrapée en image fixe pour ne pas perdre
+    l'épisode — au prix d'un silence qui a laissé passer un identifiant de
+    modèle périmé pendant plusieurs productions. Un échec TOTAL doit sortir
+    en ERROR, visible sans lire les journaux ligne à ligne."""
+    from pdz.moteur.erreurs import ErreurValidation
+
+    def _toujours_en_echec(*a, **k):
+        raise ErreurValidation("endpoint introuvable")
+
+    monkeypatch.setattr(animation.fal, "animer_image", _toujours_en_echec)
+
+    u = Univers.charger(FRUITS)
+    images = []
+    for i in range(3):
+        p = tmp_path / f"p{i}.jpg"
+        Image.new("RGB", (64, 64), (10 * i, 60, 90)).save(p)
+        images.append(p)
+    plans = [{"numero": i, "personnage": u.personnages[0].id, "action": "parle",
+              "emotion": "calme", "duree_s": 2.0} for i in range(3)]
+
+    with caplog.at_level(logging.ERROR):
+        resultats = animation.animer(
+            plans, images, u, tmp_path / "anim", budget_restant=100.0,
+            profil="equilibre", vie_pour_le_reste=False,
+        )
+
+    assert not any(r.anime for r in resultats), "aucune animation ne devait réussir"
+    assert any(e.levelno >= logging.ERROR for e in caplog.records), \
+        "un échec total d'animation doit remonter en ERROR"
+    assert "AUCUN plan animé" in caplog.text
+
+
+def test_lepisode_annonce_combien_de_plans_sont_animes():
+    """« aucune animation » dans le résumé est une information : son absence
+    a longtemps caché que rien n'était animé."""
+    from pdz.production.episode import Episode
+
+    muet = Episode(job_id="j", titre="T", video=Path("v.mp4"), duree_s=20.0,
+                   cout=0.1, plans_animes=0)
+    assert "aucune animation" in muet.resume()
+
+    anime = Episode(job_id="j", titre="T", video=Path("v.mp4"), duree_s=20.0,
+                    cout=0.5, plans_animes=2)
+    assert "2 plan(s) animé(s)" in anime.resume()
 
 
 def test_le_prompt_de_mouvement_reste_court_et_protege_le_personnage():

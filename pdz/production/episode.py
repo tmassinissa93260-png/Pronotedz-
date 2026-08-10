@@ -56,12 +56,18 @@ class Episode:
     script: dict = field(default_factory=dict)
     plans: list[PlanScript] = field(default_factory=list)
     etapes_reprises: list[str] = field(default_factory=list)
+    plans_animes: int = 0
 
     def resume(self) -> str:
         repris = (f" · {len(self.etapes_reprises)} étape(s) reprises sans repayer"
                   if self.etapes_reprises else "")
+        # L'animation se lit dans le résumé, pas seulement dans les journaux :
+        # « 0 animé » est une information, et son absence a longtemps caché un
+        # identifiant de modèle périmé.
+        anim = (f" · {self.plans_animes} plan(s) animé(s)" if self.plans_animes
+                else " · aucune animation (images fixes)")
         return (f"« {self.titre} » · {self.duree_s:.1f} s · "
-                f"{len(self.plans)} plans · {self.cout:.3f} €{repris}\n"
+                f"{len(self.plans)} plans{anim} · {self.cout:.3f} €{repris}\n"
                 f"   {self.video}")
 
 
@@ -296,6 +302,7 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
         job_id=job_id, titre=script.get("titre", "sans titre"), video=sortie,
         duree_s=sum(p.duree_s for p in plans), cout=cout_total,
         script=script, plans=plans, etapes_reprises=repris,
+        plans_animes=sum(1 for a in animes if a.anime),
     )
 
 
