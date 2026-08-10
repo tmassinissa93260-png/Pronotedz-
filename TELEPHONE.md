@@ -139,6 +139,30 @@ l'étape 1) : dossier `donnees/sources` → **Add file** → **Upload files**. P
 Ensuite tu peux lancer `analyser` (mesurer sa forme), `musique` (reconnaître
 la musique) ou `charte` (en faire un univers avec ses personnages).
 
+### Copier le **rythme** d'une vidéo — gratuit
+
+`analyser` ne fait aucun appel à une IA : c'est de la mesure de signal.
+**Aucune clé, aucun crédit, 0 €.** Il relève la durée de l'accroche, la
+cadence de coupe, le débit de parole et les remontées d'énergie.
+
+1. **Produire** → `analyser`, avec ta vidéo dans *Vidéo de référence*
+2. Le résumé finit par `✓ Forme enregistrée : str_a1b2c3…` — **note cet
+   identifiant**, il reste valable pour tous tes prochains épisodes
+3. **Produire** → `episode`, et colle-le dans *Épouser la forme d'une vidéo
+   déjà analysée*
+
+L'épisode épouse alors le rythme de la référence, sans rien reprendre de son
+contenu.
+
+### Copier le **style visuel** — demande du crédit Anthropic
+
+`charte` doit *regarder* les images pour décrire le style et les
+personnages : c'est de la vision, que seul Claude sait faire ici. Cette
+étape-là demande donc `ANTHROPIC_API_KEY` avec du crédit. Les personnages
+sont **transposés** (on garde l'archétype et la patte graphique, on change
+ce qui identifie) — recopier un personnage protégé n'est pas une option du
+programme.
+
 ## Si ça s'arrête en cours de route
 
 Quota atteint, coupure, dépassement du temps imparti : **rien n'est perdu et

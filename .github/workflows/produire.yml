@@ -47,6 +47,10 @@ on:
         description: "Durée visée, en secondes"
         required: false
         default: "45"
+      forme:
+        description: "Épouser la forme d'une vidéo déjà analysée (str_xxx, donné par « analyser »)"
+        required: false
+        default: ""
       profil:
         description: "Qualité et coût — « gratuit »/« hybride » n'utilisent pas Claude, demandent GROQ_API_KEY"
         required: false
@@ -139,6 +143,7 @@ jobs:
           SUJET: ${{ inputs.sujet }}
           JOB: ${{ inputs.job }}
           DUREE: ${{ inputs.duree }}
+          FORME: ${{ inputs.forme }}
         run: |
           set -o pipefail
           SORTIE=$(mktemp)
@@ -152,8 +157,17 @@ jobs:
                 echo "::error::Il faut un sujet pour écrire un épisode."
                 exit 1
               fi
+              # `--forme` fait épouser à l'épisode le rythme mesuré sur une
+              # vidéo de référence (durée du hook, cadence de coupe, positions
+              # de relance). La forme vient d'un lancement « analyser »
+              # précédent : elle vit dans la base, que le cache conserve.
+              ARGS_FORME=()
+              if [ -n "$FORME" ]; then
+                ARGS_FORME=(--forme "$FORME")
+              fi
               pdz episode "$UNIVERS" "$SUJET" \
                 --duree "$DUREE" --profil "${{ inputs.profil }}" \
+                "${ARGS_FORME[@]}" \
                 | tee "$SORTIE"
               ;;
             reprendre)
