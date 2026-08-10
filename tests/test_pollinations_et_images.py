@@ -84,6 +84,24 @@ def test_une_reponse_trop_petite_nest_pas_une_image(monkeypatch, tmp_path):
         generer_image("un chat", tmp_path / "p.jpg", profil="gratuit")
 
 
+def test_le_filtre_de_contenu_est_toujours_active(monkeypatch, tmp_path):
+    """Mesuré en conditions réelles : un prompt de personnage cartoon
+    (« fraise 3D, bras et jambes de cartoon ») a produit une image d'humain
+    dénudé. Sans `safe=true`, rien n'empêche ça de se reproduire — et
+    `enhance=false` empêche Pollinations de réécrire le prompt à sa façon
+    avant de le respecter ou non."""
+    appels = {}
+
+    def _faux_stream(methode, url, params=None, **k):
+        appels["params"] = params
+        return _FauxFlux(200, b"x" * 2000)
+
+    monkeypatch.setattr("httpx.stream", _faux_stream)
+    generer_image("une fraise cartoon", tmp_path / "p.jpg", profil="gratuit")
+    assert appels["params"]["safe"] == "true"
+    assert appels["params"]["enhance"] == "false"
+
+
 # ── Le dispatcheur (pdz.ia.images) ───────────────────────────────────────
 
 def test_le_profil_par_defaut_illustre_avec_fal():

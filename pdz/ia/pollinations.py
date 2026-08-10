@@ -80,6 +80,14 @@ def generer_image(
 
     params: dict[str, str | int] = {
         "width": LARGEUR, "height": HAUTEUR, "nologo": "true",
+        # `safe` fait échouer la requête plutôt que de renvoyer un contenu
+        # inapproprié : mesuré en conditions réelles, un prompt de
+        # personnage cartoon a produit une image d'humain dénudé sans lui.
+        # `enhance=false` empêche Pollinations de réécrire le prompt à sa
+        # façon — on veut le respect exact de l'apparence du personnage,
+        # pas une réinterprétation créative.
+        "safe": "true",
+        "enhance": "false",
     }
     if seed is not None:
         params["seed"] = seed
