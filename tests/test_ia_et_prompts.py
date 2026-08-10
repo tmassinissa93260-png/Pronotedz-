@@ -325,7 +325,7 @@ def test_lagent_normalise_la_casse_du_personnage():
     assert all(r["personnage"] == id_reel for r in sortie["repliques"])
 
 
-def test_le_schema_ferme_les_identifiants_a_lunivers():
+def test_le_schema_ferme_le_personnage_a_lunivers():
     """Un `enum` guide bien mieux un modèle qu'une description en texte
     libre — surtout un modèle moins strict sur les instructions."""
     u = Univers.charger(FRUITS)
@@ -338,7 +338,42 @@ def test_le_schema_ferme_les_identifiants_a_lunivers():
     assert "" not in proprietes["personnage"]["enum"], (
         "le personnage n'est jamais optionnel, contrairement à decor/reaction_de"
     )
-    assert set(proprietes["reaction_de"]["enum"]) == {*ids_attendus, ""}
+
+
+def test_decor_et_reaction_sont_decrits_mais_pas_contraints():
+    """Groq valide le schéma côté serveur et REJETTE toute la réponse sur
+    une seule valeur hors liste. On ne paie ce risque que pour ce qui ne se
+    rattrape pas : une valeur de décor inconnue retombe sans dommage sur le
+    premier décor de l'univers."""
+    u = Univers.charger(FRUITS)
+    base = charger("ecriture/script").schema_sortie
+    schema = ScriptWriter().schema(base, {"univers": u}, _contexte())
+    proprietes = schema["properties"]["repliques"]["items"]["properties"]
+
+    assert "enum" not in proprietes["decor"]
+    assert "enum" not in proprietes["reaction_de"]
+    # Mais les valeurs attendues restent nommées, pour guider le modèle.
+    for identifiant in (d.id for d in u.decors):
+        assert identifiant in proprietes["decor"]["description"]
+
+
+def test_avec_un_seul_locuteur_le_personnage_nest_pas_demande():
+    """En narration, il n'y a rien à choisir : demander quand même ouvre une
+    porte à l'erreur sans rien apporter."""
+    u = Univers.charger(Path("univers/techno-holo.yaml"))
+    base = charger("ecriture/script").schema_sortie
+    schema = ScriptWriter().schema(base, {"univers": u}, _contexte())
+    items = schema["properties"]["repliques"]["items"]
+
+    assert "personnage" not in items["properties"]
+    assert "personnage" not in items["required"]
+
+
+def test_le_locuteur_unique_est_rempli_apres_coup():
+    u = Univers.charger(Path("univers/techno-holo.yaml"))
+    sortie = _reponse_factice(u, personnage="")
+    sortie = ScriptWriter().apres(sortie, {"univers": u}, _contexte())
+    assert all(r["personnage"] == "narrateur" for r in sortie["repliques"])
 
 
 def test_le_schema_ne_modifie_pas_le_prompt_partage():

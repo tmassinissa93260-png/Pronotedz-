@@ -71,24 +71,46 @@ class ScriptWriter(Agent):
         }
 
     def schema(self, base: dict, entrees: dict[str, Any], ctx: Contexte) -> dict:
-        """Ferme les identifiants de personnage/décor à ceux de l'univers.
+        """Adapte le schéma à l'univers de cet épisode.
 
-        Une description en texte libre (« identifiant du personnage qui
-        parle ») laisse un modèle moins strict — Llama via le profil gratuit,
-        mesuré en conditions réelles — répondre avec le nom affiché, une
-        casse différente, ou rien du tout. Un `enum` dans le schéma élimine
-        le problème à la source plutôt que de compter sur la relecture.
+        Un `enum` vaut mieux qu'une description en texte libre là où la
+        valeur compte vraiment : un modèle moins strict répondrait sinon
+        avec le nom affiché ou une casse différente. Mais il coûte cher au
+        mauvais endroit — Groq valide le schéma côté serveur et **rejette
+        toute la réponse** sur une seule valeur hors liste. On ne contraint
+        donc que ce qui ne se rattrape pas après coup :
+
+        · `personnage` décide qui parle et quelle voix sort : contraint.
+          Et quand l'univers n'a qu'un locuteur — une narration en voix off
+          — on ne le demande plus du tout, il n'y a rien à choisir.
+        · `decor` et `reaction_de` sont indicatifs : une valeur inconnue
+          retombe sur le premier décor sans conséquence. Décrits, pas
+          contraints.
         """
         univers: Univers = entrees["univers"]
         ids_personnages = sorted(p.id for p in univers.personnages)
         ids_decors = sorted(d.id for d in univers.decors)
 
         schema = copy.deepcopy(base)
-        proprietes = schema["properties"]["repliques"]["items"]["properties"]
-        proprietes["personnage"]["enum"] = ids_personnages
-        proprietes["reaction_de"]["enum"] = [*ids_personnages, ""]
+        items = schema["properties"]["repliques"]["items"]
+        proprietes = items["properties"]
+
+        if len(ids_personnages) <= 1:
+            proprietes.pop("personnage", None)
+            items["required"] = [c for c in items["required"]
+                                 if c != "personnage"]
+        else:
+            proprietes["personnage"]["enum"] = ids_personnages
+
+        proprietes["reaction_de"]["description"] = (
+            "identifiant du personnage dont on veut voir la réaction, parmi "
+            f"{', '.join(ids_personnages)} — ou chaîne vide"
+        )
         if ids_decors:
-            proprietes["decor"]["enum"] = [*ids_decors, ""]
+            proprietes["decor"]["description"] = (
+                f"identifiant du décor, parmi {', '.join(ids_decors)} "
+                "— ou chaîne vide"
+            )
         return schema
 
     def apres(self, sortie: dict, entrees: dict, ctx: Contexte) -> dict:
@@ -104,6 +126,14 @@ class ScriptWriter(Agent):
             raise ErreurValidation("Script vide : aucune réplique produite.")
 
         connus = {p.id for p in univers.personnages}
+        # Un seul locuteur : le champ n'est même pas demandé au modèle (voir
+        # `schema`). On le remplit ici, ce qui vaut aussi correction si une
+        # version antérieure du schéma l'avait laissé passer de travers.
+        if len(connus) == 1:
+            seul = next(iter(connus))
+            for r in repliques:
+                r["personnage"] = seul
+
         # Le modèle échoue parfois à respecter la casse de l'identifiant même
         # quand elle lui est montrée explicitement (mesuré avec Llama/Groq,
         # qui renvoie « Strawberina » au lieu de « strawberina ») : on
