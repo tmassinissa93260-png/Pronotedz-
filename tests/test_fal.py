@@ -9,7 +9,7 @@ sont eux qui cassent en production, pas le POST.
 import httpx
 import pytest
 
-from pdz.ia.fal import _data_uri, _lever, url_video
+from pdz.ia.fal import _data_uri, _lever, base_file, url_video
 from pdz.ia.registre import registre
 from pdz.moteur.erreurs import (
     ErreurFournisseur,
@@ -67,6 +67,84 @@ def test_toutes_les_formes_de_reponse_video_sont_lues(charge):
 def test_une_reponse_video_vide_est_signalee():
     with pytest.raises(ErreurValidation, match="Aucune vidéo"):
         url_video({"detail": "rien"})
+
+
+# ── URL de suivi de file ─────────────────────────────────────────────────
+# fal.ai documente que le sous-chemin d'un modèle sert à SOUMETTRE mais pas
+# à suivre : `fal-ai/flux/dev` se suit sur `fal-ai/flux`. Se tromper ici
+# donnait un 404 à chaque interrogation — et comme une animation ratée est
+# rattrapée en image fixe, l'épisode sortait sans animation ni erreur.
+
+@pytest.mark.parametrize("modele_id,attendu", [
+    ("fal-ai/flux/dev", "https://queue.fal.run/fal-ai/flux"),
+    ("fal-ai/kling-video/v2/standard/image-to-video",
+     "https://queue.fal.run/fal-ai/kling-video"),
+    ("fal-ai/ltx-video-v097/image-to-video",
+     "https://queue.fal.run/fal-ai/ltx-video-v097"),
+    # Un identifiant déjà court reste inchangé.
+    ("fal-ai/flux-general", "https://queue.fal.run/fal-ai/flux-general"),
+])
+def test_lurl_de_file_ignore_le_sous_chemin(modele_id, attendu):
+    assert base_file(modele_id) == attendu
+
+
+def test_les_url_renvoyees_par_fal_ont_la_priorite(monkeypatch):
+    """fal.ai renvoie `status_url` et `response_url` à la soumission : les
+    suivre vaut mieux que les reconstruire, elles restent justes même si
+    leur forme change."""
+    from pdz.ia import fal
+
+    vues = []
+
+    def _faux_get(url, **k):
+        vues.append(url)
+        charge = ({"status": "COMPLETED"} if url.endswith("/status")
+                  else {"video": {"url": "https://x/v.mp4"}})
+        return httpx.Response(200, json=charge,
+                              request=httpx.Request("GET", url))
+
+    monkeypatch.setattr("httpx.get", _faux_get)
+    monkeypatch.setattr(fal, "_entetes", lambda: {})
+    monkeypatch.setattr(fal.time, "sleep", lambda _: None)
+
+    url = fal._attendre(
+        "fal-ai/kling-video/v2/standard/image-to-video", "req1", 60,
+        url_statut="https://queue.fal.run/donne/par/fal/status",
+        url_resultat="https://queue.fal.run/donne/par/fal",
+    )
+    assert url == "https://x/v.mp4"
+    assert vues[0] == "https://queue.fal.run/donne/par/fal/status"
+
+
+def test_sans_url_donnee_le_suivi_retombe_sur_lurl_reconstruite(monkeypatch):
+    from pdz.ia import fal
+
+    vues = []
+
+    def _faux_get(url, **k):
+        vues.append(url)
+        charge = ({"status": "COMPLETED"} if url.endswith("/status")
+                  else {"video": {"url": "https://x/v.mp4"}})
+        return httpx.Response(200, json=charge,
+                              request=httpx.Request("GET", url))
+
+    monkeypatch.setattr("httpx.get", _faux_get)
+    monkeypatch.setattr(fal, "_entetes", lambda: {})
+    monkeypatch.setattr(fal.time, "sleep", lambda _: None)
+
+    fal._attendre("fal-ai/kling-video/v2/standard/image-to-video", "req1", 60)
+    assert vues[0] == (
+        "https://queue.fal.run/fal-ai/kling-video/requests/req1/status"
+    )
+
+
+def test_lurl_de_file_du_modele_danimation_reellement_utilise():
+    """Non-régression sur le modèle exact de modeles.yaml : c'est celui-ci
+    qui a produit des épisodes sans animation."""
+    modele = registre().modeles["fal-ai/kling-video/v2/standard/image-to-video"]
+    base = base_file(modele.id)
+    assert base.count("/") == 4, f"sous-chemin non retiré : {base}"
+    assert "v2" not in base and "standard" not in base
 
 
 # ── Image de référence ───────────────────────────────────────────────────

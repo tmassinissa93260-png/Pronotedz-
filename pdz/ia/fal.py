@@ -203,11 +203,16 @@ def animer_image(
         raise ErreurReseau(f"fal.ai injoignable (animation) : {e}") from e
     _lever(r, "animation")
 
-    requete = r.json().get("request_id")
+    charge = r.json()
+    requete = charge.get("request_id")
     if not requete:
         raise ErreurValidation("fal.ai n'a pas renvoyé d'identifiant de requête.")
 
-    url = _attendre(modele.id, requete, attente_max_s)
+    # fal.ai renvoie lui-même les URL de suivi : les utiliser vaut mieux que
+    # les reconstruire, elles restent justes même si leur forme change.
+    url = _attendre(modele.id, requete, attente_max_s,
+                    url_statut=charge.get("status_url"),
+                    url_resultat=charge.get("response_url"))
     _telecharger(url, destination)
 
     duree_ms = int((time.perf_counter() - debut) * 1000)
@@ -218,28 +223,48 @@ def animer_image(
     return destination, cout_prevu
 
 
-def _attendre(modele_id: str, requete: str, attente_max_s: int) -> str:
+def base_file(modele_id: str) -> str:
+    """L'URL de file d'un modèle : propriétaire + application, SANS le sous-chemin.
+
+    fal.ai documente que le sous-chemin d'un modèle (« /dev » pour
+    `fal-ai/flux/dev`, « /v2/standard/image-to-video » pour
+    `fal-ai/kling-video/…`) sert à SOUMETTRE la requête mais pas à en suivre
+    l'état : le suivi se fait sur `fal-ai/flux` et `fal-ai/kling-video`.
+
+    Mesuré en conditions réelles : reconstruire l'URL complète donnait un
+    404 à chaque interrogation. Comme une animation ratée est rattrapée en
+    image fixe pour ne pas perdre l'épisode, la vidéo sortait sans aucune
+    animation et sans erreur visible — le pire des deux mondes.
+    """
+    proprietaire, application = modele_id.split("/")[:2]
+    return f"{FILE}/{proprietaire}/{application}"
+
+
+def _attendre(modele_id: str, requete: str, attente_max_s: int, *,
+              url_statut: str | None = None,
+              url_resultat: str | None = None) -> str:
     """Interroge la file jusqu'à ce que le rendu soit prêt.
 
     L'intervalle grandit progressivement : inutile de marteler le serveur
     pendant les vingt premières secondes, où rien n'est jamais prêt.
     """
-    base = f"{FILE}/{modele_id.split('/')[0]}/{modele_id.split('/', 1)[1]}"
+    base = base_file(modele_id)
+    url_statut = url_statut or f"{base}/requests/{requete}/status"
+    url_resultat = url_resultat or f"{base}/requests/{requete}"
     debut, intervalle = time.monotonic(), 3.0
 
     while time.monotonic() - debut < attente_max_s:
         time.sleep(intervalle)
         intervalle = min(intervalle * 1.35, 15.0)
         try:
-            s = httpx.get(f"{base}/requests/{requete}/status",
-                          headers=_entetes(), timeout=60)
+            s = httpx.get(url_statut, headers=_entetes(), timeout=60)
         except httpx.HTTPError as e:
             raise ErreurReseau(f"Suivi de file impossible : {e}") from e
         _lever(s, "suivi d'animation")
 
         etat = s.json().get("status")
         if etat == "COMPLETED":
-            r = httpx.get(f"{base}/requests/{requete}", headers=_entetes(), timeout=120)
+            r = httpx.get(url_resultat, headers=_entetes(), timeout=120)
             _lever(r, "résultat d'animation")
             return url_video(r.json())
         if etat in ("FAILED", "CANCELLED"):
