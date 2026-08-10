@@ -145,6 +145,25 @@ def mots_par_replique(duree_s: float, nb_repliques: int,
     return [max(4, round(duree * debit_wpm / 60)) for _ in range(nb_repliques)]
 
 
+def positions_relance_par_defaut(duree_s: float, nb_repliques: int,
+                                 intervalle_s: float = 17.5) -> list[int]:
+    """À quelles répliques imposer une relance, faute de positions mesurées
+    sur une référence — une toutes les 15 à 20 s (CONTRAINTES ABSOLUES #6).
+
+    Mesuré en conditions réelles avec Llama/Groq : la consigne en texte
+    libre ne suffit pas, le modèle écrit un script entier sans jamais cocher
+    `relance` sur aucune réplique. Lui donner les numéros exacts au lieu de
+    le laisser deviner le timing élimine le problème à la source — même
+    principe que l'`enum` des identifiants de personnage.
+    """
+    if nb_repliques <= 0:
+        return []
+    duree_par_replique = duree_s / nb_repliques
+    pas = max(1, round(intervalle_s / duree_par_replique))
+    positions = list(range(pas, nb_repliques, pas))
+    return positions or [max(1, nb_repliques // 2)]
+
+
 def nb_plans_pour(duree_s: float, secondes_par_plan: float = 1.75) -> int:
     """Combien de changements visuels — repère 2026 : un toutes les 1,5 à 2 s.
 

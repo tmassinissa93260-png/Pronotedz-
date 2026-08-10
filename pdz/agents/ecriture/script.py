@@ -12,7 +12,13 @@ from __future__ import annotations
 import copy
 from typing import Any
 
-from pdz.agents.base import Agent, mots_par_replique, nb_plans_pour, nb_repliques_pour
+from pdz.agents.base import (
+    Agent,
+    mots_par_replique,
+    nb_plans_pour,
+    nb_repliques_pour,
+    positions_relance_par_defaut,
+)
 from pdz.analyse.adn import Adn
 from pdz.moteur.erreurs import ErreurValidation
 from pdz.moteur.pipeline import Contexte
@@ -21,7 +27,7 @@ from pdz.univers import Univers
 
 class ScriptWriter(Agent):
     nom = "script"
-    version = "1.1.0"
+    version = "1.2.0"
     prompt_ref = "ecriture/script"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
@@ -52,7 +58,7 @@ class ScriptWriter(Agent):
                 # Indicatif : le Storyboard fera le découpage réel.
                 "nb_plans_vises": nb_plans_pour(duree),
                 "forme_mesuree": "",
-                "repliques_de_relance": [],
+                "repliques_de_relance": positions_relance_par_defaut(duree, repliques),
                 "duree_hook_s": 0,
             }
 

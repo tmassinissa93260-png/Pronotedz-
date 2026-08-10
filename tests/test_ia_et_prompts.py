@@ -9,7 +9,12 @@ from pathlib import Path
 
 import pytest
 
-from pdz.agents.base import mots_par_replique, nb_plans_pour, nb_repliques_pour
+from pdz.agents.base import (
+    mots_par_replique,
+    nb_plans_pour,
+    nb_repliques_pour,
+    positions_relance_par_defaut,
+)
 from pdz.agents.ecriture.script import ScriptWriter
 from pdz.ia.registre import registre
 from pdz.moteur.erreurs import ErreurConfig, ErreurValidation
@@ -67,6 +72,32 @@ def test_il_y_a_environ_deux_plans_par_replique(duree):
 def test_les_repliques_font_une_longueur_dicible():
     mots = mots_par_replique(45, nb_repliques_pour(45))
     assert all(7 <= m <= 12 for m in mots), mots
+
+
+# ── Positions de relance par défaut, sans référence ──────────────────────
+
+def test_les_positions_de_relance_par_defaut_ne_sont_jamais_vides():
+    """Mesuré en conditions réelles avec Llama/Groq : une liste vide laisse
+    le modèle deviner le timing, et il rend parfois un script sans aucune
+    relance cochée. Sans référence, une liste calculée remplace la vide."""
+    for duree in (30, 45, 90):
+        assert positions_relance_par_defaut(duree, nb_repliques_pour(duree))
+
+
+def test_les_positions_de_relance_respectent_lintervalle_de_15_a_20s():
+    duree, repliques = 90, nb_repliques_pour(90)
+    duree_par_replique = duree / repliques
+    positions = positions_relance_par_defaut(duree, repliques)
+    ecarts = [b - a for a, b in zip(positions, positions[1:])]
+    for ecart in ecarts:
+        assert 15 <= ecart * duree_par_replique <= 20
+
+
+def test_les_positions_de_relance_restent_dans_les_repliques():
+    for duree in (20, 30, 45, 90, 180):
+        repliques = nb_repliques_pour(duree)
+        for pos in positions_relance_par_defaut(duree, repliques):
+            assert 1 <= pos < repliques
 
 
 # ── Prompts versionnés ───────────────────────────────────────────────────
