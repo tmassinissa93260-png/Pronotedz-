@@ -100,13 +100,22 @@ class Registre:
 
     def resoudre(self, alias: str, *, profil: str = "equilibre",
                  budget_restant_pct: float = 100.0,
-                 repli_si_cle_absente: bool = False) -> Resolution:
+                 repli_si_cle_absente: bool = False,
+                 capacite_requise: str | None = None) -> Resolution:
         """alias → modèle concret, en tenant compte du profil et du budget.
 
         Ordre de priorité, du plus fort au plus faible :
           1. les règles de budget (elles peuvent tout écraser)
           2. le profil actif
           3. l'alias par défaut
+
+        `capacite_requise` exprime ce dont l'appel a réellement besoin — un
+        agent qui envoie des images demande « vision ». Si le modèle retenu
+        par le profil ne sait pas le faire, on prend celui qui sait plutôt
+        que d'aller échouer chez le fournisseur. C'est ce qui permet à
+        `charte` de tourner en profil gratuit sans que le profil ait à
+        connaître, alias par alias, lesquels de ses agents regardent des
+        images.
 
         `repli_si_cle_absente` ajoute une dernière étape : si la clé du
         fournisseur retenu n'est pas renseignée, prendre un modèle de même
@@ -159,6 +168,27 @@ class Registre:
                           f"{equivalent.fournisseur}")
                 modele = equivalent
 
+        # La capacité passe en DERNIER, volontairement : le repli de clé
+        # choisit sur la parenté des capacités (`fait` en commun), pas sur
+        # celle qu'on exige ici. Placé avant, il pouvait défaire la garantie
+        # — `equilibre` sans clé Anthropic retombait sur un modèle sans
+        # vision, et `charte` repartait échouer chez le fournisseur.
+        if capacite_requise and capacite_requise not in modele.fait:
+            capable = self._capable(capacite_requise,
+                                    exiger_cle=repli_si_cle_absente)
+            if capable is None:
+                raise ErreurConfig(
+                    f"Cette étape a besoin de « {capacite_requise} », que "
+                    f"« {modele.id} » ne sait pas faire, et aucun modèle "
+                    f"utilisable ne le sait non plus. Renseigne la clé d'un "
+                    f"fournisseur qui en propose un — voir `fait: "
+                    f"[{capacite_requise}]` dans modeles.yaml."
+                )
+            log.info("« %s » ne fait pas %s : %s prend le relais.",
+                     modele.id, capacite_requise, capable.id)
+            modele = capable
+            raison = f"{capacite_requise} requise"
+
         replis = [entree["repli"]] if "repli" in entree else []
         return Resolution(
             modele=modele, alias=alias, replis=replis,
@@ -197,6 +227,20 @@ class Registre:
         if "cle" not in infos:
             return True
         return bool(getattr(config(), infos["cle"], ""))
+
+    def _capable(self, capacite: str, *, exiger_cle: bool) -> Modele | None:
+        """Le premier modèle sachant faire `capacite`, clé disponible si exigée.
+
+        L'ordre de `modeles.yaml` fait office de préférence : le meilleur
+        modèle d'une capacité s'y déclare avant ses replis.
+        """
+        for candidat in self.modeles.values():
+            if capacite not in candidat.fait:
+                continue
+            if exiger_cle and not self.cle_disponible(candidat.fournisseur):
+                continue
+            return candidat
+        return None
 
     def _equivalent_disponible(self, modele: Modele) -> Modele | None:
         """Un modèle de même capacité chez un fournisseur utilisable.

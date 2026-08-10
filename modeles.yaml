@@ -71,6 +71,22 @@ modeles:
     prix: { entree_par_million: 0.0, sortie_par_million: 0.0 }
     sorties_structurees: true
 
+  # Le seul modèle GRATUIT capable de VISION : c'est lui qui permet à
+  # `charte` (lire le style d'une vidéo de référence) de tourner sans crédit
+  # Anthropic. Déclaré avant les modèles Anthropic pour rien — l'ordre ne
+  # compte que entre modèles d'une même capacité, et `_capable()` prend le
+  # premier qui sait faire ET dont la clé est là.
+  # ⚠️ Deux limites réelles : 5 images par requête au maximum (l'analyse en
+  # extrait 6, la dernière est écartée), et Groq a déjà retiré un modèle de
+  # vision de son offre gratuite en juin 2026 — si celui-ci disparaît à son
+  # tour, `pdz cles` et l'erreur de `charte` le diront clairement.
+  - id: meta-llama/llama-4-maverick-17b-128e-instruct
+    fournisseur: groq
+    fait: [vision, analyse]
+    contexte: 128000
+    prix: { entree_par_million: 0.0, sortie_par_million: 0.0 }
+    sorties_structurees: true
+
   # Alternative GRATUITE à fal.ai, pour illustrer sans carte bancaire. Sert
   # le profil « gratuit ». Contrepartie : pas d'image de référence en entrée,
   # donc les personnages sont moins constants d'un plan à l'autre qu'avec
@@ -170,9 +186,9 @@ profils:
     plans_animes_max: 12
   # Zéro euro, aucune carte bancaire : Llama via Groq pour écrire, Pollinations
   # pour illustrer. Demande une clé GROQ_API_KEY (gratuite, sans carte, sur
-  # console.groq.com) ; aucune clé pour les images. `pdz charte` (analyse
-  # d'une vidéo, qui a besoin de vision) reste hors de portée de ce profil —
-  # voir modeles.yaml plus haut. Les personnages seront moins constants d'un
+  # console.groq.com) ; aucune clé pour les images. `pdz charte` fonctionne
+  # aussi : le registre bascule tout seul sur le modèle Groq de vision quand
+  # un agent envoie des images. Les personnages seront moins constants d'un
   # plan à l'autre qu'avec fal.ai — voir pdz/ia/pollinations.py.
   gratuit:
     qualite: llama-3.3-70b-versatile

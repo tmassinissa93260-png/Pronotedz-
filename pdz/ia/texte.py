@@ -32,6 +32,7 @@ async def appeler(
     alias: str,
     profil: str = "equilibre",
     budget_restant_pct: float = 100.0,
+    images: list | None = None,
     **kwargs: Any,
 ):
     """Résout l'alias, puis délègue au bon fournisseur.
@@ -40,9 +41,14 @@ async def appeler(
     c'est une simple lecture de dictionnaire, sans coût, et ça évite de
     faire porter à chaque adaptateur la connaissance des autres.
     """
+    # Les images décident du fournisseur autant que l'alias : un agent qui en
+    # envoie a besoin d'un modèle qui sache les lire, même si le profil
+    # désigne autre chose. La résolution est refaite à l'identique dans
+    # l'adaptateur choisi, qui reçoit les mêmes paramètres.
     modele = registre().resoudre(
         alias, profil=profil, budget_restant_pct=budget_restant_pct,
         repli_si_cle_absente=True,
+        capacite_requise="vision" if images else None,
     ).modele
 
     adaptateur = ADAPTATEURS.get(modele.fournisseur)
@@ -56,5 +62,5 @@ async def appeler(
 
     return await adaptateur(
         alias=alias, profil=profil, budget_restant_pct=budget_restant_pct,
-        **kwargs,
+        images=images, **kwargs,
     )

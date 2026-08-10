@@ -92,7 +92,8 @@ async def appeler(
     """
     reg = registre()
     res = reg.resoudre(alias, profil=profil, budget_restant_pct=budget_restant_pct,
-                       repli_si_cle_absente=True)
+                       repli_si_cle_absente=True,
+                       capacite_requise="vision" if images else None)
     modele = res.modele
 
     # Bloc système : la partie stable est marquée pour le cache.

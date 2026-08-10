@@ -119,6 +119,57 @@ def test_un_fournisseur_sans_cle_declaree_est_toujours_disponible():
     assert registre().cle_disponible("pollinations")
 
 
+# ── Capacité exigée par l'appel (vision) ─────────────────────────────────
+
+def test_une_capacite_manquante_fait_changer_de_modele(monkeypatch):
+    """`charte` envoie des images sous l'alias « qualite », que le profil
+    gratuit résout vers un modèle sans vision."""
+    _sans_anthropic(monkeypatch)
+    res = registre().resoudre("qualite", profil="gratuit",
+                              repli_si_cle_absente=True,
+                              capacite_requise="vision")
+    assert "vision" in res.modele.fait
+    assert res.modele.fournisseur == "groq"
+
+
+def test_la_capacite_survit_au_repli_de_cle(monkeypatch):
+    """Non-régression : le repli de clé choisit sur les capacités en commun,
+    pas sur celle qu'on exige. Appliqué après le contrôle de capacité, il
+    ramenait `equilibre` sans clé Anthropic vers un modèle sans vision."""
+    _sans_anthropic(monkeypatch)
+    res = registre().resoudre("qualite", profil="equilibre",
+                              repli_si_cle_absente=True,
+                              capacite_requise="vision")
+    assert "vision" in res.modele.fait, f"{res.modele.id} ne fait pas de vision"
+
+
+def test_avec_une_cle_anthropic_la_vision_reste_chez_claude(monkeypatch):
+    """Le modèle gratuit de vision est un dépannage, pas une rétrogradation
+    imposée à qui a payé."""
+    _config_avec(monkeypatch, anthropic_api_key="sk-ant-x", groq_api_key="gsk_x")
+    res = registre().resoudre("qualite", profil="equilibre",
+                              repli_si_cle_absente=True,
+                              capacite_requise="vision")
+    assert res.modele.fournisseur == "anthropic"
+
+
+def test_sans_aucun_modele_capable_le_message_est_explicite(monkeypatch):
+    _config_avec(monkeypatch)
+    with pytest.raises(ErreurConfig) as e:
+        registre().resoudre("qualite", profil="gratuit",
+                            repli_si_cle_absente=True,
+                            capacite_requise="vision")
+    assert "vision" in str(e.value) and "modeles.yaml" in str(e.value)
+
+
+def test_une_capacite_deja_presente_ne_change_rien():
+    """`claude-sonnet-5` fait déjà de la vision : aucune substitution."""
+    sans = registre().resoudre("qualite", profil="equilibre")
+    avec = registre().resoudre("qualite", profil="equilibre",
+                               capacite_requise="vision")
+    assert sans.modele.id == avec.modele.id
+
+
 def test_le_cache_reduit_le_cout():
     m = registre().modeles["claude-sonnet-5"]
     sans = m.cout_texte(entree=4000, sortie=1500)

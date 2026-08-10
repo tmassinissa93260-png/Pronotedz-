@@ -59,12 +59,12 @@ même toi, tu ne peux que les remplacer.
 > la place de fal.ai — tu n'as alors ni `ANTHROPIC_API_KEY` ni `FAL_KEY` à
 > renseigner du tout.
 >
-> Trois limites à connaître : l'écriture est probablement un peu moins fine,
-> les personnages sont moins constants d'un plan à l'autre qu'avec fal.ai
-> (Pollinations ne prend pas d'image de référence), et **l'analyse d'une
-> vidéo de référence** (`analyser`, `charte`) reste hors de portée de ce
-> profil — elle a besoin de « voir » les images, ce que Llama ne sait pas
-> faire. Dire et monter fonctionnent normalement.
+> Deux limites à connaître : l'écriture est probablement un peu moins fine,
+> et les personnages sont moins constants d'un plan à l'autre qu'avec fal.ai
+> (Pollinations ne prend pas d'image de référence). Tout le reste — écrire,
+> dire, illustrer, monter, **et analyser une vidéo de référence** — marche
+> normalement : la vision passe par un second modèle Groq, choisi
+> automatiquement (voir l'étape 5).
 >
 > Déjà de la carte sur fal.ai mais pas encore sur Anthropic ? Le profil
 > **`hybride`** écrit gratuitement avec Groq et illustre avec fal.ai — de
@@ -154,14 +154,26 @@ cadence de coupe, le débit de parole et les remontées d'énergie.
 L'épisode épouse alors le rythme de la référence, sans rien reprendre de son
 contenu.
 
-### Copier le **style visuel** — demande du crédit Anthropic
+### Copier le **style visuel** — gratuit aussi
 
 `charte` doit *regarder* les images pour décrire le style et les
-personnages : c'est de la vision, que seul Claude sait faire ici. Cette
-étape-là demande donc `ANTHROPIC_API_KEY` avec du crédit. Les personnages
-sont **transposés** (on garde l'archétype et la patte graphique, on change
-ce qui identifie) — recopier un personnage protégé n'est pas une option du
-programme.
+personnages. Avec `GROQ_API_KEY`, le programme prend tout seul un modèle
+Groq capable de vision : **aucun crédit Anthropic nécessaire**.
+
+1. **Produire** → `charte`, ta vidéo dans *Vidéo de référence*
+2. Dans *Univers*, mets l'identifiant du **nouvel** univers à créer
+   (ex. `mon-univers`) — surtout pas `fruit-island`, tu l'écraserais
+3. Puis `voix` sur ce nouvel univers, et enfin `episode`
+
+Les personnages sont **transposés** : on garde l'archétype et la patte
+graphique, on change ce qui identifie. Recopier un personnage protégé n'est
+pas une option du programme.
+
+> Deux limites à connaître : Groq n'accepte que 5 images par requête là où
+> l'analyse en extrait 6 (la dernière est écartée, l'analyse porte donc sur
+> un échantillon un peu plus étroit), et si tu as du crédit Anthropic, c'est
+> Claude qui garde la main — il lit les détails de costume que le modèle
+> gratuit manque.
 
 ## Si ça s'arrête en cours de route
 

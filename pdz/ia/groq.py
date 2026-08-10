@@ -6,11 +6,13 @@ qu'elle (sortie structurée forcée, coût mesuré) mais avec un modèle Llama
 hébergé par Groq, dont le palier gratuit sert des dizaines de milliers de
 jetons par jour sans carte bancaire.
 
+La **vision** passe par un modèle distinct (Llama 4 Maverick) : le registre
+le choisit tout seul dès qu'un agent envoie des images, sans que le profil
+ait à le savoir. Groq plafonne à 5 images par requête, contre 6 images-clés
+extraites par l'analyse — la dernière est écartée, avec un avertissement.
+
 Ce que ça **ne** fait **pas** — à savoir avant de basculer dessus :
 
-  · **pas de vision.** Le modèle est en texte seul. Un agent qui envoie des
-    images (`analyse/charte`, pour regarder une vidéo de référence) échouera
-    ici avec un message clair plutôt qu'une erreur HTTP obscure.
   · **pas de cache de prompt.** Claude relit le contexte d'univers à 10 % du
     prix sur une série ; Groq n'a pas cet équivalent documenté. Sans
     conséquence sur le coût puisque c'est déjà gratuit, mais la facture
@@ -28,8 +30,10 @@ moment de l'écriture — si Groq l'a renommé, l'appel échouera avec un messag
 
 from __future__ import annotations
 
+import base64
 import json
 import logging
+import mimetypes
 import time
 from pathlib import Path
 from typing import Any
@@ -48,6 +52,41 @@ from pdz.moteur.erreurs import (
 )
 
 log = logging.getLogger(__name__)
+
+# Groq documente 5 images par requête au maximum pour ses modèles de vision.
+# L'analyse visuelle en extrait 6 : au-delà, on écarte plutôt que de laisser
+# le fournisseur refuser toute la requête.
+IMAGES_MAX = 5
+
+
+def _data_uri(chemin: Path) -> str:
+    mime = mimetypes.guess_type(chemin.name)[0] or "image/jpeg"
+    return f"data:{mime};base64,{base64.b64encode(chemin.read_bytes()).decode()}"
+
+
+def _contenu_utilisateur(message: str, images: list[Path] | None):
+    """Le message utilisateur, au format OpenAI.
+
+    Sans image, une simple chaîne — c'est la forme que tous les modèles
+    acceptent, y compris ceux qui ne font pas de vision. Avec images, une
+    liste de blocs typés. Le texte passe en premier : les modèles
+    multimodaux suivent mieux une consigne posée avant ce qu'elle décrit.
+    """
+    if not images:
+        return message
+
+    retenues = images[:IMAGES_MAX]
+    if len(images) > IMAGES_MAX:
+        log.warning(
+            "%d images fournies, %d envoyées : Groq n'en accepte pas plus. "
+            "L'analyse porte donc sur un échantillon un peu plus étroit.",
+            len(images), IMAGES_MAX,
+        )
+    return [
+        {"type": "text", "text": message},
+        *({"type": "image_url", "image_url": {"url": _data_uri(c)}}
+          for c in retenues),
+    ]
 
 
 class ReponseGroq:
@@ -95,17 +134,10 @@ async def appeler(
 ) -> ReponseGroq:
     """Même contrat que `pdz.ia.claude.appeler` — voir ce module pour le détail
     des paramètres. Seule la mécanique HTTP change (API compatible OpenAI)."""
-    if images:
-        raise ErreurConfig(
-            "Cet agent envoie des images, et le modèle gratuit (Groq/Llama) "
-            "ne fait pas de vision. Cette étape a besoin de crédit Anthropic "
-            "— console.anthropic.com → Billing — ou reste réservée au profil "
-            "par défaut."
-        )
-
     reg = registre()
     res = reg.resoudre(alias, profil=profil, budget_restant_pct=budget_restant_pct,
-                       repli_si_cle_absente=True)
+                       repli_si_cle_absente=True,
+                       capacite_requise="vision" if images else None)
     modele = res.modele
 
     systeme = systeme_stable
@@ -117,7 +149,7 @@ async def appeler(
         "max_tokens": max_tokens,
         "messages": [
             {"role": "system", "content": systeme},
-            {"role": "user", "content": message},
+            {"role": "user", "content": _contenu_utilisateur(message, images)},
         ],
         # Format OpenAI : « function », pas « tool » comme chez Anthropic —
         # c'est la seule vraie différence de forme entre les deux API.

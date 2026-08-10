@@ -125,22 +125,48 @@ def test_le_modele_gratuit_coute_zero():
     assert reponse.economie_cache == 0.0
 
 
-# ── Vision : le modèle gratuit ne sait pas en faire ──────────────────────
+# ── Vision ───────────────────────────────────────────────────────────────
+# `charte` lit des images ; le modèle d'écriture gratuit n'en est pas
+# capable, un autre modèle Groq l'est. Le registre choisit, l'adaptateur
+# encode.
 
-def test_des_images_sont_refusees_avec_un_message_utile():
-    import asyncio
+def test_sans_image_le_message_reste_une_simple_chaine():
+    """La forme « liste de blocs » n'est pas acceptée par tous les modèles :
+    on ne la sort que quand il y a vraiment des images."""
+    assert groq._contenu_utilisateur("bonjour", None) == "bonjour"
+    assert groq._contenu_utilisateur("bonjour", []) == "bonjour"
 
-    async def appel():
-        await groq.appeler(
-            alias="qualite", systeme_stable="x", message="y",
-            schema_sortie={}, images=[__import__("pathlib").Path("x.png")],
-            profil="gratuit",
-        )
 
-    with pytest.raises(ErreurConfig) as e:
-        asyncio.run(appel())
-    assert "vision" in str(e.value)
-    assert "Anthropic" in str(e.value)
+def test_les_images_partent_en_blocs_typees_apres_le_texte(tmp_path):
+    from PIL import Image
+
+    chemins = []
+    for i in range(3):
+        p = tmp_path / f"i{i}.jpg"
+        Image.new("RGB", (32, 32), (i * 40, 60, 90)).save(p)
+        chemins.append(p)
+
+    contenu = groq._contenu_utilisateur("décris", chemins)
+    assert contenu[0] == {"type": "text", "text": "décris"}
+    assert len(contenu) == 4
+    for bloc in contenu[1:]:
+        assert bloc["type"] == "image_url"
+        assert bloc["image_url"]["url"].startswith("data:image/jpeg;base64,")
+
+
+def test_pas_plus_de_cinq_images(tmp_path):
+    """Groq plafonne à 5 images ; l'analyse visuelle en extrait 6. Écarter
+    la sixième vaut mieux que voir toute la requête refusée."""
+    from PIL import Image
+
+    chemins = []
+    for i in range(6):
+        p = tmp_path / f"i{i}.jpg"
+        Image.new("RGB", (32, 32), (i * 30, 60, 90)).save(p)
+        chemins.append(p)
+
+    contenu = groq._contenu_utilisateur("décris", chemins)
+    assert sum(1 for b in contenu if b["type"] == "image_url") == groq.IMAGES_MAX
 
 
 # ── Le dispatcher : chaque alias va au bon fournisseur ───────────────────
