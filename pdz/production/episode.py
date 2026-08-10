@@ -213,14 +213,21 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
             # que l'image dure aussi longtemps que le son.
             "durees_couvrantes_s": bande.durees_couvrantes_s,
             "mots": [[m.texte, m.debut_ms, m.fin_ms] for m in bande.mots],
+            # Les frontières entre répliques : sans elles, un sous-titre peut
+            # mêler les paroles de deux personnages.
+            "debuts_repliques": sorted(bande.debuts_de_replique),
         }, 0.0, int((time.perf_counter() - debut) * 1000))
         durees = bande.durees_couvrantes_s
         mots = bande.mots
+        debuts_repliques = bande.debuts_de_replique
     else:
         repris.append("voix")
         piste = Path(fait_voix["fichier"])
         durees = fait_voix["durees_couvrantes_s"]
         mots = [soustitres.Mot(t, d, f) for t, d, f in fait_voix["mots"]]
+        # `.get` : une production notée avant l'ajout de ce champ se reprend
+        # sans lui plutôt que d'échouer.
+        debuts_repliques = frozenset(fait_voix.get("debuts_repliques") or [])
 
     # ── 3. Découpage ─────────────────────────────────────────────────────
     plans = storyboard.decouper(repliques, durees, univers)
@@ -282,7 +289,8 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     fichier_ass = travail / "soustitres.ass"
     fichier_ass.write_text(
         soustitres.generer_ass(mots, largeur=cfg.largeur, hauteur=cfg.hauteur,
-                               style=style_soustitres),
+                               style=style_soustitres,
+                               debuts_de_replique=debuts_repliques),
         encoding="utf-8",
     )
 

@@ -75,6 +75,15 @@ class BandeVoix:
         return [m for r in self.repliques for m in r.mots]
 
     @property
+    def debuts_de_replique(self) -> frozenset[int]:
+        """Les millisecondes où une nouvelle réplique commence.
+
+        Sert aux sous-titres : une carte qui enjambe cette frontière mêle
+        les paroles de deux personnages sur la même ligne.
+        """
+        return frozenset(r.mots[0].debut_ms for r in self.repliques if r.mots)
+
+    @property
     def durees_repliques_s(self) -> list[float]:
         """Le temps de parole pur, silences exclus."""
         return [r.duree_ms / 1000 for r in self.repliques]

@@ -80,16 +80,31 @@ class Carte:
         return self.mots[-1].fin_ms
 
 
-def decouper_en_cartes(mots: list[Mot], par_carte: int = 3) -> list[Carte]:
+def decouper_en_cartes(mots: list[Mot], par_carte: int = 3, *,
+                       debuts_de_replique: frozenset[int] = frozenset()
+                       ) -> list[Carte]:
     """Groupe les mots par paquets lisibles.
 
-    Une coupure est forcée sur la ponctuation forte : afficher « bien. Mais »
-    ensemble casse la lecture.
+    Deux coupures sont forcées, avant même le compte de mots :
+
+    · la **ponctuation forte** — afficher « bien. Mais » ensemble casse la
+      lecture ;
+    · le **changement de réplique** — une carte qui enjambe deux répliques
+      mêle les paroles de deux personnages. Mesuré en conditions réelles :
+      « dire ça Je » réunissait la fin d'une phrase de Bananito et le début
+      d'une phrase d'Avocado, sur la même ligne. La ponctuation seule ne
+      suffit pas : une réplique ne se termine pas toujours par un point.
+
+    `debuts_de_replique` contient les millisecondes de début de chaque
+    réplique sur la piste complète (voir `BandeVoix.debuts_de_replique`).
     """
     cartes: list[Carte] = []
     courante: list[Mot] = []
 
     for mot in mots:
+        if courante and mot.debut_ms in debuts_de_replique:
+            cartes.append(Carte(courante))
+            courante = []
         courante.append(mot)
         fin_de_phrase = mot.texte.rstrip()[-1:] in ".!?…"
         if len(courante) >= par_carte or fin_de_phrase:
@@ -111,10 +126,12 @@ def _ass_temps(ms: int) -> str:
 
 
 def generer_ass(mots: list[Mot], *, largeur: int = 1080, hauteur: int = 1920,
-                style: StyleSousTitres | None = None) -> str:
+                style: StyleSousTitres | None = None,
+                debuts_de_replique: frozenset[int] = frozenset()) -> str:
     """Produit un fichier ASS complet, prêt pour `ffmpeg -vf ass=...`."""
     st = style or StyleSousTitres()
-    cartes = decouper_en_cartes(mots, st.mots_par_carte)
+    cartes = decouper_en_cartes(mots, st.mots_par_carte,
+                                debuts_de_replique=debuts_de_replique)
 
     # ASS positionne depuis le bas quand l'alignement est 2 (bas-centre).
     marge_basse = round(hauteur * (1 - st.position_ratio))

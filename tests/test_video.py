@@ -35,6 +35,46 @@ def test_la_ponctuation_coupe_la_carte():
     assert len(cartes) == 2, "« Bien. » doit finir sa carte"
 
 
+def test_une_carte_nenjambe_jamais_deux_repliques():
+    """Mesuré en conditions réelles : « dire ça Je » réunissait la fin d'une
+    réplique de Bananito et le début d'une réplique d'Avocado. Une réplique
+    ne finit pas toujours par un point, donc la ponctuation ne suffit pas."""
+    mots = [Mot(t, i * 100, i * 100 + 100)
+            for i, t in enumerate(["dire", "ça", "Je", "sais"])]
+    # « Je » ouvre une nouvelle réplique, à 200 ms.
+    cartes = decouper_en_cartes(mots, par_carte=3,
+                                debuts_de_replique=frozenset({200}))
+    assert [m.texte for m in cartes[0].mots] == ["dire", "ça"]
+    assert [m.texte for m in cartes[1].mots] == ["Je", "sais"]
+
+
+def test_sans_frontiere_connue_le_decoupage_ne_change_pas():
+    """Non-régression : une production reprise d'avant l'ajout des frontières
+    doit se comporter exactement comme avant."""
+    mots = [Mot(t, i * 100, i * 100 + 100)
+            for i, t in enumerate(["un", "deux", "trois", "quatre"])]
+    assert (decouper_en_cartes(mots, par_carte=3)
+            == decouper_en_cartes(mots, par_carte=3,
+                                  debuts_de_replique=frozenset()))
+
+
+def test_les_frontieres_de_repliques_viennent_de_la_bande():
+    from pdz.production.voix import BandeVoix, RepliqueDite
+
+    bande = BandeVoix(
+        fichier=Path("v.m4a"), duree_ms=4000,
+        repliques=[
+            RepliqueDite(numero=1, personnage="a", texte="Salut toi",
+                         fichier=Path("a.mp3"), debut_ms=0, duree_ms=1000,
+                         mots=[Mot("Salut", 0, 400), Mot("toi", 400, 900)]),
+            RepliqueDite(numero=2, personnage="b", texte="Je sais",
+                         fichier=Path("b.mp3"), debut_ms=1200, duree_ms=900,
+                         mots=[Mot("Je", 1200, 1500), Mot("sais", 1500, 2000)]),
+        ],
+    )
+    assert bande.debuts_de_replique == frozenset({0, 1200})
+
+
 def test_le_ass_contient_les_balises_karaoke():
     ass = generer_ass(mots_depuis_texte("un deux trois", 0, 1500))
     assert "[V4+ Styles]" in ass and "Dialogue:" in ass
