@@ -130,6 +130,70 @@ def test_le_modele_gratuit_coute_zero():
 # capable, un autre modèle Groq l'est. Le registre choisit, l'adaptateur
 # encode.
 
+# ── Booléens rendus en texte ─────────────────────────────────────────────
+# Llama écrit « "true" » là où le schéma demande `true`. Groq valide le
+# schéma sur son serveur : un seul champ de travers et toute la réponse est
+# refusée (400), après avoir été écrite. On assouplit à l'envoi et on rend
+# leur type à la lecture, sans toucher au schéma du domaine.
+
+def _schema_avec_booleen():
+    return {
+        "type": "object",
+        "properties": {
+            "repliques": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "numero": {"type": "integer"},
+                        "relance": {"type": "boolean"},
+                    },
+                },
+            },
+        },
+    }
+
+
+def test_le_schema_envoye_accepte_aussi_une_chaine():
+    assoupli = groq._assouplir_booleens(_schema_avec_booleen())
+    relance = assoupli["properties"]["repliques"]["items"]["properties"]["relance"]
+    assert relance["type"] == ["boolean", "string"]
+
+
+def test_le_schema_du_domaine_nest_pas_modifie():
+    """L'assouplissement est un pansement propre à Groq : Anthropic doit
+    continuer à recevoir le schéma exact."""
+    base = _schema_avec_booleen()
+    groq._assouplir_booleens(base)
+    relance = base["properties"]["repliques"]["items"]["properties"]["relance"]
+    assert relance["type"] == "boolean"
+
+
+@pytest.mark.parametrize("brut,attendu", [
+    ("true", True), ("True", True), ("vrai", True), ("oui", True), ("1", True),
+    ("false", False), ("False", False), ("non", False), ("", False),
+])
+def test_les_booleens_en_texte_retrouvent_leur_type(brut, attendu):
+    sortie = groq._durcir_booleens(
+        {"repliques": [{"numero": 1, "relance": brut}]}, _schema_avec_booleen(),
+    )
+    assert sortie["repliques"][0]["relance"] is attendu
+
+
+def test_un_vrai_booleen_traverse_intact():
+    sortie = groq._durcir_booleens(
+        {"repliques": [{"numero": 1, "relance": True}]}, _schema_avec_booleen(),
+    )
+    assert sortie["repliques"][0]["relance"] is True
+
+
+def test_les_autres_champs_ne_sont_pas_touches():
+    sortie = groq._durcir_booleens(
+        {"repliques": [{"numero": 3, "relance": "true"}]}, _schema_avec_booleen(),
+    )
+    assert sortie["repliques"][0]["numero"] == 3
+
+
 def test_sans_image_le_message_reste_une_simple_chaine():
     """La forme « liste de blocs » n'est pas acceptée par tous les modèles :
     on ne la sort que quand il y a vraiment des images."""

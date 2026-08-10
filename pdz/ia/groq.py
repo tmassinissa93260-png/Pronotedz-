@@ -58,6 +58,47 @@ log = logging.getLogger(__name__)
 # le fournisseur refuser toute la requête.
 IMAGES_MAX = 5
 
+# Llama rend volontiers « "true" » là où le schéma demande `true`. Groq
+# valide le schéma sur son serveur : un seul champ de travers et TOUTE la
+# réponse est refusée (400), après avoir été écrite et facturée. Plutôt que
+# d'assouplir le schéma du domaine — qui resterait faux pour les autres
+# fournisseurs — on l'assouplit à l'envoi et on rend aux booléens leur type
+# à la lecture. Le reste du programme ne voit jamais la différence.
+_VRAI = {"true", "vrai", "oui", "yes", "1"}
+
+
+def _assouplir_booleens(schema: Any) -> Any:
+    """Accepte aussi une chaîne partout où le schéma attend un booléen."""
+    if not isinstance(schema, dict):
+        return schema
+    assoupli = dict(schema)
+    if assoupli.get("type") == "boolean":
+        assoupli["type"] = ["boolean", "string"]
+    if isinstance(assoupli.get("properties"), dict):
+        assoupli["properties"] = {
+            nom: _assouplir_booleens(sous)
+            for nom, sous in assoupli["properties"].items()
+        }
+    if "items" in assoupli:
+        assoupli["items"] = _assouplir_booleens(assoupli["items"])
+    return assoupli
+
+
+def _durcir_booleens(valeur: Any, schema: Any) -> Any:
+    """Rend leur type aux booléens, en s'appuyant sur le schéma d'origine."""
+    if not isinstance(schema, dict):
+        return valeur
+    if schema.get("type") == "boolean" and isinstance(valeur, str):
+        return valeur.strip().lower() in _VRAI
+    if isinstance(valeur, dict) and isinstance(schema.get("properties"), dict):
+        return {
+            nom: _durcir_booleens(sous, schema["properties"].get(nom, {}))
+            for nom, sous in valeur.items()
+        }
+    if isinstance(valeur, list) and "items" in schema:
+        return [_durcir_booleens(sous, schema["items"]) for sous in valeur]
+    return valeur
+
 
 def _data_uri(chemin: Path) -> str:
     mime = mimetypes.guess_type(chemin.name)[0] or "image/jpeg"
@@ -158,7 +199,7 @@ async def appeler(
             "function": {
                 "name": nom_outil,
                 "description": "Renvoie la réponse dans le format demandé.",
-                "parameters": schema_sortie,
+                "parameters": _assouplir_booleens(schema_sortie),
             },
         }],
         "tool_choice": {"type": "function", "function": {"name": nom_outil}},
@@ -188,7 +229,7 @@ async def appeler(
     _lever_si_erreur(r)
 
     charge = r.json()
-    donnees = _extraire_outil(charge, nom_outil)
+    donnees = _durcir_booleens(_extraire_outil(charge, nom_outil), schema_sortie)
     reponse = ReponseGroq(donnees, charge.get("usage", {}), modele, duree_ms)
 
     _journaliser(reponse, job_id, etape, agent, prompt_ref)
