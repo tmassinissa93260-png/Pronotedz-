@@ -112,12 +112,21 @@ def prompt_plan(personnage: Personnage, univers: Univers, *,
     L'ordre n'est pas indifférent. Les modèles d'image donnent plus de poids
     au début du prompt : le personnage passe donc en premier, le style en
     dernier. Inversé, on obtient de très belles images du mauvais personnage.
+
+    En **narration**, il n'y a personne à l'écran : c'est une voix off sur
+    des images de scène. Mettre l'apparence du narrateur en tête donnerait
+    vingt portraits du même sujet là où il faut vingt scènes différentes.
+    L'action prend donc la première place, et l'expression disparaît — un
+    visage qu'on ne voit pas n'a pas d'émotion à jouer.
     """
-    morceaux = [
-        personnage.apparence.strip(),
-        EXPRESSIONS.get(emotion, EXPRESSIONS["calme"]),
-        action.strip(),
-    ]
+    if not univers.anime:
+        morceaux = [action.strip()]
+    else:
+        morceaux = [
+            personnage.apparence.strip(),
+            EXPRESSIONS.get(emotion, EXPRESSIONS["calme"]),
+            action.strip(),
+        ]
 
     if decor and (d := univers.decor(decor)):
         morceaux.append(d.description.strip())
@@ -188,6 +197,14 @@ def fiches(univers: Univers, dossier: Path, *, profil: str = "equilibre",
     dossier.mkdir(parents=True, exist_ok=True)
     resultat: dict[str, Path] = {}
     cout_total = 0.0
+
+    # En narration, la fiche n'a pas d'objet : personne n'apparaît à l'écran.
+    # Pire, elle serait renvoyée comme image de départ à chaque plan et
+    # rendrait les vingt scènes identiques — exactement l'inverse du but.
+    if not univers.anime:
+        log.info("Format « %s » : pas de fiche de personnage à produire.",
+                 univers.format.value)
+        return resultat
 
     for perso in univers.personnages:
         if perso.fiche_image and Path(perso.fiche_image).exists():

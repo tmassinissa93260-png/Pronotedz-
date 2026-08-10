@@ -1,0 +1,75 @@
+# Univers de NARRATION : une voix off sur des images de scène, sans
+# personnage à l'écran. Tiré des mesures de `pdz analyser` sur une vidéo de
+# référence (str_73fc6a4d981b) : palette quasi monochrome et sombre
+# (#0A0A0A #7A7A7C #C5C6C8 + un bleu), saturation 0.03, plans longs
+# (~4,9 s), débit de parole lent (110 mots/min), voix très grave (94 Hz).
+# Le style graphique est décrit par ses caractéristiques, jamais par une
+# référence à une œuvre — c'est plus sûr et ça rend mieux.
+id: techno-holo
+nom: Techno Holo
+format: narration_generee
+langue: fr
+style:
+  rendu: monochrome wireframe hologram render, white and light grey polygonal
+    mesh lines on pure black background, transparent surfaces, thin glowing
+    contour lines, technical blueprint aesthetic, subtle cyan accents,
+    vertical 9:16 framing
+  palette:
+  - '#0A0A0A'
+  - '#7A7A7C'
+  - '#C5C6C8'
+  - '#4A6E8D'
+  eclairage: low key lighting, faint cyan rim glow, deep blacks, no warm tones
+  ambiance: documentaire technologique, ton grave et posé, vertige du futur
+  ratio: '9:16'
+  seed: 480921
+regles_du_monde:
+- "Aucun visage reconnaissable : les silhouettes humaines restent en fil de fer"
+- Tout est en fil de fer et transparence, jamais en surfaces pleines colorées
+- Le sol est une grille en perspective, comme un plan technique
+- Une seule idée par plan, cadrée large ou en très gros plan, jamais entre les deux
+personnages:
+- id: narrateur
+  nom: Le narrateur
+  espece: voix off
+  # En narration, l'apparence ne part PAS dans les prompts d'image (voir
+  # `prompt_plan` dans pdz/production/images.py) : c'est l'action de chaque
+  # plan qui décrit la scène. Ce texte documente l'intention, il ne se voit pas.
+  apparence: presence invisible, jamais representee a l ecran, la camera montre
+    ce dont il parle et non celui qui parle
+  caractere: posé, grave, affirmatif ; explique sans jamais s'exclamer
+  tics_de_langage:
+  - regarde bien
+  - ce que personne ne te dit
+  voix:
+    fournisseur: elevenlabs
+    voice_id: ''
+    stabilite: 0.6
+    style: 0.2
+    vitesse: 0.95
+    registre_percu: très grave
+  relations: {}
+decors:
+- id: ville
+  nom: La ville filaire
+  description: vast wireframe city at night, skyscrapers as glowing outlines,
+    perspective grid ground, streams of binary digits floating between towers
+- id: reseau
+  nom: Le réseau
+  description: floating constellation of glowing nodes connected by thin lines,
+    small screens suspended in the dark, pure black void around
+- id: objet
+  nom: L'objet en gros plan
+  description: single object rendered as a glowing wireframe, isolated on pure
+    black, rotating slowly, fine mesh visible on its surface
+- id: silhouette
+  nom: La silhouette
+  description: transparent wireframe human figure seen from behind or in
+    profile, no facial features, standing on a perspective grid floor
+interdits:
+- marques réelles
+- visages reconnaissables
+- couleurs saturées ou chaudes
+- affirmation chiffrée invérifiable présentée comme un fait
+duree_cible_s: 45
+episodes_produits: 0

@@ -231,6 +231,41 @@ def test_on_nanime_jamais_plus_de_plans_quil_nen_existe():
     assert combien == 2
 
 
+# ── Narration : personne à l'écran ───────────────────────────────────────
+
+HOLO = Path(__file__).resolve().parent.parent / "univers" / "techno-holo.yaml"
+
+
+def test_en_narration_le_prompt_part_de_la_scene_pas_du_narrateur():
+    """Une voix off ne se voit pas. Mettre son apparence en tête du prompt
+    donnerait vingt portraits du même sujet là où il faut vingt scènes."""
+    u = Univers.charger(HOLO)
+    assert not u.anime
+    prompt = images.prompt_plan(u.personnages[0], u,
+                                action="a glowing wireframe city at night",
+                                emotion="colere", decor="ville")
+    assert prompt.startswith("a glowing wireframe city at night")
+    assert u.personnages[0].apparence.split(",")[0] not in prompt
+    # Aucune émotion : un visage qu'on ne voit pas n'a rien à jouer.
+    assert "expression" not in prompt
+
+
+def test_en_serie_animee_le_personnage_reste_en_tete():
+    """Non-régression : c'est ce qui garde le personnage reconnaissable."""
+    u = Univers.charger(FRUITS)
+    perso = u.personnages[0]
+    prompt = images.prompt_plan(perso, u, action="se retourne", emotion="colere")
+    assert prompt.startswith(perso.apparence.split(",")[0])
+    assert "expression" in prompt
+
+
+def test_la_narration_ne_produit_aucune_fiche(tmp_path):
+    """La fiche servirait d'image de départ à chaque plan et rendrait toutes
+    les scènes identiques — l'inverse du but recherché."""
+    u = Univers.charger(HOLO)
+    assert images.fiches(u, tmp_path) == {}
+
+
 def test_un_echec_total_danimation_est_crie_pas_chuchote(monkeypatch, caplog,
                                                          tmp_path):
     """Une animation ratée est rattrapée en image fixe pour ne pas perdre
