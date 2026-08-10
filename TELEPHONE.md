@@ -65,6 +65,11 @@ même toi, tu ne peux que les remplacer.
 > vidéo de référence** (`analyser`, `charte`) reste hors de portée de ce
 > profil — elle a besoin de « voir » les images, ce que Llama ne sait pas
 > faire. Dire et monter fonctionnent normalement.
+>
+> Déjà de la carte sur fal.ai mais pas encore sur Anthropic ? Le profil
+> **`hybride`** écrit gratuitement avec Groq et illustre avec fal.ai — de
+> meilleures images et des personnages plus constants que `gratuit`, sans
+> attendre d'avoir du crédit Claude.
 
 ### Si la page est trop serrée : le mode ordinateur
 

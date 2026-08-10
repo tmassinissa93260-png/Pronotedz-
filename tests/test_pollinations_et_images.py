@@ -98,6 +98,14 @@ def test_le_profil_gratuit_illustre_avec_pollinations():
     ) is ia_images.pollinations.generer_image
 
 
+def test_le_profil_hybride_ecrit_gratuit_et_illustre_avec_fal():
+    """Écriture Groq (gratuite) + images fal.ai (payantes) : pour qui a du
+    crédit fal.ai mais pas encore de crédit Anthropic."""
+    reg = ia_images.registre()
+    assert reg.resoudre("qualite", profil="hybride").modele.fournisseur == "groq"
+    assert _fournisseur_resolu("images", "hybride") == "fal"
+
+
 def test_un_fournisseur_dimage_inconnu_est_signale(monkeypatch):
     monkeypatch.setattr(ia_images, "ADAPTATEURS", {})
     with pytest.raises(ErreurConfig, match="modeles.yaml"):

@@ -173,6 +173,17 @@ profils:
     critique: llama-3.3-70b-versatile
     images: pollinations/flux
     animer: false
+  # Écrit gratuitement avec Llama via Groq, comme « gratuit » — mais illustre
+  # avec fal.ai, comme les profils payants, pour de meilleures images et une
+  # constance des personnages digne de ce nom. Utile quand seul le crédit
+  # Anthropic manque encore. Demande GROQ_API_KEY et FAL_KEY, pas
+  # ANTHROPIC_API_KEY. Pas d'animation ici non plus — voir « equilibre » ou
+  # « premium » une fois prêt à payer aussi l'écriture chez Claude.
+  hybride:
+    qualite: llama-3.3-70b-versatile
+    critique: llama-3.3-70b-versatile
+    images: fal-ai/flux/schnell
+    animer: false
 
 
 # ═══════════════════════════════════════════════════════════════════════
