@@ -128,7 +128,7 @@ def combien_animer(nb_plans: int, budget_restant: float, *,
 
     demande = int(reg.option_profil(profil, "plans_animes_max", 6))
 
-    res = reg.resoudre("animation", profil=profil)
+    res = reg.resoudre("animation", profil=profil, repli_si_cle_absente=True)
     cout_unitaire = res.modele.cout_unites(duree_clip_s, "seconde")
     if cout_unitaire <= 0:
         payables = demande

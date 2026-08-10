@@ -53,6 +53,72 @@ def test_alias_inconnu_donne_un_message_utile():
     assert "Connus" in str(e.value)
 
 
+# ── Repli quand une clé manque ───────────────────────────────────────────
+# Mesuré en conditions réelles : `--profil equilibre` sans crédit Anthropic
+# s'arrêtait net sur « clé d'API manquante », alors qu'une clé Groq
+# fonctionnelle était configurée. Le repli évite de perdre une production
+# entière pour une clé qu'on a décidé de ne pas payer.
+
+def _config_avec(monkeypatch, **cles):
+    """Rend une configuration où seules les clés nommées sont renseignées.
+
+    Le module se patche par son objet et non par son chemin : `pdz.ia.registre`
+    désigne aussi la fonction `registre()`, que pytest trouve en premier.
+    """
+    import sys
+    from types import SimpleNamespace
+    monkeypatch.setattr(
+        sys.modules["pdz.ia.registre"], "config",
+        lambda: SimpleNamespace(**{
+            "anthropic_api_key": "", "fal_key": "", "groq_api_key": "",
+            "elevenlabs_api_key": "", "audd_api_key": "", **cles,
+        }),
+    )
+
+
+def _sans_anthropic(monkeypatch):
+    _config_avec(monkeypatch, groq_api_key="gsk_test", fal_key="k")
+
+
+def test_une_cle_absente_ne_bloque_pas_si_un_equivalent_existe(monkeypatch):
+    _sans_anthropic(monkeypatch)
+    res = registre().resoudre("qualite", profil="equilibre",
+                              repli_si_cle_absente=True)
+    assert res.modele.fournisseur == "groq"
+    assert "absente" in res.raison
+
+
+def test_le_repli_garde_la_meme_capacite(monkeypatch):
+    """Le repli passe par `fait` : jamais une voix là où il faut du texte."""
+    _sans_anthropic(monkeypatch)
+    res = registre().resoudre("qualite", profil="equilibre",
+                              repli_si_cle_absente=True)
+    assert "ecriture" in res.modele.fait
+
+
+def test_la_resolution_reste_pure_sans_le_drapeau(monkeypatch):
+    """Interroger le registre pour savoir ce qu'un profil *désigne* ne doit
+    pas dépendre des clés présentes — sinon `pdz modeles` mentirait sur la
+    configuration réelle."""
+    _sans_anthropic(monkeypatch)
+    res = registre().resoudre("qualite", profil="equilibre")
+    assert res.modele.fournisseur == "anthropic"
+
+
+def test_sans_equivalent_disponible_la_cle_manquante_reste_une_erreur(monkeypatch):
+    """Aucune alternative à ElevenLabs pour la voix : le repli ne doit pas
+    inventer un remplaçant, l'erreur claire vaut mieux."""
+    _config_avec(monkeypatch)
+    res = registre().resoudre("voix", repli_si_cle_absente=True)
+    assert res.modele.fournisseur == "elevenlabs"
+
+
+def test_un_fournisseur_sans_cle_declaree_est_toujours_disponible():
+    """Pollinations ne demande aucune clé : il ne doit jamais être écarté
+    faute de configuration."""
+    assert registre().cle_disponible("pollinations")
+
+
 def test_le_cache_reduit_le_cout():
     m = registre().modeles["claude-sonnet-5"]
     sans = m.cout_texte(entree=4000, sortie=1500)

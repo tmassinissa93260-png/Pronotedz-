@@ -104,7 +104,8 @@ async def appeler(
         )
 
     reg = registre()
-    res = reg.resoudre(alias, profil=profil, budget_restant_pct=budget_restant_pct)
+    res = reg.resoudre(alias, profil=profil, budget_restant_pct=budget_restant_pct,
+                       repli_si_cle_absente=True)
     modele = res.modele
 
     systeme = systeme_stable

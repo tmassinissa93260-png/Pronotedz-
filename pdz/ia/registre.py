@@ -9,6 +9,7 @@ Voir docs/09-les-fichiers.md § « Le fichier modeles.yaml ».
 
 from __future__ import annotations
 
+import logging
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -18,6 +19,8 @@ from pydantic import BaseModel, Field
 
 from pdz.config import RACINE, config
 from pdz.moteur.erreurs import ErreurConfig
+
+log = logging.getLogger(__name__)
 
 
 class Prix(BaseModel):
@@ -96,13 +99,22 @@ class Registre:
     # ── Résolution ────────────────────────────────────────────────────────
 
     def resoudre(self, alias: str, *, profil: str = "equilibre",
-                 budget_restant_pct: float = 100.0) -> Resolution:
+                 budget_restant_pct: float = 100.0,
+                 repli_si_cle_absente: bool = False) -> Resolution:
         """alias → modèle concret, en tenant compte du profil et du budget.
 
         Ordre de priorité, du plus fort au plus faible :
           1. les règles de budget (elles peuvent tout écraser)
           2. le profil actif
           3. l'alias par défaut
+
+        `repli_si_cle_absente` ajoute une dernière étape : si la clé du
+        fournisseur retenu n'est pas renseignée, prendre un modèle de même
+        capacité chez un fournisseur utilisable. C'est ce qui évite qu'un
+        `--profil equilibre` s'arrête net sur « clé Anthropic manquante »
+        alors qu'une clé Groq parfaitement fonctionnelle est configurée.
+        Réservé aux chemins d'exécution : la résolution reste pure quand on
+        interroge le registre pour savoir ce qu'un profil *désigne*.
         """
         entree = self.alias.get(alias)
         if entree is None:
@@ -134,6 +146,19 @@ class Registre:
         if modele is None:
             raise ErreurConfig(f"Modèle « {id_modele} » absent de modeles.yaml")
 
+        if repli_si_cle_absente and not self.cle_disponible(modele.fournisseur):
+            if (equivalent := self._equivalent_disponible(modele)) is not None:
+                log.warning(
+                    "Clé %s absente : %s remplacé par %s (%s). Renseigne %s "
+                    "pour retrouver la qualité prévue par le profil « %s ».",
+                    modele.fournisseur, modele.id, equivalent.id,
+                    equivalent.fournisseur,
+                    self._nom_cle(modele.fournisseur), profil,
+                )
+                raison = (f"clé {modele.fournisseur} absente, repli sur "
+                          f"{equivalent.fournisseur}")
+                modele = equivalent
+
         replis = [entree["repli"]] if "repli" in entree else []
         return Resolution(
             modele=modele, alias=alias, replis=replis,
@@ -154,6 +179,41 @@ class Registre:
         if texte.startswith(">"):
             return budget_pct > float(texte[1:])
         return budget_pct == float(texte)
+
+    def _nom_cle(self, fournisseur: str) -> str:
+        """« ANTHROPIC_API_KEY » — le nom de variable à renseigner."""
+        infos = self._brut.get("fournisseurs", {}).get(fournisseur) or {}
+        return infos.get("cle", "").upper()
+
+    def cle_disponible(self, fournisseur: str) -> bool:
+        """Dit si ce fournisseur est utilisable, sans lever d'exception.
+
+        Un fournisseur déclaré sans champ `cle` (Pollinations) n'en demande
+        aucune : il est toujours disponible.
+        """
+        infos = self._brut.get("fournisseurs", {}).get(fournisseur)
+        if infos is None:
+            return False
+        if "cle" not in infos:
+            return True
+        return bool(getattr(config(), infos["cle"], ""))
+
+    def _equivalent_disponible(self, modele: Modele) -> Modele | None:
+        """Un modèle de même capacité chez un fournisseur utilisable.
+
+        L'égalité de capacité passe par `fait` : c'est le seul vocabulaire
+        commun aux modèles, et il empêche par construction de proposer une
+        voix là où il faut une image. Le premier trouvé gagne, donc l'ordre
+        de `modeles.yaml` fait office de préférence.
+        """
+        for candidat in self.modeles.values():
+            if candidat.id == modele.id:
+                continue
+            if not set(candidat.fait) & set(modele.fait):
+                continue
+            if self.cle_disponible(candidat.fournisseur):
+                return candidat
+        return None
 
     def cle_fournisseur(self, fournisseur: str) -> str:
         infos = self._brut.get("fournisseurs", {}).get(fournisseur)

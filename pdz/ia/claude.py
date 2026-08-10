@@ -91,7 +91,8 @@ async def appeler(
     style. `systeme_variable` contient ce qui bouge.
     """
     reg = registre()
-    res = reg.resoudre(alias, profil=profil, budget_restant_pct=budget_restant_pct)
+    res = reg.resoudre(alias, profil=profil, budget_restant_pct=budget_restant_pct,
+                       repli_si_cle_absente=True)
     modele = res.modele
 
     # Bloc système : la partie stable est marquée pour le cache.

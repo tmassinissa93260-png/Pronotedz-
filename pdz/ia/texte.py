@@ -41,7 +41,8 @@ async def appeler(
     faire porter à chaque adaptateur la connaissance des autres.
     """
     modele = registre().resoudre(
-        alias, profil=profil, budget_restant_pct=budget_restant_pct
+        alias, profil=profil, budget_restant_pct=budget_restant_pct,
+        repli_si_cle_absente=True,
     ).modele
 
     adaptateur = ADAPTATEURS.get(modele.fournisseur)

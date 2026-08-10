@@ -122,7 +122,8 @@ def generer_image(
     de la fiche du personnage plutôt que d'une génération libre.
     """
     reg = registre()
-    res = reg.resoudre(alias, profil=profil, budget_restant_pct=budget_restant_pct)
+    res = reg.resoudre(alias, profil=profil, budget_restant_pct=budget_restant_pct,
+                       repli_si_cle_absente=True)
     modele = res.modele
 
     corps: dict = {
@@ -180,7 +181,8 @@ def animer_image(
     vérifié avant l'envoi plutôt qu'après.
     """
     reg = registre()
-    res = reg.resoudre(alias, profil=profil, budget_restant_pct=budget_restant_pct)
+    res = reg.resoudre(alias, profil=profil, budget_restant_pct=budget_restant_pct,
+                       repli_si_cle_absente=True)
     modele = res.modele
 
     cout_prevu = modele.cout_unites(duree_s, "seconde")

@@ -75,7 +75,8 @@ def generer_image(
 ) -> tuple[Path, float]:
     """Génère une image et l'écrit sur le disque. Renvoie (chemin, coût=0)."""
     modele = registre().resoudre(
-        alias, profil=profil, budget_restant_pct=budget_restant_pct
+        alias, profil=profil, budget_restant_pct=budget_restant_pct,
+        repli_si_cle_absente=True,
     ).modele
 
     params: dict[str, str | int] = {
