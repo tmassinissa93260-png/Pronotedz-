@@ -116,16 +116,63 @@ jobs:
             DEST=donnees/sources/reference.mp4
           fi
 
+          # Google Drive et Dropbox servent une PAGE (aperçu, écran de
+          # confirmation) sur leurs liens de partage, pas le fichier. Sans
+          # cette conversion, curl enregistre du HTML sous le nom .mp4 et
+          # l'erreur ne sort que bien plus tard, sous la forme illisible
+          # « moov atom not found ». Un lien direct classique passe tel quel.
+          normaliser_url() {
+            u="$1"
+            case "$u" in
+              *drive.google.com*|*drive.usercontent.google.com*)
+                id=$(printf '%s' "$u" | sed -n 's#.*/file/d/\([^/?]*\).*#\1#p')
+                [ -z "$id" ] && id=$(printf '%s' "$u" | sed -n 's#.*[?&]id=\([^&]*\).*#\1#p')
+                if [ -n "$id" ]; then
+                  printf 'https://drive.usercontent.google.com/download?id=%s&export=download&confirm=t' "$id"
+                  return
+                fi
+                ;;
+              *dropbox.com*)
+                printf '%s' "$u" | sed -e 's/dl=0/dl=1/'
+                return
+                ;;
+            esac
+            printf '%s' "$u"
+          }
+
           if [ -f "$FICHIER" ]; then
             cp "$FICHIER" "$DEST"
             echo "Fichier pris dans le dépôt : $FICHIER"
           else
-            # Une URL directe vers un fichier (Drive en lien direct, Dropbox
-            # en ?dl=1, un hébergeur…). Pas d'aspirateur de plateforme ici.
-            curl -fsSL --max-time 300 -o "$DEST" "$FICHIER"
+            URL=$(normaliser_url "$FICHIER")
+            [ "$URL" != "$FICHIER" ] && echo "Lien de partage converti en lien direct."
+            curl -fsSL --max-time 300 -o "$DEST" "$URL"
             echo "Fichier téléchargé depuis l'URL fournie"
           fi
           ls -lh "$DEST"
+
+          # Contrôler ce qu'on a VRAIMENT reçu. Un partage resté privé renvoie
+          # une page de connexion avec un code 200 : sans ce garde-fou, la
+          # panne se révèle plusieurs minutes plus tard, dans ffprobe.
+          TYPE=$(file -b --mime-type "$DEST")
+          echo "Type reçu : $TYPE"
+          if [ "$DEST" = "donnees/sources/export.csv" ]; then
+            ATTENDU=text
+          else
+            ATTENDU=media
+          fi
+          case "$ATTENDU:$TYPE" in
+            media:video/*|media:audio/*|media:application/octet-stream) ;;
+            text:text/*|text:application/csv) ;;
+            *)
+              echo "::error::Le lien n'a pas renvoyé le bon type de fichier ($TYPE)."
+              echo "::error::Cause la plus fréquente : le partage n'est pas réglé sur"
+              echo "::error::« Tous les utilisateurs disposant du lien » — le service"
+              echo "::error::renvoie alors sa page de connexion à la place du fichier."
+              exit 1
+              ;;
+          esac
+
           echo "ENTREE=$DEST" >> "$GITHUB_ENV"
 
       - name: Faire le travail
