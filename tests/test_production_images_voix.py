@@ -259,6 +259,46 @@ def test_en_serie_animee_le_personnage_reste_en_tete():
     assert "expression" in prompt
 
 
+def _prompts_de_scenes(u):
+    return [images.prompt_plan(u.personnages[0], u, action=a, decor=d)
+            for a, d in [("a wireframe city", "ville"),
+                         ("a network of nodes", "reseau"),
+                         ("a rotating object", "objet")]]
+
+
+def test_en_narration_la_graine_varie_dun_plan_a_lautre():
+    """Mesuré à l'écran : une graine fixe appliquée à vingt scènes
+    différentes rendait la même ville filaire pendant tout l'épisode."""
+    u = Univers.charger(HOLO)
+    graines = {images.graine_du_plan(u, p) for p in _prompts_de_scenes(u)}
+    assert len(graines) == 3, "chaque scène doit avoir sa propre graine"
+
+
+def test_en_serie_animee_la_graine_reste_fixe():
+    """Non-régression : c'est l'un des mécanismes qui gardent la patte
+    graphique constante d'un plan à l'autre."""
+    u = Univers.charger(FRUITS)
+    graines = {
+        images.graine_du_plan(u, images.prompt_plan(u.personnages[0], u, action=a))
+        for a in ("se retourne", "crie", "sourit")
+    }
+    assert graines == {u.style.seed}
+
+
+def test_la_graine_dun_plan_est_reproductible():
+    """Sinon le cache ne servirait plus à rien : chaque reprise repaierait
+    toutes les images."""
+    u = Univers.charger(HOLO)
+    prompt = _prompts_de_scenes(u)[0]
+    assert images.graine_du_plan(u, prompt) == images.graine_du_plan(u, prompt)
+
+
+def test_sans_graine_declaree_rien_nest_invente():
+    u = Univers.charger(HOLO)
+    u.style.seed = None
+    assert images.graine_du_plan(u, "peu importe") is None
+
+
 def test_la_narration_ne_produit_aucune_fiche(tmp_path):
     """La fiche servirait d'image de départ à chaque plan et rendrait toutes
     les scènes identiques — l'inverse du but recherché."""

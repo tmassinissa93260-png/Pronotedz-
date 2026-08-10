@@ -57,6 +57,10 @@ on:
         default: equilibre
         type: choice
         options: [economique, equilibre, premium, gratuit, hybride]
+      budget:
+        description: "Plafond de dépense pour CETTE vidéo, en euros (l'animation coûte ~0,23 €/plan)"
+        required: false
+        default: "0.60"
 
 # Une seule production à la fois : la base SQLite est partagée d'un lancement
 # à l'autre par le cache, et deux écritures simultanées la corrompraient.
@@ -183,6 +187,10 @@ jobs:
           AUDD_API_KEY: ${{ secrets.AUDD_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           PROFIL: ${{ inputs.profil }}
+          # Le plafond par vidéo est un garde-fou, pas un réglage de qualité :
+          # il décide surtout combien de plans peuvent être animés. À 0,60 €
+          # l'animation s'arrête à 2 plans, ce qui se voit à l'écran.
+          BUDGET_MAX_PAR_VIDEO_EUR: ${{ inputs.budget }}
           # Les valeurs saisies passent par l'environnement, jamais par une
           # interpolation dans le script : un sujet contenant un guillemet ou
           # un point-virgule serait sinon exécuté comme une commande.

@@ -142,6 +142,28 @@ def prompt_plan(personnage: Personnage, univers: Univers, *,
     return ", ".join(m for m in morceaux if m)
 
 
+def graine_du_plan(univers: Univers, prompt: str) -> int | None:
+    """La graine à utiliser pour ce plan précis.
+
+    Sur une **série à personnages**, la graine de l'univers est fixe : c'est
+    l'un des trois mécanismes qui gardent la même patte graphique d'un plan
+    à l'autre (voir l'en-tête du module).
+
+    Sur une **narration**, cette même graine appliquée à vingt scènes
+    différentes les ramène toutes à la même image — mesuré en conditions
+    réelles : une ville filaire identique pendant tout l'épisode, alors que
+    le script décrivait des scènes variées. On la fait donc varier par plan,
+    en la dérivant du prompt : deux exécutions du même plan gardent la même
+    image (le cache continue de servir), deux plans différents cessent de se
+    ressembler.
+    """
+    base = univers.style.seed
+    if base is None or univers.anime:
+        return base
+    variation = int(hashlib.sha256(prompt.encode()).hexdigest()[:8], 16)
+    return (base + variation) % 2_147_483_647
+
+
 def _empreinte(prompt: str, seed: int | None, reference: Path | None) -> str:
     """Empreinte d'une image : le prompt, la graine, et la référence utilisée.
 
@@ -163,7 +185,8 @@ def _produire(prompt: str, destination: Path, *, univers: Univers,
     """Génère une image, ou la reprend du cache. Renvoie (coût, depuis_cache)."""
     dossier_cache = config().dossier_cache / "images"
     dossier_cache.mkdir(parents=True, exist_ok=True)
-    garde = dossier_cache / f"{_empreinte(prompt, univers.style.seed, reference)}.jpg"
+    graine = graine_du_plan(univers, prompt)
+    garde = dossier_cache / f"{_empreinte(prompt, graine, reference)}.jpg"
 
     if cache and garde.exists() and garde.stat().st_size > 1000:
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -173,7 +196,7 @@ def _produire(prompt: str, destination: Path, *, univers: Univers,
     _, cout = ia_images.generer_image(
         prompt, destination,
         image_reference=reference,
-        seed=univers.style.seed,
+        seed=graine,
         profil=profil,
         budget_restant_pct=budget_restant_pct,
         job_id=job_id,
