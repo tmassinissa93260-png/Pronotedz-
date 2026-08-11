@@ -19,7 +19,7 @@ from enum import Enum
 from typing import Any, Protocol
 
 from pdz import db
-from pdz.moteur.erreurs import ErreurBudget, ErreurPdz, delai_backoff
+from pdz.moteur.erreurs import ErreurBudget, ErreurPdz, ErreurValidation, delai_backoff
 
 log = logging.getLogger(__name__)
 
@@ -238,6 +238,13 @@ class Moteur:
                     etape.cle, tentative, pol.tentatives_max, e.categorie, attente,
                 )
                 time.sleep(attente)
+                # Sans ça, la relance rejoue exactement le même essai avec les
+                # mêmes entrées et échoue pour la même raison — voir
+                # Agent.executer() côté lecture. Seul ErreurValidation porte
+                # un message utile au modèle ; une erreur réseau/quota ne
+                # dit rien qu'il puisse corriger.
+                if isinstance(e, ErreurValidation):
+                    entrees = {**entrees, "_erreur_precedente": str(e)}
                 continue
 
             duree_ms = int((time.perf_counter() - debut) * 1000)

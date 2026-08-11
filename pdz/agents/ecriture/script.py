@@ -10,6 +10,7 @@ est fourni par le moteur.
 from __future__ import annotations
 
 import copy
+import unicodedata
 from typing import Any
 
 from pdz.agents.base import (
@@ -23,6 +24,28 @@ from pdz.analyse.adn import Adn
 from pdz.moteur.erreurs import ErreurValidation
 from pdz.moteur.pipeline import Contexte
 from pdz.univers import Univers
+
+# Doit rester en phase avec les clés d'EXPRESSIONS dans
+# pdz/production/images.py — c'est là que `emotion` devient un rendu visuel.
+EMOTIONS_CONNUES = {
+    "colere", "surprise", "tristesse", "joie", "mepris", "peur", "calme", "gene",
+}
+
+
+def _normaliser_emotion(brut: str) -> str:
+    """Une émotion hors liste retombe sur « calme » plutôt que de faire
+    échouer le script entier.
+
+    `emotion` n'est plus un `enum` du schéma JSON (voir l'historique de
+    script@1.4.0) : Groq rejette TOUTE la réponse — pas seulement ce champ
+    — sur une seule valeur hors liste, mesuré avec Llama sur une émotion
+    accentuée ou traduite. Le rendu d'image tolérait déjà ça
+    (`EXPRESSIONS.get` dans pdz/production/images.py) ; cette normalisation
+    fait la même chose ici, avant que Groq n'ait la chance de tout refuser.
+    """
+    sans_accent = unicodedata.normalize("NFKD", brut or "").encode("ascii", "ignore").decode()
+    normalisee = sans_accent.strip().lower()
+    return normalisee if normalisee in EMOTIONS_CONNUES else "calme"
 
 
 def _texte_empreinte(e) -> str:
@@ -64,7 +87,7 @@ def _texte_empreinte(e) -> str:
 
 class ScriptWriter(Agent):
     nom = "script"
-    version = "1.3.0"
+    version = "1.4.0"
     prompt_ref = "ecriture/script"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
@@ -198,6 +221,7 @@ class ScriptWriter(Agent):
                 cle_d = r["decor"].strip().lower()
                 if cle_d in decors_ci:
                     r["decor"] = decors_ci[cle_d]
+            r["emotion"] = _normaliser_emotion(r.get("emotion", ""))
 
         if not any(r.get("relance") for r in repliques[1:]):
             raise ErreurValidation(

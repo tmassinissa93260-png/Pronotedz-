@@ -75,6 +75,20 @@ class Agent:
         stable, variable, message = prompt.rendre(**self.variables(entrees, ctx))
         images = self.images(entrees, ctx)
 
+        # Une relance après `ErreurValidation` (voir pdz/moteur/pipeline.py)
+        # renvoie ici le MÊME `entrees` avec cette clé en plus. Sans elle, le
+        # modèle refait exactement le même essai et échoue pareil — mesuré :
+        # un script trop court restait trop court trois fois de suite avec
+        # Llama, alors que la docstring d'ErreurValidation promettait de lui
+        # montrer son erreur. Elle ne l'était jamais.
+        if erreur_precedente := entrees.get("_erreur_precedente"):
+            message += (
+                "\n\nTon essai précédent a été refusé pour cette raison précise : "
+                f"{erreur_precedente}\n"
+                "Corrige uniquement ce point, sans changer le reste de ta réponse "
+                "plus que nécessaire."
+            )
+
         budget_pct = 100.0
         if ctx.budget_restant > 0:
             budget_pct = min(100.0, ctx.budget_restant * 100.0)

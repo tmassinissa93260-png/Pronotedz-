@@ -5,21 +5,26 @@ chaîne complète (prompt → appel → validation → sortie) sans clé d'API.
 """
 
 
+import asyncio
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
+from pdz.agents import base as agents_base
 from pdz.agents.base import (
+    Agent,
     mots_par_replique,
     nb_plans_pour,
     nb_repliques_pour,
     positions_relance_par_defaut,
 )
-from pdz.agents.ecriture.script import ScriptWriter, _texte_empreinte
+from pdz.agents.ecriture.script import ScriptWriter, _normaliser_emotion, _texte_empreinte
 from pdz.ia.registre import registre
 from pdz.moteur.erreurs import ErreurConfig, ErreurValidation
 from pdz.moteur.pipeline import Contexte
 from pdz.prompts import charger
+from pdz.prompts.registre import Prompt
 from pdz.univers import (
     ChampInterprete,
     EmpreinteAudio,
@@ -334,6 +339,49 @@ def test_lagent_normalise_la_casse_du_personnage():
     assert all(r["personnage"] == id_reel for r in sortie["repliques"])
 
 
+def test_normaliser_emotion_une_valeur_vide_ou_absente_donne_calme():
+    assert _normaliser_emotion("") == "calme"
+    assert _normaliser_emotion(None) == "calme"
+
+
+def test_une_emotion_hors_liste_retombe_sur_calme_sans_faire_echouer():
+    """Mesuré en conditions réelles avec Llama/Groq : une seule valeur
+    d'émotion hors liste (accentuée, traduite) fait rejeter TOUT le script
+    par la validation côté serveur de Groq, pas seulement ce champ.
+    `emotion` n'est donc plus un `enum` du schéma (voir script@1.4.0) —
+    corrigé ici après coup, comme `decor`/`reaction_de`."""
+    u = Univers.charger(FRUITS)
+    sortie = _reponse_factice(u)
+    sortie["repliques"][0]["emotion"] = "angry"
+    corrige = ScriptWriter().apres(sortie, {"univers": u}, _contexte())
+    assert corrige["repliques"][0]["emotion"] == "calme"
+
+
+def test_une_emotion_accentuee_est_normalisee():
+    u = Univers.charger(FRUITS)
+    sortie = _reponse_factice(u)
+    sortie["repliques"][0]["emotion"] = "Gêne"
+    corrige = ScriptWriter().apres(sortie, {"univers": u}, _contexte())
+    assert corrige["repliques"][0]["emotion"] == "gene"
+
+
+def test_une_emotion_valide_traverse_intacte():
+    u = Univers.charger(FRUITS)
+    sortie = _reponse_factice(u)
+    sortie["repliques"][0]["emotion"] = "tristesse"
+    corrige = ScriptWriter().apres(sortie, {"univers": u}, _contexte())
+    assert corrige["repliques"][0]["emotion"] == "tristesse"
+
+
+def test_le_schema_actif_ne_contraint_plus_lemotion_par_enum():
+    """script@1.4.0 : contraindre par `enum` un champ déjà rattrapable après
+    coup ne protégeait rien et rendait tout le script fragile chez Groq."""
+    schema = charger("ecriture/script").schema_sortie
+    proprietes = schema["properties"]["repliques"]["items"]["properties"]
+    assert "enum" not in proprietes["emotion"]
+    assert charger("ecriture/script").version == "1.4.0"
+
+
 def test_le_schema_ferme_le_personnage_a_lunivers():
     """Un `enum` guide bien mieux un modèle qu'une description en texte
     libre — surtout un modèle moins strict sur les instructions."""
@@ -518,3 +566,53 @@ def test_les_variables_sans_empreinte_donnent_un_texte_vide():
     assert u.empreinte_creative is None
     v = ScriptWriter().variables({"univers": u, "situation": "test"}, _contexte())
     assert v["empreinte_texte"] == ""
+
+
+# ── Relance après ErreurValidation : montrer l'erreur au modèle ─────────
+#
+# La docstring d'ErreurValidation promettait « on relance en montrant
+# l'erreur au modèle » — mesuré en conditions réelles : ce n'était vrai
+# nulle part dans le code, une relance rejouait le même essai avec les
+# mêmes entrées. Un script trop court restait trop court trois fois de
+# suite avec Llama (profil gratuit) jusqu'à l'échec du job entier. Le fil
+# réel est en deux morceaux : pipeline.py injecte `_erreur_precedente`
+# dans les entrées avant de relancer (testé dans test_moteur.py),
+# Agent.executer() la lit ici et l'ajoute au message envoyé au modèle.
+
+def _agent_de_test(monkeypatch):
+    prompt_factice = Prompt(id="test/agent", version="1.0.0",
+                            message="Écris un script.", schema_sortie={})
+    monkeypatch.setattr(agents_base.prompts, "charger", lambda ref: prompt_factice)
+
+    messages_recus = []
+
+    async def faux_appeler(**kwargs):
+        messages_recus.append(kwargs["message"])
+        return SimpleNamespace(cout=0.0, donnees={"ok": True})
+
+    monkeypatch.setattr(agents_base.texte, "appeler", faux_appeler)
+
+    class AgentTest(Agent):
+        nom = "agent_test"
+        prompt_ref = "test/agent"
+
+        def variables(self, entrees, ctx):
+            return {}
+
+    return AgentTest(), messages_recus
+
+
+def test_lerreur_precedente_est_ajoutee_au_message_envoye(monkeypatch):
+    agent, messages_recus = _agent_de_test(monkeypatch)
+    asyncio.run(agent.executer(
+        {"_erreur_precedente": "Script trop court : ajoute 18 mots."}, _contexte(),
+    ))
+    assert "Script trop court : ajoute 18 mots." in messages_recus[0]
+    assert "essai précédent" in messages_recus[0]
+
+
+def test_le_premier_essai_ne_porte_aucune_trace_de_correction(monkeypatch):
+    """Premier essai, pas de relance : le message part inchangé."""
+    agent, messages_recus = _agent_de_test(monkeypatch)
+    asyncio.run(agent.executer({}, _contexte()))
+    assert messages_recus[0] == "Écris un script."

@@ -10,7 +10,7 @@ import pytest
 
 from pdz import db
 from pdz.moteur import Etape, Moteur, Pipeline, Statut
-from pdz.moteur.erreurs import ErreurReseau
+from pdz.moteur.erreurs import ErreurReseau, ErreurValidation
 
 
 class AgentFactice:
@@ -18,11 +18,15 @@ class AgentFactice:
         self.nom, self.version = nom, "1.0.0"
         self.compteur = compteur
         self.doit_planter = doit_planter or (lambda: False)
+        # Les `entrees` reçues à chaque appel — permet de vérifier que la
+        # relance après ErreurValidation porte bien la correction promise.
+        self.entrees_recues: list[dict] = []
 
     def signature(self):
         return {"agent": self.nom, "version": self.version, "modele": "factice"}
 
     async def executer(self, entrees, ctx):
+        self.entrees_recues.append(entrees)
         self.compteur[self.nom] = self.compteur.get(self.nom, 0) + 1
         if self.doit_planter():
             raise ErreurReseau("panne simulée")
@@ -100,6 +104,64 @@ def test_le_budget_arrete_le_job(job):
     assert "Budget" in (r.erreur or "")
     # Plafond 0,60 € à 0,01 €/étape → on s'arrête vers la 60e, pas la 200e.
     assert 55 <= compteur["cher"] <= 65, compteur
+
+
+def test_une_relance_apres_erreur_de_validation_porte_la_correction(job):
+    """La docstring d'ErreurValidation promet une relance qui montre son
+    erreur au modèle. Mesuré en conditions réelles : ce n'était vrai nulle
+    part — un script trop court restait trop court trois fois de suite
+    avec Llama, faute de ce fil. Vérifié ici au niveau du moteur : le 2e
+    appel doit recevoir `_erreur_precedente` avec le message exact du 1er
+    échec (Agent.executer(), lui, se charge de l'ajouter au message envoyé
+    au modèle — voir tests/test_ia_et_prompts.py)."""
+    compteur = {}
+    rate_une_fois = {"fait": False}
+
+    class AgentValidationRatee(AgentFactice):
+        async def executer(self, entrees, ctx):
+            self.entrees_recues.append(entrees)
+            self.compteur[self.nom] = self.compteur.get(self.nom, 0) + 1
+            if not rate_une_fois["fait"]:
+                rate_une_fois["fait"] = True
+                raise ErreurValidation("Script trop court : ajoute 18 mots.")
+            ctx.facturer(0.01)
+            return {"fait": self.nom}
+
+    agent = AgentValidationRatee("script", compteur)
+    pipe = Pipeline("test", (Etape("etape_script", "script"),))
+    r = asyncio.run(Moteur({"script": agent}).executer(job, pipe))
+
+    assert r.statut is Statut.TERMINE
+    assert len(agent.entrees_recues) == 2
+    assert "_erreur_precedente" not in agent.entrees_recues[0]
+    assert agent.entrees_recues[1]["_erreur_precedente"] == (
+        "Script trop court : ajoute 18 mots."
+    )
+
+
+def test_une_relance_apres_erreur_reseau_ne_porte_aucune_correction(job):
+    """Une panne réseau n'est pas de la faute du modèle : rien à lui
+    montrer, contrairement à ErreurValidation ci-dessus."""
+    compteur = {}
+    rate_une_fois = {"fait": False}
+
+    class AgentReseauRate(AgentFactice):
+        async def executer(self, entrees, ctx):
+            self.entrees_recues.append(entrees)
+            self.compteur[self.nom] = self.compteur.get(self.nom, 0) + 1
+            if not rate_une_fois["fait"]:
+                rate_une_fois["fait"] = True
+                raise ErreurReseau("panne simulée")
+            ctx.facturer(0.01)
+            return {"fait": self.nom}
+
+    agent = AgentReseauRate("script", compteur)
+    pipe = Pipeline("test", (Etape("etape_script", "script"),))
+    r = asyncio.run(Moteur({"script": agent}).executer(job, pipe))
+
+    assert r.statut is Statut.TERMINE
+    assert len(agent.entrees_recues) == 2
+    assert "_erreur_precedente" not in agent.entrees_recues[1]
 
 
 def test_le_cache_evite_de_repayer(job):
