@@ -125,16 +125,20 @@ Compte 5 à 15 minutes. Quand la coche verte apparaît, ouvre le lancement :
 
 ## Étape 5 — Partir d'une vidéo que tu aimes
 
-Le téléphone ne peut pas envoyer un fichier directement au workflow. Deux
-moyens de lui donner ta vidéo :
-
-**A. Un lien direct.** Mets la vidéo sur Google Drive ou Dropbox, récupère un
+Le téléphone ne peut pas envoyer un fichier directement au workflow : il faut
+un **lien direct**. Mets la vidéo sur Google Drive ou Dropbox, récupère un
 lien de **téléchargement direct** (Dropbox : remplace `?dl=0` par `?dl=1`), et
 colle-le dans *Vidéo de référence*.
 
-**B. La déposer dans le dépôt.** Depuis le navigateur (mode ordinateur, voir
-l'étape 1) : dossier `donnees/sources` → **Add file** → **Upload files**. Puis
-écris `donnees/sources/ma-video.mp4` dans *Vidéo de référence*.
+> ⚠️ **Ne dépose jamais une vidéo de référence dans le dépôt** (dossier
+> `donnees/sources` via « Add file → Upload files »). `donnees/` est ignoré
+> par git en local, mais l'upload web de GitHub ne regarde pas
+> `.gitignore` : le fichier serait commis pour de bon, publiquement, dans
+> l'historique du dépôt. Une vidéo de référence n'est presque jamais la
+> tienne — le lien direct est la seule façon de la donner au workflow sans
+> la publier. (Ce garde-fou ne concerne pas le CSV d'analytics de l'étape
+> « Savoir ce qui marche » plus bas : c'est ton propre export, pas le
+> contenu d'un tiers.)
 
 Ensuite tu peux lancer `analyser` (mesurer sa forme), `musique` (reconnaître
 la musique) ou `charte` (en faire un univers avec ses personnages).
@@ -174,6 +178,69 @@ pas une option du programme.
 > un échantillon un peu plus étroit), et si tu as du crédit Anthropic, c'est
 > Claude qui garde la main — il lit les détails de costume que le modèle
 > gratuit manque.
+
+## Étape 6 — Comparer plusieurs vidéos, et vérifier le transfert
+
+Deux commandes de plus dans **Produire**, pour aller plus loin que « ça
+marche » : vérifier que le système capture vraiment des mécaniques
+différentes d'une vidéo à l'autre, et qu'un script généré sur un sujet neuf
+transfère cette mécanique sans recopier le contenu de la référence.
+
+Aucune vidéo de référence n'est jamais commise à ce dépôt — même principe
+qu'à l'étape 5 (**toujours un lien direct**, jamais un upload dans
+`donnees/`), mais pour plusieurs vidéos à la fois, gardées le temps de les
+comparer (voir plus bas).
+
+### Ajouter des vidéos au dossier de comparaison
+
+1. **Produire** → `references`, ta vidéo dans *Vidéo de référence* — un
+   lien direct, comme à l'étape 5
+2. Dans *Univers*, donne un identifiant à CETTE vidéo (ex. `hologramme-1`)
+3. Répète avec deux ou trois autres vidéos, chacune avec son propre
+   identifiant
+
+Chaque lancement charte la vidéo et la range dans `donnees/references` —
+gardé par le cache d'un lancement à l'autre, jamais publié sur le dépôt. À
+partir de 3 vidéos, le résumé signale les empreintes qui se ressemblent
+trop (`POTENTIAL_ANALYSIS_COLLAPSE`).
+
+> Le cache n'est pas permanent : GitHub l'évince après 7 jours d'inactivité,
+> ou au-delà de 10 Go pour tout le dépôt. Une vidéo « perdue » se réajoute
+> simplement en relançant `references` avec le même identifiant.
+
+**Optionnel :** pour noter à la main, avant analyse, de quoi parlait
+vraiment la vidéo — utile pour le rapport avant/après plus bas — ajoute un
+fichier `donnees/references/<identifiant>.yaml` dans le dépôt (navigateur
+en mode ordinateur, voir l'étape 1 : dossier `donnees/references` →
+**Add file** → **Upload files**). Rien à cacher ici : ce fichier ne contient
+que tes propres notes, jamais la vidéo elle-même, donc aucun souci à le
+publier. Exemple de contenu :
+
+```yaml
+sujet_original: une IA qui explique la physique quantique avec un hologramme
+mecanique_attendue: pose une question dans les 2 premières secondes, jamais résolue
+```
+
+Sans lui, tout marche pareil — seule la vérification de chevauchement
+lexical du rapport avant/après est sautée.
+
+### Le rapport avant/après
+
+Une fois une référence chartée (étape précédente), donne-lui une idée
+totalement neuve :
+
+1. **Produire** → `avant-apres`
+2. *Univers* : l'identifiant de la référence (ex. `hologramme-1`)
+3. *Sujet* : une idée SANS RAPPORT avec la vidéo d'origine
+
+Le résumé du lancement affiche directement le rapport : l'empreinte reçue
+par le scénariste, le script généré réplique par réplique, et deux
+vérifications automatiques (est-ce que chaque plan a une fonction
+différente, et le script partage-t-il des mots avec le sujet original de
+la référence). Le reste — est-ce que ça *marche* vraiment, mécanique
+transférée sans le contenu — reste à juger toi-même : c'est écrit noir sur
+blanc dans le rapport, ce n'est pas quelque chose qu'un algorithme peut
+trancher à ta place.
 
 ## Si ça s'arrête en cours de route
 

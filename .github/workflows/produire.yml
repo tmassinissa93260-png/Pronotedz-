@@ -26,17 +26,24 @@ on:
           - charte           # faire d'une vidéo un univers jouable
           - voix             # donner une voix à chaque personnage
           - resultats        # importer mes stats TikTok et voir ce qui marche
+          - references       # ajouter une vidéo privée au dossier de comparaison, et comparer les empreintes
+          - avant-apres      # rapport : l'empreinte d'une référence face au script qu'elle produit sur un sujet neuf
           - cles             # vérifier que mes clés marchent (gratuit)
       univers:
-        description: "Univers (pour episode / voix), ou identifiant à créer (pour charte)"
+        description: >-
+          Univers (pour episode / voix), identifiant à créer (pour charte),
+          ou identifiant de la référence (pour references / avant-apres)
         required: false
         default: fruit-island
       sujet:
-        description: "Ce qui se passe dans l'épisode"
+        description: "Ce qui se passe dans l'épisode (pour avant-apres : la nouvelle idée à tester)"
         required: false
         default: ""
       fichier:
-        description: "Vidéo de référence, ou export CSV : chemin dans le dépôt, ou URL directe"
+        description: >-
+          Vidéo de référence, ou export CSV : chemin dans le dépôt, ou URL
+          directe. Pour references : la vidéo à ajouter, sous l'identifiant
+          donné dans *Univers* — laisse vide pour comparer celles déjà là.
         required: false
         default: ""
       job:
@@ -97,12 +104,19 @@ jobs:
       # Le cache est ce qui rend l'opération économique : les images, les
       # voix et les sondes déjà payées sont réutilisées d'un lancement à
       # l'autre au lieu d'être refacturées.
+      # `donnees/references` accumule les vidéos privées et leurs chartes
+      # d'un lancement « references » au suivant — c'est ce qui permet de
+      # comparer plusieurs vidéos sans dépendre d'un ordinateur : chaque
+      # lancement en ajoute une, le cache la garde pour le lancement
+      # d'après. Ce n'est pas un stockage permanent : GitHub évince les
+      # caches inactifs après 7 jours, ou les plus vieux au-delà de 10 Go.
       - name: Récupérer le cache et la base
         uses: actions/cache@v4
         with:
           path: |
             donnees/cache
             donnees/pronotedz.db
+            donnees/references
           key: pronotedz-donnees-${{ github.run_id }}
           restore-keys: pronotedz-donnees-
 
@@ -110,12 +124,20 @@ jobs:
         if: inputs.fichier != ''
         env:
           FICHIER: ${{ inputs.fichier }}
+          QUOI: ${{ inputs.quoi }}
+          UNIVERS: ${{ inputs.univers }}
         run: |
-          mkdir -p donnees/sources
+          mkdir -p donnees/sources donnees/references
           # Un export d'analytics est un CSV, une référence est une vidéo :
-          # ffmpeg et le lecteur CSV ne pardonnent pas l'inversion.
-          if [ "${{ inputs.quoi }}" = "resultats" ]; then
+          # ffmpeg et le lecteur CSV ne pardonnent pas l'inversion. Pour
+          # `references`, chaque vidéo garde son propre fichier (sous son
+          # identifiant, dans *Univers*) au lieu de partager
+          # donnees/sources/reference.mp4 : c'est ce qui permet d'en
+          # accumuler plusieurs pour la comparaison.
+          if [ "$QUOI" = "resultats" ]; then
             DEST=donnees/sources/export.csv
+          elif [ "$QUOI" = "references" ]; then
+            DEST="donnees/references/${UNIVERS}.mp4"
           else
             DEST=donnees/sources/reference.mp4
           fi
@@ -257,16 +279,42 @@ jobs:
                 pdz voix apparier "$UNIVERS" | tee "$SORTIE"
               fi
               ;;
+            references)
+              # Aucune vidéo n'est jamais commise à ce dépôt : celles
+              # accumulées ici ne vivent que dans donnees/references, gardé
+              # par le cache d'un lancement à l'autre (voir plus haut).
+              pdz references | tee "$SORTIE"
+              ;;
+            avant-apres)
+              if [ -z "$SUJET" ]; then
+                echo "::error::Il faut une idée neuve (champ Sujet) pour le rapport avant/après."
+                exit 1
+              fi
+              if [ -z "$UNIVERS" ]; then
+                echo "::error::Donne, dans Univers, l'identifiant d'une référence déjà chartée par un lancement « references »."
+                exit 1
+              fi
+              RAPPORT="donnees/references/${UNIVERS}_avant_apres_dernier.md"
+              pdz avant-apres "$UNIVERS" "$SUJET" \
+                --duree "$DUREE" --sortie "$RAPPORT" | tee "$SORTIE"
+              ;;
           esac
 
           # Le résumé s'affiche directement dans l'app GitHub : pas besoin
-          # d'ouvrir les journaux pour savoir ce qui s'est passé.
-          {
-            echo "## ${{ inputs.quoi }}"
-            echo '```'
-            cat "$SORTIE"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          # d'ouvrir les journaux pour savoir ce qui s'est passé. Le rapport
+          # avant/après est du Markdown déjà mis en forme (titres, tableau) :
+          # le coller tel quel, hors bloc de code, le fait s'afficher comme
+          # tel dans l'app plutôt qu'en texte brut.
+          if [ "${{ inputs.quoi }}" = "avant-apres" ] && [ -f "$RAPPORT" ]; then
+            cat "$RAPPORT" >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "## ${{ inputs.quoi }}"
+              echo '```'
+              cat "$SORTIE"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       # `charte` crée un univers, `voix` y écrit les voix retenues. Sans ce
       # renvoi, ce travail serait perdu à la fin du lancement.
