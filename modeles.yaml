@@ -156,12 +156,23 @@ modeles:
 # ═══════════════════════════════════════════════════════════════════════
 #  LES ALIAS — c'est ICI que je pilote la qualité et le coût.
 #  Les agents ne demandent jamais un modèle, ils demandent un alias.
+#
+#  ⚠️ TEMPORAIRE, sur demande explicite : Anthropic retiré des alias texte.
+#  Avant ce changement, « équilibre »/« premium » visaient Claude et
+#  retombaient sur Llama seulement si ANTHROPIC_API_KEY manquait
+#  (`repli_si_cle_absente`, voir pdz/ia/registre.py) — c'est ce chemin qui
+#  a produit le script trop court avec Llama sur le dernier run. En
+#  pointant l'alias directement sur Llama, tous les profils texte
+#  (economique/equilibre/premium compris) utilisent Groq sans jamais
+#  tenter Anthropic ni dépendre de son repli. Pour restaurer : remettre
+#  claude-sonnet-5 / claude-haiku-4-5-20251001 ci-dessous (et dans
+#  `economique` sous profils, plus bas).
 # ═══════════════════════════════════════════════════════════════════════
 alias:
-  qualite:    { principal: claude-sonnet-5,            repli: claude-haiku-4-5-20251001 }
-  critique:   { principal: claude-sonnet-5,            temperature: 0.2 }
-  rapide:     { principal: claude-haiku-4-5-20251001 }
-  vision:     { principal: claude-haiku-4-5-20251001 }
+  qualite:    { principal: llama-3.3-70b-versatile }
+  critique:   { principal: llama-3.3-70b-versatile,    temperature: 0.2 }
+  rapide:     { principal: llama-3.3-70b-versatile }
+  vision:     { principal: meta-llama/llama-4-maverick-17b-128e-instruct }
   images:     { principal: fal-ai/flux/dev,            repli: fal-ai/flux/schnell }
   animation:  { principal: fal-ai/kling-video/v2.1/standard/image-to-video }
   voix:       { principal: eleven_turbo_v2_5 }
@@ -176,7 +187,7 @@ alias:
 profils:
   economique:
     images: fal-ai/flux/schnell
-    qualite: claude-haiku-4-5-20251001
+    qualite: llama-3.3-70b-versatile     # temporaire, voir la note sur les alias plus haut
     animer: false                       # aucune animation, images fixes animées
   equilibre:
     images: fal-ai/flux/schnell
@@ -213,6 +224,6 @@ profils:
 # ═══════════════════════════════════════════════════════════════════════
 regles:
   - si: { budget_restant_pourcent: "<20" }
-    alors: { qualite: claude-haiku-4-5-20251001, images: fal-ai/flux/schnell, animer: false }
+    alors: { qualite: llama-3.3-70b-versatile, images: fal-ai/flux/schnell, animer: false }  # temporaire, voir la note sur les alias plus haut
   - si: { budget_restant_pourcent: "<5" }
     alors: { stop: true }
