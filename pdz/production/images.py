@@ -106,7 +106,8 @@ def prompt_fiche(personnage: Personnage, univers: Univers) -> str:
 
 def prompt_plan(personnage: Personnage, univers: Univers, *,
                 action: str, emotion: str = "calme",
-                decor: str = "", consignes: list[str] | None = None) -> str:
+                decor: str = "", consignes: list[str] | None = None,
+                fonction: str = "") -> str:
     """Le prompt d'un plan : qui, faisant quoi, où, avec quelle tête.
 
     L'ordre n'est pas indifférent. Les modèles d'image donnent plus de poids
@@ -118,6 +119,14 @@ def prompt_plan(personnage: Personnage, univers: Univers, *,
     vingt portraits du même sujet là où il faut vingt scènes différentes.
     L'action prend donc la première place, et l'expression disparaît — un
     visage qu'on ne voit pas n'a pas d'émotion à jouer.
+
+    `fonction` est le SHOT_FUNCTION écrit par le scénariste (`fonction_plan`
+    dans le script) — pourquoi ce plan existe dans la mécanique d'attention,
+    pas ce qu'il montre. Sans elle, ce champ était calculé puis jeté : capturé
+    dans le storyboard, jamais lu par la génération d'image. Deux plans à la
+    même action mais des fonctions différentes ("établit l'échelle du monde"
+    vs "révèle un détail") doivent produire des prompts différents, sinon
+    l'empreinte créative ne pèse sur rien de visible à l'écran.
     """
     if not univers.anime:
         morceaux = [action.strip()]
@@ -127,6 +136,9 @@ def prompt_plan(personnage: Personnage, univers: Univers, *,
             EXPRESSIONS.get(emotion, EXPRESSIONS["calme"]),
             action.strip(),
         ]
+
+    if fonction.strip():
+        morceaux.append(f"shot chosen to: {fonction.strip()}")
 
     if decor and (d := univers.decor(decor)):
         morceaux.append(d.description.strip())
@@ -300,7 +312,7 @@ def fabriquer(plans: list[PlanScript], univers: Univers, dossier: Path, *,
 
         prompt = prompt_plan(perso, univers, action=plan.action,
                              emotion=plan.emotion, decor=plan.decor,
-                             consignes=consignes)
+                             consignes=consignes, fonction=plan.fonction)
         destination = dossier / f"plan_{plan.numero:03d}.jpg"
         reste_pct = max(0.0, (plafond - planche.cout) / max(1e-6, plafond) * 100)
 

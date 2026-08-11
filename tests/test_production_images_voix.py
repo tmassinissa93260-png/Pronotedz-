@@ -309,6 +309,30 @@ def test_le_decor_demande_est_celui_utilise():
     assert "torches" in prompt
 
 
+def test_le_shot_function_influence_le_prompt_dimage():
+    """SHOT_FUNCTION (fonction_plan) était calculé par le scénariste puis
+    jeté : présent dans le storyboard, jamais lu par la génération d'image.
+    Sans ce fil, l'empreinte créative ne pèse sur rien de visible à l'écran —
+    exactement ce que le test avant/après doit pouvoir vérifier."""
+    u = Univers.charger(FRUITS)
+    perso = u.personnages[0]
+    sans = images.prompt_plan(perso, u, action="elle observe la pièce")
+    avec = images.prompt_plan(perso, u, action="elle observe la pièce",
+                              fonction="révèle un détail caché")
+    assert sans != avec
+    assert "révèle un détail caché" in avec
+
+
+def test_deux_fonctions_differentes_donnent_des_prompts_differents():
+    u = Univers.charger(FRUITS)
+    perso = u.personnages[0]
+    a = images.prompt_plan(perso, u, action="elle observe la pièce",
+                           fonction="établit l'échelle du monde")
+    b = images.prompt_plan(perso, u, action="elle observe la pièce",
+                           fonction="fait monter la tension")
+    assert a != b
+
+
 def test_la_fiche_de_personnage_est_neutre():
     """Une fiche prise en scène transmettrait ce décor à tous les plans."""
     u = Univers.charger(FRUITS)
