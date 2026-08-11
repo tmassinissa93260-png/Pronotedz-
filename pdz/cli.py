@@ -405,7 +405,7 @@ def charte(
     _journal(verbeux)
     from pdz.agents.analyse.charte import CharteVisuelle, vers_univers
     from pdz.analyse import rapport as module_rapport
-    from pdz.moteur.pipeline import Contexte
+    from pdz.moteur.pipeline import Contexte, executer_avec_relance
 
     try:
         r = module_rapport.analyser(video, dossier_travail=config().dossier_travail)
@@ -415,7 +415,7 @@ def charte(
         ctx = Contexte(job_id=db.nouvel_id("job"), etape_cle="charte",
                        profil=config().profil, budget_restant=1.0)
         console.print("\n[dim]Lecture des images-clés…[/dim]")
-        resultat = asyncio.run(agent.executer({
+        resultat = asyncio.run(executer_avec_relance(agent, {
             "visuel": r.visuel,
             "mesures_rythme": r.adn.bloc_pour_prompt(),
             "transposer": not fidele,
@@ -485,7 +485,7 @@ def references(
     from pdz.analyse import rapport as module_rapport
     from pdz.analyse.diversite import diagnostic_diversite
     from pdz.analyse.references import dossier_references, lister_references
-    from pdz.moteur.pipeline import Contexte
+    from pdz.moteur.pipeline import Contexte, executer_avec_relance
 
     d = dossier or dossier_references()
     refs = lister_references(d)
@@ -513,7 +513,7 @@ def references(
                 agent = CharteVisuelle()
                 ctx = Contexte(job_id=db.nouvel_id("job"), etape_cle="charte",
                                profil=config().profil, budget_restant=1.0)
-                resultat = asyncio.run(agent.executer({
+                resultat = asyncio.run(executer_avec_relance(agent, {
                     "visuel": r.visuel, "mesures_rythme": r.adn.bloc_pour_prompt(),
                     "transposer": True, "langue": "français",
                 }, ctx))
@@ -583,7 +583,7 @@ def avant_apres(
     from pdz.agents.ecriture.script import ScriptWriter, _texte_empreinte
     from pdz.analyse.references import dossier_references, lister_references
     from pdz.analyse.rapport_transfert import PlanRapporte, RapportTransfert, construire_rapport
-    from pdz.moteur.pipeline import Contexte
+    from pdz.moteur.pipeline import Contexte, executer_avec_relance
     from pdz.production import images, storyboard
 
     d = dossier or dossier_references()
@@ -606,7 +606,7 @@ def avant_apres(
     ctx = Contexte(job_id=db.nouvel_id("job"), etape_cle="script",
                    profil=config().profil, budget_restant=1.0)
     try:
-        script = asyncio.run(ScriptWriter().executer(
+        script = asyncio.run(executer_avec_relance(ScriptWriter(),
             {"univers": univers, "situation": sujet, "duree_s": duree,
              "adn": None, "beats": None, "resume_precedent": ""}, ctx,
         ))

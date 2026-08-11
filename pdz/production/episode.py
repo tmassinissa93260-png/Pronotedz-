@@ -36,7 +36,7 @@ from pdz.agents.ecriture.script import ScriptWriter
 from pdz.analyse.adn import Adn
 from pdz.config import config
 from pdz.moteur.erreurs import ErreurConfig, ErreurPdz
-from pdz.moteur.pipeline import Contexte
+from pdz.moteur.pipeline import Contexte, executer_avec_relance
 from pdz.production import animation, images, storyboard, voix
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Univers
@@ -184,7 +184,7 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
         debut = time.perf_counter()
         ctx = Contexte(job_id=job_id, etape_cle="script", profil=profil,
                        budget_restant=plafond - cout_total)
-        script = await ScriptWriter().executer(
+        script = await executer_avec_relance(ScriptWriter(),
             {"univers": univers, "situation": situation, "duree_s": duree_s,
              "adn": adn, "beats": beats, "resume_precedent": resume_precedent},
             ctx,

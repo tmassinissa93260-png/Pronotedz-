@@ -382,6 +382,33 @@ def test_le_schema_actif_ne_contraint_plus_lemotion_par_enum():
     assert charger("ecriture/script").version == "1.4.0"
 
 
+def test_le_schema_impose_le_nombre_de_repliques_vise():
+    """Mesuré à l'écran : rien n'empêchait un script de 2 répliques bien
+    formées, alors qu'il en fallait 6 pour tenir la durée — le schéma
+    validait chaque réplique présente, jamais leur nombre. `minItems`
+    l'impose désormais, au même niveau que Groq valide déjà tout le reste."""
+    u = Univers.charger(FRUITS)
+    base = charger("ecriture/script").schema_sortie
+    schema = ScriptWriter().schema(base, {"univers": u, "duree_s": 45}, _contexte())
+    attendu = ScriptWriter()._forme({"univers": u, "duree_s": 45})["nb_repliques"]
+    assert schema["properties"]["repliques"]["minItems"] == attendu
+    assert attendu >= 3
+
+
+def test_le_message_derreur_trop_court_redonne_la_cible_complete():
+    """Un delta seul ('ajoute 44 mots') suppose que le modèle se souvient
+    encore de la cible d'origine, loin plus haut dans le prompt. Un modèle
+    plus faible (Llama) a besoin qu'on la lui redonne."""
+    u = Univers.charger(FRUITS)
+    court = _reponse_factice(u, nb=7)
+    with pytest.raises(ErreurValidation) as e:
+        ScriptWriter().apres(court, {"univers": u, "duree_s": 45}, _contexte())
+    message = str(e.value)
+    assert "au total" in message
+    assert "répliques" in message
+    assert "CHAQUE réplique" in message
+
+
 def test_le_schema_ferme_le_personnage_a_lunivers():
     """Un `enum` guide bien mieux un modèle qu'une description en texte
     libre — surtout un modèle moins strict sur les instructions."""

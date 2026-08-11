@@ -22,6 +22,7 @@ from pathlib import Path
 
 import pytest
 
+from pdz.moteur.erreurs import ErreurValidation
 from pdz.video.soustitres import Mot
 
 FRUITS = Path(__file__).resolve().parent.parent / "univers" / "fruit-island.yaml"
@@ -141,6 +142,34 @@ def _produire(atelier, **surcharges):
 def test_un_episode_complet_sort_en_mp4(atelier):
     _, resultat = _produire(atelier)
 
+    assert resultat.video.exists()
+
+
+def test_une_erreur_de_validation_du_script_est_rattrapee_par_une_relance(atelier, monkeypatch):
+    """Le chemin RÉEL de production (`pdz episode`) appelle ScriptWriter via
+    `executer_avec_relance`, jamais `.executer()` nu — sans ce fil, une
+    ErreurValidation faisait échouer l'épisode entier dès le premier essai,
+    sans jamais laisser sa chance à la correction automatique. Mesuré en
+    conditions réelles : c'était le cas jusqu'à ce soir, malgré un mécanisme
+    de relance déjà écrit et testé... mais jamais appelé par ce chemin-là."""
+    tentatives = {"n": 0}
+
+    async def script_qui_rate_une_fois(self, entrees, ctx):
+        tentatives["n"] += 1
+        if tentatives["n"] == 1:
+            assert "_erreur_precedente" not in entrees
+            raise ErreurValidation("Script trop court : ajoute des mots.")
+        assert entrees.get("_erreur_precedente") == "Script trop court : ajoute des mots."
+        ctx.facturer(0.012)
+        sortie = json.loads(json.dumps(SCRIPT_FACTICE))
+        return self.apres(sortie, entrees, ctx)
+
+    monkeypatch.setattr("pdz.agents.ecriture.script.ScriptWriter.executer",
+                        script_qui_rate_une_fois)
+
+    _, resultat = _produire(atelier)
+
+    assert tentatives["n"] == 2
     assert resultat.video.exists()
     assert resultat.video.stat().st_size > 10_000
 

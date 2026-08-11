@@ -10,6 +10,7 @@ Voir docs/06-solidite.md § « Reprise après plantage ».
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import json
 import logging
@@ -86,6 +87,39 @@ class Contexte:
     def facturer(self, montant: float) -> None:
         self.cout_engage += montant
         self.budget_restant -= montant
+
+
+async def executer_avec_relance(agent: Agent, entrees: dict[str, Any], ctx: Contexte,
+                                *, max_tentatives: int = 3) -> dict[str, Any]:
+    """Appelle un agent, en relançant selon la politique de l'erreur —
+    en montrant l'erreur au modèle sur une ErreurValidation, voir
+    Agent.executer() côté lecture de `_erreur_precedente`.
+
+    Mesuré à l'écran : `Moteur._executer_etape()` a longtemps été le SEUL
+    endroit à relancer, mais `pdz episode`, `pdz charte`, `pdz references`
+    et `pdz avant-apres` appellent tous leurs agents directement, sans
+    jamais passer par `Moteur`. Un `await agent.executer(...)` nu ne
+    relance jamais rien — c'est cette fonction qu'il faut appeler à la
+    place, partout où un agent est invoqué.
+    """
+    derniere: ErreurPdz | None = None
+    for tentative in range(1, max_tentatives + 1):
+        try:
+            return await agent.executer(entrees, ctx)
+        except ErreurPdz as e:
+            derniere = e
+            pol = e.politique
+            if not pol.reessayer or tentative >= min(pol.tentatives_max, max_tentatives):
+                raise
+            attente = getattr(e, "retry_after", None) or delai_backoff(tentative)
+            log.warning(
+                "⟳  %s tentative %d/%d — %s — nouvelle tentative dans %.1fs",
+                agent.nom, tentative, pol.tentatives_max, e.categorie, attente,
+            )
+            await asyncio.sleep(attente)
+            if isinstance(e, ErreurValidation):
+                entrees = {**entrees, "_erreur_precedente": str(e)}
+    raise derniere or ErreurPdz(f"Échec de l'agent « {agent.nom} »")
 
 
 @dataclass
@@ -220,41 +254,14 @@ class Moteur:
                           duree_ms=0, statut="ignore_cache")
             return cachee, 0.0
 
-        politique_tentatives = 3
-        derniere: Exception | None = None
-
-        for tentative in range(1, politique_tentatives + 1):
-            debut = time.perf_counter()
-            try:
-                sortie = await agent.executer(entrees, ctx)
-            except ErreurPdz as e:
-                derniere = e
-                pol = e.politique
-                if not pol.reessayer or tentative >= min(pol.tentatives_max, politique_tentatives):
-                    raise
-                attente = getattr(e, "retry_after", None) or delai_backoff(tentative)
-                log.warning(
-                    "⟳  %s tentative %d/%d — %s — nouvelle tentative dans %.1fs",
-                    etape.cle, tentative, pol.tentatives_max, e.categorie, attente,
-                )
-                time.sleep(attente)
-                # Sans ça, la relance rejoue exactement le même essai avec les
-                # mêmes entrées et échoue pour la même raison — voir
-                # Agent.executer() côté lecture. Seul ErreurValidation porte
-                # un message utile au modèle ; une erreur réseau/quota ne
-                # dit rien qu'il puisse corriger.
-                if isinstance(e, ErreurValidation):
-                    entrees = {**entrees, "_erreur_precedente": str(e)}
-                continue
-
-            duree_ms = int((time.perf_counter() - debut) * 1000)
-            _ecrire_etape(ctx.job_id, etape, emp, sortie, ctx.cout_engage, duree_ms)
-            _ecrire_cache(emp, sortie, ctx.cout_engage)
-            _ajouter_cout(ctx.job_id, ctx.cout_engage)
-            log.info("✓  %s (%d ms, %.4f €)", etape.cle, duree_ms, ctx.cout_engage)
-            return sortie, ctx.cout_engage
-
-        raise derniere or ErreurPdz(f"Échec de l'étape {etape.cle}")
+        debut = time.perf_counter()
+        sortie = await executer_avec_relance(agent, entrees, ctx)
+        duree_ms = int((time.perf_counter() - debut) * 1000)
+        _ecrire_etape(ctx.job_id, etape, emp, sortie, ctx.cout_engage, duree_ms)
+        _ecrire_cache(emp, sortie, ctx.cout_engage)
+        _ajouter_cout(ctx.job_id, ctx.cout_engage)
+        log.info("✓  %s (%d ms, %.4f €)", etape.cle, duree_ms, ctx.cout_engage)
+        return sortie, ctx.cout_engage
 
     def _etapes_terminees(self, conn, job_id: str) -> dict[str, Any]:
         lignes = conn.execute(

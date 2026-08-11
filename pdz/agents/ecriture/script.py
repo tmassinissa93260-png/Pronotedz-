@@ -87,40 +87,52 @@ def _texte_empreinte(e) -> str:
 
 class ScriptWriter(Agent):
     nom = "script"
-    version = "1.4.0"
+    version = "1.5.0"
     prompt_ref = "ecriture/script"
+
+    def _forme(self, entrees: dict[str, Any]) -> dict[str, Any]:
+        """Le nombre de répliques et de mots visés — partagé entre
+        `variables()` (ce qu'on demande) et `schema()` (ce qu'on impose).
+
+        Sans ce partage, rien n'empêchait un écart entre les deux : le
+        prompt demandait N répliques, mais aucune règle du schéma ne les
+        exigeait vraiment. Mesuré à l'écran, avec Llama/Groq : 26 mots pour
+        45 s demandées — 2 ou 3 répliques au lieu de 6, un script qui
+        respectait le schéma à la lettre (chaque réplique bien formée) tout
+        en manquant complètement la durée.
+        """
+        univers: Univers = entrees["univers"]
+        duree = entrees.get("duree_s") or univers.duree_cible_s
+        adn: Adn | None = entrees.get("adn")
+        if adn is not None:
+            return adn.contraintes(duree)
+        repliques = nb_repliques_pour(duree)
+        return {
+            "duree_s": duree,
+            "nb_repliques": repliques,
+            "mots_par_replique": mots_par_replique(duree, repliques),
+            "nb_plans_vises": nb_plans_pour(duree),
+            "repliques_de_relance": positions_relance_par_defaut(duree, repliques),
+            "duree_hook_s": 0,
+        }
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
         univers: Univers = entrees["univers"]
-        duree = entrees.get("duree_s") or univers.duree_cible_s
 
         # Avec un ADN mesuré sur une vidéo de référence, le format vient des
         # mesures. Sans lui, des repères génériques. Les deux chemins donnent
         # les mêmes clés au prompt — il n'a pas à savoir d'où elles viennent.
         adn: Adn | None = entrees.get("adn")
-        if adn is not None:
-            forme = adn.contraintes(duree)
-            variables = {
-                "duree_s": forme["duree_s"],
-                "nb_repliques": forme["nb_repliques"],
-                "mots_par_replique": forme["mots_par_replique"],
-                "nb_plans_vises": forme["nb_plans_vises"],
-                "forme_mesuree": adn.bloc_pour_prompt(),
-                "repliques_de_relance": forme["repliques_de_relance"],
-                "duree_hook_s": forme["duree_hook_s"],
-            }
-        else:
-            repliques = nb_repliques_pour(duree)
-            variables = {
-                "duree_s": duree,
-                "nb_repliques": repliques,
-                "mots_par_replique": mots_par_replique(duree, repliques),
-                # Indicatif : le Storyboard fera le découpage réel.
-                "nb_plans_vises": nb_plans_pour(duree),
-                "forme_mesuree": "",
-                "repliques_de_relance": positions_relance_par_defaut(duree, repliques),
-                "duree_hook_s": 0,
-            }
+        forme = self._forme(entrees)
+        variables = {
+            "duree_s": forme["duree_s"],
+            "nb_repliques": forme["nb_repliques"],
+            "mots_par_replique": forme["mots_par_replique"],
+            "nb_plans_vises": forme["nb_plans_vises"],
+            "forme_mesuree": adn.bloc_pour_prompt() if adn is not None else "",
+            "repliques_de_relance": forme["repliques_de_relance"],
+            "duree_hook_s": forme.get("duree_hook_s", 0),
+        }
 
         empreinte_texte = ""
         if univers.empreinte_creative is not None:
@@ -151,6 +163,12 @@ class ScriptWriter(Agent):
         · `decor` et `reaction_de` sont indicatifs : une valeur inconnue
           retombe sur le premier décor sans conséquence. Décrits, pas
           contraints.
+        · le NOMBRE de répliques, à l'inverse, ne se rattrape pas après
+          coup — on ne peut pas inventer du dialogue manquant sans
+          fabriquer du contenu. `minItems` l'impose donc au niveau du
+          schéma : plus fiable qu'une consigne en texte, et ça relance
+          immédiatement (voir `apres()`) plutôt que de laisser passer un
+          script deux fois trop court.
         """
         univers: Univers = entrees["univers"]
         ids_personnages = sorted(p.id for p in univers.personnages)
@@ -159,6 +177,7 @@ class ScriptWriter(Agent):
         schema = copy.deepcopy(base)
         items = schema["properties"]["repliques"]["items"]
         proprietes = items["properties"]
+        schema["properties"]["repliques"]["minItems"] = self._forme(entrees)["nb_repliques"]
 
         if len(ids_personnages) <= 1:
             proprietes.pop("personnage", None)
@@ -244,11 +263,18 @@ class ScriptWriter(Agent):
         # validation relance le modèle en lui montrant son écart.
         if estimee < duree * 0.7:
             manquants = max(1, round((duree * 0.85 - estimee) * debit / 60))
+            # La cible complète est répétée ici, pas seulement l'écart : un
+            # modèle plus faible (Llama) a besoin de la reconstruire, pas de
+            # la déduire d'un delta — mesuré à l'écran, 26 mots pour 45 s
+            # malgré une première relance qui ne donnait que le manque.
+            cible_totale = round((duree * 0.85) * debit / 60)
             raise ErreurValidation(
                 f"Script trop court : {mots} mots donnent environ {estimee} s "
-                f"à voix haute, pour {duree} s demandées. Ajoute environ "
-                f"{manquants} mots — en allongeant les répliques existantes "
-                "ou en en ajoutant, sans changer l'histoire."
+                f"à voix haute, pour {duree} s demandées. Il faut environ "
+                f"{cible_totale} mots au total, répartis sur {len(repliques)} "
+                f"répliques — ajoute environ {manquants} mots en allongeant "
+                "CHAQUE réplique existante avec de vraies phrases (pas du "
+                "remplissage), sans changer l'histoire."
             )
         if estimee > duree * 1.4:
             raise ErreurValidation(
