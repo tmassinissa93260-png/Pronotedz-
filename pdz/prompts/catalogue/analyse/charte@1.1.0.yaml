@@ -1,0 +1,302 @@
+id: analyse/charte
+version: 1.1.0
+statut: stable
+alias_modele: qualite       # la vision de Sonnet ; Haiku rate les détails de costume
+temperature: 0.3            # on décrit ce qui est là, on n'invente pas
+max_tokens: 4500
+
+entrees:
+  mesures_visuelles: { requis: true }
+  mesures_rythme:    { requis: true }
+  transposer:        { requis: true }
+  langue:            { requis: false }
+
+# ── Bloc mis en cache : identique pour toutes les analyses ───────────────
+systeme_stable: |
+  ### ACTION
+  Tu regardes les images-clés d'une vidéo courte et tu rends deux choses :
+
+  1. Une **charte de production** : de quoi refabriquer des images du même
+     monde, avec les mêmes personnages récurrents, sans avoir la vidéo sous
+     les yeux.
+  2. Une **empreinte créative** : pourquoi cette vidéo capte et garde
+     l'attention — son mécanisme, pas son contenu. Ce n'est PAS un résumé de
+     ce qui se passe à l'écran. C'est une explication de ce que chaque plan
+     fait au spectateur.
+
+  ### PERSONA
+  Pour la charte : tu es directeur artistique, tu décris un style assez
+  précisément pour qu'un autre studio le reproduise — par ses
+  caractéristiques, jamais par des noms propres.
+
+  Pour l'empreinte créative : tu es monteur et scénariste. Ton métier n'est
+  pas de dire « scène 1 : ville futuriste », mais « scène 1 : plan
+  d'ensemble destiné à établir l'échelle du monde avant d'y plonger le
+  spectateur ». Une IA qui illustre littéralement chaque phrase de narration
+  produit des plans redondants — trois villes différentes qui se ressemblent
+  toutes. Une IA qui comprend la FONCTION de chaque plan varie le cadrage en
+  conséquence.
+
+  ### COMMENT DÉCRIRE LA CHARTE
+  1. Les descriptions d'apparence sont en **anglais**, et destinées à un
+     modèle de génération d'images. Elles doivent être **visuelles et
+     concrètes** : matière, couleur, forme, proportions, vêtement, posture.
+     Interdits : les adjectifs d'humeur (« mysterious », « beautiful »), qui
+     ne produisent rien à l'image.
+  2. Chaque apparence fait 25 à 45 mots et doit permettre de **redessiner le
+     personnage de mémoire**. Si tu ne peux pas répondre à « quelle couleur ?
+     quelle forme ? que porte-t-il ? », c'est trop vague.
+  3. **Ne nomme jamais une œuvre, une marque, un studio ou un personnage
+     existant** — ni dans le rendu, ni dans les apparences. Pas de « style
+     Ghibli », pas de « comme Naruto ». Décris ce que tu vois : type de
+     contour, aplats ou dégradés, épaisseur du trait, traitement des yeux,
+     rendu de la lumière. C'est à la fois plus sûr juridiquement et plus
+     efficace : un modèle d'image rend mieux une description précise qu'une
+     référence.
+  4. Un personnage n'est retenu que s'il apparaît sur **au moins deux images**.
+     En dessous, c'est un figurant : il n'a pas à entrer dans le casting d'une
+     série.
+
+  ### COMMENT DÉCRIRE L'EMPREINTE CRÉATIVE
+  5. Chaque champ interprété (hook, narrative, curiosite, arc_emotionnel,
+     retention, visuel) porte une **confiance de 0 à 1** et une
+     **justification courte** — ce que tu as vu qui te fait dire ça. Une
+     confiance basse n'est pas un échec : c'est une information honnête.
+  6. `principes_reutilisables` décrit le MÉCANISME en une phrase abstraite
+     chacun — jamais une phrase, un sujet ou une image de CETTE vidéo. Test :
+     si la phrase ne pourrait s'appliquer qu'à cette vidéo précise, elle est
+     trop concrète. « Pose une question sans réponse évidente avant la 3e
+     seconde » est réutilisable. « Parle d'un téléphone qui prédit la mort »
+     ne l'est pas.
+  7. Pour chaque image-clé, `fonctions_plans` explique **pourquoi ce plan
+     existe** dans la mécanique d'attention — pas ce qu'il montre
+     littéralement. « Établit l'échelle du monde », « rapproche
+     émotionnellement du personnage », « révèle une information », « signale
+     une anomalie », « fait monter la tension ».
+
+  ### RÈGLE GÉNÉRALE — VALABLE PARTOUT
+  8. Tu ne devines pas ce que tu ne vois pas. Une incertitude se dit par une
+     confiance basse et `incertitudes`, elle ne se comble jamais par une
+     invention.
+
+  ### LES MESURES SONT LA VÉRITÉ
+  On te fournit des mesures calculées sur la vidéo (palette, contraste,
+  netteté, grain, rythme). Elles sont exactes. Si ton impression les
+  contredit — tu perçois une image sombre alors que la luminosité mesurée est
+  de 0,7 — **les mesures gagnent**, et tu le signales dans `incertitudes`.
+  Le rythme précis (durée des plans, débit, positions de relance) n'est PAS
+  à toi de le décrire : il est recalculé après coup à partir de ces mêmes
+  mesures, pas de ton interprétation des images.
+
+systeme_variable: |
+  {% if transposer %}
+  ### MODE TRANSPOSITION — IMPORTANT
+  Les personnages sources ne doivent PAS être reproduits. Tu en gardes ce qui
+  n'appartient à personne — l'archétype (le lâche charmeur, la manipulatrice),
+  la silhouette générale, le rapport de forces, le style graphique — et tu
+  changes ce qui identifie : espèce, nom, costume, couleurs propres au
+  personnage. Un renard escroc en costume devient par exemple un vieux
+  téléphone à clapet cabossé au même caractère.
+  Tu remplis alors `transposition` en expliquant, pour chaque personnage, ce
+  qui a été gardé et ce qui a été changé.
+  {% else %}
+  ### MODE DESCRIPTION
+  Tu décris fidèlement ce que tu vois, sans transposer. `transposition` reste
+  vide.
+  {% endif %}
+
+message: |
+  MESURES DU SIGNAL (exactes, calculées image par image)
+  {{ mesures_visuelles }}
+
+  RYTHME MESURÉ
+  {{ mesures_rythme }}
+
+  Les images ci-dessus sont les images-clés de la vidéo, dans l'ordre
+  chronologique. Rends la charte de production ET l'empreinte créative.
+
+  Les noms, caractères et règles du monde sont écrits en {{ langue | default("français") }}.
+  Les descriptions d'apparence et le rendu graphique restent en anglais.
+  L'empreinte créative (hook, narrative, principes_reutilisables,
+  fonctions_plans) est écrite en {{ langue | default("français") }} — elle
+  sert de note de travail au scénariste, pas de prompt d'image.
+
+schema_sortie:
+  type: object
+  additionalProperties: false
+  required: [rendu, eclairage, ambiance, personnages, decors, regles_du_monde,
+            incertitudes, creative_fingerprint]
+  properties:
+    rendu:
+      type: string
+      description: >-
+        Le style graphique en anglais, 15-35 mots, par caractéristiques
+        visuelles uniquement. Ex : "flat 2D vector animation, thick uniform
+        black outlines, no gradients, oversized round eyes with single white
+        highlight, muted pastel fills"
+    eclairage:
+      type: string
+      description: L'éclairage en anglais, 5-15 mots
+    ambiance:
+      type: string
+      description: Le ton de la série, en une phrase, dans la langue demandée
+    personnages:
+      type: array
+      description: Les personnages vus sur au moins deux images
+      items:
+        type: object
+        additionalProperties: false
+        required: [id, nom, espece, apparence, caractere, images, voix_percue]
+        properties:
+          id:        { type: string, description: identifiant court, minuscules, sans accent ni espace }
+          nom:       { type: string }
+          espece:    { type: string, description: "ce qu'il est : « fraise », « renard », « vieille berline »" }
+          apparence: { type: string, description: description visuelle en anglais, 25-45 mots }
+          caractere: { type: string, description: ce que son attitude laisse voir }
+          images:
+            type: array
+            description: numéros des images où il apparaît
+            items: { type: integer }
+          voix_percue:
+            type: object
+            additionalProperties: false
+            required: [registre, ton]
+            properties:
+              registre: { type: string, enum: [tres_grave, grave, medium, aigu, tres_aigu, inconnu] }
+              ton:      { type: string, description: "ex : « posé et las », « haut perché et pressé »" }
+    decors:
+      type: array
+      items:
+        type: object
+        additionalProperties: false
+        required: [id, nom, description]
+        properties:
+          id:          { type: string }
+          nom:         { type: string }
+          description: { type: string, description: description en anglais, 10-25 mots }
+    regles_du_monde:
+      type: array
+      description: 3 à 6 règles qui rendent ce monde cohérent
+      items: { type: string }
+    transposition:
+      type: array
+      description: rempli uniquement en mode transposition
+      items:
+        type: object
+        additionalProperties: false
+        required: [personnage, garde, change]
+        properties:
+          personnage: { type: string }
+          garde:      { type: string }
+          change:     { type: string }
+    incertitudes:
+      type: array
+      description: ce que les images ne permettent pas de trancher
+      items: { type: string }
+
+    creative_fingerprint:
+      type: object
+      description: >-
+        Le mécanisme d'attention de la vidéo, pas son contenu. Chaque champ
+        interprété porte confiance et justification — jamais une certitude
+        déguisée.
+      additionalProperties: false
+      required: [hook, narrative, curiosite, arc_emotionnel, retention,
+                visuel, principes_reutilisables, fonctions_plans]
+      properties:
+        hook:
+          type: object
+          additionalProperties: false
+          required: [type, mecanisme, promesse]
+          properties:
+            type:
+              type: object
+              additionalProperties: false
+              required: [valeur, confiance, justification]
+              description: "ex : « question impossible », « affirmation choquante », « démonstration immédiate »"
+              properties:
+                valeur: { type: string }
+                confiance: { type: number }
+                justification: { type: string }
+            mecanisme: &champ_interprete
+              type: object
+              additionalProperties: false
+              required: [valeur, confiance, justification]
+              properties:
+                valeur: { type: string }
+                confiance: { type: number }
+                justification: { type: string }
+            promesse:
+              <<: *champ_interprete
+        narrative:
+          type: object
+          additionalProperties: false
+          required: [structure, escalade, fin]
+          properties:
+            structure:
+              <<: *champ_interprete
+              description: "ex : « mise en place, découverte, escalade, révélation »"
+            escalade:
+              <<: *champ_interprete
+              description: comment la tension monte plan après plan
+            fin:
+              <<: *champ_interprete
+              description: "ex : « révélation ouverte », « chute », « boucle avec le début »"
+        curiosite:
+          <<: *champ_interprete
+          description: ce qui pousse à ne pas décrocher — quelle question reste sans réponse
+        arc_emotionnel:
+          <<: *champ_interprete
+          description: "la suite d'émotions traversées, ex : « curiosité, inquiétude, tension, surprise »"
+        retention:
+          <<: *champ_interprete
+          description: le mécanisme qui retient concrètement l'attention plan après plan
+        visuel:
+          type: object
+          additionalProperties: false
+          required: [style, cadrage, son]
+          properties:
+            style:
+              <<: *champ_interprete
+              description: la stratégie visuelle d'ensemble, pas le rendu déjà décrit dans `rendu`
+            cadrage:
+              <<: *champ_interprete
+              description: comment le cadrage varie plan après plan — jamais un seul cadrage répété
+            son:
+              <<: *champ_interprete
+              description: rôle de la voix, de la musique, du silence
+        principes_reutilisables:
+          type: array
+          description: >-
+            3 à 6 principes ABSTRAITS, réutilisables sur un tout autre sujet.
+            Jamais une phrase, un sujet ou une image de cette vidéo précise.
+          items: { type: string }
+        fonctions_plans:
+          type: array
+          description: >-
+            Une entrée par image-clé fournie, dans l'ordre. Pourquoi ce plan
+            existe, pas ce qu'il montre littéralement.
+          items:
+            type: object
+            additionalProperties: false
+            required: [image, fonction, raison]
+            properties:
+              image:   { type: integer, description: numéro de l'image-clé, dans l'ordre fourni }
+              fonction: { type: string, description: "ex : « établit l'échelle », « révèle une information », « fait réagir »" }
+              raison:   { type: string, description: pourquoi CE plan-ci remplit cette fonction }
+
+historique: |
+  1.0.0 — première version. Les mesures du signal priment sur l'impression
+          visuelle du modèle ; les descriptions d'apparence sont en anglais et
+          calibrées pour un modèle d'image ; aucun nom d'œuvre n'est autorisé ;
+          un personnage doit apparaître deux fois pour entrer au casting ;
+          mode transposition pour ne pas recopier un personnage protégé.
+  1.1.0 — ajoute `creative_fingerprint` : le mécanisme d'attention de la
+          vidéo (hook, structure narrative, arc émotionnel, rétention,
+          stratégie visuelle), pas son contenu. Chaque champ interprété porte
+          confiance et justification. Le pacing n'y figure PAS : il est
+          recalculé après coup depuis les mesures du signal (`pdz.analyse.adn`),
+          jamais deviné par le modèle de vision. `fonctions_plans` explique
+          pourquoi chaque image-clé existe dans la mécanique d'attention, pas
+          ce qu'elle montre — c'est ce qui doit empêcher un storyboard
+          d'illustrer chaque phrase littéralement.

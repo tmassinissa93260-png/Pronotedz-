@@ -14,6 +14,7 @@ from __future__ import annotations
 
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
 import yaml
 from pydantic import BaseModel, Field, field_validator
@@ -132,6 +133,77 @@ class Decor(BaseModel):
     description: str
 
 
+class ChampInterprete(BaseModel):
+    """Une observation du modèle de vision — jamais une certitude.
+
+    `valeur="unknown"` et `confiance=0` sont le défaut : une information non
+    détectable ne se comble jamais par une invention (voir `charte.py`,
+    « Tu ne devines pas ce que tu ne vois pas »). Un champ à faible confiance
+    reste dans le fichier — il sert de piste, pas de contrainte forte pour la
+    suite de la production.
+    """
+
+    valeur: str = "unknown"
+    confiance: float = Field(0.0, ge=0, le=1)
+    justification: str = ""
+
+
+class EmpreinteHook(BaseModel):
+    type: ChampInterprete = Field(default_factory=ChampInterprete)
+    mecanisme: ChampInterprete = Field(default_factory=ChampInterprete)
+    promesse: ChampInterprete = Field(default_factory=ChampInterprete)
+
+
+class EmpreinteNarrative(BaseModel):
+    structure: ChampInterprete = Field(default_factory=ChampInterprete)
+    escalade: ChampInterprete = Field(default_factory=ChampInterprete)
+    fin: ChampInterprete = Field(default_factory=ChampInterprete)
+
+
+class EmpreinteVisuelle(BaseModel):
+    style: ChampInterprete = Field(default_factory=ChampInterprete)
+    cadrage: ChampInterprete = Field(default_factory=ChampInterprete)
+    son: ChampInterprete = Field(default_factory=ChampInterprete)
+
+
+class EmpreinteCreative(BaseModel):
+    """Ce qui fait qu'une vidéo de référence fonctionne — le mécanisme, pas
+    son contenu littéral.
+
+    Deux natures de champs, jamais mélangées :
+
+    · **`pacing`** est une CONTRAINTE FORTE. Il vient de `pdz.analyse.adn`,
+      un calcul sur le signal — jamais du modèle de vision. Une vidéo dure
+      ce qu'elle dure, indépendamment de ce qu'un modèle en perçoit.
+    · **Tout le reste** est une DIRECTION CRÉATIVE interprétée, donc chaque
+      champ porte sa confiance (`ChampInterprete`). Un `hook.type` à
+      confiance 0,3 doit influencer l'écriture moins qu'à 0,9 — jamais s'y
+      substituer comme un fait.
+
+    Sert à transférer d'une vidéo à une autre le MÉCANISME (comment
+    l'attention est captée et tenue), jamais le sujet, les personnages ou
+    les scènes précises de la source — c'est `ecriture/script` qui applique
+    cette distinction au moment d'écrire.
+    """
+
+    pacing: dict[str, Any] = Field(default_factory=dict)
+
+    hook: EmpreinteHook = Field(default_factory=EmpreinteHook)
+    narrative: EmpreinteNarrative = Field(default_factory=EmpreinteNarrative)
+    curiosite: ChampInterprete = Field(default_factory=ChampInterprete)
+    arc_emotionnel: ChampInterprete = Field(default_factory=ChampInterprete)
+    retention: ChampInterprete = Field(default_factory=ChampInterprete)
+    visuel: EmpreinteVisuelle = Field(default_factory=EmpreinteVisuelle)
+
+    # Ce qui se réutilise sur un AUTRE sujet, en phrases courtes et abstraites
+    # — jamais une phrase ou une image de la vidéo source.
+    principes_reutilisables: list[str] = Field(default_factory=list)
+
+    # Une entrée par image-clé analysée : pourquoi ce plan existe dans
+    # l'histoire, pas seulement ce qu'il montre.
+    fonctions_plans: list[dict] = Field(default_factory=list)
+
+
 class Univers(BaseModel):
     """Un monde complet. Une niche = un univers."""
 
@@ -150,6 +222,10 @@ class Univers(BaseModel):
 
     duree_cible_s: int = 45
     episodes_produits: int = 0
+
+    # Absente sur un univers créé sans vidéo de référence — `episode`
+    # continue de fonctionner à l'identique dans ce cas, voir script.py.
+    empreinte_creative: EmpreinteCreative | None = None
 
     # ── Accès ────────────────────────────────────────────────────────────
 

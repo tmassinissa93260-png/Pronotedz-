@@ -25,9 +25,43 @@ from pdz.moteur.pipeline import Contexte
 from pdz.univers import Univers
 
 
+def _texte_empreinte(e) -> str:
+    """Rend l'empreinte créative en texte pour le prompt — direction
+    créative, jamais une contrainte chiffrée.
+
+    Seuls les champs interprétés avec une confiance non négligeable sont
+    rendus : un « unknown » n'a rien à apporter au scénariste, et l'inclure
+    donnerait l'illusion d'une information là où il n'y en a pas. Le pacing
+    n'apparaît jamais ici — il part par une autre voie (`forme_mesuree`),
+    mesurée sur le signal, pas interprétée par le modèle de vision.
+    """
+    lignes: list[str] = []
+
+    def ajouter(label: str, champ) -> None:
+        if champ.valeur and champ.valeur != "unknown" and champ.confiance >= 0.2:
+            lignes.append(f"- {label} (confiance {champ.confiance:.0%}) : {champ.valeur}")
+
+    ajouter("Type d'accroche", e.hook.type)
+    ajouter("Mécanisme de l'accroche", e.hook.mecanisme)
+    ajouter("Promesse posée", e.hook.promesse)
+    ajouter("Structure narrative", e.narrative.structure)
+    ajouter("Escalade", e.narrative.escalade)
+    ajouter("Type de fin", e.narrative.fin)
+    ajouter("Mécanisme de curiosité", e.curiosite)
+    ajouter("Arc émotionnel", e.arc_emotionnel)
+    ajouter("Mécanisme de rétention", e.retention)
+    ajouter("Stratégie de cadrage", e.visuel.cadrage)
+
+    if e.principes_reutilisables:
+        lignes.append("Principes réutilisables :")
+        lignes += [f"  · {p}" for p in e.principes_reutilisables]
+
+    return "\n".join(lignes)
+
+
 class ScriptWriter(Agent):
     nom = "script"
-    version = "1.2.0"
+    version = "1.3.0"
     prompt_ref = "ecriture/script"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
@@ -62,12 +96,17 @@ class ScriptWriter(Agent):
                 "duree_hook_s": 0,
             }
 
+        empreinte_texte = ""
+        if univers.empreinte_creative is not None:
+            empreinte_texte = _texte_empreinte(univers.empreinte_creative)
+
         return {
             **variables,
             "contexte_univers": univers.contexte_script(),
             "situation": entrees["situation"],
             "resume_precedent": entrees.get("resume_precedent", ""),
             "beats": entrees.get("beats") or [],
+            "empreinte_texte": empreinte_texte,
         }
 
     def schema(self, base: dict, entrees: dict[str, Any], ctx: Contexte) -> dict:

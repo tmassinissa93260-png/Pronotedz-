@@ -42,6 +42,11 @@ class PlanScript:
     decor: str = ""
     reaction: bool = False
     duree_s: float = 1.75
+    # Pourquoi ce plan existe dans l'histoire (« révèle une information »,
+    # « fait monter la tension ») — jamais ce qu'il montre littéralement.
+    # Vide sur un script écrit sans empreinte créative : le montage reste
+    # identique, voir `ecriture/script`.
+    fonction: str = ""
 
     def en_dict(self) -> dict:
         """La forme attendue par `pdz.production.animation`."""
@@ -53,6 +58,7 @@ class PlanScript:
             "decor": self.decor,
             "reaction": self.reaction,
             "duree_s": self.duree_s,
+            "fonction": self.fonction,
         }
 
 
@@ -92,6 +98,8 @@ def decouper(repliques: list[dict], durees_s: list[float], univers: Univers, *,
         coupable = (reagit is not None
                     and duree * PART_REACTION >= DUREE_PLAN_MINIMALE_S)
 
+        fonction = replique.get("fonction_plan", "")
+
         if not coupable:
             plans.append(PlanScript(
                 numero=len(plans),
@@ -101,6 +109,7 @@ def decouper(repliques: list[dict], durees_s: list[float], univers: Univers, *,
                 emotion=replique.get("emotion", "calme"),
                 decor=replique.get("decor", ""),
                 duree_s=round(duree, 3),
+                fonction=fonction,
             ))
             continue
 
@@ -112,6 +121,7 @@ def decouper(repliques: list[dict], durees_s: list[float], univers: Univers, *,
             emotion=replique.get("emotion", "calme"),
             decor=replique.get("decor", ""),
             duree_s=round(duree * (1 - PART_REACTION), 3),
+            fonction=fonction,
         ))
         plans.append(PlanScript(
             numero=len(plans),
@@ -122,6 +132,7 @@ def decouper(repliques: list[dict], durees_s: list[float], univers: Univers, *,
             decor=replique.get("decor", ""),
             reaction=True,
             duree_s=round(duree * PART_REACTION, 3),
+            fonction=f"réaction : {fonction}" if fonction else "",
         ))
 
     return plans
@@ -150,6 +161,15 @@ def resume(plans: list[PlanScript]) -> str:
         return "aucun plan"
     total = sum(p.duree_s for p in plans)
     reactions = sum(1 for p in plans if p.reaction)
-    return (f"{len(plans)} plans · {total:.1f} s · "
-            f"{total / len(plans):.2f} s par plan · "
-            f"{reactions} plans de réaction")
+    resume = (f"{len(plans)} plans · {total:.1f} s · "
+             f"{total / len(plans):.2f} s par plan · "
+             f"{reactions} plans de réaction")
+
+    # Visible seulement quand le script a été écrit avec une empreinte
+    # créative — c'est ce qui permet de vérifier, sans ouvrir le YAML, que
+    # les plans ne se contentent pas d'illustrer littéralement chaque phrase.
+    fonctions = [p.fonction for p in plans if p.fonction]
+    if fonctions:
+        resume += "\n" + "\n".join(f"  · plan {p.numero} : {p.fonction}"
+                                   for p in plans if p.fonction)
+    return resume

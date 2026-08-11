@@ -152,6 +152,99 @@ def test_le_mode_transposition_exige_de_dire_ce_qui_change():
                                _contexte())
 
 
+# ── L'empreinte créative ─────────────────────────────────────────────────
+# Le mécanisme d'attention d'une vidéo de référence, pas son contenu — voir
+# `EmpreinteCreative` dans pdz/univers/modele.py.
+
+def _champ(valeur="question impossible", confiance=0.8, justification="vu à l'image 1"):
+    return {"valeur": valeur, "confiance": confiance, "justification": justification}
+
+
+def _empreinte_brute():
+    return {
+        "hook": {"type": _champ("question impossible"),
+                 "mecanisme": _champ("hypothèse personnelle"),
+                 "promesse": _champ("une révélation avant la fin")},
+        "narrative": {"structure": _champ("mise en place, escalade, révélation"),
+                     "escalade": _champ("chaque plan ajoute une information"),
+                     "fin": _champ("révélation ouverte")},
+        "curiosite": _champ("question sans réponse évidente"),
+        "arc_emotionnel": _champ("curiosité, inquiétude, tension"),
+        "retention": _champ("chaque plan retient une information"),
+        "visuel": {"style": _champ("cinématique, sombre"),
+                  "cadrage": _champ("varie large puis serré"),
+                  "son": _champ("voix posée, silences courts")},
+        "principes_reutilisables": ["pose une question sans réponse avant la 3e seconde"],
+        "fonctions_plans": [{"image": 1, "fonction": "établit l'échelle",
+                             "raison": "plan large sur le décor"}],
+    }
+
+
+def test_une_charte_sans_empreinte_creative_est_refusee():
+    """`creative_fingerprint` est la deuxième moitié de ce qu'une charte doit
+    produire depuis la 1.1.0 — le style visuel ne suffit plus."""
+    charte = _charte(1)
+    charte["creative_fingerprint"] = {}
+    with pytest.raises(ErreurValidation) as e:
+        CharteVisuelle().apres(charte, {"visuel": _visuel()}, _contexte())
+    assert "creative_fingerprint" in str(e.value)
+
+
+def test_une_charte_avec_empreinte_creative_passe():
+    charte = _charte(1)
+    charte["creative_fingerprint"] = _empreinte_brute()
+    sortie = CharteVisuelle().apres(charte, {"visuel": _visuel()}, _contexte())
+    assert sortie["creative_fingerprint"]
+
+
+def test_lempreinte_creative_arrive_sur_lunivers():
+    charte = _charte(1)
+    charte["creative_fingerprint"] = _empreinte_brute()
+    u = vers_univers(charte, _visuel(), identifiant="t", nom="T")
+    assert u.empreinte_creative is not None
+    assert u.empreinte_creative.hook.type.valeur == "question impossible"
+    assert u.empreinte_creative.hook.type.confiance == 0.8
+    assert u.empreinte_creative.principes_reutilisables == [
+        "pose une question sans réponse avant la 3e seconde"
+    ]
+
+
+def test_sans_creative_fingerprint_lunivers_na_pas_dempreinte():
+    """Non-régression : une charte produite avec le prompt 1.0.0 (avant
+    l'empreinte créative) continue de donner un univers utilisable."""
+    u = vers_univers(_charte(1), _visuel(), identifiant="t", nom="T")
+    assert u.empreinte_creative is None
+
+
+def test_le_pacing_vient_de_ladn_jamais_du_modele():
+    """La règle de partage s'applique aussi ici : un plan dure ce qu'il dure,
+    indépendamment de ce qu'un modèle de vision en perçoit."""
+    from pdz.analyse.adn import Adn
+
+    adn = Adn(
+        duree_s=45, duree_plan_s=1.8, coupes_par_minute=33.3,
+        duree_premier_plan_s=1.5, plans_par_replique=2.0,
+        debit_wpm=170, ratio_parole=0.9, relances_pct=[0.3, 0.6],
+        courbe_energie=[0.5] * 12, palette=[], consignes_image=[],
+    )
+    charte = _charte(1)
+    charte["creative_fingerprint"] = _empreinte_brute()
+    u = vers_univers(charte, _visuel(), identifiant="t", nom="T", adn=adn)
+    assert u.empreinte_creative.pacing["debit_wpm"] == 170
+
+
+def test_un_champ_mal_forme_retombe_sur_unknown():
+    """Défensif plutôt que strict : un champ manquant ne fait pas échouer
+    tout l'univers pour une charte par ailleurs exploitable."""
+    charte = _charte(1)
+    brut = _empreinte_brute()
+    brut["hook"]["type"] = {}
+    charte["creative_fingerprint"] = brut
+    u = vers_univers(charte, _visuel(), identifiant="t", nom="T")
+    assert u.empreinte_creative.hook.type.valeur == "unknown"
+    assert u.empreinte_creative.hook.type.confiance == 0.0
+
+
 # ── Prompts d'images ─────────────────────────────────────────────────────
 
 def test_le_personnage_passe_avant_le_style_dans_le_prompt():

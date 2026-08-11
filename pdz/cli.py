@@ -21,6 +21,7 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
+from typing import Any
 
 import typer
 from rich.console import Console
@@ -29,7 +30,7 @@ from rich.table import Table
 from pdz import db
 from pdz.config import RACINE, config
 from pdz.moteur.erreurs import ErreurPdz
-from pdz.univers import Format, Univers
+from pdz.univers import EmpreinteCreative, Format, Univers
 
 app = typer.Typer(add_completion=False, no_args_is_help=True,
                   help="Agent perso de production de vidéos courtes.")
@@ -67,6 +68,34 @@ def _charger_univers(nom: str) -> tuple[Univers, Path]:
 def _echouer(e: ErreurPdz) -> None:
     console.print(f"\n[red]✗ {e.categorie}[/red] — {e}")
     raise typer.Exit(1)
+
+
+def _resume_empreinte(e: EmpreinteCreative) -> str:
+    """Ce qu'on lit tout de suite après `charte`, sans ouvrir le YAML.
+
+    La confiance s'affiche à côté de chaque valeur — c'est ce qui rappelle
+    que ce sont des observations du modèle, pas des faits établis.
+    """
+    def c(champ) -> str:
+        return f"{champ.valeur} [dim](confiance {champ.confiance:.0%})[/dim]"
+
+    lignes = [
+        "\n[bold]Empreinte créative[/bold]",
+        f"  Hook       : {c(e.hook.type)}",
+        f"  Narration  : {c(e.narrative.structure)} → {c(e.narrative.fin)}",
+        f"  Émotion    : {c(e.arc_emotionnel)}",
+        f"  Rétention  : {c(e.retention)}",
+        f"  Cadrage    : {c(e.visuel.cadrage)}",
+    ]
+    if e.pacing:
+        lignes.append(
+            f"  Rythme (mesuré) : {e.pacing.get('duree_plan_s', '?')} s/plan, "
+            f"{e.pacing.get('debit_wpm', '?')} mots/min"
+        )
+    if e.principes_reutilisables:
+        lignes.append("  Principes réutilisables :")
+        lignes += [f"    · {p}" for p in e.principes_reutilisables]
+    return "\n".join(lignes)
 
 
 # ── Vérifications ────────────────────────────────────────────────────────
@@ -119,6 +148,43 @@ def lister_univers(
         table.add_row(u.id, u.nom, u.format.value, str(len(u.personnages)),
                       f"{avec_voix}/{len(u.personnages)}")
     console.print(table)
+
+
+@app.command()
+def empreintes() -> None:
+    """Diagnostiquer les empreintes créatives de tous les univers analysés.
+
+    Ne dit jamais qu'une répétition est une erreur — seulement qu'elle existe
+    et vaut la peine d'être regardée. Sous 3 univers avec empreinte, rien à
+    comparer statistiquement : la commande le dit et s'arrête là.
+    """
+    from pdz.analyse.diversite import diagnostic_diversite
+
+    empreintes: list[tuple[str, Any]] = []
+    for chemin in sorted(DOSSIER_UNIVERS.glob("*.yaml")):
+        try:
+            u = Univers.charger(chemin)
+        except Exception:  # noqa: BLE001 — un fichier cassé ne cache pas les autres
+            continue
+        if u.empreinte_creative is not None:
+            empreintes.append((u.id, u.empreinte_creative))
+
+    if len(empreintes) < 3:
+        console.print(
+            f"[dim]{len(empreintes)} univers avec empreinte créative — "
+            "il en faut au moins 3 pour qu'une répétition ait un sens "
+            "statistique.[/dim]"
+        )
+        return
+
+    console.print(f"{len(empreintes)} univers comparés : "
+                  f"{', '.join(nom for nom, _ in empreintes)}\n")
+    alertes = diagnostic_diversite(empreintes)
+    if not alertes:
+        console.print("[green]Aucune répétition marquée détectée.[/green]")
+        return
+    for a in alertes:
+        console.print(f"[yellow]{a}[/yellow]")
 
 
 # ── Musique ──────────────────────────────────────────────────────────────
@@ -360,7 +426,10 @@ def charte(
             resultat, r.visuel, identifiant=identifiant,
             nom=nom or identifiant.replace("-", " ").title(),
             format=Format.SERIE_ANIMEE, duree_cible_s=duree,
+            adn=r.adn,
         )
+        if univers.empreinte_creative:
+            console.print(_resume_empreinte(univers.empreinte_creative))
     except ErreurPdz as e:
         _echouer(e)
 

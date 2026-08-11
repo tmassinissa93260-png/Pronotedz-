@@ -15,12 +15,19 @@ from pdz.agents.base import (
     nb_repliques_pour,
     positions_relance_par_defaut,
 )
-from pdz.agents.ecriture.script import ScriptWriter
+from pdz.agents.ecriture.script import ScriptWriter, _texte_empreinte
 from pdz.ia.registre import registre
 from pdz.moteur.erreurs import ErreurConfig, ErreurValidation
 from pdz.moteur.pipeline import Contexte
 from pdz.prompts import charger
-from pdz.univers import Univers
+from pdz.univers import (
+    ChampInterprete,
+    EmpreinteCreative,
+    EmpreinteHook,
+    EmpreinteNarrative,
+    EmpreinteVisuelle,
+    Univers,
+)
 
 FRUITS = Path("univers/fruit-island.yaml")
 
@@ -448,3 +455,64 @@ def test_les_variables_du_prompt_sont_calculees_depuis_lunivers():
     assert v["duree_s"] == u.duree_cible_s
     assert len(v["mots_par_replique"]) == v["nb_repliques"]
     assert "Strawberina" in v["contexte_univers"]
+
+
+# ── Empreinte créative : direction, jamais une contrainte chiffrée ───────
+
+def _empreinte():
+    champ = lambda v, c=0.8: ChampInterprete(valeur=v, confiance=c,
+                                             justification="vu dans la référence")
+    return EmpreinteCreative(
+        hook=EmpreinteHook(type=champ("question impossible"),
+                           mecanisme=champ("hypothèse personnelle"),
+                           promesse=champ("une révélation")),
+        narrative=EmpreinteNarrative(structure=champ("mise en place, escalade"),
+                                     escalade=champ("chaque plan ajoute une info"),
+                                     fin=champ("révélation ouverte")),
+        curiosite=champ("question sans réponse"),
+        arc_emotionnel=champ("curiosité, tension"),
+        retention=champ("chaque plan retient une info"),
+        visuel=EmpreinteVisuelle(style=champ("cinématique"),
+                                 cadrage=champ("varie large puis serré"),
+                                 son=champ("silences courts")),
+        principes_reutilisables=["pose une question avant la 3e seconde"],
+    )
+
+
+def test_lempreinte_se_rend_en_texte_avec_les_confiances():
+    texte = _texte_empreinte(_empreinte())
+    assert "question impossible" in texte
+    assert "80%" in texte
+    assert "pose une question avant la 3e seconde" in texte
+
+
+def test_un_champ_inconnu_nest_pas_rendu():
+    """« unknown » n'apporte rien au scénariste — l'inclure donnerait
+    l'illusion d'une information là où il n'y en a pas."""
+    e = _empreinte()
+    e.hook.type = ChampInterprete()  # valeur="unknown", confiance=0.0 par défaut
+    texte = _texte_empreinte(e)
+    assert "unknown" not in texte
+
+
+def test_un_champ_a_faible_confiance_nest_pas_rendu():
+    e = _empreinte()
+    e.hook.type = ChampInterprete(valeur="mystère", confiance=0.1,
+                                  justification="incertain")
+    assert "mystère" not in _texte_empreinte(e)
+
+
+def test_les_variables_incluent_lempreinte_quand_lunivers_en_a_une():
+    u = Univers.charger(FRUITS)
+    u.empreinte_creative = _empreinte()
+    v = ScriptWriter().variables({"univers": u, "situation": "test"}, _contexte())
+    assert "question impossible" in v["empreinte_texte"]
+
+
+def test_les_variables_sans_empreinte_donnent_un_texte_vide():
+    """Non-régression : un univers sans vidéo de référence continue de
+    fonctionner exactement comme avant l'ajout de l'empreinte créative."""
+    u = Univers.charger(FRUITS)
+    assert u.empreinte_creative is None
+    v = ScriptWriter().variables({"univers": u, "situation": "test"}, _contexte())
+    assert v["empreinte_texte"] == ""

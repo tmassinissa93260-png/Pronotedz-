@@ -30,17 +30,31 @@ from pathlib import Path
 from typing import Any
 
 from pdz.agents.base import Agent
+from pdz.analyse.adn import Adn
 from pdz.analyse.visuel import AnalyseVisuelle
 from pdz.moteur.erreurs import ErreurValidation
 from pdz.moteur.pipeline import Contexte
-from pdz.univers import Decor, Format, Personnage, Style, Univers, Voix
+from pdz.univers import (
+    ChampInterprete,
+    Decor,
+    EmpreinteCreative,
+    EmpreinteHook,
+    EmpreinteNarrative,
+    EmpreinteVisuelle,
+    Format,
+    Personnage,
+    Style,
+    Univers,
+    Voix,
+)
 
 
 class CharteVisuelle(Agent):
-    """Images-clés + mesures → style, personnages, décors, règles du monde."""
+    """Images-clés + mesures → style, personnages, décors, règles du monde,
+    et empreinte créative (le mécanisme d'attention, pas le contenu)."""
 
     nom = "charte"
-    version = "1.0.0"
+    version = "1.1.0"
     prompt_ref = "analyse/charte"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
@@ -90,6 +104,13 @@ class CharteVisuelle(Agent):
                 "dis pour chaque personnage ce qui a été gardé et ce qui a changé."
             )
 
+        if not sortie.get("creative_fingerprint"):
+            raise ErreurValidation(
+                "`creative_fingerprint` est vide : explique le mécanisme "
+                "d'attention de la vidéo (hook, structure, rétention), pas "
+                "seulement son style visuel."
+            )
+
         sortie["nb_personnages"] = len(personnages)
         return sortie
 
@@ -100,7 +121,8 @@ def vers_univers(charte: dict, visuel: AnalyseVisuelle, *,
                  identifiant: str, nom: str,
                  format: Format = Format.SERIE_ANIMEE,
                  duree_cible_s: int = 45,
-                 langue: str = "fr") -> Univers:
+                 langue: str = "fr",
+                 adn: Adn | None = None) -> Univers:
     """Assemble la charte et les mesures en un `Univers` prêt à produire.
 
     Règle de partage, appliquée ici littéralement :
@@ -108,6 +130,9 @@ def vers_univers(charte: dict, visuel: AnalyseVisuelle, *,
         l'histogramme non ;
       · le **rendu** et l'**éclairage** viennent du modèle — aucune mesure ne
         sait dire « contours noirs épais, aplats sans dégradé » ;
+      · le **pacing** de l'empreinte créative vient de `adn`, jamais de
+        `charte["creative_fingerprint"]` — même principe, un plan dure ce
+        qu'il dure indépendamment de ce qu'un modèle en perçoit ;
       · la **graine** est dérivée de l'identifiant, donc stable : deux images
         générées à six mois d'écart gardent la même patte.
     """
@@ -151,6 +176,58 @@ def vers_univers(charte: dict, visuel: AnalyseVisuelle, *,
         decors=decors,
         interdits=["marques réelles", "noms d'œuvres existantes"],
         duree_cible_s=duree_cible_s,
+        empreinte_creative=_vers_empreinte(charte.get("creative_fingerprint"), adn),
+    )
+
+
+def _champ(brut: dict | None) -> ChampInterprete:
+    """Un `{valeur, confiance, justification}` du modèle → `ChampInterprete`.
+
+    Défensif plutôt que strict : un champ manquant ou mal formé retombe sur
+    `unknown` plutôt que de faire échouer tout l'univers pour une charte par
+    ailleurs exploitable.
+    """
+    brut = brut or {}
+    return ChampInterprete(
+        valeur=str(brut.get("valeur") or "unknown"),
+        confiance=max(0.0, min(1.0, float(brut.get("confiance") or 0.0))),
+        justification=str(brut.get("justification") or ""),
+    )
+
+
+def _vers_empreinte(brut: dict | None, adn: Adn | None) -> EmpreinteCreative | None:
+    """Assemble l'empreinte créative. `None` si `charte` n'en a pas rendu —
+    par exemple un ancien appel resté sur le prompt 1.0.0."""
+    if not brut:
+        return None
+
+    hook = brut.get("hook") or {}
+    narrative = brut.get("narrative") or {}
+    visuel = brut.get("visuel") or {}
+
+    return EmpreinteCreative(
+        # Mesuré, jamais interprété — voir la docstring de la fonction.
+        pacing=adn.contraintes() if adn is not None else {},
+        hook=EmpreinteHook(
+            type=_champ(hook.get("type")),
+            mecanisme=_champ(hook.get("mecanisme")),
+            promesse=_champ(hook.get("promesse")),
+        ),
+        narrative=EmpreinteNarrative(
+            structure=_champ(narrative.get("structure")),
+            escalade=_champ(narrative.get("escalade")),
+            fin=_champ(narrative.get("fin")),
+        ),
+        curiosite=_champ(brut.get("curiosite")),
+        arc_emotionnel=_champ(brut.get("arc_emotionnel")),
+        retention=_champ(brut.get("retention")),
+        visuel=EmpreinteVisuelle(
+            style=_champ(visuel.get("style")),
+            cadrage=_champ(visuel.get("cadrage")),
+            son=_champ(visuel.get("son")),
+        ),
+        principes_reutilisables=list(brut.get("principes_reutilisables") or []),
+        fonctions_plans=list(brut.get("fonctions_plans") or []),
     )
 
 

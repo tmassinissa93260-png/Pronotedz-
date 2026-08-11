@@ -174,6 +174,47 @@ def test_une_replique_trop_courte_nest_pas_coupee():
     assert not any(p.reaction for p in plans)
 
 
+# ── Fonction narrative du plan ───────────────────────────────────────────
+# Mesuré à l'écran : sans cette information, le storyboard illustre chaque
+# phrase littéralement et produit des plans consécutifs redondants.
+
+def test_la_fonction_du_plan_parlant_vient_de_la_replique():
+    u, repliques = _repliques(2, avec_reaction=False)
+    repliques[0]["fonction_plan"] = "révèle l'enjeu caché"
+    plans = storyboard.decouper(repliques, [4.0, 4.0], u)
+    assert plans[0].fonction == "révèle l'enjeu caché"
+
+
+def test_le_plan_de_reaction_reference_la_fonction_de_la_replique():
+    u, repliques = _repliques(1, avec_reaction=True)
+    repliques[0]["fonction_plan"] = "fait monter la tension"
+    plans = storyboard.decouper(repliques, [4.0], u)
+    reaction = next(p for p in plans if p.reaction)
+    assert "fait monter la tension" in reaction.fonction
+
+
+def test_sans_fonction_fournie_le_champ_reste_vide():
+    """Non-régression : un script écrit sans empreinte créative (prompt
+    antérieur à 1.3.0, ou modèle qui n'en a pas eu besoin) continue de
+    produire des plans exploitables, juste sans cette information."""
+    u, repliques = _repliques(2, avec_reaction=False)
+    plans = storyboard.decouper(repliques, [4.0, 4.0], u)
+    assert all(p.fonction == "" for p in plans)
+
+
+def test_le_resume_affiche_les_fonctions_quand_elles_existent():
+    u, repliques = _repliques(1, avec_reaction=False)
+    repliques[0]["fonction_plan"] = "établit l'échelle du monde"
+    plans = storyboard.decouper(repliques, [4.0], u)
+    assert "établit l'échelle du monde" in storyboard.resume(plans)
+
+
+def test_le_resume_reste_compact_sans_fonctions():
+    u, repliques = _repliques(2, avec_reaction=False)
+    plans = storyboard.decouper(repliques, [4.0, 4.0], u)
+    assert "\n" not in storyboard.resume(plans)
+
+
 def test_sans_reaction_demandee_un_seul_plan():
     u, repliques = _repliques(3, avec_reaction=False)
     plans = storyboard.decouper(repliques, [4.0, 4.0, 4.0], u)
