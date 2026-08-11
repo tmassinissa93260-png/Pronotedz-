@@ -3,9 +3,11 @@
 from pdz.univers.modele import (
     ChampInterprete,
     Decor,
+    EmpreinteAudio,
     EmpreinteCreative,
     EmpreinteHook,
     EmpreinteNarrative,
+    EmpreintePsychologie,
     EmpreinteVisuelle,
     Format,
     Personnage,
@@ -17,9 +19,11 @@ from pdz.univers.modele import (
 __all__ = [
     "ChampInterprete",
     "Decor",
+    "EmpreinteAudio",
     "EmpreinteCreative",
     "EmpreinteHook",
     "EmpreinteNarrative",
+    "EmpreintePsychologie",
     "EmpreinteVisuelle",
     "Format",
     "Personnage",

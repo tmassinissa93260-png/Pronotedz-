@@ -83,8 +83,8 @@ def _resume_empreinte(e: EmpreinteCreative) -> str:
         "\n[bold]Empreinte créative[/bold]",
         f"  Hook       : {c(e.hook.type)}",
         f"  Narration  : {c(e.narrative.structure)} → {c(e.narrative.fin)}",
-        f"  Émotion    : {c(e.arc_emotionnel)}",
-        f"  Rétention  : {c(e.retention)}",
+        f"  Émotion    : {c(e.psychologie.arc_emotionnel)}",
+        f"  Rétention  : {c(e.psychologie.retention)}",
         f"  Cadrage    : {c(e.visuel.cadrage)}",
     ]
     if e.pacing:

@@ -47,10 +47,13 @@ def _texte_empreinte(e) -> str:
     ajouter("Structure narrative", e.narrative.structure)
     ajouter("Escalade", e.narrative.escalade)
     ajouter("Type de fin", e.narrative.fin)
-    ajouter("Mécanisme de curiosité", e.curiosite)
-    ajouter("Arc émotionnel", e.arc_emotionnel)
-    ajouter("Mécanisme de rétention", e.retention)
+    ajouter("Mécanisme de curiosité", e.psychologie.curiosite)
+    ajouter("Arc émotionnel", e.psychologie.arc_emotionnel)
+    ajouter("Mécanisme de rétention", e.psychologie.retention)
     ajouter("Stratégie de cadrage", e.visuel.cadrage)
+    ajouter("Rôle de la voix", e.audio.voix)
+    ajouter("Rôle de la musique", e.audio.musique)
+    ajouter("Rôle du silence", e.audio.silence)
 
     if e.principes_reutilisables:
         lignes.append("Principes réutilisables :")

@@ -245,6 +245,44 @@ def test_un_champ_mal_forme_retombe_sur_unknown():
     assert u.empreinte_creative.hook.type.confiance == 0.0
 
 
+def test_lancien_nom_de_champ_justification_est_toujours_lu():
+    """Le prompt charte 1.1.0 rendait `justification` ; le 1.2.0 rend
+    `observation`. Une charte produite avant le renommage doit se relire
+    sans perdre l'information."""
+    charte = _charte(1)
+    brut = _empreinte_brute()
+    brut["hook"]["type"] = {"valeur": "question impossible", "confiance": 0.7,
+                            "justification": "vu à l'image 1"}
+    charte["creative_fingerprint"] = brut
+    u = vers_univers(charte, _visuel(), identifiant="t", nom="T")
+    assert u.empreinte_creative.hook.type.observation == "vu à l'image 1"
+
+
+def test_une_charte_1_1_0_a_plat_se_relit_dans_les_nouveaux_groupes():
+    """Non-régression : le prompt 1.1.0 rendait curiosite/arc_emotionnel/
+    retention à la racine et `son` sous `visuel`. Le 1.2.0 les regroupe sous
+    `psychologie` et `audio`. Une charte produite avant le regroupement doit
+    continuer à alimenter l'univers, pas juste ne pas planter."""
+    charte = _charte(1)
+    charte["creative_fingerprint"] = {
+        "hook": {"type": _champ("question impossible")},
+        "narrative": {},
+        # Forme À PLAT du prompt 1.1.0 — pas de clé « psychologie ».
+        "curiosite": _champ("question sans réponse"),
+        "arc_emotionnel": _champ("curiosité, tension"),
+        "retention": _champ("chaque plan retient une info"),
+        # « son » sous `visuel`, pas de clé « audio » — forme du 1.1.0.
+        "visuel": {"son": _champ("voix posée")},
+        "principes_reutilisables": [],
+        "fonctions_plans": [],
+    }
+    u = vers_univers(charte, _visuel(), identifiant="t", nom="T")
+    e = u.empreinte_creative
+    assert e.psychologie.curiosite.valeur == "question sans réponse"
+    assert e.psychologie.arc_emotionnel.valeur == "curiosité, tension"
+    assert e.audio.voix.valeur == "voix posée"
+
+
 # ── Prompts d'images ─────────────────────────────────────────────────────
 
 def test_le_personnage_passe_avant_le_style_dans_le_prompt():

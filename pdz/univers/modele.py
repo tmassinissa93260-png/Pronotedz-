@@ -134,73 +134,119 @@ class Decor(BaseModel):
 
 
 class ChampInterprete(BaseModel):
-    """Une observation du modèle de vision — jamais une certitude.
+    """Une INTERPRETATION du modèle de vision, fondée sur une OBSERVATION —
+    jamais une certitude.
+
+    Trois niveaux, jamais confondus, dans toute `EmpreinteCreative` :
+
+    1. **OBSERVATION** — ce qui est directement vu dans les images-clés.
+       Vit dans `observation` : « la narration ouvre sur une question
+       adressée directement au spectateur ». Vérifiable en regardant les
+       mêmes images.
+    2. **INTERPRETATION** — ce que le modèle en déduit. Vit dans `valeur` +
+       `confiance` : « hook = question impossible, confiance 0,8 ». Pas
+       vérifiable directement — c'est une lecture de l'observation, elle
+       peut être fausse.
+    3. **INFERENCE** — le principe créatif déduit en combinant PLUSIEURS
+       interprétations (hook + narrative + psychologie ensemble). Ne vit pas
+       ici : c'est `EmpreinteCreative.principes_reutilisables`, une synthèse
+       transversale, pas un champ isolé.
 
     `valeur="unknown"` et `confiance=0` sont le défaut : une information non
     détectable ne se comble jamais par une invention (voir `charte.py`,
     « Tu ne devines pas ce que tu ne vois pas »). Un champ à faible confiance
     reste dans le fichier — il sert de piste, pas de contrainte forte pour la
-    suite de la production.
+    suite de la production (voir `_texte_empreinte` dans `agents/ecriture/script.py`,
+    qui filtre sous ce seuil).
     """
 
-    valeur: str = "unknown"
-    confiance: float = Field(0.0, ge=0, le=1)
-    justification: str = ""
+    valeur: str = "unknown"                    # INTERPRETATION
+    confiance: float = Field(0.0, ge=0, le=1)  # force de l'INTERPRETATION
+    observation: str = ""                      # OBSERVATION qui la fonde
 
 
 class EmpreinteHook(BaseModel):
+    """HOOK — comment la vidéo capte l'attention dans les 3 premières secondes."""
+
     type: ChampInterprete = Field(default_factory=ChampInterprete)
     mecanisme: ChampInterprete = Field(default_factory=ChampInterprete)
     promesse: ChampInterprete = Field(default_factory=ChampInterprete)
 
 
 class EmpreinteNarrative(BaseModel):
+    """NARRATIVE — comment l'histoire progresse une fois l'attention captée."""
+
     structure: ChampInterprete = Field(default_factory=ChampInterprete)
     escalade: ChampInterprete = Field(default_factory=ChampInterprete)
     fin: ChampInterprete = Field(default_factory=ChampInterprete)
 
 
+class EmpreintePsychologie(BaseModel):
+    """PSYCHOLOGY — ce qui retient le spectateur émotionnellement, plan après plan."""
+
+    curiosite: ChampInterprete = Field(default_factory=ChampInterprete)
+    arc_emotionnel: ChampInterprete = Field(default_factory=ChampInterprete)
+    retention: ChampInterprete = Field(default_factory=ChampInterprete)
+
+
 class EmpreinteVisuelle(BaseModel):
+    """VISUAL_LANGUAGE — la stratégie de cadrage, pas le rendu graphique
+    (celui-là est dans `Style.rendu`, mesuré séparément)."""
+
     style: ChampInterprete = Field(default_factory=ChampInterprete)
     cadrage: ChampInterprete = Field(default_factory=ChampInterprete)
-    son: ChampInterprete = Field(default_factory=ChampInterprete)
+
+
+class EmpreinteAudio(BaseModel):
+    """AUDIO — le rôle de la voix, de la musique et du silence dans la
+    mécanique d'attention. Distinct de `Voix` (les réglages ElevenLabs d'un
+    personnage) : ici, c'est une STRATÉGIE, pas un réglage."""
+
+    voix: ChampInterprete = Field(default_factory=ChampInterprete)
+    musique: ChampInterprete = Field(default_factory=ChampInterprete)
+    silence: ChampInterprete = Field(default_factory=ChampInterprete)
 
 
 class EmpreinteCreative(BaseModel):
     """Ce qui fait qu'une vidéo de référence fonctionne — le mécanisme, pas
-    son contenu littéral.
+    son contenu littéral. Sept groupes conceptuels : HOOK, NARRATIVE,
+    PSYCHOLOGY, VISUAL_LANGUAGE, AUDIO, REUSABLE_PRINCIPLES, SHOT_FUNCTION.
 
     Deux natures de champs, jamais mélangées :
 
-    · **`pacing`** est une CONTRAINTE FORTE. Il vient de `pdz.analyse.adn`,
-      un calcul sur le signal — jamais du modèle de vision. Une vidéo dure
-      ce qu'elle dure, indépendamment de ce qu'un modèle en perçoit.
-    · **Tout le reste** est une DIRECTION CRÉATIVE interprétée, donc chaque
-      champ porte sa confiance (`ChampInterprete`). Un `hook.type` à
-      confiance 0,3 doit influencer l'écriture moins qu'à 0,9 — jamais s'y
-      substituer comme un fait.
+    · **`pacing`** est une OBSERVATION MESURÉE, pas interprétée. Il vient de
+      `pdz.analyse.adn`, un calcul sur le signal — jamais du modèle de
+      vision. Une vidéo dure ce qu'elle dure, indépendamment de ce qu'un
+      modèle en perçoit. C'est une CONTRAINTE FORTE pour la production.
+    · **Tout le reste** est une INTERPRETATION, donc chaque champ porte sa
+      confiance (`ChampInterprete`). Un `hook.type` à confiance 0,3 doit
+      influencer l'écriture moins qu'à 0,9 — jamais s'y substituer comme un
+      fait. C'est une DIRECTION CRÉATIVE, pas une contrainte.
 
     Sert à transférer d'une vidéo à une autre le MÉCANISME (comment
     l'attention est captée et tenue), jamais le sujet, les personnages ou
     les scènes précises de la source — c'est `ecriture/script` qui applique
-    cette distinction au moment d'écrire.
+    cette distinction au moment d'écrire, plan par plan via `fonctions_plans`
+    (SHOT_FUNCTION).
     """
 
-    pacing: dict[str, Any] = Field(default_factory=dict)
+    pacing: dict[str, Any] = Field(default_factory=dict)   # OBSERVATION mesurée
 
-    hook: EmpreinteHook = Field(default_factory=EmpreinteHook)
-    narrative: EmpreinteNarrative = Field(default_factory=EmpreinteNarrative)
-    curiosite: ChampInterprete = Field(default_factory=ChampInterprete)
-    arc_emotionnel: ChampInterprete = Field(default_factory=ChampInterprete)
-    retention: ChampInterprete = Field(default_factory=ChampInterprete)
-    visuel: EmpreinteVisuelle = Field(default_factory=EmpreinteVisuelle)
+    hook: EmpreinteHook = Field(default_factory=EmpreinteHook)                    # HOOK
+    narrative: EmpreinteNarrative = Field(default_factory=EmpreinteNarrative)     # NARRATIVE
+    psychologie: EmpreintePsychologie = Field(default_factory=EmpreintePsychologie)  # PSYCHOLOGY
+    visuel: EmpreinteVisuelle = Field(default_factory=EmpreinteVisuelle)          # VISUAL_LANGUAGE
+    audio: EmpreinteAudio = Field(default_factory=EmpreinteAudio)                 # AUDIO
 
-    # Ce qui se réutilise sur un AUTRE sujet, en phrases courtes et abstraites
-    # — jamais une phrase ou une image de la vidéo source.
+    # INFERENCE : synthèse transversale de plusieurs interprétations
+    # ci-dessus, en phrases courtes et abstraites — jamais une phrase ou une
+    # image de la vidéo source. REUSABLE_PRINCIPLES.
     principes_reutilisables: list[str] = Field(default_factory=list)
 
-    # Une entrée par image-clé analysée : pourquoi ce plan existe dans
-    # l'histoire, pas seulement ce qu'il montre.
+    # SHOT_FUNCTION : une entrée par image-clé, pourquoi ce plan existe dans
+    # la mécanique d'attention. Alimenté ici par `charte` (sur la vidéo
+    # source) ; l'agent d'écriture en produit un nouveau jeu, propre au
+    # script généré, dans `repliques[].fonction_plan`.
     fonctions_plans: list[dict] = Field(default_factory=list)
 
 

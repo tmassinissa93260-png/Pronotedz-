@@ -151,11 +151,11 @@ schema_sortie:
         properties:
           numero:      { type: integer }
           personnage:  { type: string, description: identifiant du personnage qui parle }
-          replique:    { type: string, description: ce qu'il dit, mot pour mot }
+          replique:    { type: string, description: "ce qu'il dit, mot pour mot" }
           action:      { type: string, description: ce qui se passe à l'image pendant la réplique }
           emotion:     { type: string, enum: [colere, surprise, tristesse, joie, mepris, peur, calme, gene] }
-          decor:       { type: string, description: identifiant du décor de la scène, ou chaîne vide }
-          reaction_de: { type: string, description: identifiant du personnage dont on veut voir la réaction, ou chaîne vide }
+          decor:       { type: string, description: "identifiant du décor de la scène, ou chaîne vide" }
+          reaction_de: { type: string, description: "identifiant du personnage dont on veut voir la réaction, ou chaîne vide" }
           relance:     { type: boolean, description: "true UNIQUEMENT sur les numéros listés dans « relances OBLIGATOIRES » du message, false partout ailleurs — au moins une réplique de tout le script doit valoir true" }
           fonction_plan:
             type: string

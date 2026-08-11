@@ -26,8 +26,8 @@ _CHAMPS: dict[str, callable] = {
     "hook.type": lambda e: e.hook.type.valeur,
     "narrative.structure": lambda e: e.narrative.structure.valeur,
     "narrative.fin": lambda e: e.narrative.fin.valeur,
-    "arc_emotionnel": lambda e: e.arc_emotionnel.valeur,
-    "retention": lambda e: e.retention.valeur,
+    "psychologie.arc_emotionnel": lambda e: e.psychologie.arc_emotionnel.valeur,
+    "psychologie.retention": lambda e: e.psychologie.retention.valeur,
     "visuel.style": lambda e: e.visuel.style.valeur,
 }
 

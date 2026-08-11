@@ -37,9 +37,11 @@ from pdz.moteur.pipeline import Contexte
 from pdz.univers import (
     ChampInterprete,
     Decor,
+    EmpreinteAudio,
     EmpreinteCreative,
     EmpreinteHook,
     EmpreinteNarrative,
+    EmpreintePsychologie,
     EmpreinteVisuelle,
     Format,
     Personnage,
@@ -54,7 +56,7 @@ class CharteVisuelle(Agent):
     et empreinte créative (le mécanisme d'attention, pas le contenu)."""
 
     nom = "charte"
-    version = "1.1.0"
+    version = "1.2.0"
     prompt_ref = "analyse/charte"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
@@ -181,7 +183,10 @@ def vers_univers(charte: dict, visuel: AnalyseVisuelle, *,
 
 
 def _champ(brut: dict | None) -> ChampInterprete:
-    """Un `{valeur, confiance, justification}` du modèle → `ChampInterprete`.
+    """Un `{valeur, confiance, observation}` du modèle → `ChampInterprete`.
+
+    `observation` accepte aussi l'ancien nom `justification` (prompt charte
+    1.1.0) : un univers créé avant le renommage se relit sans y toucher.
 
     Défensif plutôt que strict : un champ manquant ou mal formé retombe sur
     `unknown` plutôt que de faire échouer tout l'univers pour une charte par
@@ -191,19 +196,28 @@ def _champ(brut: dict | None) -> ChampInterprete:
     return ChampInterprete(
         valeur=str(brut.get("valeur") or "unknown"),
         confiance=max(0.0, min(1.0, float(brut.get("confiance") or 0.0))),
-        justification=str(brut.get("justification") or ""),
+        observation=str(brut.get("observation") or brut.get("justification") or ""),
     )
 
 
 def _vers_empreinte(brut: dict | None, adn: Adn | None) -> EmpreinteCreative | None:
     """Assemble l'empreinte créative. `None` si `charte` n'en a pas rendu —
-    par exemple un ancien appel resté sur le prompt 1.0.0."""
+    par exemple un ancien appel resté sur le prompt 1.0.0.
+
+    Sept groupes conceptuels (HOOK, NARRATIVE, PSYCHOLOGY, VISUAL_LANGUAGE,
+    AUDIO, REUSABLE_PRINCIPLES, SHOT_FUNCTION) — voir `EmpreinteCreative`.
+    Accepte aussi l'ancienne forme à plat du prompt 1.1.0
+    (`curiosite`/`arc_emotionnel`/`retention` au niveau racine, `son` sous
+    `visuel`) : une charte produite avant ce regroupement se relit à l'identique.
+    """
     if not brut:
         return None
 
     hook = brut.get("hook") or {}
     narrative = brut.get("narrative") or {}
+    psychologie = brut.get("psychologie") or brut  # racine en 1.1.0
     visuel = brut.get("visuel") or {}
+    audio = brut.get("audio") or visuel  # « son » vivait sous `visuel` en 1.1.0
 
     return EmpreinteCreative(
         # Mesuré, jamais interprété — voir la docstring de la fonction.
@@ -218,13 +232,19 @@ def _vers_empreinte(brut: dict | None, adn: Adn | None) -> EmpreinteCreative | N
             escalade=_champ(narrative.get("escalade")),
             fin=_champ(narrative.get("fin")),
         ),
-        curiosite=_champ(brut.get("curiosite")),
-        arc_emotionnel=_champ(brut.get("arc_emotionnel")),
-        retention=_champ(brut.get("retention")),
+        psychologie=EmpreintePsychologie(
+            curiosite=_champ(psychologie.get("curiosite")),
+            arc_emotionnel=_champ(psychologie.get("arc_emotionnel")),
+            retention=_champ(psychologie.get("retention")),
+        ),
         visuel=EmpreinteVisuelle(
             style=_champ(visuel.get("style")),
             cadrage=_champ(visuel.get("cadrage")),
-            son=_champ(visuel.get("son")),
+        ),
+        audio=EmpreinteAudio(
+            voix=_champ(audio.get("voix") or audio.get("son")),
+            musique=_champ(audio.get("musique")),
+            silence=_champ(audio.get("silence")),
         ),
         principes_reutilisables=list(brut.get("principes_reutilisables") or []),
         fonctions_plans=list(brut.get("fonctions_plans") or []),

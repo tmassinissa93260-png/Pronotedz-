@@ -22,9 +22,11 @@ from pdz.moteur.pipeline import Contexte
 from pdz.prompts import charger
 from pdz.univers import (
     ChampInterprete,
+    EmpreinteAudio,
     EmpreinteCreative,
     EmpreinteHook,
     EmpreinteNarrative,
+    EmpreintePsychologie,
     EmpreinteVisuelle,
     Univers,
 )
@@ -461,7 +463,7 @@ def test_les_variables_du_prompt_sont_calculees_depuis_lunivers():
 
 def _empreinte():
     champ = lambda v, c=0.8: ChampInterprete(valeur=v, confiance=c,
-                                             justification="vu dans la référence")
+                                             observation="vu dans la référence")
     return EmpreinteCreative(
         hook=EmpreinteHook(type=champ("question impossible"),
                            mecanisme=champ("hypothèse personnelle"),
@@ -469,12 +471,12 @@ def _empreinte():
         narrative=EmpreinteNarrative(structure=champ("mise en place, escalade"),
                                      escalade=champ("chaque plan ajoute une info"),
                                      fin=champ("révélation ouverte")),
-        curiosite=champ("question sans réponse"),
-        arc_emotionnel=champ("curiosité, tension"),
-        retention=champ("chaque plan retient une info"),
+        psychologie=EmpreintePsychologie(curiosite=champ("question sans réponse"),
+                                         arc_emotionnel=champ("curiosité, tension"),
+                                         retention=champ("chaque plan retient une info")),
         visuel=EmpreinteVisuelle(style=champ("cinématique"),
-                                 cadrage=champ("varie large puis serré"),
-                                 son=champ("silences courts")),
+                                 cadrage=champ("varie large puis serré")),
+        audio=EmpreinteAudio(silence=champ("silences courts")),
         principes_reutilisables=["pose une question avant la 3e seconde"],
     )
 
