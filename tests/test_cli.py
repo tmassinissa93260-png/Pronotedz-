@@ -11,7 +11,8 @@ détecte.
 
 from pathlib import Path
 
-from pdz.cli import _resume_empreinte, references
+import pdz.agents.ecriture.script as script_module
+from pdz.cli import avant_apres, _resume_empreinte, references
 from pdz.univers import (
     ChampInterprete,
     EmpreinteCreative,
@@ -99,3 +100,64 @@ def test_references_lit_la_mecanique_attendue_annotee_a_la_main(tmp_path, capsys
     assert "pose une question jamais résolue" in sortie
     # Une seule empreinte : pas assez pour un diagnostic de diversité.
     assert "il en faut au moins 3" in sortie
+
+
+# ── pdz avant-apres (rapport de transfert) ──────────────────────────────────
+
+def test_avant_apres_sans_charte_prealable_echoue_proprement(tmp_path):
+    import typer
+    try:
+        avant_apres(reference="inconnue", sujet="x", dossier=tmp_path,
+                   duree=45, sortie=None, verbeux=False)
+    except typer.Exit as e:
+        assert e.exit_code == 1
+    else:
+        raise AssertionError("aurait dû lever typer.Exit(1)")
+
+
+def test_avant_apres_genere_le_rapport_sans_appel_ia(tmp_path, monkeypatch):
+    """ScriptWriter est simulé : ce test vérifie l'orchestration du rapport
+    (storyboard, prompts d'image, mise en forme), pas la qualité d'un
+    script réel — c'est `pdz avant-apres` en conditions réelles qui sert à
+    ça, avec de vraies vidéos privées."""
+    u = Univers.charger(FRUITS)
+    u.id = "reference-test"
+    u.empreinte_creative = _empreinte_distincte("reference-test")
+    perso_id = u.personnages[0].id
+    (tmp_path / "reference-test.mp4").write_bytes(b"")
+    u.sauver(tmp_path / "reference-test.univers.yaml")
+    (tmp_path / "reference-test.yaml").write_text(
+        "mecanique_attendue: pose une question jamais résolue\n"
+        "sujet_original: une IA qui explique la physique quantique\n",
+        encoding="utf-8",
+    )
+
+    async def _script_simule(self, entrees, ctx):
+        return {
+            "titre": "Le mystère de la pizza",
+            "repliques": [
+                {"numero": 1, "personnage": perso_id, "replique": "où est la pizza ?",
+                 "action": "elle regarde la table", "emotion": "surprise", "decor": "",
+                 "reaction_de": "", "relance": True, "fonction_plan": "établit l'enjeu"},
+                {"numero": 2, "personnage": perso_id, "replique": "quelqu'un l'a prise",
+                 "action": "elle fouille la cuisine", "emotion": "colere", "decor": "",
+                 "reaction_de": "", "relance": False, "fonction_plan": "fait monter la tension"},
+            ],
+            "derniere_image": "boucle sur la table vide",
+        }
+
+    monkeypatch.setattr(script_module.ScriptWriter, "executer", _script_simule)
+
+    avant_apres(reference="reference-test", sujet="une dispute pour une pizza",
+               dossier=tmp_path, duree=45, sortie=None, verbeux=False)
+
+    fichiers_rapport = list(tmp_path.glob("reference-test_avant_apres_*.md"))
+    assert len(fichiers_rapport) == 1
+    texte = fichiers_rapport[0].read_text(encoding="utf-8")
+    assert "où est la pizza" in texte
+    assert "établit l'enjeu" in texte
+    assert "fait monter la tension" in texte
+    assert "0 paire(s) consécutive(s) identique(s)" in texte
+    assert "pose une question jamais résolue" in texte
+    assert "une IA qui explique la physique quantique" in texte
+    assert "SAME FUNCTION + NEW SUBJECT + NEW STORY + NEW VISUAL EXECUTION" in texte

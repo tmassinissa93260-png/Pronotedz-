@@ -34,6 +34,7 @@ def test_lannotation_a_cote_de_la_video_est_chargee(tmp_path):
     (tmp_path / "hologramme.mp4").write_bytes(b"")
     (tmp_path / "hologramme.yaml").write_text(
         "mecanique_attendue: pose une question jamais résolue\n"
+        "sujet_original: une IA qui explique la physique quantique\n"
         "notes: trouvée sur TikTok\n",
         encoding="utf-8",
     )
@@ -41,6 +42,7 @@ def test_lannotation_a_cote_de_la_video_est_chargee(tmp_path):
     refs = lister_references(tmp_path)
     assert len(refs) == 1
     assert refs[0].mecanique_attendue == "pose une question jamais résolue"
+    assert refs[0].sujet_original == "une IA qui explique la physique quantique"
     assert refs[0].notes == "trouvée sur TikTok"
 
 
@@ -48,6 +50,7 @@ def test_une_video_sans_annotation_donne_des_champs_vides(tmp_path):
     (tmp_path / "sans_note.mov").write_bytes(b"")
     refs = lister_references(tmp_path)
     assert refs[0].mecanique_attendue == ""
+    assert refs[0].sujet_original == ""
     assert refs[0].notes == ""
 
 

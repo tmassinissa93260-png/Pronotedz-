@@ -557,6 +557,98 @@ def references(
             console.print(f"  · {a}")
 
 
+@app.command(name="avant-apres")
+def avant_apres(
+    reference: str = typer.Argument(..., help="id d'une vidéo déjà chartée (pdz references)"),
+    sujet: str = typer.Argument(..., help="une idée neuve, sans rapport avec la référence"),
+    dossier: Path = typer.Option(
+        None, "--dossier",
+        help="dossier des références (défaut : donnees/references/ ou $PDZ_DOSSIER_REFERENCES)",
+    ),
+    duree: int = typer.Option(45, "--duree", help="durée cible du script, en secondes"),
+    sortie: Path = typer.Option(None, "--sortie", help="fichier .md du rapport"),
+    verbeux: bool = typer.Option(False, "--verbeux", "-v"),
+) -> None:
+    """Le rapport avant/après : l'empreinte d'une référence face au script
+    qu'elle produit sur un sujet neuf.
+
+    Ne tranche jamais « mécanique transférée, contenu non recopié » à ta
+    place — c'est un jugement humain. Rassemble seulement, côte à côte, de
+    quoi le porter vite, plus deux vérifications mécaniques (SHOT_FUNCTION
+    qui varie et atteint le prompt d'image, chevauchement lexical avec le
+    sujet original de la référence s'il est noté). Lance d'abord
+    `pdz references` pour charter la référence.
+    """
+    _journal(verbeux)
+    from pdz.agents.ecriture.script import ScriptWriter, _texte_empreinte
+    from pdz.analyse.references import dossier_references, lister_references
+    from pdz.analyse.rapport_transfert import PlanRapporte, RapportTransfert, construire_rapport
+    from pdz.moteur.pipeline import Contexte
+    from pdz.production import images, storyboard
+
+    d = dossier or dossier_references()
+    chemin_univers = d / f"{reference}.univers.yaml"
+    if not chemin_univers.exists():
+        console.print(
+            f"[red]Pas de charte pour « {reference} » dans {d}.[/red]\n"
+            f"→ [bold]pdz references --dossier {d}[/bold] la produira d'abord."
+        )
+        raise typer.Exit(1)
+
+    univers = Univers.charger(chemin_univers)
+    annotation = next((r for r in lister_references(d) if r.id == reference), None)
+
+    empreinte_texte = ""
+    if univers.empreinte_creative is not None:
+        empreinte_texte = _texte_empreinte(univers.empreinte_creative)
+
+    console.print(f"Génération du script sur : [bold]{sujet}[/bold]…")
+    ctx = Contexte(job_id=db.nouvel_id("job"), etape_cle="script",
+                   profil=config().profil, budget_restant=1.0)
+    try:
+        script = asyncio.run(ScriptWriter().executer(
+            {"univers": univers, "situation": sujet, "duree_s": duree,
+             "adn": None, "beats": None, "resume_precedent": ""}, ctx,
+        ))
+    except ErreurPdz as e:
+        _echouer(e)
+
+    repliques = script["repliques"]
+    # Durées estimées, pas mesurées : ce rapport n'a pas besoin de synthèse
+    # vocale réelle pour vérifier que SHOT_FUNCTION varie et atteint le
+    # prompt d'image — seul `pdz episode` a besoin de durées exactes.
+    debit = 160
+    durees = [max(1.0, len(r["replique"].split()) / debit * 60) for r in repliques]
+    plans = storyboard.decouper(repliques, durees, univers, plans_par_replique=1)
+
+    rapportes = []
+    for plan in plans:
+        perso = univers.personnage(plan.personnage)
+        prompt = images.prompt_plan(
+            perso, univers, action=plan.action, emotion=plan.emotion,
+            decor=plan.decor, fonction=plan.fonction,
+        )
+        rapportes.append(PlanRapporte(
+            numero=plan.numero, personnage=plan.personnage,
+            replique=repliques[plan.replique_numero - 1]["replique"],
+            action=plan.action, fonction=plan.fonction, prompt_image=prompt,
+        ))
+
+    r = RapportTransfert(
+        reference_id=reference, sujet_nouveau=sujet, empreinte_texte=empreinte_texte,
+        mecanique_attendue=annotation.mecanique_attendue if annotation else "",
+        sujet_original=annotation.sujet_original if annotation else "",
+        titre_script=script.get("titre", ""), plans=rapportes,
+    )
+    texte = construire_rapport(r)
+
+    chemin_sortie = sortie or (d / f"{reference}_avant_apres_{db.nouvel_id('rap')}.md")
+    chemin_sortie.write_text(texte, encoding="utf-8")
+    console.print(f"\n[green]✓[/green] Rapport écrit : [bold]{chemin_sortie}[/bold] "
+                  f"({ctx.cout_engage:.3f} €)")
+    console.print(texte)
+
+
 # ── Voix ─────────────────────────────────────────────────────────────────
 
 @voix_app.command("lister")

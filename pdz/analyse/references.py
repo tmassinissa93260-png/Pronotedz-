@@ -19,11 +19,16 @@ annotation écrite à la main AVANT toute analyse :
     mecanique_attendue: >
       Pose une question dans les 2 premières secondes, jamais répondue
       avant la fin. Chaque plan ajoute une info sans la résoudre.
+    sujet_original: une IA qui explique la physique quantique avec un hologramme
     notes: trouvée sur TikTok, format "explication mystère"
 
-C'est à cette note que se compare, plus tard, l'empreinte créative que le
-système produit réellement — c'est la moitié « attendu » du rapport
-avant/après (voir `pdz.analyse.diversite` pour la moitié « obtenu »).
+`mecanique_attendue` est la moitié « attendu » du rapport avant/après (voir
+`pdz.analyse.diversite` pour la moitié « obtenu », et
+`pdz.analyse.rapport_transfert` pour le rapport lui-même). `sujet_original`
+sert à une vérification différente : de quoi parlait vraiment la vidéo, en
+quelques mots-clés — utilisé pour repérer si un script généré à partir de
+son empreinte recopie ce sujet au lieu de transférer seulement le
+mécanisme.
 """
 
 from __future__ import annotations
@@ -49,6 +54,7 @@ class VideoReference:
     id: str
     chemin: Path
     mecanique_attendue: str = ""
+    sujet_original: str = ""
     notes: str = ""
 
 
@@ -82,6 +88,7 @@ def lister_references(dossier: Path | None = None) -> list[VideoReference]:
             id=chemin.stem,
             chemin=chemin,
             mecanique_attendue=str(annotation.get("mecanique_attendue", "")),
+            sujet_original=str(annotation.get("sujet_original", "")),
             notes=str(annotation.get("notes", "")),
         ))
     return refs

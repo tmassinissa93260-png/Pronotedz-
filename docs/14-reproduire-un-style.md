@@ -294,3 +294,34 @@ capturent des mécaniques différentes, puis qu'un script généré à partir
 d'une empreinte transfère cette mécanique sur un sujet neuf **sans** copier
 le contenu de la référence. Ce dernier point reste un jugement humain —
 aucun algorithme ici ne le tranche à ta place.
+
+### Le rapport avant/après : le test fondamental
+
+> SAME FUNCTION + NEW SUBJECT + NEW STORY + NEW VISUAL EXECUTION
+
+Une fois une référence chartée par `pdz references`, `pdz avant-apres`
+donne une nouvelle idée au système et rassemble, côte à côte, de quoi
+juger si le transfert a marché :
+
+```bash
+pdz avant-apres exemple "une dispute pour la dernière pizza"
+#   → donnees/references/exemple_avant_apres_<id>.md
+```
+
+Le rapport contient l'AVANT (l'empreinte de la référence, telle que le
+scénariste l'a reçue) et l'APRÈS (le script généré, réplique par réplique,
+avec son `fonction_plan` et le prompt d'image qu'il produit réellement),
+plus deux vérifications mécaniques — pas des jugements :
+
+- **SHOT_FUNCTION varie-t-il, et atteint-il le prompt d'image ?** Compté,
+  pas estimé : la commande découpe le script en plans et construit le
+  prompt de chacun exactement comme `pdz episode` le ferait.
+- **Chevauchement lexical avec le sujet ORIGINAL de la référence** (si noté
+  dans le `.yaml` à côté de la vidéo) — un signal mécanique, pas une
+  preuve : un chevauchement nul ne garantit pas que la mécanique a pris,
+  un chevauchement fort est en revanche un vrai signal d'alerte.
+
+Le reste — est-ce que ça se *sent* comme la même mécanique, sur une
+histoire et une exécution visuelle différentes — reste à lire, pas à
+calculer. Le rapport se termine sur la checklist qui pose exactement cette
+question.
