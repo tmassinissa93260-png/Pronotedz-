@@ -15,6 +15,11 @@ style:
   ambiance: documentaire technologique, ton grave et posé, vertige du futur
   ratio: '9:16'
   seed: 480921
+  consignes_image:
+  - no human faces, no facial features, no portraits
+  - wireframe and transparent surfaces only, never solid rendered characters
+  - desaturated, near monochrome, no warm colours
+  - no text, no logos, no watermarks
 regles_du_monde:
 - 'Aucun visage reconnaissable : les silhouettes humaines restent en fil de fer'
 - Tout est en fil de fer et transparence, jamais en surfaces pleines colorées

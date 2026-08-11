@@ -392,6 +392,38 @@ def test_le_schema_ne_modifie_pas_le_prompt_partage():
     assert "enum" not in proprietes_apres["personnage"]
 
 
+def test_lagent_refuse_un_script_trop_court():
+    """Mesuré à l'écran : 24 s rendues pour 45 s demandées. La durée était
+    calculée puis rangée, jamais vérifiée."""
+    u = Univers.charger(FRUITS)
+    # 7 répliques : assez pour que la relance existe (le contrôle qui la
+    # cherche passe avant), trop peu pour tenir 45 s.
+    court = _reponse_factice(u, nb=7)
+    with pytest.raises(ErreurValidation) as e:
+        ScriptWriter().apres(court, {"univers": u, "duree_s": 45}, _contexte())
+    assert "trop court" in str(e.value)
+    # Le modèle doit savoir de combien il s'est trompé, pas seulement qu'il
+    # s'est trompé : c'est ce qui rend la relance utile.
+    assert "mots" in str(e.value)
+
+
+def test_lagent_refuse_un_script_trop_long():
+    u = Univers.charger(FRUITS)
+    long = _reponse_factice(u, nb=40)
+    with pytest.raises(ErreurValidation) as e:
+        ScriptWriter().apres(long, {"univers": u, "duree_s": 20}, _contexte())
+    assert "trop long" in str(e.value)
+
+
+def test_une_duree_dans_la_cible_passe():
+    """La borne est large à dessein : on rejette ce qui se voit, pas ce qui
+    approche."""
+    u = Univers.charger(FRUITS)
+    sortie = ScriptWriter().apres(_reponse_factice(u, nb=13),
+                                  {"univers": u, "duree_s": 45}, _contexte())
+    assert 0.7 <= sortie["duree_parlee_estimee_s"] / 45 <= 1.4
+
+
 def test_lagent_refuse_un_script_sans_relance():
     u = Univers.charger(FRUITS)
     plat = _reponse_factice(u, avec_relance=False)

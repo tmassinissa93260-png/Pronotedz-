@@ -299,6 +299,35 @@ def test_sans_graine_declaree_rien_nest_invente():
     assert images.graine_du_plan(u, "peu importe") is None
 
 
+def test_les_consignes_de_lunivers_partent_dans_chaque_image():
+    """Mesuré à l'écran : un univers qui interdit les visages en a vu
+    apparaître un. `regles_du_monde` et `interdits` ne vont qu'à l'agent
+    d'écriture — le générateur d'images ne les connaissait pas."""
+    u = Univers.charger(HOLO)
+    assert u.style.consignes_image, "l'univers doit poser ses interdits visuels"
+    prompt = images.prompt_plan(u.personnages[0], u,
+                                action="a wireframe city", decor="ville")
+    for consigne in u.style.consignes_image:
+        assert consigne in prompt
+
+
+def test_les_consignes_de_lunivers_et_de_la_reference_se_cumulent():
+    """Celles de l'univers valent toujours ; celles mesurées sur une vidéo
+    de référence s'y ajoutent, elles ne les remplacent pas."""
+    u = Univers.charger(HOLO)
+    prompt = images.prompt_plan(u.personnages[0], u, action="x",
+                                consignes=["heavy film grain"])
+    assert "heavy film grain" in prompt
+    assert u.style.consignes_image[0] in prompt
+
+
+def test_un_univers_sans_consignes_dimage_marche_toujours():
+    """Le champ est facultatif : les univers existants n'en ont pas."""
+    u = Univers.charger(FRUITS)
+    assert u.style.consignes_image == []
+    assert images.prompt_plan(u.personnages[0], u, action="se retourne")
+
+
 def test_la_narration_ne_produit_aucune_fiche(tmp_path):
     """La fiche servirait d'image de départ à chaque plan et rendrait toutes
     les scènes identiques — l'inverse du but recherché."""

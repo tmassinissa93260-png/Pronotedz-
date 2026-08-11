@@ -136,6 +136,10 @@ def prompt_plan(personnage: Personnage, univers: Univers, *,
     morceaux.append(univers.style.rendu.strip())
     if univers.style.eclairage:
         morceaux.append(univers.style.eclairage.strip())
+    # Deux sources de consignes, cumulées : celles de l'univers (ce qu'il
+    # s'interdit toujours) et celles mesurées sur une vidéo de référence
+    # (contraste, grain), passées par l'appelant.
+    morceaux += [c.strip() for c in univers.style.consignes_image]
     morceaux += [c.strip() for c in (consignes or [])]
     morceaux.append("vertical 9:16 composition")
 

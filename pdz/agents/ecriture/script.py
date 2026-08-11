@@ -169,8 +169,30 @@ class ScriptWriter(Agent):
         # Le débit mesuré sur la référence s'il existe, sinon 160 mots/minute.
         debit = adn.debit_wpm if adn is not None else 160
 
+        estimee = round(mots / debit * 60, 1)
+
+        # La durée était calculée et rangée sans jamais être vérifiée : un
+        # script deux fois trop court passait. Mesuré à l'écran — 24 s
+        # rendues pour 45 s demandées. La borne est large à dessein : on
+        # rejette ce qui se voit, pas ce qui approche. Une erreur de
+        # validation relance le modèle en lui montrant son écart.
+        if estimee < duree * 0.7:
+            manquants = max(1, round((duree * 0.85 - estimee) * debit / 60))
+            raise ErreurValidation(
+                f"Script trop court : {mots} mots donnent environ {estimee} s "
+                f"à voix haute, pour {duree} s demandées. Ajoute environ "
+                f"{manquants} mots — en allongeant les répliques existantes "
+                "ou en en ajoutant, sans changer l'histoire."
+            )
+        if estimee > duree * 1.4:
+            raise ErreurValidation(
+                f"Script trop long : {mots} mots donnent environ {estimee} s "
+                f"à voix haute, pour {duree} s demandées. Resserre les "
+                "répliques : la vidéo serait coupée avant la fin."
+            )
+
         sortie["duree_cible_s"] = duree
         sortie["nb_repliques"] = len(repliques)
         sortie["mots_total"] = mots
-        sortie["duree_parlee_estimee_s"] = round(mots / debit * 60, 1)
+        sortie["duree_parlee_estimee_s"] = estimee
         return sortie

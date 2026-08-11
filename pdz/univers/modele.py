@@ -88,6 +88,14 @@ class Style(BaseModel):
     ambiance: str = ""
     ratio: str = "9:16"
 
+    # Contraintes envoyées à CHAQUE prompt d'image, en anglais comme le reste
+    # du prompt. `regles_du_monde` et `interdits` ne conviennent pas pour ça :
+    # ils sont rédigés en français, pour l'agent d'écriture, et un prompt
+    # mélangeant deux langues rend moins bien. Mesuré à l'écran : un univers
+    # qui interdit les visages en a vu apparaître un, faute de le dire au
+    # générateur d'images.
+    consignes_image: list[str] = Field(default_factory=list)
+
     # Graine fixe : deux images de la même série gardent la même patte.
     seed: int | None = None
 

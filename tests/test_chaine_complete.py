@@ -125,7 +125,11 @@ def _produire(atelier, **surcharges):
         perso.voix.voice_id = f"voix_{perso.id}"
 
     sortie = tmp_path / "episode.mp4"
-    options = dict(profil="economique", avec_animation=False)
+    # 12 s : la durée que SCRIPT_FACTICE tient réellement (27 mots ≈ 10 s à
+    # voix haute). Viser les 45 s de l'univers ferait produire un épisode
+    # deux fois trop court — ce que l'agent d'écriture refuse désormais, à
+    # juste titre. Garder le script court garde aussi le test rapide.
+    options = dict(profil="economique", avec_animation=False, duree_s=12)
     options.update(surcharges)
     return episode, asyncio.run(episode.produire(
         univers, "une élimination qui tourne mal", sortie, **options
