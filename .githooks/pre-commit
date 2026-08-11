@@ -1,0 +1,12 @@
+#!/bin/sh
+# Garde-fou local : bloque le commit d'une vidéo de référence dans un
+# dossier privé (donnees/sources, donnees/references). Sécurité
+# SUPPLÉMENTAIRE, pas une garantie contre l'upload web de GitHub — voir
+# scripts/verifier_videos_prives.py.
+#
+# Pas actif par défaut : git ne suit pas .git/hooks. Pour l'activer une
+# fois, dans un clone local :
+#   git config core.hooksPath .githooks
+
+racine=$(git rev-parse --show-toplevel)
+exec python3 "$racine/scripts/verifier_videos_prives.py"

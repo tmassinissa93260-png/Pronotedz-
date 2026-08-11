@@ -1,0 +1,24 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  Garde-fou : aucune vidéo suivie par git dans un dossier privé.
+#
+#  Un hook pre-commit local (.githooks/pre-commit) fait la même
+#  vérification, mais seulement pour qui l'a activé sur sa machine — et il
+#  ne voit jamais un fichier ajouté via l'interface Web de GitHub, qui ne
+#  passe par aucun hook. Ce workflow, lui, tourne après coup sur ce qui a
+#  réellement été poussé, quelle qu'en soit l'origine.
+# ═══════════════════════════════════════════════════════════════════════
+
+name: Vérifier l'absence de vidéos privées
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Chercher des vidéos suivies dans donnees/
+        run: python3 scripts/verifier_videos_prives.py --tous

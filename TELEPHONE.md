@@ -130,15 +130,27 @@ un **lien direct**. Mets la vidéo sur Google Drive ou Dropbox, récupère un
 lien de **téléchargement direct** (Dropbox : remplace `?dl=0` par `?dl=1`), et
 colle-le dans *Vidéo de référence*.
 
-> ⚠️ **Ne dépose jamais une vidéo de référence dans le dépôt** (dossier
-> `donnees/sources` via « Add file → Upload files »). `donnees/` est ignoré
-> par git en local, mais l'upload web de GitHub ne regarde pas
-> `.gitignore` : le fichier serait commis pour de bon, publiquement, dans
-> l'historique du dépôt. Une vidéo de référence n'est presque jamais la
-> tienne — le lien direct est la seule façon de la donner au workflow sans
-> la publier. (Ce garde-fou ne concerne pas le CSV d'analytics de l'étape
-> « Savoir ce qui marche » plus bas : c'est ton propre export, pas le
-> contenu d'un tiers.)
+> ⚠️ **Règle absolue sur les vidéos de référence — presque jamais les
+> tiennes, presque toujours celles d'un tiers :**
+>
+> 1. **Ne les uploade jamais via l'interface Web de GitHub** (« Add file →
+>    Upload files »), quel que soit le dossier visé — `donnees/sources`,
+>    `donnees/references`, ou tout autre.
+> 2. Une vidéo privée de test n'a sa place que **localement**, dans
+>    `donnees/references/`, sur une machine où tu travailles directement
+>    avec `git` — jamais transmise à ce dépôt par un autre chemin.
+> 3. `donnees/references/` **ne doit jamais être publié**, sous aucune
+>    forme : ni le dossier lui-même, ni un fichier qu'il contient.
+> 4. **`.gitignore` seul ne protège pas** contre l'upload Web : il ne
+>    gouverne que `git` en local (`git add`, `git status`). L'uploader web
+>    de GitHub l'ignore complètement et commet le fichier pour de bon,
+>    publiquement, dans l'historique du dépôt — c'est un mécanisme
+>    entièrement différent, pas une garantie supplémentaire.
+>
+> Depuis le téléphone, la seule voie sûre pour une vidéo de référence est
+> donc le **lien direct** ci-dessus. (Cette règle ne concerne pas le CSV
+> d'analytics de l'étape « Savoir ce qui marche » plus bas : c'est ton
+> propre export, pas le contenu d'un tiers.)
 
 Ensuite tu peux lancer `analyser` (mesurer sa forme), `musique` (reconnaître
 la musique) ou `charte` (en faire un univers avec ses personnages).
@@ -209,20 +221,14 @@ trop (`POTENTIAL_ANALYSIS_COLLAPSE`).
 > simplement en relançant `references` avec le même identifiant.
 
 **Optionnel :** pour noter à la main, avant analyse, de quoi parlait
-vraiment la vidéo — utile pour le rapport avant/après plus bas — ajoute un
-fichier `donnees/references/<identifiant>.yaml` dans le dépôt (navigateur
-en mode ordinateur, voir l'étape 1 : dossier `donnees/references` →
-**Add file** → **Upload files**). Rien à cacher ici : ce fichier ne contient
-que tes propres notes, jamais la vidéo elle-même, donc aucun souci à le
-publier. Exemple de contenu :
-
-```yaml
-sujet_original: une IA qui explique la physique quantique avec un hologramme
-mecanique_attendue: pose une question dans les 2 premières secondes, jamais résolue
-```
-
-Sans lui, tout marche pareil — seule la vérification de chevauchement
-lexical du rapport avant/après est sautée.
+vraiment la vidéo — utile pour le rapport avant/après plus bas — un fichier
+`donnees/references/<identifiant>.yaml` peut porter cette annotation.
+Comme pour la vidéo, ce fichier n'a sa place que **localement**, jamais
+uploadé via GitHub Web dans `donnees/references/` (voir la règle absolue
+plus haut, point 3 : ce dossier ne se publie jamais, quel que soit ce qu'il
+contient). Depuis le seul téléphone, cette étape n'est donc pas disponible
+pour l'instant — sans elle, tout marche pareil, seule la vérification de
+chevauchement lexical du rapport avant/après est sautée.
 
 ### Le rapport avant/après
 
