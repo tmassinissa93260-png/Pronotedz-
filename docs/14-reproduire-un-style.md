@@ -223,3 +223,74 @@ pdz episode mon-monde "une dispute pour la dernière place" --forme str_a1b2c3d4
 
 Rien à recopier d'une commande à l'autre à la main sauf l'identifiant de forme,
 que `pdz analyser` affiche déjà tout prêt.
+
+---
+
+## 14.8 L'empreinte créative : le mécanisme, jamais le contenu
+
+`pdz charte` ne se contente pas du visuel et des personnages — il en tire
+aussi une **empreinte créative** (`EmpreinteCreative`, dans
+`pdz.univers.modele`) : pourquoi cette vidéo retient l'attention, pas ce
+qu'elle raconte. Sept groupes, chacun optionnel et à confiance variable :
+
+| Groupe | Ce qu'il capture |
+|---|---|
+| **HOOK** | comment les 3 premières secondes captent l'attention |
+| **NARRATIVE** | comment l'histoire progresse une fois l'attention captée |
+| **PSYCHOLOGY** | ce qui retient le spectateur, plan après plan |
+| **VISUAL_LANGUAGE** | la stratégie de cadrage (pas le rendu graphique, mesuré à part) |
+| **AUDIO** | le rôle de la voix, de la musique et du silence |
+| **REUSABLE_PRINCIPLES** | les principes tirés de plusieurs observations combinées |
+| **SHOT_FUNCTION** | pourquoi chaque plan existe, pas ce qu'il montre |
+
+### Trois niveaux, jamais confondus
+
+Chaque champ interprété (`ChampInterprete`) porte deux informations
+distinctes, plus une troisième au niveau de l'empreinte entière :
+
+1. **OBSERVATION** (`champ.observation`) — ce qui est directement vu dans
+   l'image : un fait, pas une conclusion.
+2. **INTERPRETATION** (`champ.valeur` + `champ.confiance`) — ce que le
+   modèle en déduit. Toujours accompagnée d'une confiance.
+3. **INFERENCE** (`empreinte.principes_reutilisables`) — un principe tiré en
+   combinant *plusieurs* observations, pas un seul champ.
+
+Un champ dont la confiance tombe sous 0,2 n'est jamais rendu au scénariste
+(`_texte_empreinte` dans `pdz/agents/ecriture/script.py`) : une information
+peu fiable ne doit jamais devenir une contrainte forte.
+
+Le pipeline complet : **OBSERVATION → INTERPRETATION → INFERENCE →
+CREATIVE FINGERPRINT → SCRIPT → FUNCTION_PLAN → STORYBOARD.** Le
+`fonction_plan` que le scénariste écrit pour chaque réplique atterrit dans
+le prompt d'image de ce plan (`pdz.production.images.prompt_plan`) : deux
+plans à la même action mais des fonctions différentes produisent des
+prompts différents.
+
+### Comparer plusieurs vidéos de référence, sans les publier
+
+Les vidéos de référence sont presque toujours le travail d'un tiers : les
+committer au dépôt public serait distribuer un contenu protégé. Ce dépôt
+n'en contient donc aucune — seul le harnais pour en comparer localement
+est fourni.
+
+```bash
+# Dépose tes vidéos privées dans donnees/references/ (ignoré par git),
+# avec en option un .yaml de même nom notant à la main le mécanisme attendu :
+#   donnees/references/exemple.mp4
+#   donnees/references/exemple.yaml   →  mecanique_attendue: "pose une question jamais résolue"
+
+pdz references
+#   → analyse chaque vidéo, écrit sa charte à côté (exemple.univers.yaml,
+#     jamais dans univers/ qui est publié), et — à partir de 3 vidéos —
+#     signale les empreintes qui se ressemblent trop.
+```
+
+`PDZ_DOSSIER_REFERENCES` redirige vers un autre dossier (utile pour pointer
+sur un stockage privé, hors de ce dépôt, en environnement de test).
+
+La vraie validation n'est pas que ces commandes tournent sans erreur : c'est
+de vérifier, sur des vidéos réellement différentes, que leurs empreintes
+capturent des mécaniques différentes, puis qu'un script généré à partir
+d'une empreinte transfère cette mécanique sur un sujet neuf **sans** copier
+le contenu de la référence. Ce dernier point reste un jugement humain —
+aucun algorithme ici ne le tranche à ta place.

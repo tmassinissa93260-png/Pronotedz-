@@ -457,6 +457,106 @@ def charte(
                   f"--source {video}[/bold]")
 
 
+@app.command()
+def references(
+    dossier: Path = typer.Option(
+        None, "--dossier",
+        help="dossier des vidéos privées (défaut : donnees/references/ "
+             "ou $PDZ_DOSSIER_REFERENCES)",
+    ),
+    verbeux: bool = typer.Option(False, "--verbeux", "-v"),
+) -> None:
+    """Charter les vidéos de référence privées et comparer leurs empreintes.
+
+    Ne lit jamais de vidéo commise à ce dépôt : voir
+    `pdz/analyse/references.py` pour la convention — un dossier local,
+    ignoré par git, que chacun remplit avec ses propres fichiers. C'est
+    l'étape 1-3 de la vraie validation d'une empreinte créative : plusieurs
+    vidéos, leurs empreintes, et si elles capturent des mécaniques
+    réellement différentes.
+
+    La charte de chaque vidéo est écrite à côté d'elle
+    (`<nom>.univers.yaml`, dans le même dossier local — jamais dans
+    `univers/`, qui est publié) et réutilisée si déjà présente : relancer
+    la commande ne repaie pas une analyse déjà faite.
+    """
+    _journal(verbeux)
+    from pdz.agents.analyse.charte import CharteVisuelle, vers_univers
+    from pdz.analyse import rapport as module_rapport
+    from pdz.analyse.diversite import diagnostic_diversite
+    from pdz.analyse.references import dossier_references, lister_references
+    from pdz.moteur.pipeline import Contexte
+
+    d = dossier or dossier_references()
+    refs = lister_references(d)
+    if not refs:
+        console.print(
+            f"[dim]Aucune vidéo de référence dans {d} — dépose des fichiers "
+            ".mp4 (et, si tu veux, un .yaml de même nom avec "
+            "`mecanique_attendue:`) pour les comparer.[/dim]"
+        )
+        return
+
+    console.print(f"{len(refs)} vidéo(s) de référence trouvée(s) dans {d}.\n")
+    empreintes: list[tuple[str, Any]] = []
+
+    for ref in refs:
+        chemin_univers = ref.chemin.with_suffix(".univers.yaml")
+        try:
+            if chemin_univers.exists():
+                univers = Univers.charger(chemin_univers)
+                console.print(f"[dim]{ref.id} : déjà chartée "
+                              f"({chemin_univers.name})[/dim]")
+            else:
+                console.print(f"[bold]{ref.id}[/bold] — analyse en cours…")
+                r = module_rapport.analyser(ref.chemin, dossier_travail=config().dossier_travail)
+                agent = CharteVisuelle()
+                ctx = Contexte(job_id=db.nouvel_id("job"), etape_cle="charte",
+                               profil=config().profil, budget_restant=1.0)
+                resultat = asyncio.run(agent.executer({
+                    "visuel": r.visuel, "mesures_rythme": r.adn.bloc_pour_prompt(),
+                    "transposer": True, "langue": "français",
+                }, ctx))
+                univers = vers_univers(
+                    resultat, r.visuel, identifiant=ref.id,
+                    nom=ref.id.replace("-", " ").title(),
+                    format=Format.SERIE_ANIMEE, duree_cible_s=45, adn=r.adn,
+                )
+                univers.sauver(chemin_univers)
+                console.print(f"  → {chemin_univers.name} ({ctx.cout_engage:.3f} €)")
+        except ErreurPdz as e:
+            console.print(f"[red]{ref.id} : {e}[/red]")
+            continue
+
+        if univers.empreinte_creative is None:
+            console.print("  [dim]Pas d'empreinte créative dans cette charte.[/dim]\n")
+            continue
+
+        empreintes.append((ref.id, univers.empreinte_creative))
+        console.print(_resume_empreinte(univers.empreinte_creative))
+        if ref.mecanique_attendue:
+            console.print(f"  [dim]Mécanique notée à la main avant analyse : "
+                          f"{ref.mecanique_attendue}[/dim]")
+        console.print()
+
+    if len(empreintes) < 3:
+        console.print(
+            f"[dim]{len(empreintes)} empreinte(s) — il en faut au moins 3 "
+            "pour qu'une répétition ait un sens statistique.[/dim]"
+        )
+        return
+
+    alertes = diagnostic_diversite(empreintes)
+    if not alertes:
+        console.print("[green]✓[/green] Pas de répétition marquée entre "
+                      "ces empreintes : chacune semble capturer quelque "
+                      "chose de différent.")
+    else:
+        console.print("[yellow]Répétitions détectées[/yellow]")
+        for a in alertes:
+            console.print(f"  · {a}")
+
+
 # ── Voix ─────────────────────────────────────────────────────────────────
 
 @voix_app.command("lister")
