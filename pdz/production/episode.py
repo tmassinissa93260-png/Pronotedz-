@@ -9,6 +9,7 @@ seul appel qui fait tout à la fois :
     2. voix          répliques             → audio + timings RÉELS
     3. découpage     répliques + durées    → plans
     3b. prompts      plans déjà découpés   → prompt d'image par plan
+    3c. réalisme     prompts déjà écrits   → prompts corrigés (rien d'illisible)
     4. images        plans + univers       → une image par plan
     5. animation     plans notés + budget  → clips pour les plans qui comptent
     6. sous-titres   timings réels         → karaoké calé au mot
@@ -18,6 +19,14 @@ Les prompts d'image passent **après** le découpage, pas avec le dialogue :
 un plan de réaction (« celui qui écoute ») n'existe qu'une fois le découpage
 fait, et doit recevoir, lui aussi, un prompt écrit pour lui — pas une action
 générique recopiée à chaque réplique qui a une réaction.
+
+La passe « réalisme » (3c) ne génère jamais d'image : elle relit chaque
+prompt en texte seul et remplace ce qu'un modèle d'image rate toujours
+(texte lisible, logo, visage interdit par l'univers) par un équivalent
+qu'il sait rendre. Corriger ça en amont, gratuitement en tentatives Groq,
+coûte moins qu'un agent de vision qui vérifierait l'image APRÈS coup — ce
+dernier double la consommation (image ratée, vérification, regénération)
+au lieu de l'éviter.
 
 La voix passe **avant** les images, ce qui surprend au premier abord. C'est le
 choix central du module : la durée d'un plan doit venir de la parole réellement
@@ -43,6 +52,7 @@ from typing import Any
 from pdz import db
 from pdz.agents.ecriture.brief import BriefWriter
 from pdz.agents.ecriture.plans import ShotPromptWriter
+from pdz.agents.ecriture.realisme import RealismWriter
 from pdz.agents.ecriture.script import ScriptWriter
 from pdz.analyse.adn import Adn
 from pdz.config import config
@@ -291,6 +301,26 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
         repris.append("shot_prompts")
         prompts = fait_prompts
     plans = ShotPromptWriter().fusionner(plans, prompts)
+
+    # ── 3c. Réalisme ─────────────────────────────────────────────────────
+    # Texte seul, aucun appel image : corrige ce qu'un modèle de génération
+    # d'image rate systématiquement (texte lisible, logo, visage interdit)
+    # AVANT de payer une image pour ça — voir pdz/agents/ecriture/realisme.py.
+    fait_realisme = _fait(job_id, "realisme")
+    if fait_realisme is None:
+        debut = time.perf_counter()
+        ctx = Contexte(job_id=job_id, etape_cle="realisme", profil=profil,
+                       budget_restant=plafond - cout_total)
+        corrections = await executer_avec_relance(RealismWriter(),
+            {"univers": univers, "plans": plans}, ctx,
+        )
+        _noter(job_id, "realisme", "realisme", corrections, ctx.cout_engage,
+               int((time.perf_counter() - debut) * 1000))
+        cout_total += ctx.cout_engage
+    else:
+        repris.append("realisme")
+        corrections = fait_realisme
+    plans = RealismWriter().fusionner(plans, corrections)
 
     # ── 4. Images ────────────────────────────────────────────────────────
     fait_images = _fait(job_id, "images")

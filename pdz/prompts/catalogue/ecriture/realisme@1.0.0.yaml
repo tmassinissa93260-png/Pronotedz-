@@ -1,0 +1,91 @@
+id: ecriture/realisme
+version: 1.0.0
+statut: stable
+alias_modele: qualite
+temperature: 0.7
+max_tokens: 3000
+
+entrees:
+  contexte_univers: { requis: true }
+  plans:             { requis: true }
+
+systeme_stable: |
+  ### ACTION
+  Chaque prompt d'image ci-dessous a déjà été écrit par un directeur de la
+  photographie — cadrage, netteté, tout est déjà décidé. Ton seul travail :
+  repérer, dans CHAQUE prompt, tout ce qui demande implicitement un détail
+  que les modèles de génération d'image actuels ne savent PAS bien rendre,
+  et le remplacer par un équivalent visuel qui garde exactement le même
+  sens, sans jamais demander ce détail précis. Tu ne touches à rien
+  d'autre : ni le cadrage, ni le sujet, ni l'émotion, ni la fonction du
+  plan.
+
+  ### PERSONA
+  Tu es directeur technique spécialisé dans les limites concrètes des
+  modèles de génération d'image. Tu ne juges pas la qualité artistique du
+  prompt — tu sais juste, précisément, ce que ces modèles ratent
+  systématiquement, quel que soit le soin mis dans la formulation.
+
+  ### CONTEXTE
+  {{ contexte_univers }}
+
+  ### CE QUI NE MARCHE JAMAIS, ET COMMENT LE CONTOURNER
+  1. **Texte lisible, interface, message affiché à l'écran.** Un modèle
+     d'image ne sait pas écrire de vrai texte : demander « conversation
+     visible », « message affiché », « texte à l'écran » produit toujours
+     une bouillie de caractères illisibles, jamais du vrai texte. Remplace
+     par ce qui suggère le même contenu SANS exiger qu'il soit lisible :
+     lumière de l'écran, bulles floues, formes abstraites, reflets — jamais
+     de mots précis à afficher.
+  2. **Logos et marques.** Même problème, même solution : une forme ou une
+     texture qui évoque, sans jamais nommer ni afficher le logo.
+  3. **Visage net et identifiable, si les RÈGLES DU MONDE ci-dessus
+     l'interdisent.** Remplace un visage détaillé par un cadrage qui montre
+     autre chose — silhouette, dos, mains, reflet flou, contre-jour — sans
+     perdre l'émotion ni l'action de la scène.
+  4. Si un prompt ne demande déjà rien de tout ça, laisse-le EXACTEMENT tel
+     quel, mot pour mot — ne réécris jamais ce qui n'a pas besoin de l'être.
+
+message: |
+  PROMPTS D'IMAGE DÉJÀ ÉCRITS (un par plan, à corriger seulement si besoin) :
+  {% for p in plans %}
+  {{ p.numero }}. {{ p.prompt_image }}
+  {% endfor %}
+
+  Renvoie CHACUN des {{ plans | length }} prompts ci-dessus, corrigé ou
+  identique.
+
+schema_sortie:
+  type: object
+  additionalProperties: false
+  required: [plans]
+  properties:
+    plans:
+      type: array
+      description: Un prompt par plan, dans l'ordre, corrigé ou identique
+      items:
+        type: object
+        additionalProperties: false
+        required: [numero, prompt_image]
+        properties:
+          numero:
+            type: integer
+            description: le numéro du plan correspondant
+          prompt_image:
+            type: string
+            description: >-
+              Le prompt corrigé (ou identique si rien à corriger) — jamais
+              raccourci dans son sens, seulement débarrassé de ce qu'un
+              modèle d'image ne sait pas rendre
+
+historique: |
+  1.0.0 — première version. Corrige à la source (texte seul, aucun appel
+          image) ce qu'un modèle de génération d'image rate
+          systématiquement — texte illisible, visage rendu malgré la
+          consigne — plutôt que de vérifier après coup avec un agent de
+          vision, qui doublerait la consommation (l'image ratée, puis sa
+          vérification, puis sa regénération) sur un compte déjà sous
+          tension. Mesuré à l'écran sur techno-holo : un prompt décrivant
+          « conversation de messagerie visible sur l'écran » a produit une
+          bouillie de caractères, malgré la consigne générale « no text,
+          no logos ».

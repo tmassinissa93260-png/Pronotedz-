@@ -90,6 +90,18 @@ def atelier(tmp_path, monkeypatch):
     monkeypatch.setattr("pdz.agents.ecriture.plans.ShotPromptWriter.executer",
                         faux_prompts)
 
+    # ── Le réalisme (texte seul, corrige les prompts avant l'image) ─────────
+    async def faux_realisme(self, entrees, ctx):
+        ctx.facturer(0.001)
+        sortie = {"plans": [
+            {"numero": p.numero, "prompt_image": p.action}
+            for p in entrees["plans"]
+        ]}
+        return self.apres(sortie, entrees, ctx)
+
+    monkeypatch.setattr("pdz.agents.ecriture.realisme.RealismWriter.executer",
+                        faux_realisme)
+
     # ── La voix ──────────────────────────────────────────────────────────
     def fausse_voix(texte, sortie, *, voice_id, stabilite=0.5, style=0.4,
                     vitesse=1.0, modele=None):
