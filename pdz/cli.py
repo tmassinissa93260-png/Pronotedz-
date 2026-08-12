@@ -580,7 +580,8 @@ def avant_apres(
     `pdz references` pour charter la référence.
     """
     _journal(verbeux)
-    from pdz.agents.ecriture.script import ScriptWriter, _texte_empreinte
+    from pdz.agents.base import texte_empreinte
+    from pdz.agents.ecriture.script import ScriptWriter
     from pdz.analyse.references import dossier_references, lister_references
     from pdz.analyse.rapport_transfert import PlanRapporte, RapportTransfert, construire_rapport
     from pdz.moteur.pipeline import Contexte, executer_avec_relance
@@ -600,7 +601,7 @@ def avant_apres(
 
     empreinte_texte = ""
     if univers.empreinte_creative is not None:
-        empreinte_texte = _texte_empreinte(univers.empreinte_creative)
+        empreinte_texte = texte_empreinte(univers.empreinte_creative)
 
     console.print(f"Génération du script sur : [bold]{sujet}[/bold]…")
     ctx = Contexte(job_id=db.nouvel_id("job"), etape_cle="script",

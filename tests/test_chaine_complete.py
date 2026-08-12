@@ -56,15 +56,23 @@ def atelier(tmp_path, monkeypatch):
     config.cache_clear()
     config().preparer_dossiers()
 
-    # ── Le brief (structure narrative, avant le dialogue) ──────────────────
+    # ── Le brief (stratégie + structure narrative, avant le dialogue) ───────
     async def faux_brief(self, entrees, ctx):
         ctx.facturer(0.001)
-        sortie = {"beats": [
-            {"position_pct": 0, "role": "hook", "quoi": "ça tourne mal dès le début"},
-            {"position_pct": 25, "role": "mise en place", "quoi": "les tensions montent"},
-            {"position_pct": 60, "role": "montée de tension", "quoi": "l'accusation éclate"},
-            {"position_pct": 90, "role": "payoff", "quoi": "quelqu'un part ce soir"},
-        ]}
+        sortie = {
+            "strategie": {
+                "mecanisme_hook": "une accusation lancée sans prévenir",
+                "arc_narratif": "montée continue jusqu'à la rupture",
+                "ce_qui_retient": "on ne sait pas qui a raison",
+                "a_eviter": "résoudre l'accusation trop tôt",
+            },
+            "beats": [
+                {"position_pct": 0, "role": "hook", "quoi": "ça tourne mal dès le début"},
+                {"position_pct": 25, "role": "mise en place", "quoi": "les tensions montent"},
+                {"position_pct": 60, "role": "montée de tension", "quoi": "l'accusation éclate"},
+                {"position_pct": 90, "role": "payoff", "quoi": "quelqu'un part ce soir"},
+            ],
+        }
         return self.apres(sortie, entrees, ctx)
 
     monkeypatch.setattr("pdz.agents.ecriture.brief.BriefWriter.executer", faux_brief)

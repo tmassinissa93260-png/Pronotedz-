@@ -1,13 +1,25 @@
-"""L'agent qui transforme une phrase en squelette narratif.
+"""L'agent qui transforme une phrase en stratégie créative et en squelette narratif.
 
 Une phrase seule (« un homme entre dans une pièce sombre... ») laisse le
 scénariste inventer sa propre structure à chaque fois, avec une variance
 énorme sur un modèle plus faible (Llama) : trop de temps forts entassés, ou
-une ligne droite sans relance. BriefWriter fait un seul travail, avant que
-la moindre réplique soit écrite : découper le sujet en temps forts (hook,
-mise en place, tension, payoff...). C'est exactement le squelette
-`beats` que `ScriptWriter` sait déjà lire (voir SQUELETTE NARRATIF dans
-ecriture/script.yaml) — rien ne le remplissait automatiquement jusqu'ici.
+une ligne droite sans relance. BriefWriter fait deux choses, avant que la
+moindre réplique soit écrite :
+
+  1. `strategie` — la direction créative d'ensemble (mécanisme du hook, arc
+     narratif, ce qui retient l'attention, un piège à éviter pour CE sujet).
+     Un travail longtemps dispersé entre BriefWriter et ScriptWriter, qui
+     redécidait implicitement sa propre stratégie à chaque réplique plutôt
+     que d'en exécuter une déjà choisie.
+  2. `beats` — le squelette narratif (hook, mise en place, tension,
+     payoff...) que `ScriptWriter` sait déjà lire (SQUELETTE NARRATIF,
+     ecriture/script.yaml).
+
+Quand l'univers porte l'empreinte créative d'une vidéo de référence (voir
+`analyse/charte`), elle façonne la stratégie ET le squelette ici — pas
+seulement le dialogue plus tard : un mécanisme de hook mesuré sur une
+référence doit déjà orienter le TEMPS FORT choisi, pas juste la façon dont
+il est raconté.
 """
 
 from __future__ import annotations
@@ -15,7 +27,7 @@ from __future__ import annotations
 import copy
 from typing import Any
 
-from pdz.agents.base import Agent, nb_beats_pour
+from pdz.agents.base import Agent, nb_beats_pour, texte_empreinte
 from pdz.moteur.erreurs import ErreurValidation
 from pdz.moteur.pipeline import Contexte
 from pdz.univers import Univers
@@ -23,17 +35,21 @@ from pdz.univers import Univers
 
 class BriefWriter(Agent):
     nom = "brief"
-    version = "1.0.0"
+    version = "1.1.0"
     prompt_ref = "ecriture/brief"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
         univers: Univers = entrees["univers"]
         duree = entrees.get("duree_s") or univers.duree_cible_s
+        empreinte_texte = ""
+        if univers.empreinte_creative is not None:
+            empreinte_texte = texte_empreinte(univers.empreinte_creative)
         return {
             "situation": entrees["situation"],
             "contexte_univers": univers.contexte_script(),
             "duree_s": duree,
             "nb_beats": nb_beats_pour(duree),
+            "empreinte_texte": empreinte_texte,
         }
 
     def schema(self, base: dict, entrees: dict[str, Any], ctx: Contexte) -> dict:

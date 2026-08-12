@@ -20,6 +20,7 @@ from pdz.agents.base import (
     nb_plans_pour,
     nb_repliques_pour,
     positions_relance_par_defaut,
+    texte_empreinte,
 )
 from pdz.analyse.adn import Adn
 from pdz.moteur.erreurs import ErreurValidation
@@ -51,46 +52,9 @@ def _normaliser_emotion(brut: str) -> str:
     return normalisee if normalisee in EMOTIONS_CONNUES else "calme"
 
 
-def _texte_empreinte(e) -> str:
-    """Rend l'empreinte créative en texte pour le prompt — direction
-    créative, jamais une contrainte chiffrée.
-
-    Seuls les champs interprétés avec une confiance non négligeable sont
-    rendus : un « unknown » n'a rien à apporter au scénariste, et l'inclure
-    donnerait l'illusion d'une information là où il n'y en a pas. Le pacing
-    n'apparaît jamais ici — il part par une autre voie (`forme_mesuree`),
-    mesurée sur le signal, pas interprétée par le modèle de vision.
-    """
-    lignes: list[str] = []
-
-    def ajouter(label: str, champ) -> None:
-        if champ.valeur and champ.valeur != "unknown" and champ.confiance >= 0.2:
-            lignes.append(f"- {label} (confiance {champ.confiance:.0%}) : {champ.valeur}")
-
-    ajouter("Type d'accroche", e.hook.type)
-    ajouter("Mécanisme de l'accroche", e.hook.mecanisme)
-    ajouter("Promesse posée", e.hook.promesse)
-    ajouter("Structure narrative", e.narrative.structure)
-    ajouter("Escalade", e.narrative.escalade)
-    ajouter("Type de fin", e.narrative.fin)
-    ajouter("Mécanisme de curiosité", e.psychologie.curiosite)
-    ajouter("Arc émotionnel", e.psychologie.arc_emotionnel)
-    ajouter("Mécanisme de rétention", e.psychologie.retention)
-    ajouter("Stratégie de cadrage", e.visuel.cadrage)
-    ajouter("Rôle de la voix", e.audio.voix)
-    ajouter("Rôle de la musique", e.audio.musique)
-    ajouter("Rôle du silence", e.audio.silence)
-
-    if e.principes_reutilisables:
-        lignes.append("Principes réutilisables :")
-        lignes += [f"  · {p}" for p in e.principes_reutilisables]
-
-    return "\n".join(lignes)
-
-
 class ScriptWriter(Agent):
     nom = "script"
-    version = "1.6.0"
+    version = "1.7.0"
     prompt_ref = "ecriture/script"
 
     def _forme(self, entrees: dict[str, Any]) -> dict[str, Any]:
@@ -139,7 +103,7 @@ class ScriptWriter(Agent):
 
         empreinte_texte = ""
         if univers.empreinte_creative is not None:
-            empreinte_texte = _texte_empreinte(univers.empreinte_creative)
+            empreinte_texte = texte_empreinte(univers.empreinte_creative)
 
         return {
             **variables,
@@ -147,6 +111,7 @@ class ScriptWriter(Agent):
             "situation": entrees["situation"],
             "resume_precedent": entrees.get("resume_precedent", ""),
             "beats": entrees.get("beats") or [],
+            "strategie": entrees.get("strategie") or {},
             "empreinte_texte": empreinte_texte,
         }
 

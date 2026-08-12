@@ -16,6 +16,7 @@ from typing import Any
 from pdz.ia import texte
 from pdz.moteur.pipeline import Contexte
 from pdz.prompts import registre as prompts
+from pdz.univers import EmpreinteCreative
 
 
 class Agent:
@@ -197,3 +198,42 @@ def nb_beats_pour(duree_s: float, secondes_par_beat: float = 7.0) -> int:
     indiscernable d'un simple plan — ce n'est plus un beat narratif.
     """
     return max(4, min(8, round(duree_s / secondes_par_beat)))
+
+
+def texte_empreinte(e: EmpreinteCreative) -> str:
+    """Rend l'empreinte créative en texte pour un prompt — direction
+    créative, jamais une contrainte chiffrée.
+
+    Partagé entre BriefWriter (la structure doit déjà suivre le mécanisme
+    d'une référence, pas seulement le dialogue) et ScriptWriter. Seuls les
+    champs interprétés avec une confiance non négligeable sont rendus : un
+    « unknown » n'a rien à apporter, et l'inclure donnerait l'illusion
+    d'une information là où il n'y en a pas. Le pacing n'apparaît jamais
+    ici — il part par une autre voie (`forme_mesuree`), mesurée sur le
+    signal, pas interprétée par le modèle de vision.
+    """
+    lignes: list[str] = []
+
+    def ajouter(label: str, champ) -> None:
+        if champ.valeur and champ.valeur != "unknown" and champ.confiance >= 0.2:
+            lignes.append(f"- {label} (confiance {champ.confiance:.0%}) : {champ.valeur}")
+
+    ajouter("Type d'accroche", e.hook.type)
+    ajouter("Mécanisme de l'accroche", e.hook.mecanisme)
+    ajouter("Promesse posée", e.hook.promesse)
+    ajouter("Structure narrative", e.narrative.structure)
+    ajouter("Escalade", e.narrative.escalade)
+    ajouter("Type de fin", e.narrative.fin)
+    ajouter("Mécanisme de curiosité", e.psychologie.curiosite)
+    ajouter("Arc émotionnel", e.psychologie.arc_emotionnel)
+    ajouter("Mécanisme de rétention", e.psychologie.retention)
+    ajouter("Stratégie de cadrage", e.visuel.cadrage)
+    ajouter("Rôle de la voix", e.audio.voix)
+    ajouter("Rôle de la musique", e.audio.musique)
+    ajouter("Rôle du silence", e.audio.silence)
+
+    if e.principes_reutilisables:
+        lignes.append("Principes réutilisables :")
+        lignes += [f"  · {p}" for p in e.principes_reutilisables]
+
+    return "\n".join(lignes)

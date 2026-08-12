@@ -17,7 +17,12 @@ from pdz.agents.ecriture.brief import BriefWriter
 from pdz.moteur.erreurs import ErreurValidation
 from pdz.moteur.pipeline import Contexte
 from pdz.prompts import charger
-from pdz.univers import Univers
+from pdz.univers import (
+    ChampInterprete,
+    EmpreinteCreative,
+    EmpreinteHook,
+    Univers,
+)
 
 FRUITS = Path("univers/fruit-island.yaml")
 
@@ -29,6 +34,12 @@ def _contexte():
 
 def _beat(pct, role="hook", quoi="il se passe quelque chose de précis ici"):
     return {"position_pct": pct, "role": role, "quoi": quoi}
+
+
+def _empreinte():
+    champ = ChampInterprete(valeur="question impossible", confiance=0.8,
+                            observation="vu dans la référence")
+    return EmpreinteCreative(hook=EmpreinteHook(type=champ))
 
 
 def test_les_variables_incluent_le_nombre_de_beats_vise():
@@ -90,3 +101,31 @@ def test_la_signature_reference_le_prompt_actif():
     sig = BriefWriter().signature()
     assert sig["agent"] == "brief"
     assert sig["prompt"] == charger("ecriture/brief").ref
+
+
+# ── Empreinte créative : la structure la reçoit aussi, pas que le dialogue ─
+
+def test_les_variables_incluent_lempreinte_quand_lunivers_en_a_une():
+    u = Univers.charger(FRUITS)
+    u.empreinte_creative = _empreinte()
+    v = BriefWriter().variables({"univers": u, "situation": "test", "duree_s": 45}, _contexte())
+    assert "question impossible" in v["empreinte_texte"]
+
+
+def test_les_variables_sans_empreinte_donnent_un_texte_vide():
+    """Non-régression : un univers sans vidéo de référence continue de
+    fonctionner exactement comme avant l'ajout de l'empreinte créative."""
+    u = Univers.charger(FRUITS)
+    assert u.empreinte_creative is None
+    v = BriefWriter().variables({"univers": u, "situation": "test", "duree_s": 45}, _contexte())
+    assert v["empreinte_texte"] == ""
+
+
+def test_le_prompt_actif_produit_une_strategie():
+    """La fusion avec un « CreativeDirector » séparé (audit d'architecture
+    externe) : la stratégie doit être un champ requis du schéma actif, pas
+    une intention seulement documentée."""
+    schema = charger("ecriture/brief").schema_sortie
+    assert "strategie" in schema["required"]
+    proprietes = schema["properties"]["strategie"]["properties"]
+    assert {"mecanisme_hook", "arc_narratif", "ce_qui_retient", "a_eviter"} <= proprietes.keys()

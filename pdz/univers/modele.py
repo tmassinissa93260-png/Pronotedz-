@@ -156,7 +156,7 @@ class ChampInterprete(BaseModel):
     détectable ne se comble jamais par une invention (voir `charte.py`,
     « Tu ne devines pas ce que tu ne vois pas »). Un champ à faible confiance
     reste dans le fichier — il sert de piste, pas de contrainte forte pour la
-    suite de la production (voir `_texte_empreinte` dans `agents/ecriture/script.py`,
+    suite de la production (voir `texte_empreinte` dans `agents/base.py`,
     qui filtre sous ce seuil).
     """
 

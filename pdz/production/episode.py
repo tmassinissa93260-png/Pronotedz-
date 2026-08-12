@@ -207,9 +207,12 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     cout_total = 0.0
 
     # ── 1a. Brief ────────────────────────────────────────────────────────
-    # La structure narrative avant tout dialogue : sans elle, ScriptWriter
-    # invente sa propre mécanique de rétention à chaque appel, sans garde-fou
-    # sur le nombre de temps forts ni leur répartition dans le temps.
+    # La structure narrative — et la stratégie créative qui la justifie —
+    # avant tout dialogue : sans elles, ScriptWriter invente sa propre
+    # mécanique de rétention à chaque appel, sans garde-fou sur le nombre de
+    # temps forts ni leur répartition dans le temps, et redécide
+    # implicitement sa propre stratégie réplique par réplique.
+    strategie = None
     if beats is None:
         fait_brief = _fait(job_id, "brief")
         if fait_brief is None:
@@ -227,6 +230,7 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
             repris.append("brief")
             brief = fait_brief
         beats = brief["beats"]
+        strategie = brief.get("strategie")
 
     # ── 1b. Script ───────────────────────────────────────────────────────
     script = _fait(job_id, "script")
@@ -236,7 +240,8 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
                        budget_restant=plafond - cout_total)
         script = await executer_avec_relance(ScriptWriter(),
             {"univers": univers, "situation": situation, "duree_s": duree_s,
-             "adn": adn, "beats": beats, "resume_precedent": resume_precedent},
+             "adn": adn, "beats": beats, "strategie": strategie,
+             "resume_precedent": resume_precedent},
             ctx,
         )
         _noter(job_id, "script", "script", script, ctx.cout_engage,

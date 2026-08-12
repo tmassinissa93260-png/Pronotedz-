@@ -20,8 +20,9 @@ from pdz.agents.base import (
     nb_plans_pour,
     nb_repliques_pour,
     positions_relance_par_defaut,
+    texte_empreinte,
 )
-from pdz.agents.ecriture.script import ScriptWriter, _normaliser_emotion, _texte_empreinte
+from pdz.agents.ecriture.script import ScriptWriter, _normaliser_emotion
 from pdz.ia.registre import registre
 from pdz.moteur.erreurs import ErreurConfig, ErreurValidation
 from pdz.moteur.pipeline import Contexte
@@ -401,11 +402,11 @@ def test_une_emotion_valide_traverse_intacte():
 def test_le_schema_actif_ne_contraint_plus_lemotion_par_enum():
     """Depuis script@1.4.0 : contraindre par `enum` un champ déjà rattrapable
     après coup ne protégeait rien et rendait tout le script fragile chez
-    Groq. Toujours vrai en 1.6.0."""
+    Groq. Toujours vrai en 1.7.0."""
     schema = charger("ecriture/script").schema_sortie
     proprietes = schema["properties"]["repliques"]["items"]["properties"]
     assert "enum" not in proprietes["emotion"]
-    assert charger("ecriture/script").version == "1.6.0"
+    assert charger("ecriture/script").version == "1.7.0"
 
 
 def test_le_schema_impose_le_nombre_de_repliques_vise():
@@ -597,7 +598,7 @@ def _empreinte():
 
 
 def test_lempreinte_se_rend_en_texte_avec_les_confiances():
-    texte = _texte_empreinte(_empreinte())
+    texte = texte_empreinte(_empreinte())
     assert "question impossible" in texte
     assert "80%" in texte
     assert "pose une question avant la 3e seconde" in texte
@@ -608,7 +609,7 @@ def test_un_champ_inconnu_nest_pas_rendu():
     l'illusion d'une information là où il n'y en a pas."""
     e = _empreinte()
     e.hook.type = ChampInterprete()  # valeur="unknown", confiance=0.0 par défaut
-    texte = _texte_empreinte(e)
+    texte = texte_empreinte(e)
     assert "unknown" not in texte
 
 
@@ -616,7 +617,7 @@ def test_un_champ_a_faible_confiance_nest_pas_rendu():
     e = _empreinte()
     e.hook.type = ChampInterprete(valeur="mystère", confiance=0.1,
                                   justification="incertain")
-    assert "mystère" not in _texte_empreinte(e)
+    assert "mystère" not in texte_empreinte(e)
 
 
 def test_les_variables_incluent_lempreinte_quand_lunivers_en_a_une():
@@ -633,6 +634,25 @@ def test_les_variables_sans_empreinte_donnent_un_texte_vide():
     assert u.empreinte_creative is None
     v = ScriptWriter().variables({"univers": u, "situation": "test"}, _contexte())
     assert v["empreinte_texte"] == ""
+
+
+# ── Stratégie créative de BriefWriter, exécutée ici ─────────────────────
+
+def test_la_strategie_de_brief_passe_dans_les_variables():
+    u = Univers.charger(FRUITS)
+    strategie = {"mecanisme_hook": "question", "arc_narratif": "montée",
+                "ce_qui_retient": "info gap", "a_eviter": "cliché"}
+    v = ScriptWriter().variables(
+        {"univers": u, "situation": "test", "strategie": strategie}, _contexte())
+    assert v["strategie"] == strategie
+
+
+def test_sans_strategie_les_variables_restent_valides():
+    """Non-régression : un appel direct (sans passer par BriefWriter, comme
+    `pdz avant-apres`) continue de fonctionner sans stratégie."""
+    u = Univers.charger(FRUITS)
+    v = ScriptWriter().variables({"univers": u, "situation": "test"}, _contexte())
+    assert v["strategie"] == {}
 
 
 # ── Relance après ErreurValidation : montrer l'erreur au modèle ─────────
