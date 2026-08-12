@@ -17,12 +17,14 @@ style:
   seed: 480921
   consignes_image:
   - no human faces, no facial features, no portraits
-  - wireframe and transparent surfaces only, never solid rendered characters
+  - wireframe and transparent surfaces only for everything in frame — characters,
+    objects, AND environments alike — never solid or photorealistic rendering
   - desaturated, near monochrome, no warm colours
   - no text, no logos, no watermarks
 regles_du_monde:
 - 'Aucun visage reconnaissable : les silhouettes humaines restent en fil de fer'
-- Tout est en fil de fer et transparence, jamais en surfaces pleines colorées
+- Tout est en fil de fer et transparence, jamais en surfaces pleines colorées —
+  décors et lieux compris, pas seulement les personnages
 - Le sol est une grille en perspective, comme un plan technique
 - Une seule idée par plan, cadrée large ou en très gros plan, jamais entre les deux
 personnages:
