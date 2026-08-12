@@ -29,6 +29,7 @@ from pathlib import Path
 from pdz.config import config
 from pdz.ia import images as ia_images
 from pdz.moteur.erreurs import ErreurBudget, ErreurConfig
+from pdz.production.cadrage import phrase as phrase_de_cadrage
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Personnage, Univers
 
@@ -107,7 +108,7 @@ def prompt_fiche(personnage: Personnage, univers: Univers) -> str:
 def prompt_plan(personnage: Personnage, univers: Univers, *,
                 action: str, emotion: str = "calme",
                 decor: str = "", consignes: list[str] | None = None,
-                fonction: str = "") -> str:
+                fonction: str = "", cadrage: str = "") -> str:
     """Le prompt d'un plan : qui, faisant quoi, où, avec quelle tête.
 
     L'ordre n'est pas indifférent. Les modèles d'image donnent plus de poids
@@ -127,6 +128,13 @@ def prompt_plan(personnage: Personnage, univers: Univers, *,
     même action mais des fonctions différentes ("établit l'échelle du monde"
     vs "révèle un détail") doivent produire des prompts différents, sinon
     l'empreinte créative ne pèse sur rien de visible à l'écran.
+
+    `cadrage` (voir `pdz.production.cadrage`) vient d'un vocabulaire fixe
+    écrit par ShotPromptWriter — la formule anglaise correspondante est
+    ajoutée ici, juste après l'action. ShotPromptWriter décrit déjà le
+    cadrage en prose dans `action`, mais rien ne garantissait qu'un
+    mot-clé de cadrage fiable atteigne vraiment le modèle d'image ; cette
+    formule le garantit en plus du texte libre, sans jamais le remplacer.
     """
     if not univers.anime:
         morceaux = [action.strip()]
@@ -136,6 +144,9 @@ def prompt_plan(personnage: Personnage, univers: Univers, *,
             EXPRESSIONS.get(emotion, EXPRESSIONS["calme"]),
             action.strip(),
         ]
+
+    if phrase := phrase_de_cadrage(cadrage):
+        morceaux.append(phrase)
 
     if fonction.strip():
         morceaux.append(f"shot chosen to: {fonction.strip()}")
@@ -329,7 +340,8 @@ def fabriquer(plans: list[PlanScript], univers: Univers, dossier: Path, *,
 
         prompt = prompt_plan(perso, univers, action=plan.action,
                              emotion=plan.emotion, decor=plan.decor,
-                             consignes=consignes, fonction=plan.fonction)
+                             consignes=consignes, fonction=plan.fonction,
+                             cadrage=plan.cadrage)
         destination = dossier / f"plan_{plan.numero:03d}.jpg"
         reste_pct = max(0.0, (plafond - planche.cout) / max(1e-6, plafond) * 100)
 

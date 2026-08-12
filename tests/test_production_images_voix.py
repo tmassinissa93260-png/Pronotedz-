@@ -377,6 +377,38 @@ def test_deux_fonctions_differentes_donnent_des_prompts_differents():
     assert a != b
 
 
+def test_le_cadrage_ajoute_sa_formule_au_prompt():
+    """ShotPromptWriter décrit déjà le cadrage en prose dans `action`, mais
+    rien ne garantissait qu'un mot-clé de cadrage fiable atteigne vraiment
+    le modèle d'image — voir pdz.production.cadrage.phrase()."""
+    u = Univers.charger(FRUITS)
+    perso = u.personnages[0]
+    sans = images.prompt_plan(perso, u, action="elle observe la pièce")
+    avec = images.prompt_plan(perso, u, action="elle observe la pièce",
+                              cadrage="gros_plan")
+    assert sans != avec
+    assert "close-up shot" in avec
+
+
+def test_un_cadrage_inconnu_najoute_rien():
+    """Non-régression : un job en cache d'avant plans@1.2.0 n'a pas de
+    cadrage — ne doit pas planter ni ajouter de texte parasite."""
+    u = Univers.charger(FRUITS)
+    perso = u.personnages[0]
+    sans = images.prompt_plan(perso, u, action="elle observe la pièce")
+    avec = images.prompt_plan(perso, u, action="elle observe la pièce", cadrage="")
+    assert sans == avec
+
+
+def test_le_cadrage_passe_avant_le_decor_et_le_style():
+    u = Univers.charger(FRUITS)
+    perso = u.personnages[0]
+    prompt = images.prompt_plan(perso, u, action="elle observe la pièce",
+                                cadrage="plan_large", decor="ceremonie")
+    assert prompt.index("wide shot") < prompt.index(u.decor("ceremonie").description[:12])
+    assert prompt.index("wide shot") < prompt.index(u.style.rendu[:12])
+
+
 def test_la_fiche_de_personnage_est_neutre():
     """Une fiche prise en scène transmettrait ce décor à tous les plans."""
     u = Univers.charger(FRUITS)

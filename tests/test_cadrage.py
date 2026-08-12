@@ -39,3 +39,17 @@ def test_le_vocabulaire_reste_court():
     Llama/Groq renvoie une valeur hors liste et fasse rejeter toute la
     réponse (voir l'historique de script@1.4.0 sur `emotion`)."""
     assert 3 <= len(cadrage.CADRAGES) <= 8
+
+
+# ── La formule de cadrage pour le prompt d'image ────────────────────────
+
+def test_chaque_cadrage_du_vocabulaire_a_sa_formule():
+    for c in cadrage.CADRAGES:
+        assert cadrage.phrase(c), f"{c} n'a pas de formule"
+
+
+def test_un_cadrage_inconnu_donne_une_formule_vide():
+    """Plutôt qu'une valeur par défaut qui masquerait l'absence réelle
+    d'information (job en cache d'avant ce champ, par exemple)."""
+    assert cadrage.phrase("") == ""
+    assert cadrage.phrase("valeur-hors-liste") == ""

@@ -16,6 +16,27 @@ from __future__ import annotations
 # script@1.4.0 sur `emotion` pour la même leçon.
 CADRAGES = ["gros_plan", "plan_rapproche", "plan_moyen", "plan_large", "plan_detail"]
 
+# La formule de cadrage, telle qu'elle doit apparaître dans le prompt
+# d'image final (voir `images.prompt_plan`). ShotPromptWriter choisit déjà
+# un cadrage en prose dans `prompt_image`, mais rien ne garantissait qu'un
+# mot-clé de cadrage FIABLE atteigne vraiment le modèle d'image — cette
+# formule le garantit, en plus de ce que le texte libre décrit.
+PHRASES = {
+    "gros_plan": "close-up shot",
+    "plan_rapproche": "medium close-up shot",
+    "plan_moyen": "medium shot",
+    "plan_large": "wide shot",
+    "plan_detail": "extreme close-up, fine detail shot",
+}
+
+
+def phrase(cadrage_id: str) -> str:
+    """La formule anglaise prête pour un prompt d'image — vide si le
+    cadrage n'est pas renseigné (job en cache d'avant ce champ, par
+    exemple), plutôt que d'inventer une valeur par défaut qui masquerait
+    l'absence réelle d'information."""
+    return PHRASES.get(cadrage_id, "")
+
 
 def verifier_diversite(cadrages: list[str]) -> list[str]:
     """Les avertissements pour les paires consécutives qui répètent le même
