@@ -140,18 +140,35 @@ def prompt_plan(personnage: Personnage, univers: Univers, *,
     if fonction.strip():
         morceaux.append(f"shot chosen to: {fonction.strip()}")
 
+    # Ce que l'univers s'interdit TOUJOURS passe juste après l'action,
+    # avant le décor et le style — pas en fin de prompt. Mesuré à l'écran
+    # sur techno-holo : la consigne « wireframe and transparent surfaces
+    # only, never solid rendered characters » était bien présente (voir
+    # test_les_consignes_de_lunivers_partent_dans_chaque_image), mais
+    # reléguée en position ~19 d'un prompt à 28 segments — trop loin pour
+    # peser face à une action qui décrit un humain. Le personnage rendu
+    # était plein, pas filaire, et changeait de tenue d'un plan à l'autre.
+    morceaux += [c.strip() for c in univers.style.consignes_image]
+
     if decor and (d := univers.decor(decor)):
         morceaux.append(d.description.strip())
-    elif univers.decors:
+    elif univers.anime and univers.decors:
+        # Ce repli n'a de sens que pour une série à personnages : parmi ses
+        # décors, il y en a toujours un de pertinent, l'histoire s'y déroule.
+        # En narration, les décors ne sont qu'une poignée de scènes
+        # génériques (ville, réseau...) qui ne couvrent pas un sujet libre —
+        # imposer quand même le premier produisait systématiquement une
+        # ville, quel que soit le sujet. Mesuré à l'écran : un plan sur
+        # « un homme allongé regarde son téléphone » recevait la
+        # description de la ville filaire, qui a fini par dominer l'image.
+        # L'action seule, déjà libre en narration, s'en sort mieux.
         morceaux.append(univers.decors[0].description.strip())
 
     morceaux.append(univers.style.rendu.strip())
     if univers.style.eclairage:
         morceaux.append(univers.style.eclairage.strip())
-    # Deux sources de consignes, cumulées : celles de l'univers (ce qu'il
-    # s'interdit toujours) et celles mesurées sur une vidéo de référence
-    # (contraste, grain), passées par l'appelant.
-    morceaux += [c.strip() for c in univers.style.consignes_image]
+    # Mesurées sur une vidéo de référence (contraste, grain) : s'ajoutent
+    # à celles de l'univers, ne les remplacent pas.
     morceaux += [c.strip() for c in (consignes or [])]
     morceaux.append("vertical 9:16 composition")
 

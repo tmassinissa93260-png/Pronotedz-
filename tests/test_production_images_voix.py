@@ -295,6 +295,23 @@ def test_le_personnage_passe_avant_le_style_dans_le_prompt():
     assert prompt.index(perso.apparence.split()[0]) < prompt.index(u.style.rendu[:12])
 
 
+def test_les_interdits_de_lunivers_passent_avant_le_decor_et_le_style():
+    """Mesuré à l'écran sur techno-holo : présents dans le prompt (voir
+    test_les_consignes_de_lunivers_partent_dans_chaque_image) mais relégués
+    en fin d'un prompt à 28 segments, « wireframe and transparent surfaces
+    only, never solid rendered characters » ne pesait pas assez face à une
+    action décrivant un humain — le personnage rendu était plein, pas
+    filaire. Les interdits doivent passer immédiatement après l'action,
+    avant le décor et le rendu général."""
+    u = Univers.charger(HOLO)
+    prompt = images.prompt_plan(u.personnages[0], u,
+                                action="il marche dans la ville",
+                                decor="silhouette")
+    premiere_consigne = u.style.consignes_image[0]
+    assert prompt.index(premiere_consigne) < prompt.index(u.decor("silhouette").description[:12])
+    assert prompt.index(premiere_consigne) < prompt.index(u.style.rendu[:12])
+
+
 def test_lemotion_devient_une_description_de_visage():
     """« angry » donne un visage contrarié ; les sourcils donnent la colère."""
     u = Univers.charger(FRUITS)
@@ -307,6 +324,33 @@ def test_le_decor_demande_est_celui_utilise():
     u = Univers.charger(FRUITS)
     prompt = images.prompt_plan(u.personnages[0], u, action="x", decor="ceremonie")
     assert "torches" in prompt
+
+
+def test_en_serie_animee_un_decor_absent_retombe_sur_le_premier():
+    """Non-régression : sur une série à personnages, l'histoire se déroule
+    forcément dans un des lieux définis — retomber sur le premier reste
+    pertinent."""
+    u = Univers.charger(FRUITS)
+    prompt = images.prompt_plan(u.personnages[0], u, action="x", decor="")
+    assert u.decors[0].description.strip() in prompt
+
+
+def test_en_narration_un_decor_absent_ne_force_pas_le_premier():
+    """Mesuré à l'écran : `techno-holo` n'a que 4 décors génériques (ville,
+    réseau, objet, silhouette), qui ne couvrent pas un sujet libre. Un plan
+    sur « un homme allongé regarde son téléphone » recevait quand même la
+    description de la ville filaire, en plus de l'action — et l'image
+    rendue montrait une ville, pas un téléphone. En narration, l'action est
+    déjà la description de la scène ; imposer un décor générique en plus
+    la pollue plutôt que de l'aider."""
+    u = Univers.charger(HOLO)
+    prompt = images.prompt_plan(
+        u.personnages[0], u,
+        action="un homme allonge sur son lit regarde lecran de son telephone",
+        decor="",
+    )
+    assert u.decors[0].description.strip() not in prompt
+    assert "telephone" in prompt
 
 
 def test_le_shot_function_influence_le_prompt_dimage():

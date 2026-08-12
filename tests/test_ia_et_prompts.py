@@ -374,12 +374,13 @@ def test_une_emotion_valide_traverse_intacte():
 
 
 def test_le_schema_actif_ne_contraint_plus_lemotion_par_enum():
-    """script@1.4.0 : contraindre par `enum` un champ déjà rattrapable après
-    coup ne protégeait rien et rendait tout le script fragile chez Groq."""
+    """Depuis script@1.4.0 : contraindre par `enum` un champ déjà rattrapable
+    après coup ne protégeait rien et rendait tout le script fragile chez
+    Groq. Toujours vrai en 1.5.0."""
     schema = charger("ecriture/script").schema_sortie
     proprietes = schema["properties"]["repliques"]["items"]["properties"]
     assert "enum" not in proprietes["emotion"]
-    assert charger("ecriture/script").version == "1.4.0"
+    assert charger("ecriture/script").version == "1.5.0"
 
 
 def test_le_schema_impose_le_nombre_de_repliques_vise():
@@ -393,6 +394,15 @@ def test_le_schema_impose_le_nombre_de_repliques_vise():
     attendu = ScriptWriter()._forme({"univers": u, "duree_s": 45})["nb_repliques"]
     assert schema["properties"]["repliques"]["minItems"] == attendu
     assert attendu >= 3
+
+
+def test_la_consigne_de_cadrage_est_dans_le_prompt_actif():
+    """Comparé à un prompt écrit à la main avec cadrage, lumière et point de
+    netteté précisés, une `action` qui ne dit que « ce qui se passe » donne
+    une image quelconque même sur le bon sujet. Non-régression : cette
+    consigne ne doit pas disparaître au prochain bump de version."""
+    stable = charger("ecriture/script").systeme_stable.lower()
+    assert "cadre chaque" in stable or "cadrage" in stable
 
 
 def test_le_message_derreur_trop_court_redonne_la_cible_complete():

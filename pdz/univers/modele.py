@@ -312,6 +312,21 @@ class Univers(BaseModel):
             lignes += ["", "DÉCORS (même règle, utilise l'identifiant entre crochets) :"] + [
                 f"- [{d.id}] {d.nom} : {d.description}" for d in self.decors
             ]
+            if not self.anime:
+                # Mesuré à l'écran : un sujet qui ne correspond à aucun de
+                # ces décors (un téléphone, un lit — rien de tel dans une
+                # liste de 4 décors génériques) recevait quand même celui
+                # du dessus, ajouté par-dessus une action pourtant juste.
+                # L'image montrait la ville, pas le sujet. `action` est la
+                # seule description fiable : elle doit se suffire à
+                # elle-même, jamais compter sur un décor qui ne colle pas.
+                lignes.append(
+                    "  (`decor` reste vide si aucun de ces identifiants ne "
+                    "correspond vraiment au plan — dans ce cas, `action` "
+                    "doit à elle seule décrire toute la scène visible, "
+                    "précisément, pas juste ce qu'un personnage invisible "
+                    "fait.)"
+                )
 
         if self.interdits:
             lignes += ["", "INTERDITS :"] + [f"- {i}" for i in self.interdits]

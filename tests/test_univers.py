@@ -51,6 +51,27 @@ def test_le_contexte_script_contient_tout_le_casting():
     assert "INTERDITS" in ctx
 
 
+def test_en_narration_le_contexte_previent_que_laction_doit_se_suffire():
+    """Mesuré à l'écran : un sujet sans décor correspondant (un téléphone,
+    un lit — rien de tel dans les 4 décors génériques de techno-holo)
+    recevait quand même le premier décor, ajouté par-dessus une action
+    pourtant juste. L'image montrait la ville, pas le sujet."""
+    u = Univers.charger(Path("univers/techno-holo.yaml"))
+    assert not u.anime
+    ctx = u.contexte_script()
+    assert "decor" in ctx and "vide" in ctx
+    assert "action" in ctx
+
+
+def test_en_serie_animee_pas_de_note_sur_laction_seule():
+    """Non-régression : une série à personnages a toujours un décor
+    pertinent parmi les siens, la note ne la concerne pas."""
+    u = Univers.charger(Path("univers/fruit-island.yaml"))
+    assert u.anime
+    ctx = u.contexte_script()
+    assert "doit à elle seule décrire" not in ctx
+
+
 @pytest.mark.parametrize(
     "rendu",
     ["in the style of Naruto", "Dragon Ball inspired art", "like a Disney movie"],
