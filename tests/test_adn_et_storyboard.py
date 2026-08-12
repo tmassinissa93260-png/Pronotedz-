@@ -16,6 +16,7 @@ from pdz.analyse.coupes import Decoupage
 from pdz.analyse.son import AnalyseSon
 from pdz.production import animation, storyboard
 from pdz.univers import Univers
+from pdz.video.soustitres import Mot
 
 FRUITS = Path(__file__).resolve().parent.parent / "univers" / "fruit-island.yaml"
 
@@ -172,6 +173,107 @@ def test_une_replique_trop_courte_nest_pas_coupee():
     plans = storyboard.decouper(repliques, [1.0, 1.0], u)
     assert len(plans) == 2
     assert not any(p.reaction for p in plans)
+
+
+# ── Point de coupe naturel (pause de la voix plutôt que % fixe) ─────────
+
+def _mots(*paires):
+    """`_mots((texte, debut_ms, fin_ms), ...)` — un raccourci de lisibilité."""
+    return [Mot(t, d, f) for t, d, f in paires]
+
+
+def test_sans_mots_le_point_de_coupe_retombe_sur_le_repli():
+    assert storyboard.point_de_coupe([], 4000) == storyboard.PART_REACTION
+    assert storyboard.point_de_coupe([Mot("seul", 0, 500)], 4000) == storyboard.PART_REACTION
+
+
+def test_une_pause_proche_de_la_cible_est_choisie():
+    """Cible à 65 % de 4000 ms = 2600 ms, fenêtre de recherche [2000, 3200].
+    Une vraie pause de la voix dans cette fenêtre doit l'emporter sur le
+    pourcentage fixe."""
+    mots = _mots(
+        ("Mais", 0, 400), ("tu", 400, 600), ("ne", 600, 800),
+        ("comprends", 800, 1400), ("pas", 1400, 2200),
+        # pause de 500 ms ici, à 2200 ms — dans la fenêtre de recherche.
+        ("ce", 2700, 2900), ("qu'il", 2900, 3200), ("y", 3200, 3300),
+        ("avait", 3300, 3700), ("derriere", 3700, 4000),
+    )
+    part = storyboard.point_de_coupe(mots, 4000)
+    # La coupe doit tomber sur la pause (à 2200 ms, donc 45 % de réaction),
+    # pas sur les 35 % par défaut.
+    assert part != storyboard.PART_REACTION
+    assert part == pytest.approx(1 - 2200 / 4000, abs=0.01)
+
+
+def test_une_pause_hors_fenetre_est_ignoree():
+    """Une pause en tout début de réplique n'est pas la frontière
+    parlant/réaction — juste une respiration avant de parler."""
+    mots = _mots(("Alors", 0, 300), ("voila", 900, 1200), ("la", 1200, 1300),
+                 ("suite", 1300, 3800))
+    assert storyboard.point_de_coupe(mots, 4000) == storyboard.PART_REACTION
+
+
+def test_la_plus_grande_pause_dans_la_fenetre_gagne():
+    mots = _mots(
+        ("un", 0, 2200), ("deux", 2210, 2550),   # petite pause : 10 ms
+        ("trois", 2900, 3300),                    # grande pause : 350 ms
+        ("quatre", 3310, 4000),
+    )
+    part = storyboard.point_de_coupe(mots, 4000)
+    assert part == pytest.approx(1 - 2550 / 4000, abs=0.01)
+    assert part != storyboard.PART_REACTION
+
+
+def test_grouper_mots_par_replique_retrouve_les_frontieres():
+    mots = [
+        Mot("un", 0, 200), Mot("deux", 200, 500),
+        Mot("trois", 1000, 1200), Mot("quatre", 1200, 1600), Mot("cinq", 1600, 2000),
+        Mot("six", 3000, 3400),
+    ]
+    groupes = storyboard.grouper_mots_par_replique(mots, frozenset({0, 1000, 3000}))
+    assert [len(g) for g in groupes] == [2, 3, 1]
+    assert groupes[1][0].texte == "trois"
+
+
+def test_grouper_mots_par_replique_sans_frontiere_est_vide():
+    assert storyboard.grouper_mots_par_replique([Mot("x", 0, 100)], frozenset()) == []
+
+
+def test_le_decoupage_utilise_le_point_de_coupe_naturel_quand_fourni():
+    u, repliques = _repliques(1, avec_reaction=True)
+    # Réplique de 4 s avec une vraie pause de 500 ms à 2200 ms (45 % de
+    # réaction), différente des 35 % par défaut.
+    mots_replique = _mots(
+        ("Mais", 0, 400), ("tu", 400, 600), ("ne", 600, 800),
+        ("comprends", 800, 1400), ("pas", 1400, 2200),
+        ("ce", 2700, 2900), ("qu'il", 2900, 3200), ("y", 3200, 3300),
+        ("avait", 3300, 3700), ("derriere", 3700, 4000),
+    )
+    sans_mots = storyboard.decouper(repliques, [4.0], u)
+    avec_mots = storyboard.decouper(repliques, [4.0], u, mots_par_replique=[mots_replique])
+
+    parlant_sans = next(p for p in sans_mots if not p.reaction)
+    parlant_avec = next(p for p in avec_mots if not p.reaction)
+    assert parlant_sans.duree_s != parlant_avec.duree_s
+    assert parlant_avec.duree_s == pytest.approx(2.2, abs=0.02)
+
+
+def test_une_coupe_naturelle_trop_courte_retombe_sur_le_repli():
+    """Une pause trouvée dans la fenêtre, mais qui produirait un plan de
+    réaction sous le minimum lisible (0,9 s), ne doit pas être utilisée."""
+    u, repliques = _repliques(1, avec_reaction=True)
+    mots_replique = _mots(
+        ("long", 0, 3150),
+        # pause à 3150 ms : dans la fenêtre de recherche, mais ne laisserait
+        # que 850 ms à la réaction — sous le minimum lisible.
+        ("fin", 3200, 4000),
+    )
+    plans = storyboard.decouper(repliques, [4.0], u, mots_par_replique=[mots_replique])
+    parlant = next(p for p in plans if not p.reaction)
+    reaction = next(p for p in plans if p.reaction)
+    assert parlant.duree_s >= storyboard.DUREE_PLAN_MINIMALE_S
+    assert reaction.duree_s >= storyboard.DUREE_PLAN_MINIMALE_S
+    assert reaction.duree_s == pytest.approx(4.0 * storyboard.PART_REACTION, abs=0.01)
 
 
 # ── Fonction narrative du plan ───────────────────────────────────────────

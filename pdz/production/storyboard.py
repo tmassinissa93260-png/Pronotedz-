@@ -20,14 +20,77 @@ from dataclasses import dataclass
 
 from pdz.moteur.erreurs import ErreurConfig
 from pdz.univers import Univers
+from pdz.video.soustitres import Mot
 
 # Un plan sous cette durée passe inaperçu : le spectateur voit un clignotement,
 # pas un changement de point de vue. En dessous, on ne découpe pas la réplique.
 DUREE_PLAN_MINIMALE_S = 0.9
 
-# Part de la réplique laissée à la réaction. 35 % : assez pour exister, pas
-# assez pour qu'on se demande pourquoi on ne voit plus celui qui parle.
+# Part de la réplique laissée à la réaction. 35 % : le repli quand aucune
+# pause naturelle n'est trouvée dans la voix (voir `point_de_coupe`) — assez
+# pour exister, pas assez pour qu'on se demande pourquoi on ne voit plus
+# celui qui parle.
 PART_REACTION = 0.35
+
+# Le point de coupe naturel n'est cherché que près de la cible à 35 % — pas
+# n'importe où dans la réplique. Une pause en tout début ou toute fin de
+# réplique n'est pas une frontière parlant/réaction, juste une respiration.
+FENETRE_RECHERCHE_PCT = 0.15
+
+
+def point_de_coupe(mots_replique: list[Mot], duree_ms: float,
+                   cible_pct: float = PART_REACTION) -> float:
+    """La part de la réplique (0-1) à laisser à la réaction.
+
+    Un pourcentage fixe coupe parfois en plein milieu d'un mot. La voix
+    porte déjà l'information d'un meilleur endroit : une vraie pause (fin de
+    proposition, respiration) proche de la cible. Sans mots exploitables —
+    reprise sans timings détaillés, réplique d'un seul mot — on retombe sur
+    `cible_pct`, exactement le comportement d'avant.
+    """
+    if len(mots_replique) < 2:
+        return cible_pct
+
+    debut = mots_replique[0].debut_ms
+    cible_ms = duree_ms * (1 - cible_pct)
+    fenetre = duree_ms * FENETRE_RECHERCHE_PCT
+
+    meilleure_pause_ms = -1.0
+    position_ms = None
+    for avant, apres in zip(mots_replique, mots_replique[1:]):
+        pause_ms = apres.debut_ms - avant.fin_ms
+        if pause_ms <= 0:
+            continue
+        position = avant.fin_ms - debut
+        if abs(position - cible_ms) > fenetre:
+            continue
+        if pause_ms > meilleure_pause_ms:
+            meilleure_pause_ms, position_ms = pause_ms, position
+
+    if position_ms is None:
+        return cible_pct
+    return max(0.0, min(1.0, 1 - (position_ms / duree_ms)))
+
+
+def grouper_mots_par_replique(mots: list[Mot],
+                              debuts_de_replique: frozenset[int]) -> list[list[Mot]]:
+    """Retrouve, pour chaque réplique, les mots qui lui appartiennent.
+
+    `mots` est daté sur la piste complète (voir `BandeVoix.mots`) ;
+    `debuts_de_replique` donne seulement les frontières. Nécessaire aussi
+    bien à la production réelle (juste après synthèse) qu'à une reprise, où
+    seule la forme aplatie est relue depuis la base.
+    """
+    limites = sorted(debuts_de_replique)
+    if not limites:
+        return []
+    groupes: list[list[Mot]] = [[] for _ in limites]
+    idx = 0
+    for mot in sorted(mots, key=lambda m: m.debut_ms):
+        while idx + 1 < len(limites) and mot.debut_ms >= limites[idx + 1]:
+            idx += 1
+        groupes[idx].append(mot)
+    return groupes
 
 
 @dataclass
@@ -47,6 +110,10 @@ class PlanScript:
     # Vide sur un script écrit sans empreinte créative : le montage reste
     # identique, voir `ecriture/script`.
     fonction: str = ""
+    # Le type de cadrage (gros_plan, plan_large...) — écrit par
+    # ShotPromptWriter, voir pdz/production/cadrage.py. Vide tant que cette
+    # étape n'a pas encore enrichi le plan.
+    cadrage: str = ""
 
     def en_dict(self) -> dict:
         """La forme attendue par `pdz.production.animation`."""
@@ -59,11 +126,13 @@ class PlanScript:
             "reaction": self.reaction,
             "duree_s": self.duree_s,
             "fonction": self.fonction,
+            "cadrage": self.cadrage,
         }
 
 
 def decouper(repliques: list[dict], durees_s: list[float], univers: Univers, *,
-             plans_par_replique: int = 2) -> list[PlanScript]:
+             plans_par_replique: int = 2,
+             mots_par_replique: list[list[Mot]] | None = None) -> list[PlanScript]:
     """Transforme les répliques en plans, avec leurs durées réelles.
 
     `durees_s` vient de la bande voix : ce sont les durées **mesurées** des
@@ -73,6 +142,11 @@ def decouper(repliques: list[dict], durees_s: list[float], univers: Univers, *,
     Une réplique n'est coupée en deux que si trois conditions sont réunies :
     le script demande une réaction, le personnage qui réagit existe, et la
     réplique est assez longue pour que la coupe se voie.
+
+    `mots_par_replique`, s'il est fourni (voir `grouper_mots_par_replique`),
+    affine le POINT de coupe sur une vraie pause de la voix plutôt qu'un
+    pourcentage fixe — voir `point_de_coupe`. Optionnel et positionnel par
+    réplique : une valeur manquante ou `None` retombe sur `PART_REACTION`.
     """
     if len(repliques) != len(durees_s):
         raise ErreurConfig(
@@ -81,7 +155,7 @@ def decouper(repliques: list[dict], durees_s: list[float], univers: Univers, *,
         )
 
     plans: list[PlanScript] = []
-    for replique, duree in zip(repliques, durees_s, strict=True):
+    for i, (replique, duree) in enumerate(zip(repliques, durees_s, strict=True)):
         parlant = univers.personnage(replique["personnage"])
         if parlant is None:
             raise ErreurConfig(
@@ -113,6 +187,15 @@ def decouper(repliques: list[dict], durees_s: list[float], univers: Univers, *,
             ))
             continue
 
+        part_reaction = PART_REACTION
+        if mots_par_replique is not None and i < len(mots_par_replique):
+            part_reaction = point_de_coupe(mots_par_replique[i], duree * 1000)
+            # Garde-fou : la coupe naturelle ne doit jamais produire un plan
+            # sous le minimum lisible — dans ce cas, on retombe sur le repli.
+            if (duree * part_reaction < DUREE_PLAN_MINIMALE_S
+                    or duree * (1 - part_reaction) < DUREE_PLAN_MINIMALE_S):
+                part_reaction = PART_REACTION
+
         plans.append(PlanScript(
             numero=len(plans),
             replique_numero=replique.get("numero", len(plans) + 1),
@@ -120,7 +203,7 @@ def decouper(repliques: list[dict], durees_s: list[float], univers: Univers, *,
             action=replique.get("action", ""),
             emotion=replique.get("emotion", "calme"),
             decor=replique.get("decor", ""),
-            duree_s=round(duree * (1 - PART_REACTION), 3),
+            duree_s=round(duree * (1 - part_reaction), 3),
             fonction=fonction,
         ))
         plans.append(PlanScript(
@@ -131,7 +214,7 @@ def decouper(repliques: list[dict], durees_s: list[float], univers: Univers, *,
             emotion=emotion_de_reaction(replique.get("emotion", "calme")),
             decor=replique.get("decor", ""),
             reaction=True,
-            duree_s=round(duree * PART_REACTION, 3),
+            duree_s=round(duree * part_reaction, 3),
             fonction=f"réaction : {fonction}" if fonction else "",
         ))
 

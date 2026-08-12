@@ -22,19 +22,23 @@ s'occupe QUE du cadrage, une fois le texte ET le montage déjà là.
 from __future__ import annotations
 
 import copy
+import logging
 from dataclasses import replace
 from typing import Any
 
 from pdz.agents.base import Agent
 from pdz.moteur.erreurs import ErreurValidation
 from pdz.moteur.pipeline import Contexte
+from pdz.production import cadrage
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Univers
+
+log = logging.getLogger(__name__)
 
 
 class ShotPromptWriter(Agent):
     nom = "shot_prompts"
-    version = "2.0.0"
+    version = "2.1.0"
     prompt_ref = "ecriture/plans"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
@@ -75,10 +79,21 @@ class ShotPromptWriter(Agent):
                 f"{sorted(manquants)} — il en faut un par plan, "
                 f"{len(attendus)} au total."
             )
+
+        # Diagnostic seulement, jamais une relance (voir cadrage.py) : un
+        # appel Groq de plus pour ça annulerait justement ce qu'on cherche à
+        # réduire cette nuit.
+        par_numero = sorted(plans_ecrits, key=lambda p: p["numero"])
+        avertissements = cadrage.verifier_diversite(
+            [p.get("cadrage", "") for p in par_numero]
+        )
+        for a in avertissements:
+            log.info("Cadrage : %s", a)
+
         return sortie
 
     def fusionner(self, plans: list[PlanScript], sortie: dict) -> list[PlanScript]:
-        """Remplace `action` par le prompt riche, plan par plan.
+        """Remplace `action` et `cadrage` par ceux écrits ici, plan par plan.
 
         Sépare exprès de `apres()` : `apres()` valide ce que le modèle a
         renvoyé, `fusionner()` l'applique au storyboard. Un plan dont le
@@ -87,8 +102,13 @@ class ShotPromptWriter(Agent):
         pas planter pour autant — garde son action d'origine plutôt que de
         perdre toute description.
         """
-        par_numero = {p["numero"]: p["prompt_image"] for p in sortie.get("plans", [])}
-        return [
-            replace(p, action=par_numero[p.numero]) if p.numero in par_numero else p
-            for p in plans
-        ]
+        par_numero = {p["numero"]: p for p in sortie.get("plans", [])}
+        fusionnes = []
+        for p in plans:
+            ecrit = par_numero.get(p.numero)
+            if ecrit is None:
+                fusionnes.append(p)
+                continue
+            fusionnes.append(replace(p, action=ecrit["prompt_image"],
+                                     cadrage=ecrit.get("cadrage", p.cadrage)))
+        return fusionnes

@@ -26,7 +26,14 @@ prompt en texte seul et remplace ce qu'un modèle d'image rate toujours
 qu'il sait rendre. Corriger ça en amont, gratuitement en tentatives Groq,
 coûte moins qu'un agent de vision qui vérifierait l'image APRÈS coup — ce
 dernier double la consommation (image ratée, vérification, regénération)
-au lieu de l'éviter.
+au lieu de l'éviter. Elle ne tourne même plus sur CHAQUE plan : un filtre
+déterministe (`pdz.production.risque_prompt`, zéro appel IA) décide d'abord
+lesquels le méritent vraiment — la plupart des plans n'ont rien à corriger.
+
+Le découpage (3) profite du même principe côté durée : le point de coupe
+parlant/réaction suit une vraie pause de la voix (`storyboard.point_de_coupe`)
+quand on peut la retrouver dans les timings mesurés, au lieu d'un pourcentage
+fixe qui coupe parfois en plein milieu d'un mot.
 
 La voix passe **avant** les images, ce qui surprend au premier abord. C'est le
 choix central du module : la durée d'un plan doit venir de la parole réellement
@@ -58,7 +65,7 @@ from pdz.analyse.adn import Adn
 from pdz.config import config
 from pdz.moteur.erreurs import ErreurConfig, ErreurPdz
 from pdz.moteur.pipeline import Contexte, executer_avec_relance
-from pdz.production import animation, images, storyboard, voix
+from pdz.production import animation, images, risque_prompt, storyboard, voix
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Univers
 from pdz.video import soustitres
@@ -273,7 +280,13 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
         debuts_repliques = frozenset(fait_voix.get("debuts_repliques") or [])
 
     # ── 3. Découpage ─────────────────────────────────────────────────────
-    plans = storyboard.decouper(repliques, durees, univers)
+    # Le point de coupe parlant/réaction suit une vraie pause de la voix
+    # quand on peut la retrouver, plutôt qu'un pourcentage fixe — voir
+    # storyboard.point_de_coupe(). `mots` porte déjà cette information,
+    # qu'elle vienne d'une synthèse fraîche ou d'une reprise.
+    mots_par_replique = storyboard.grouper_mots_par_replique(mots, debuts_repliques)
+    plans = storyboard.decouper(repliques, durees, univers,
+                                mots_par_replique=mots_par_replique)
     log.info("Découpage : %s", storyboard.resume(plans))
 
     # ── 3b. Prompts d'image ─────────────────────────────────────────────
@@ -306,21 +319,33 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     # Texte seul, aucun appel image : corrige ce qu'un modèle de génération
     # d'image rate systématiquement (texte lisible, logo, visage interdit)
     # AVANT de payer une image pour ça — voir pdz/agents/ecriture/realisme.py.
-    fait_realisme = _fait(job_id, "realisme")
-    if fait_realisme is None:
-        debut = time.perf_counter()
-        ctx = Contexte(job_id=job_id, etape_cle="realisme", profil=profil,
-                       budget_restant=plafond - cout_total)
-        corrections = await executer_avec_relance(RealismWriter(),
-            {"univers": univers, "plans": plans}, ctx,
-        )
-        _noter(job_id, "realisme", "realisme", corrections, ctx.cout_engage,
-               int((time.perf_counter() - debut) * 1000))
-        cout_total += ctx.cout_engage
+    # Filtré par un risque déterministe (pdz/production/risque_prompt.py) :
+    # appeler RealismWriter sur CHAQUE plan, à chaque fois, coûtait un appel
+    # Groq de plus par plan même quand rien dans le prompt ne l'exigeait —
+    # exactement ce qui a vidé le quota Groq en pleine production.
+    visage_interdit = risque_prompt.visage_est_interdit(univers.style.consignes_image)
+    a_verifier = [
+        p for p in plans
+        if risque_prompt.raisons_de_correction(p.action, visage_interdit=visage_interdit)
+    ]
+    if not a_verifier:
+        log.info("Réalisme : aucun plan à risque, étape sautée (0 appel IA)")
     else:
-        repris.append("realisme")
-        corrections = fait_realisme
-    plans = RealismWriter().fusionner(plans, corrections)
+        fait_realisme = _fait(job_id, "realisme")
+        if fait_realisme is None:
+            debut = time.perf_counter()
+            ctx = Contexte(job_id=job_id, etape_cle="realisme", profil=profil,
+                           budget_restant=plafond - cout_total)
+            corrections = await executer_avec_relance(RealismWriter(),
+                {"univers": univers, "plans": a_verifier}, ctx,
+            )
+            _noter(job_id, "realisme", "realisme", corrections, ctx.cout_engage,
+                   int((time.perf_counter() - debut) * 1000))
+            cout_total += ctx.cout_engage
+        else:
+            repris.append("realisme")
+            corrections = fait_realisme
+        plans = RealismWriter().fusionner(plans, corrections)
 
     # ── 4. Images ────────────────────────────────────────────────────────
     fait_images = _fait(job_id, "images")

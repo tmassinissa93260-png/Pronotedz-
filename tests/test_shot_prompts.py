@@ -139,6 +139,43 @@ def test_les_plans_dorigine_ne_sont_pas_mutes():
     assert plans[0].action == "action minimale"
 
 
+def test_fusionner_reprend_aussi_le_cadrage():
+    plans = _plans(2)
+    sortie = {"plans": [
+        {"numero": 0, "prompt_image": "x", "cadrage": "gros_plan"},
+        {"numero": 1, "prompt_image": "y", "cadrage": "plan_large"},
+    ]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].cadrage == "gros_plan"
+    assert fusionnes[1].cadrage == "plan_large"
+
+
+def test_fusionner_sans_cadrage_garde_celui_dorigine():
+    """Non-régression : un job en cache d'avant plans@1.2.0 n'a pas de
+    `cadrage` dans sa sortie stockée — ne doit pas planter."""
+    plans = _plans(1)
+    sortie = {"plans": [{"numero": 0, "prompt_image": "x"}]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].cadrage == ""
+
+
+def test_apres_ne_leve_jamais_pour_un_cadrage_repete(caplog):
+    """Diagnostic seulement (voir cadrage.py) : deux plans consécutifs avec
+    le même cadrage ne doivent jamais faire échouer la validation — ça
+    ajouterait une relance, donc un appel Groq de plus."""
+    import logging
+
+    entrees = {"univers": None, "plans": _plans(2)}
+    sortie = {"plans": [
+        {"numero": 0, "prompt_image": "x", "cadrage": "gros_plan"},
+        {"numero": 1, "prompt_image": "y", "cadrage": "gros_plan"},
+    ]}
+    with caplog.at_level(logging.INFO):
+        resultat = ShotPromptWriter().apres(sortie, entrees, _contexte())
+    assert len(resultat["plans"]) == 2
+    assert any("même cadrage" in m for m in caplog.messages)
+
+
 def test_la_signature_reference_le_prompt_actif():
     sig = ShotPromptWriter().signature()
     assert sig["agent"] == "shot_prompts"
