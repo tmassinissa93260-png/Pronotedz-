@@ -19,6 +19,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from pdz.moteur.erreurs import ErreurConfig
+from pdz.production.continuite import indices_de_scene
 from pdz.univers import Univers
 from pdz.video.soustitres import Mot
 
@@ -244,9 +245,10 @@ def resume(plans: list[PlanScript]) -> str:
         return "aucun plan"
     total = sum(p.duree_s for p in plans)
     reactions = sum(1 for p in plans if p.reaction)
+    scenes = len(set(indices_de_scene([p.decor for p in plans])))
     resume = (f"{len(plans)} plans · {total:.1f} s · "
              f"{total / len(plans):.2f} s par plan · "
-             f"{reactions} plans de réaction")
+             f"{reactions} plans de réaction · {scenes} scène(s)")
 
     # Visible seulement quand le script a été écrit avec une empreinte
     # créative — c'est ce qui permet de vérifier, sans ouvrir le YAML, que

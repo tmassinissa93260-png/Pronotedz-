@@ -65,7 +65,7 @@ from pdz.analyse.adn import Adn
 from pdz.config import config
 from pdz.moteur.erreurs import ErreurConfig, ErreurPdz
 from pdz.moteur.pipeline import Contexte, executer_avec_relance
-from pdz.production import animation, images, risque_prompt, storyboard, voix
+from pdz.production import animation, continuite, images, risque_prompt, storyboard, voix
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Univers
 from pdz.video import soustitres
@@ -247,6 +247,14 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
 
     repliques = script["repliques"]
     log.info("Script « %s » : %d répliques", script.get("titre", "?"), len(repliques))
+
+    # Un plan sans décor précisé hérite du dernier décor explicite, plutôt
+    # que de retomber plus loin sur un décor générique sans rapport avec la
+    # scène en cours — voir pdz/production/continuite.py. Seulement pour les
+    # univers à personnages récurrents : en narration, `decor` reste
+    # délibérément épars, hériter n'y aurait aucun sens.
+    if univers.anime:
+        repliques = continuite.porter_le_decor(repliques)
 
     # ── 2. Voix ──────────────────────────────────────────────────────────
     # Avant les images : c'est la durée réelle de chaque réplique qui fixera

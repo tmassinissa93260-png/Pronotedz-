@@ -317,6 +317,15 @@ def test_le_resume_reste_compact_sans_fonctions():
     assert "\n" not in storyboard.resume(plans)
 
 
+def test_le_resume_compte_les_scenes():
+    u, repliques = _repliques(3, avec_reaction=False)
+    repliques[0]["decor"] = "villa"
+    repliques[1]["decor"] = "villa"
+    repliques[2]["decor"] = "ceremonie"
+    plans = storyboard.decouper(repliques, [4.0, 4.0, 4.0], u)
+    assert "2 scène" in storyboard.resume(plans)
+
+
 def test_sans_reaction_demandee_un_seul_plan():
     u, repliques = _repliques(3, avec_reaction=False)
     plans = storyboard.decouper(repliques, [4.0, 4.0, 4.0], u)

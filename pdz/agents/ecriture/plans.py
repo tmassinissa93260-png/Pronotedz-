@@ -30,6 +30,7 @@ from pdz.agents.base import Agent
 from pdz.moteur.erreurs import ErreurValidation
 from pdz.moteur.pipeline import Contexte
 from pdz.production import cadrage
+from pdz.production.continuite import indices_de_scene
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Univers
 
@@ -38,13 +39,17 @@ log = logging.getLogger(__name__)
 
 class ShotPromptWriter(Agent):
     nom = "shot_prompts"
-    version = "2.1.0"
+    version = "2.2.0"
     prompt_ref = "ecriture/plans"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
         univers: Univers = entrees["univers"]
         plans: list[PlanScript] = entrees["plans"]
         repliques_par_numero = {r["numero"]: r for r in entrees["repliques"]}
+        # Un changement de décor EST un changement de scène (voir
+        # pdz/production/continuite.py) : le premier plan d'une scène doit
+        # établir le lieu, les suivants peuvent le supposer déjà connu.
+        scenes = indices_de_scene([p.decor for p in plans])
         return {
             "contexte_univers": univers.contexte_script(),
             "plans": [
@@ -55,8 +60,9 @@ class ShotPromptWriter(Agent):
                     "reaction": p.reaction,
                     "action": p.action,
                     "fonction_plan": p.fonction,
+                    "nouvelle_scene": i == 0 or scenes[i] != scenes[i - 1],
                 }
-                for p in plans
+                for i, p in enumerate(plans)
             ],
         }
 

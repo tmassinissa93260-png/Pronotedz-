@@ -63,6 +63,27 @@ def test_les_variables_reprennent_chaque_plan_avec_sa_replique():
     assert v["contexte_univers"] == u.contexte_script()
 
 
+def test_le_premier_plan_est_toujours_une_nouvelle_scene():
+    u = Univers.charger(FRUITS)
+    v = ShotPromptWriter().variables(
+        {"univers": u, "plans": _plans(3), "repliques": _repliques(3)}, _contexte())
+    assert v["plans"][0]["nouvelle_scene"] is True
+
+
+def test_un_changement_de_decor_marque_une_nouvelle_scene():
+    from dataclasses import replace
+
+    u = Univers.charger(FRUITS)
+    plans = _plans(3)
+    plans[0] = replace(plans[0], decor="villa")
+    plans[1] = replace(plans[1], decor="villa")
+    plans[2] = replace(plans[2], decor="ceremonie")
+    v = ShotPromptWriter().variables(
+        {"univers": u, "plans": plans, "repliques": _repliques(3)}, _contexte())
+    assert v["plans"][1]["nouvelle_scene"] is False
+    assert v["plans"][2]["nouvelle_scene"] is True
+
+
 def test_un_plan_de_reaction_est_marque_comme_tel():
     u = Univers.charger(FRUITS)
     v = ShotPromptWriter().variables(
