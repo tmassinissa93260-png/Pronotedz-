@@ -1,10 +1,13 @@
-"""ShotPromptWriter : le prompt d'image, écrit séparément du dialogue.
+"""ShotPromptWriter : le prompt d'image, écrit séparément du dialogue,
+APRÈS le découpage en plans.
 
 ScriptWriter écrit `action` en même temps que le dialogue — une phrase
-sommaire, pas un cadrage. Cet agent reprend le script déjà figé et écrit,
-pour chaque réplique, un prompt d'image digne d'un directeur de la
-photographie (cadrage, netteté), qui remplace `action` avant la génération
-d'image.
+sommaire, pas un cadrage. Le découpage transforme les répliques en plans, et
+un plan de réaction (« celui qui écoute ») n'existe qu'à cette étape-là — il
+ne recevait donc jamais de prompt écrit pour lui avant cette version. Cet
+agent reprend le storyboard déjà découpé et écrit, pour chaque plan, un
+prompt d'image digne d'un directeur de la photographie (cadrage, netteté),
+qui remplace `action` avant la génération d'image.
 """
 
 from __future__ import annotations
@@ -16,6 +19,7 @@ import pytest
 from pdz.agents.ecriture.plans import ShotPromptWriter
 from pdz.moteur.erreurs import ErreurValidation
 from pdz.moteur.pipeline import Contexte
+from pdz.production.storyboard import PlanScript
 from pdz.prompts import charger
 from pdz.univers import Univers
 
@@ -29,71 +33,110 @@ def _contexte():
 
 def _repliques(n=3):
     return [
-        {"numero": i + 1, "personnage": "strawberina", "replique": f"réplique {i + 1}",
-         "action": "action minimale", "fonction_plan": "établit l'échelle du monde"}
+        {"numero": i + 1, "personnage": "strawberina", "replique": f"réplique {i + 1}"}
         for i in range(n)
     ]
 
 
-def test_les_variables_reprennent_chaque_replique():
+def _plans(n=3, avec_reaction=False):
+    plans = [
+        PlanScript(numero=i, replique_numero=i + 1, personnage="strawberina",
+                   action="action minimale", emotion="calme",
+                   fonction="établit l'échelle du monde")
+        for i in range(n)
+    ]
+    if avec_reaction:
+        plans.append(PlanScript(numero=n, replique_numero=n, personnage="bananito",
+                                action="reacting to what strawberina just said, listening",
+                                emotion="surprise", reaction=True,
+                                fonction="réaction : établit l'échelle du monde"))
+    return plans
+
+
+def test_les_variables_reprennent_chaque_plan_avec_sa_replique():
     u = Univers.charger(FRUITS)
-    v = ShotPromptWriter().variables({"univers": u, "repliques": _repliques(3)}, _contexte())
-    assert len(v["repliques"]) == 3
-    assert v["repliques"][0]["fonction_plan"] == "établit l'échelle du monde"
+    v = ShotPromptWriter().variables(
+        {"univers": u, "plans": _plans(3), "repliques": _repliques(3)}, _contexte())
+    assert len(v["plans"]) == 3
+    assert v["plans"][0]["fonction_plan"] == "établit l'échelle du monde"
+    assert v["plans"][0]["replique"] == "réplique 1"
     assert v["contexte_univers"] == u.contexte_script()
 
 
-def test_le_schema_impose_au_moins_un_prompt_par_replique():
+def test_un_plan_de_reaction_est_marque_comme_tel():
+    u = Univers.charger(FRUITS)
+    v = ShotPromptWriter().variables(
+        {"univers": u, "plans": _plans(3, avec_reaction=True), "repliques": _repliques(3)},
+        _contexte(),
+    )
+    assert v["plans"][-1]["reaction"] is True
+    assert v["plans"][0]["reaction"] is False
+
+
+def test_le_schema_impose_un_prompt_par_plan_reaction_comprise():
     u = Univers.charger(FRUITS)
     base = charger("ecriture/plans").schema_sortie
-    schema = ShotPromptWriter().schema(base, {"univers": u, "repliques": _repliques(5)}, _contexte())
-    assert schema["properties"]["plans"]["minItems"] == 5
+    plans = _plans(3, avec_reaction=True)
+    schema = ShotPromptWriter().schema(base, {"univers": u, "plans": plans}, _contexte())
+    assert schema["properties"]["plans"]["minItems"] == 4
 
 
 def test_des_prompts_manquants_sont_refuses():
-    entrees = {"univers": None, "repliques": _repliques(3)}
-    sortie = {"plans": [{"numero": 1, "prompt_image": "x"}, {"numero": 2, "prompt_image": "y"}]}
+    entrees = {"univers": None, "plans": _plans(3)}
+    sortie = {"plans": [{"numero": 0, "prompt_image": "x"}, {"numero": 1, "prompt_image": "y"}]}
     with pytest.raises(ErreurValidation) as e:
         ShotPromptWriter().apres(sortie, entrees, _contexte())
-    assert "3" in str(e.value)
+    assert "2" in str(e.value)
 
 
 def test_des_prompts_complets_passent():
-    entrees = {"univers": None, "repliques": _repliques(3)}
-    sortie = {"plans": [{"numero": i, "prompt_image": f"prompt {i}"} for i in (1, 2, 3)]}
+    entrees = {"univers": None, "plans": _plans(3)}
+    sortie = {"plans": [{"numero": i, "prompt_image": f"prompt {i}"} for i in (0, 1, 2)]}
     resultat = ShotPromptWriter().apres(sortie, entrees, _contexte())
     assert len(resultat["plans"]) == 3
 
 
 def test_fusionner_remplace_laction_par_le_prompt_riche():
-    repliques = _repliques(2)
+    plans = _plans(2)
     sortie = {"plans": [
-        {"numero": 1, "prompt_image": "gros plan sur son visage inquiet"},
-        {"numero": 2, "prompt_image": "plan large, elle traverse la pièce"},
+        {"numero": 0, "prompt_image": "gros plan sur son visage inquiet"},
+        {"numero": 1, "prompt_image": "plan large, elle traverse la pièce"},
     ]}
-    fusionnees = ShotPromptWriter().fusionner(repliques, sortie)
-    assert fusionnees[0]["action"] == "gros plan sur son visage inquiet"
-    assert fusionnees[1]["action"] == "plan large, elle traverse la pièce"
-    # Le reste de la réplique (dialogue, fonction_plan...) n'est pas touché.
-    assert fusionnees[0]["fonction_plan"] == "établit l'échelle du monde"
-    assert fusionnees[0]["replique"] == repliques[0]["replique"]
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].action == "gros plan sur son visage inquiet"
+    assert fusionnes[1].action == "plan large, elle traverse la pièce"
+    # Le reste du plan (fonction, émotion...) n'est pas touché.
+    assert fusionnes[0].fonction == "établit l'échelle du monde"
+    assert fusionnes[0].emotion == "calme"
+
+
+def test_fusionner_couvre_aussi_les_plans_de_reaction():
+    plans = _plans(2, avec_reaction=True)
+    sortie = {"plans": [
+        {"numero": 0, "prompt_image": "gros plan sur son visage inquiet"},
+        {"numero": 1, "prompt_image": "plan large, elle traverse la pièce"},
+        {"numero": 2, "prompt_image": "gros plan sur son visage, surpris, figé"},
+    ]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    plan_reaction = next(p for p in fusionnes if p.reaction)
+    assert plan_reaction.action == "gros plan sur son visage, surpris, figé"
 
 
 def test_fusionner_garde_laction_dorigine_si_un_numero_manque():
     """`apres()` refuse normalement les manques avant d'arriver ici — ce
     test couvre l'appelant qui, par erreur, sauterait la validation."""
-    repliques = _repliques(2)
-    sortie = {"plans": [{"numero": 1, "prompt_image": "gros plan sur son visage"}]}
-    fusionnees = ShotPromptWriter().fusionner(repliques, sortie)
-    assert fusionnees[0]["action"] == "gros plan sur son visage"
-    assert fusionnees[1]["action"] == "action minimale"
+    plans = _plans(2)
+    sortie = {"plans": [{"numero": 0, "prompt_image": "gros plan sur son visage"}]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].action == "gros plan sur son visage"
+    assert fusionnes[1].action == "action minimale"
 
 
-def test_les_repliques_dorigine_ne_sont_pas_mutees():
-    repliques = _repliques(1)
-    sortie = {"plans": [{"numero": 1, "prompt_image": "nouveau prompt"}]}
-    ShotPromptWriter().fusionner(repliques, sortie)
-    assert repliques[0]["action"] == "action minimale"
+def test_les_plans_dorigine_ne_sont_pas_mutes():
+    plans = _plans(1)
+    sortie = {"plans": [{"numero": 0, "prompt_image": "nouveau prompt"}]}
+    ShotPromptWriter().fusionner(plans, sortie)
+    assert plans[0].action == "action minimale"
 
 
 def test_la_signature_reference_le_prompt_actif():

@@ -1,19 +1,23 @@
 """La chaîne complète : d'une situation à un fichier .mp4.
 
-Sept étapes, dans cet ordre, et l'ordre a des raisons — la première se
-décompose elle-même en trois passes séparées, une IA par responsabilité
-plutôt qu'un seul appel qui fait tout à la fois :
+Sept étapes, dans cet ordre, et l'ordre a des raisons — l'écriture elle-même
+se décompose en trois passes séparées, une IA par responsabilité plutôt qu'un
+seul appel qui fait tout à la fois :
 
-    1. écriture      idée + univers        → répliques
-       1a. brief        situation             → structure narrative (beats)
-       1b. script       beats + univers       → dialogue + action minimale
-       1c. prompts      répliques figées      → prompt d'image par plan
+    1. brief         situation             → structure narrative (beats)
+    1b. script       beats + univers       → dialogue + action minimale
     2. voix          répliques             → audio + timings RÉELS
     3. découpage     répliques + durées    → plans
+    3b. prompts      plans déjà découpés   → prompt d'image par plan
     4. images        plans + univers       → une image par plan
     5. animation     plans notés + budget  → clips pour les plans qui comptent
     6. sous-titres   timings réels         → karaoké calé au mot
     7. montage       tout ce qui précède   → l'épisode
+
+Les prompts d'image passent **après** le découpage, pas avec le dialogue :
+un plan de réaction (« celui qui écoute ») n'existe qu'une fois le découpage
+fait, et doit recevoir, lui aussi, un prompt écrit pour lui — pas une action
+générique recopiée à chaque réplique qui a une réaction.
 
 La voix passe **avant** les images, ce qui surprend au premier abord. C'est le
 choix central du module : la durée d'un plan doit venir de la parole réellement
@@ -227,27 +231,6 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     repliques = script["repliques"]
     log.info("Script « %s » : %d répliques", script.get("titre", "?"), len(repliques))
 
-    # ── 1c. Prompts d'image ─────────────────────────────────────────────
-    # Séparé du dialogue exprès (voir pdz/agents/ecriture/plans.py) : un
-    # modèle qui ne s'occupe QUE du cadrage, une fois le texte déjà figé,
-    # écrit un prompt d'image plus riche que l'action notée en même temps
-    # que la réplique.
-    fait_prompts = _fait(job_id, "shot_prompts")
-    if fait_prompts is None:
-        debut = time.perf_counter()
-        ctx = Contexte(job_id=job_id, etape_cle="shot_prompts", profil=profil,
-                       budget_restant=plafond - cout_total)
-        prompts = await executer_avec_relance(ShotPromptWriter(),
-            {"univers": univers, "repliques": repliques}, ctx,
-        )
-        _noter(job_id, "shot_prompts", "shot_prompts", prompts, ctx.cout_engage,
-               int((time.perf_counter() - debut) * 1000))
-        cout_total += ctx.cout_engage
-    else:
-        repris.append("shot_prompts")
-        prompts = fait_prompts
-    repliques = ShotPromptWriter().fusionner(repliques, prompts)
-
     # ── 2. Voix ──────────────────────────────────────────────────────────
     # Avant les images : c'est la durée réelle de chaque réplique qui fixera
     # la durée de chaque plan.
@@ -282,6 +265,32 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     # ── 3. Découpage ─────────────────────────────────────────────────────
     plans = storyboard.decouper(repliques, durees, univers)
     log.info("Découpage : %s", storyboard.resume(plans))
+
+    # ── 3b. Prompts d'image ─────────────────────────────────────────────
+    # Séparé du dialogue exprès (voir pdz/agents/ecriture/plans.py), et
+    # APRÈS le découpage, pas avant : un plan de réaction (« celui qui
+    # écoute ») n'existe qu'une fois le découpage fait — l'écrire par
+    # réplique aurait laissé ces plans-là sur une action générique
+    # (« il/elle réagit, écoute ») jamais vue par ce modèle. Un modèle qui
+    # ne s'occupe QUE du cadrage, une fois le texte ET le montage figés,
+    # écrit un prompt plus riche que l'action notée en même temps que le
+    # dialogue — et cette fois pour CHAQUE plan, pas seulement pour celui
+    # qui parle.
+    fait_prompts = _fait(job_id, "shot_prompts")
+    if fait_prompts is None:
+        debut = time.perf_counter()
+        ctx = Contexte(job_id=job_id, etape_cle="shot_prompts", profil=profil,
+                       budget_restant=plafond - cout_total)
+        prompts = await executer_avec_relance(ShotPromptWriter(),
+            {"univers": univers, "plans": plans, "repliques": repliques}, ctx,
+        )
+        _noter(job_id, "shot_prompts", "shot_prompts", prompts, ctx.cout_engage,
+               int((time.perf_counter() - debut) * 1000))
+        cout_total += ctx.cout_engage
+    else:
+        repris.append("shot_prompts")
+        prompts = fait_prompts
+    plans = ShotPromptWriter().fusionner(plans, prompts)
 
     # ── 4. Images ────────────────────────────────────────────────────────
     fait_images = _fait(job_id, "images")

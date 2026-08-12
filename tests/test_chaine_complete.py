@@ -78,12 +78,12 @@ def atelier(tmp_path, monkeypatch):
     monkeypatch.setattr("pdz.agents.ecriture.script.ScriptWriter.executer",
                         faux_script)
 
-    # ── Les prompts d'image (cadrage, séparé du dialogue) ───────────────────
+    # ── Les prompts d'image (cadrage, séparé du dialogue, après découpage) ──
     async def faux_prompts(self, entrees, ctx):
         ctx.facturer(0.001)
         sortie = {"plans": [
-            {"numero": r["numero"], "prompt_image": f"prompt riche {r['numero']}"}
-            for r in entrees["repliques"]
+            {"numero": p.numero, "prompt_image": f"prompt riche {p.numero}"}
+            for p in entrees["plans"]
         ]}
         return self.apres(sortie, entrees, ctx)
 
