@@ -15,6 +15,7 @@ from pdz.agents import base as agents_base
 from pdz.agents.base import (
     Agent,
     mots_par_replique,
+    nb_beats_pour,
     nb_plans_pour,
     nb_repliques_pour,
     positions_relance_par_defaut,
@@ -203,6 +204,14 @@ def test_il_y_a_environ_deux_plans_par_replique(duree):
 def test_les_repliques_font_une_longueur_dicible():
     mots = mots_par_replique(45, nb_repliques_pour(45))
     assert all(7 <= m <= 12 for m in mots), mots
+
+
+@pytest.mark.parametrize("duree,attendu_min,attendu_max", [(20, 4, 4), (45, 4, 8), (90, 8, 8)])
+def test_le_nombre_de_beats_reste_dans_une_structure_lisible(duree, attendu_min, attendu_max):
+    """Moins de 4, plus de hook/tension/payoff possible. Plus de 8, chaque
+    temps fort dure moins de 5-6 s et n'est plus un beat narratif."""
+    n = nb_beats_pour(duree)
+    assert attendu_min <= n <= attendu_max
 
 
 # ── Positions de relance par défaut, sans référence ──────────────────────

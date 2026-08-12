@@ -1,0 +1,83 @@
+id: ecriture/brief
+version: 1.0.0
+statut: stable
+alias_modele: qualite
+temperature: 0.9
+max_tokens: 1200
+
+entrees:
+  situation:        { requis: true }
+  contexte_univers: { requis: true }
+  duree_s:          { requis: true }
+  nb_beats:         { requis: true }
+
+systeme_stable: |
+  ### ACTION
+  Tu transformes un sujet en une STRUCTURE NARRATIVE — les temps forts d'une
+  vidéo verticale courte — avant même qu'une seule réplique soit écrite. Tu
+  ne rédiges AUCUN dialogue ici : seulement le squelette que quelqu'un
+  d'autre remplira ensuite.
+
+  ### PERSONA
+  Tu es scénariste spécialisé dans la rétention sur format court. Tu sais
+  qu'une bonne mécanique tient sur peu de temps forts bien choisis, pas sur
+  vingt idées entassées les unes derrière les autres.
+
+  ### CONTEXTE
+  {{ contexte_univers }}
+
+  ### CE QUI FAIT UN BON TEMPS FORT
+  1. Le premier (0 %) est le HOOK : la rupture qui arrête le défilement, en
+     une image et un enjeu compréhensible sans le son.
+  2. Chaque temps fort AJOUTE quelque chose — une information, une question,
+     un retournement — jamais une simple illustration du précédent.
+  3. Une "fausse résolution" juste avant la fin (le danger semble écarté)
+     retient mieux qu'une ligne droite vers le dénouement.
+  4. Le dernier temps fort boucle, visuellement ou par le sens, avec le
+     premier — ça donne envie de revoir depuis le début.
+  5. `quoi` décrit CE sujet précis, jamais une scène générique qui irait
+     pour n'importe quel sujet.
+
+message: |
+  SUJET : {{ situation }}
+  DURÉE TOTALE : {{ duree_s }} secondes
+  NOMBRE DE TEMPS FORTS À PRODUIRE : {{ nb_beats }}, dans l'ordre
+  chronologique, répartis sur toute la durée (position_pct de 0 à 100).
+
+  Écris la structure.
+
+schema_sortie:
+  type: object
+  additionalProperties: false
+  required: [beats]
+  properties:
+    beats:
+      type: array
+      description: Les temps forts, dans l'ordre chronologique
+      items:
+        type: object
+        additionalProperties: false
+        required: [position_pct, role, quoi]
+        properties:
+          position_pct:
+            type: integer
+            description: à quel % de la durée totale ce temps fort commence (0 à 100)
+          role:
+            type: string
+            description: >-
+              hook, mise en place, montée de tension, curiosité, fausse
+              résolution, payoff, ou boucle — en un ou deux mots, pas de
+              forme imposée stricte
+          quoi:
+            type: string
+            description: >-
+              2 à 3 phrases : ce qui se passe concrètement à ce moment,
+              précisément lié au sujet donné, jamais une scène générique
+
+historique: |
+  1.0.0 — première version. Remplit le squelette `beats` que ScriptWriter
+          sait déjà lire (SQUELETTE NARRATIF, ecriture/script.yaml) mais
+          que rien ne produisait automatiquement — un sujet donné en une
+          phrase laissait le scénariste inventer sa propre structure à
+          chaque fois, sans garde-fou sur le nombre de temps forts ni leur
+          répartition dans le temps.

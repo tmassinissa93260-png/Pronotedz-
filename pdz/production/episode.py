@@ -1,8 +1,13 @@
 """La chaîne complète : d'une situation à un fichier .mp4.
 
-Sept étapes, dans cet ordre, et l'ordre a des raisons :
+Sept étapes, dans cet ordre, et l'ordre a des raisons — la première se
+décompose elle-même en trois passes séparées, une IA par responsabilité
+plutôt qu'un seul appel qui fait tout à la fois :
 
     1. écriture      idée + univers        → répliques
+       1a. brief        situation             → structure narrative (beats)
+       1b. script       beats + univers       → dialogue + action minimale
+       1c. prompts      répliques figées      → prompt d'image par plan
     2. voix          répliques             → audio + timings RÉELS
     3. découpage     répliques + durées    → plans
     4. images        plans + univers       → une image par plan
@@ -32,6 +37,8 @@ from pathlib import Path
 from typing import Any
 
 from pdz import db
+from pdz.agents.ecriture.brief import BriefWriter
+from pdz.agents.ecriture.plans import ShotPromptWriter
 from pdz.agents.ecriture.script import ScriptWriter
 from pdz.analyse.adn import Adn
 from pdz.config import config
@@ -178,7 +185,29 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     repris: list[str] = []
     cout_total = 0.0
 
-    # ── 1. Écriture ──────────────────────────────────────────────────────
+    # ── 1a. Brief ────────────────────────────────────────────────────────
+    # La structure narrative avant tout dialogue : sans elle, ScriptWriter
+    # invente sa propre mécanique de rétention à chaque appel, sans garde-fou
+    # sur le nombre de temps forts ni leur répartition dans le temps.
+    if beats is None:
+        fait_brief = _fait(job_id, "brief")
+        if fait_brief is None:
+            debut = time.perf_counter()
+            ctx = Contexte(job_id=job_id, etape_cle="brief", profil=profil,
+                           budget_restant=plafond - cout_total)
+            brief = await executer_avec_relance(BriefWriter(),
+                {"univers": univers, "situation": situation, "duree_s": duree_s},
+                ctx,
+            )
+            _noter(job_id, "brief", "brief", brief, ctx.cout_engage,
+                   int((time.perf_counter() - debut) * 1000))
+            cout_total += ctx.cout_engage
+        else:
+            repris.append("brief")
+            brief = fait_brief
+        beats = brief["beats"]
+
+    # ── 1b. Script ───────────────────────────────────────────────────────
     script = _fait(job_id, "script")
     if script is None:
         debut = time.perf_counter()
@@ -197,6 +226,27 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
 
     repliques = script["repliques"]
     log.info("Script « %s » : %d répliques", script.get("titre", "?"), len(repliques))
+
+    # ── 1c. Prompts d'image ─────────────────────────────────────────────
+    # Séparé du dialogue exprès (voir pdz/agents/ecriture/plans.py) : un
+    # modèle qui ne s'occupe QUE du cadrage, une fois le texte déjà figé,
+    # écrit un prompt d'image plus riche que l'action notée en même temps
+    # que la réplique.
+    fait_prompts = _fait(job_id, "shot_prompts")
+    if fait_prompts is None:
+        debut = time.perf_counter()
+        ctx = Contexte(job_id=job_id, etape_cle="shot_prompts", profil=profil,
+                       budget_restant=plafond - cout_total)
+        prompts = await executer_avec_relance(ShotPromptWriter(),
+            {"univers": univers, "repliques": repliques}, ctx,
+        )
+        _noter(job_id, "shot_prompts", "shot_prompts", prompts, ctx.cout_engage,
+               int((time.perf_counter() - debut) * 1000))
+        cout_total += ctx.cout_engage
+    else:
+        repris.append("shot_prompts")
+        prompts = fait_prompts
+    repliques = ShotPromptWriter().fusionner(repliques, prompts)
 
     # ── 2. Voix ──────────────────────────────────────────────────────────
     # Avant les images : c'est la durée réelle de chaque réplique qui fixera

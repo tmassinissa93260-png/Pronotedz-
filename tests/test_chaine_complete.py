@@ -56,6 +56,19 @@ def atelier(tmp_path, monkeypatch):
     config.cache_clear()
     config().preparer_dossiers()
 
+    # ── Le brief (structure narrative, avant le dialogue) ──────────────────
+    async def faux_brief(self, entrees, ctx):
+        ctx.facturer(0.001)
+        sortie = {"beats": [
+            {"position_pct": 0, "role": "hook", "quoi": "ça tourne mal dès le début"},
+            {"position_pct": 25, "role": "mise en place", "quoi": "les tensions montent"},
+            {"position_pct": 60, "role": "montée de tension", "quoi": "l'accusation éclate"},
+            {"position_pct": 90, "role": "payoff", "quoi": "quelqu'un part ce soir"},
+        ]}
+        return self.apres(sortie, entrees, ctx)
+
+    monkeypatch.setattr("pdz.agents.ecriture.brief.BriefWriter.executer", faux_brief)
+
     # ── Le scénariste ────────────────────────────────────────────────────
     async def faux_script(self, entrees, ctx):
         ctx.facturer(0.012)
@@ -64,6 +77,18 @@ def atelier(tmp_path, monkeypatch):
 
     monkeypatch.setattr("pdz.agents.ecriture.script.ScriptWriter.executer",
                         faux_script)
+
+    # ── Les prompts d'image (cadrage, séparé du dialogue) ───────────────────
+    async def faux_prompts(self, entrees, ctx):
+        ctx.facturer(0.001)
+        sortie = {"plans": [
+            {"numero": r["numero"], "prompt_image": f"prompt riche {r['numero']}"}
+            for r in entrees["repliques"]
+        ]}
+        return self.apres(sortie, entrees, ctx)
+
+    monkeypatch.setattr("pdz.agents.ecriture.plans.ShotPromptWriter.executer",
+                        faux_prompts)
 
     # ── La voix ──────────────────────────────────────────────────────────
     def fausse_voix(texte, sortie, *, voice_id, stabilite=0.5, style=0.4,

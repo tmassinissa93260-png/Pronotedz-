@@ -185,3 +185,15 @@ def nb_plans_pour(duree_s: float, secondes_par_plan: float = 1.75) -> int:
     Voir docs/11-etat-de-lart.md.
     """
     return max(4, round(duree_s / secondes_par_plan))
+
+
+def nb_beats_pour(duree_s: float, secondes_par_beat: float = 7.0) -> int:
+    """Combien de temps forts narratifs (hook, tension, payoff...) tiennent
+    dans la durée visée — le squelette que BriefWriter remplit, que
+    ScriptWriter sait déjà lire (`beats`, voir ecriture/script.yaml).
+
+    Moins de 4, une structure hook/tension/payoff n'a plus la place
+    d'exister. Plus de 8, chaque temps fort dure moins de 5-6 s et devient
+    indiscernable d'un simple plan — ce n'est plus un beat narratif.
+    """
+    return max(4, min(8, round(duree_s / secondes_par_beat)))
