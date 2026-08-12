@@ -34,6 +34,7 @@ import base64
 import json
 import logging
 import mimetypes
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -248,9 +249,14 @@ def _lever_si_erreur(r: httpx.Response) -> None:
         detail = r.text[:300]
 
     if r.status_code == 429:
+        # Jamais « le palier gratuit est journalier » en dur : Groq limite
+        # aussi bien par minute (RPM/TPM) que par jour (RPD/TPD), et
+        # affirmer « journalier » sur une limite par minute a fait croire
+        # à une attente d'un jour là où 26 s suffisaient. Le détail de
+        # Groq dit déjà lequel des deux a été atteint.
         raise ErreurQuota(
-            f"Limite de débit Groq atteinte (le palier gratuit est journalier). {detail}",
-            retry_after=float(r.headers.get("retry-after", 0)) or None,
+            f"Limite de débit Groq atteinte. {detail}",
+            retry_after=_retry_after_groq(r, detail),
         )
     if r.status_code in (401, 403):
         raise ErreurRefus(f"Clé d'API Groq refusée ({r.status_code}). {detail}")
@@ -263,6 +269,26 @@ def _lever_si_erreur(r: httpx.Response) -> None:
     if r.status_code >= 500:
         raise ErreurFournisseur(f"Groq indisponible ({r.status_code}). {detail}")
     raise ErreurValidation(f"Requête refusée par Groq ({r.status_code}). {detail}")
+
+
+def _retry_after_groq(r: httpx.Response, detail: str) -> float | None:
+    """Le délai réel avant de rejouer — jamais deviné.
+
+    L'en-tête `Retry-After` n'est pas toujours renvoyé par Groq ; le délai
+    exact reste alors seulement dans le texte de l'erreur (« Please try
+    again in 26.085s »). Sans le lire, le moteur retombe sur son backoff
+    générique — mesuré à l'écran : trois tentatives grillées en quelques
+    secondes contre une limite par minute qui demandait 26 s pour se
+    libérer, faute d'avoir jamais lu ce nombre.
+    """
+    if valeur := r.headers.get("retry-after"):
+        try:
+            return float(valeur)
+        except ValueError:
+            pass
+    if m := re.search(r"try again in (\d+(?:\.\d+)?)s", detail):
+        return float(m.group(1))
+    return None
 
 
 def _extraire_outil(charge: dict, nom_outil: str) -> dict:

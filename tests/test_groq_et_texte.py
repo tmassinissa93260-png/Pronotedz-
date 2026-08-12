@@ -47,6 +47,40 @@ def test_chaque_code_http_donne_la_bonne_categorie(code, attendu):
         _lever_si_erreur(_reponse(code, {"error": {"message": "x"}}))
 
 
+def test_le_retry_after_vient_de_len_tete_si_present():
+    r = _reponse(429, {"error": {"message": "Please try again in 26.085s."}})
+    r.headers["retry-after"] = "5"
+    with pytest.raises(ErreurQuota) as e:
+        _lever_si_erreur(r)
+    assert e.value.retry_after == 5.0
+
+
+def test_le_retry_after_se_lit_dans_le_texte_si_len_tete_manque():
+    """Mesuré à l'écran : Groq ne renvoie pas toujours l'en-tête
+    `Retry-After`. Sans lire le délai dans le texte de l'erreur, le moteur
+    retombait sur un backoff générique d'environ 1 s, bien trop court pour
+    une vraie limite par minute qui demandait 26 s pour se libérer — les 3
+    tentatives étaient grillées avant que la fenêtre ne se libère."""
+    r = _reponse(429, {"error": {
+        "message": "Rate limit reached ... Please try again in 26.085s. "
+                   "Need more tokens? Upgrade to Dev Tier today.",
+    }})
+    with pytest.raises(ErreurQuota) as e:
+        _lever_si_erreur(r)
+    assert e.value.retry_after == pytest.approx(26.085)
+
+
+def test_le_message_ne_pretend_plus_que_la_limite_est_toujours_journaliere():
+    """Groq limite par minute (RPM/TPM) ET par jour (RPD/TPD) — affirmer
+    « journalier » en dur sur une limite par minute a fait croire à une
+    attente d'un jour là où 26 s suffisaient."""
+    r = _reponse(429, {"error": {"message": "tokens per minute (TPM): Limit 12000"}})
+    with pytest.raises(ErreurQuota) as e:
+        _lever_si_erreur(r)
+    assert "journalier" not in str(e.value)
+    assert "tokens per minute" in str(e.value)
+
+
 def test_un_modele_renomme_est_signale_comme_config_a_corriger():
     """Si Groq change le nom du modèle, l'erreur doit dire quoi faire —
     pas ressembler à une clé cassée."""
