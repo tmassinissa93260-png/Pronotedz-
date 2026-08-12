@@ -10,6 +10,7 @@ est fourni par le moteur.
 from __future__ import annotations
 
 import copy
+import logging
 import unicodedata
 from typing import Any
 
@@ -24,6 +25,8 @@ from pdz.analyse.adn import Adn
 from pdz.moteur.erreurs import ErreurValidation
 from pdz.moteur.pipeline import Contexte
 from pdz.univers import Univers
+
+log = logging.getLogger(__name__)
 
 # Doit rester en phase avec les clés d'EXPRESSIONS dans
 # pdz/production/images.py — c'est là que `emotion` devient un rendu visuel.
@@ -87,7 +90,7 @@ def _texte_empreinte(e) -> str:
 
 class ScriptWriter(Agent):
     nom = "script"
-    version = "1.5.0"
+    version = "1.6.0"
     prompt_ref = "ecriture/script"
 
     def _forme(self, entrees: dict[str, Any]) -> dict[str, Any]:
@@ -276,11 +279,17 @@ class ScriptWriter(Agent):
                 "CHAQUE réplique existante avec de vraies phrases (pas du "
                 "remplissage), sans changer l'histoire."
             )
+        # Trop long ne casse plus le job : contrairement à « trop court »,
+        # rien ne se perd — la vidéo sort juste plus longue que visé. Un
+        # échec ici gaspillait une tentative de correction (et de l'argent,
+        # sur un 429 Groq) pour un défaut qui n'empêche pas l'épisode
+        # d'exister. Décision explicite : mieux vaut une vidéo un peu longue
+        # qu'un job qui échoue dessus.
         if estimee > duree * 1.4:
-            raise ErreurValidation(
-                f"Script trop long : {mots} mots donnent environ {estimee} s "
-                f"à voix haute, pour {duree} s demandées. Resserre les "
-                "répliques : la vidéo serait coupée avant la fin."
+            log.warning(
+                "Script plus long que visé : %d mots ≈ %.1f s à voix haute, "
+                "pour %.1f s demandées — l'épisode sortira plus long que prévu.",
+                mots, estimee, duree,
             )
 
         sortie["duree_cible_s"] = duree

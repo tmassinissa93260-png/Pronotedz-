@@ -6,6 +6,7 @@ chaîne complète (prompt → appel → validation → sortie) sans clé d'API.
 
 
 import asyncio
+import logging
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -525,12 +526,17 @@ def test_lagent_refuse_un_script_trop_court():
     assert "mots" in str(e.value)
 
 
-def test_lagent_refuse_un_script_trop_long():
+def test_lagent_accepte_un_script_trop_long_avec_un_avertissement(caplog):
+    """Trop long ne bloque plus le job, contrairement à trop court : rien ne
+    se perd, l'épisode sort juste plus long que visé. Refuser ici gaspillait
+    une tentative de correction (et de l'argent, sur un 429 Groq mesuré en
+    conditions réelles) pour un défaut qui n'empêche pas l'épisode d'exister."""
     u = Univers.charger(FRUITS)
     long = _reponse_factice(u, nb=40)
-    with pytest.raises(ErreurValidation) as e:
-        ScriptWriter().apres(long, {"univers": u, "duree_s": 20}, _contexte())
-    assert "trop long" in str(e.value)
+    with caplog.at_level(logging.WARNING):
+        sortie = ScriptWriter().apres(long, {"univers": u, "duree_s": 20}, _contexte())
+    assert sortie["duree_parlee_estimee_s"] > 20 * 1.4
+    assert any("plus long" in m for m in caplog.messages)
 
 
 def test_une_duree_dans_la_cible_passe():
