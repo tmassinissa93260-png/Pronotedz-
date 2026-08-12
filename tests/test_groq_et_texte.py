@@ -70,6 +70,34 @@ def test_le_retry_after_se_lit_dans_le_texte_si_len_tete_manque():
     assert e.value.retry_after == pytest.approx(26.085)
 
 
+def test_un_delai_enorme_est_plafonne():
+    """Mesuré à l'écran : Groq a répondu « try again in 2396s » (~40 min,
+    un quota plus large que la limite par minute) et le job est resté
+    silencieux tout ce temps. Attendre la durée complète bloquerait le job
+    pendant potentiellement des heures — le délai doit être plafonné, pour
+    que les tentatives s'épuisent vite avec un message clair plutôt que de
+    faire patienter sans le dire."""
+    r = _reponse(429, {"error": {"message": "Please try again in 2396.0s."}})
+    with pytest.raises(ErreurQuota) as e:
+        _lever_si_erreur(r)
+    assert e.value.retry_after == groq.RETRY_AFTER_MAX_S
+
+
+def test_un_en_tete_enorme_est_aussi_plafonne():
+    r = _reponse(429, {"error": {"message": "x"}})
+    r.headers["retry-after"] = "3600"
+    with pytest.raises(ErreurQuota) as e:
+        _lever_si_erreur(r)
+    assert e.value.retry_after == groq.RETRY_AFTER_MAX_S
+
+
+def test_un_delai_sous_le_plafond_reste_intact():
+    r = _reponse(429, {"error": {"message": "Please try again in 26.085s."}})
+    with pytest.raises(ErreurQuota) as e:
+        _lever_si_erreur(r)
+    assert e.value.retry_after == pytest.approx(26.085)
+
+
 def test_le_message_ne_pretend_plus_que_la_limite_est_toujours_journaliere():
     """Groq limite par minute (RPM/TPM) ET par jour (RPD/TPD) — affirmer
     « journalier » en dur sur une limite par minute a fait croire à une

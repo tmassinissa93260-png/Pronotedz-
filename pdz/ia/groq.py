@@ -271,23 +271,36 @@ def _lever_si_erreur(r: httpx.Response) -> None:
     raise ErreurValidation(f"Requête refusée par Groq ({r.status_code}). {detail}")
 
 
+
+# Au-delà, ce n'est plus une limite par minute qui se libère bientôt — c'est
+# un quota plus large (journalier, ou un plafond de compte) : attendre la
+# durée complète bloquerait le job pendant potentiellement des heures.
+# Mesuré à l'écran : Groq a répondu « try again in 2396s » (~40 min) et le
+# job est resté silencieux tout ce temps, sans que l'utilisateur sache si
+# c'était bloqué ou normal. Mieux vaut plafonner l'attente et laisser les
+# tentatives s'épuiser vite, avec le vrai message de Groq visible dans
+# l'erreur finale, que de faire patienter un job sans le dire.
+RETRY_AFTER_MAX_S = 60.0
+
+
 def _retry_after_groq(r: httpx.Response, detail: str) -> float | None:
-    """Le délai réel avant de rejouer — jamais deviné.
+    """Le délai réel avant de rejouer — jamais deviné, mais plafonné.
 
     L'en-tête `Retry-After` n'est pas toujours renvoyé par Groq ; le délai
     exact reste alors seulement dans le texte de l'erreur (« Please try
     again in 26.085s »). Sans le lire, le moteur retombe sur son backoff
     générique — mesuré à l'écran : trois tentatives grillées en quelques
     secondes contre une limite par minute qui demandait 26 s pour se
-    libérer, faute d'avoir jamais lu ce nombre.
+    libérer, faute d'avoir jamais lu ce nombre. Mais le lire sans plafond
+    a un coût symétrique : voir `RETRY_AFTER_MAX_S`.
     """
     if valeur := r.headers.get("retry-after"):
         try:
-            return float(valeur)
+            return min(float(valeur), RETRY_AFTER_MAX_S)
         except ValueError:
             pass
     if m := re.search(r"try again in (\d+(?:\.\d+)?)s", detail):
-        return float(m.group(1))
+        return min(float(m.group(1)), RETRY_AFTER_MAX_S)
     return None
 
 
