@@ -282,6 +282,21 @@ def test_une_variable_oubliee_echoue_tout_de_suite():
     assert "manquantes" in str(e.value)
 
 
+def test_le_squelette_narratif_est_presente_comme_un_guide_pas_une_quota():
+    """Mesuré à l'écran une fois BriefWriter branché (toujours rempli, 4 à 8
+    temps forts) : un script de 268 mots pour 45 s demandées (117 attendus)
+    — le modèle développait chaque temps fort en sa propre réplique au lieu
+    de les condenser dans le nombre déjà imposé."""
+    p = charger("ecriture/script")
+    assert "guide" in p.systeme_stable.lower()
+    _, _, message = p.rendre(
+        contexte_univers="U", situation="s", duree_s=45, nb_repliques=6,
+        mots_par_replique=[9] * 6, nb_plans_vises=12,
+        beats=[{"position_pct": 0, "role": "hook", "quoi": "il se passe X"}],
+    )
+    assert "condens" in message.lower()
+
+
 # ── L'agent, avec un Claude factice ──────────────────────────────────────
 
 def _reponse_factice(univers, nb=13, avec_relance=True, personnage=None):
@@ -385,11 +400,11 @@ def test_une_emotion_valide_traverse_intacte():
 def test_le_schema_actif_ne_contraint_plus_lemotion_par_enum():
     """Depuis script@1.4.0 : contraindre par `enum` un champ déjà rattrapable
     après coup ne protégeait rien et rendait tout le script fragile chez
-    Groq. Toujours vrai en 1.5.0."""
+    Groq. Toujours vrai en 1.6.0."""
     schema = charger("ecriture/script").schema_sortie
     proprietes = schema["properties"]["repliques"]["items"]["properties"]
     assert "enum" not in proprietes["emotion"]
-    assert charger("ecriture/script").version == "1.5.0"
+    assert charger("ecriture/script").version == "1.6.0"
 
 
 def test_le_schema_impose_le_nombre_de_repliques_vise():

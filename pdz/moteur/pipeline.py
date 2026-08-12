@@ -101,20 +101,43 @@ async def executer_avec_relance(agent: Agent, entrees: dict[str, Any], ctx: Cont
     jamais passer par `Moteur`. Un `await agent.executer(...)` nu ne
     relance jamais rien — c'est cette fonction qu'il faut appeler à la
     place, partout où un agent est invoqué.
+
+    Deux compteurs séparés, pas un seul : les ratés TRANSITOIRES (réseau,
+    quota, fournisseur — jamais la faute du contenu produit) et les vraies
+    tentatives de CONTENU (ErreurValidation, où le modèle voit son erreur
+    et a une vraie chance de la corriger). Les compter ensemble faisait
+    qu'un simple 429 mangeait une des `max_tentatives` chances de corriger
+    un script — mesuré en conditions réelles : script trop long, tentative
+    1 déjà ratée sur le contenu, tentative 2 perdue sur un 429 Groq sans
+    lien avec le script, tentative 3 encore trop longue → plus aucune
+    tentative de correction, l'épisode entier a échoué alors que le
+    contenu n'avait eu qu'un seul vrai essai de correction, pas trois.
     """
     derniere: ErreurPdz | None = None
-    for tentative in range(1, max_tentatives + 1):
+    tentative_contenu = 0
+    tentative_transitoire = 0
+    while True:
         try:
             return await agent.executer(entrees, ctx)
         except ErreurPdz as e:
             derniere = e
             pol = e.politique
-            if not pol.reessayer or tentative >= min(pol.tentatives_max, max_tentatives):
+            if isinstance(e, ErreurValidation):
+                tentative_contenu += 1
+                plafond = min(pol.tentatives_max, max_tentatives)
+                tentative, epuise = tentative_contenu, tentative_contenu >= plafond
+            else:
+                tentative_transitoire += 1
+                plafond = pol.tentatives_max
+                tentative, epuise = tentative_transitoire, tentative_transitoire >= plafond
+
+            if not pol.reessayer or epuise:
                 raise
+
             attente = getattr(e, "retry_after", None) or delai_backoff(tentative)
             log.warning(
                 "⟳  %s tentative %d/%d — %s — nouvelle tentative dans %.1fs",
-                agent.nom, tentative, pol.tentatives_max, e.categorie, attente,
+                agent.nom, tentative, plafond, e.categorie, attente,
             )
             await asyncio.sleep(attente)
             if isinstance(e, ErreurValidation):

@@ -10,7 +10,7 @@ import pytest
 
 from pdz import db
 from pdz.moteur import Etape, Moteur, Pipeline, Statut
-from pdz.moteur.erreurs import ErreurReseau, ErreurValidation
+from pdz.moteur.erreurs import ErreurQuota, ErreurReseau, ErreurValidation
 
 
 class AgentFactice:
@@ -162,6 +162,39 @@ def test_une_relance_apres_erreur_reseau_ne_porte_aucune_correction(job):
     assert r.statut is Statut.TERMINE
     assert len(agent.entrees_recues) == 2
     assert "_erreur_precedente" not in agent.entrees_recues[1]
+
+
+def test_une_panne_transitoire_ne_grignote_pas_les_tentatives_de_correction(job):
+    """Mesuré en conditions réelles : un 429 Groq — pas la faute du contenu
+    — et deux « script trop long » consécutifs partageaient le même compteur
+    de tentatives. Résultat vu à l'écran : la panne réseau mangeait une des
+    3 chances, il n'en restait qu'une seule pour corriger le contenu, et le
+    job entier échouait après une seule vraie tentative de correction. Le
+    contenu doit avoir droit à ses 3 tentatives, quel que soit le nombre de
+    pannes transitoires essuyées en chemin."""
+    compteur = {}
+    appels = {"n": 0}
+
+    class AgentPanneEtContenuRates(AgentFactice):
+        async def executer(self, entrees, ctx):
+            self.entrees_recues.append(entrees)
+            appels["n"] += 1
+            self.compteur[self.nom] = self.compteur.get(self.nom, 0) + 1
+            if appels["n"] == 1:
+                raise ErreurQuota("429 simulé")
+            if appels["n"] in (2, 3):
+                raise ErreurValidation("Script trop long : resserre.")
+            ctx.facturer(0.01)
+            return {"fait": self.nom}
+
+    agent = AgentPanneEtContenuRates("script", compteur)
+    pipe = Pipeline("test", (Etape("etape_script", "script"),))
+    r = asyncio.run(Moteur({"script": agent}).executer(job, pipe))
+
+    assert r.statut is Statut.TERMINE
+    # 1 panne transitoire + 2 tentatives de contenu ratées + 1 réussie :
+    # sans la séparation des compteurs, le job aurait échoué au 3e appel.
+    assert appels["n"] == 4
 
 
 def test_le_cache_evite_de_repayer(job):
