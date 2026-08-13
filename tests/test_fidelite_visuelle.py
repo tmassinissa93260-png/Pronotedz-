@@ -53,3 +53,20 @@ def test_un_element_vide_est_ignore():
     prompt, manquants = fidelite_visuelle.renforcer("un prompt", ["", "   "])
     assert prompt == "un prompt"
     assert manquants == []
+
+
+# ── exclure() : pas de canal negative_prompt chez Flux, donc en texte ────
+
+def test_exclure_ajoute_les_elements_au_prompt():
+    prompt = fidelite_visuelle.exclure("a wide shot of a city", ["smartphone", "human"])
+    assert prompt == "a wide shot of a city, no smartphone, no human"
+
+
+def test_exclure_sans_element_ne_change_rien():
+    prompt = fidelite_visuelle.exclure("a wide shot of a city", [])
+    assert prompt == "a wide shot of a city"
+
+
+def test_exclure_ignore_les_elements_vides():
+    prompt = fidelite_visuelle.exclure("un prompt", ["", "  "])
+    assert prompt == "un prompt"

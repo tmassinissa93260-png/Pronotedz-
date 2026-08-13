@@ -24,3 +24,20 @@ def renforcer(prompt: str, elements: list[str]) -> tuple[str, list[str]]:
     if not manquants:
         return prompt, []
     return f"{prompt}, featuring {', '.join(manquants)}", manquants
+
+
+def exclure(prompt: str, elements: list[str]) -> str:
+    """Ajoute au prompt les éléments à exclure de CE plan précis.
+
+    Les modèles Flux (fal.ai) n'ont pas de canal de negative prompt séparé :
+    la seule façon d'exclure un élément est de l'écrire en toutes lettres
+    dans le prompt — même convention que `univers.style.consignes_image`
+    (« no human faces, no facial features »), en plan-spécifique cette fois.
+    Utile pour empêcher qu'un objet d'un autre moment du récit s'invite ici
+    (le téléphone une fois que la donnée l'a quitté, le câble sous-marin
+    avant que le signal y arrive).
+    """
+    propres = [e.strip() for e in elements if e.strip()]
+    if not propres:
+        return prompt
+    return f"{prompt}, no {', no '.join(propres)}"

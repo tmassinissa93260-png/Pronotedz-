@@ -39,7 +39,7 @@ log = logging.getLogger(__name__)
 
 class ShotPromptWriter(Agent):
     nom = "shot_prompts"
-    version = "2.3.0"
+    version = "2.4.0"
     prompt_ref = "ecriture/plans"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
@@ -123,6 +123,9 @@ class ShotPromptWriter(Agent):
                 renforces += 1
                 log.info("Plan %d : élément(s) manquant(s) rajouté(s) — %s",
                          p.numero, ", ".join(manquants))
+            prompt = fidelite_visuelle.exclure(
+                prompt, ecrit.get("elements_a_exclure", [])
+            )
             fusionnes.append(replace(p, action=prompt,
                                      cadrage=ecrit.get("cadrage", p.cadrage)))
         if renforces:

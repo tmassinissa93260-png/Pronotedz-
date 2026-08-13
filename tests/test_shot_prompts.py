@@ -232,3 +232,26 @@ def test_fusionner_sans_elements_obligatoires_garde_le_prompt_tel_quel():
     sortie = {"plans": [{"numero": 0, "prompt_image": "x"}]}
     fusionnes = ShotPromptWriter().fusionner(plans, sortie)
     assert fusionnes[0].action == "x"
+
+
+def test_fusionner_applique_les_elements_a_exclure():
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "a wide shot of a city",
+        "elements_a_exclure": ["smartphone", "human"],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].action == "a wide shot of a city, no smartphone, no human"
+
+
+def test_fusionner_combine_renfort_et_exclusion():
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "a generic glowing hologram",
+        "elements_obligatoires": ["submarine cable"],
+        "elements_a_exclure": ["smartphone"],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].action == (
+        "a generic glowing hologram, featuring submarine cable, no smartphone"
+    )
