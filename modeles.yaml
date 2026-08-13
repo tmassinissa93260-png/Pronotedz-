@@ -72,15 +72,19 @@ modeles:
     sorties_structurees: true
 
   # Le seul modèle GRATUIT capable de VISION : c'est lui qui permet à
-  # `charte` (lire le style d'une vidéo de référence) de tourner sans crédit
-  # Anthropic. Déclaré avant les modèles Anthropic pour rien — l'ordre ne
-  # compte que entre modèles d'une même capacité, et `_capable()` prend le
-  # premier qui sait faire ET dont la clé est là.
-  # ⚠️ Deux limites réelles : 5 images par requête au maximum (l'analyse en
-  # extrait 6, la dernière est écartée), et Groq a déjà retiré un modèle de
-  # vision de son offre gratuite en juin 2026 — si celui-ci disparaît à son
-  # tour, `pdz cles` et l'erreur de `charte` le diront clairement.
-  - id: meta-llama/llama-4-maverick-17b-128e-instruct
+  # `charte` (lire le style d'une vidéo de référence) et à `qa_image`
+  # (vérifier une image produite) de tourner sans crédit Anthropic. Déclaré
+  # avant les modèles Anthropic pour rien — l'ordre ne compte que entre
+  # modèles d'une même capacité, et `_capable()` prend le premier qui sait
+  # faire ET dont la clé est là.
+  # ⚠️ Remplace `meta-llama/llama-4-maverick-17b-128e-instruct`, retiré par
+  # Groq (404 mesuré en production le 13/08/2026 — la ligne juste au-dessus,
+  # écrite avant ce retrait, prédisait déjà ce jour). Limite réelle : 5
+  # images par requête au maximum (l'analyse en extrait 6, la dernière est
+  # écartée). Si CE modèle disparaît à son tour, `pdz cles` et l'erreur de
+  # `charte`/`qa_image` le diront clairement — c'est le même filet qui a
+  # permis de repérer le retrait précédent aussi vite.
+  - id: qwen/qwen3.6-27b
     fournisseur: groq
     fait: [vision, analyse]
     contexte: 128000
@@ -174,7 +178,7 @@ alias:
   qualite:    { principal: llama-3.3-70b-versatile }
   critique:   { principal: llama-3.3-70b-versatile,    temperature: 0.2 }
   rapide:     { principal: llama-3.3-70b-versatile }
-  vision:     { principal: meta-llama/llama-4-maverick-17b-128e-instruct }
+  vision:     { principal: qwen/qwen3.6-27b }
   images:     { principal: fal-ai/flux/schnell,        repli: fal-ai/flux/dev }
   animation:  { principal: fal-ai/ltx-video-v097/image-to-video, repli: fal-ai/kling-video/v2.1/standard/image-to-video }
   voix:       { principal: eleven_turbo_v2_5 }
