@@ -119,14 +119,16 @@ modeles:
   # la soumission partait en 404, et l'échec était rattrapé en image fixe.
   # Versions réellement publiées : v1/standard, v2.1/standard, v2.1/pro,
   # v2.1/master, v2.6/pro.
+  # Réservé au profil « premium » (voir plus bas) : meilleure cohérence de
+  # mouvement, ~2,5× le prix de ltx-video.
   - id: fal-ai/kling-video/v2.1/standard/image-to-video
     fournisseur: fal
     fait: [animation]
     prix: { par_seconde: 0.046 }
     options: [image_depart, duree]
 
-  # Alternative moins chère, même famille d'usage. À activer en changeant
-  # simplement l'alias « animation » plus bas.
+  # Modèle d'animation par défaut : même famille d'usage que Kling, ~61 %
+  # moins cher. C'est lui qui pilote l'alias « animation » ci-dessous.
   - id: fal-ai/ltx-video-v097/image-to-video
     fournisseur: fal
     fait: [animation]
@@ -173,8 +175,8 @@ alias:
   critique:   { principal: llama-3.3-70b-versatile,    temperature: 0.2 }
   rapide:     { principal: llama-3.3-70b-versatile }
   vision:     { principal: meta-llama/llama-4-maverick-17b-128e-instruct }
-  images:     { principal: fal-ai/flux/dev,            repli: fal-ai/flux/schnell }
-  animation:  { principal: fal-ai/kling-video/v2.1/standard/image-to-video }
+  images:     { principal: fal-ai/flux/schnell,        repli: fal-ai/flux/dev }
+  animation:  { principal: fal-ai/ltx-video-v097/image-to-video, repli: fal-ai/kling-video/v2.1/standard/image-to-video }
   voix:       { principal: eleven_turbo_v2_5 }
   transcription: { principal: whisper-large-v3-turbo }
   musique:       { principal: audd/recognize }
@@ -194,6 +196,7 @@ profils:
     plans_animes_max: 6                 # on n'anime que les plans qui le méritent
   premium:
     images: fal-ai/flux/dev
+    animation: fal-ai/kling-video/v2.1/standard/image-to-video
     plans_animes_max: 12
   # Zéro euro, aucune carte bancaire : Llama via Groq pour écrire, Pollinations
   # pour illustrer. Demande une clé GROQ_API_KEY (gratuite, sans carte, sur
