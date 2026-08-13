@@ -201,3 +201,34 @@ def test_la_signature_reference_le_prompt_actif():
     sig = ShotPromptWriter().signature()
     assert sig["agent"] == "shot_prompts"
     assert sig["prompt"] == charger("ecriture/plans").ref
+
+
+# ── Fidélité visuelle : les éléments nommés par la réplique ─────────────
+
+def test_fusionner_rajoute_un_element_obligatoire_manquant():
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "a generic glowing hologram",
+        "elements_obligatoires": ["submarine cable"],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert "submarine cable" in fusionnes[0].action
+
+
+def test_fusionner_ne_touche_pas_un_prompt_qui_montre_deja_lelement():
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "a glowing submarine cable under the ocean",
+        "elements_obligatoires": ["submarine cable"],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].action == "a glowing submarine cable under the ocean"
+
+
+def test_fusionner_sans_elements_obligatoires_garde_le_prompt_tel_quel():
+    """Non-régression : un job en cache d'avant plans@1.4.0 n'a pas ce champ
+    dans sa sortie stockée — ne doit pas planter."""
+    plans = _plans(1)
+    sortie = {"plans": [{"numero": 0, "prompt_image": "x"}]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].action == "x"

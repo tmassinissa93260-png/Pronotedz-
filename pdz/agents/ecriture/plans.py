@@ -29,7 +29,7 @@ from typing import Any
 from pdz.agents.base import Agent
 from pdz.moteur.erreurs import ErreurValidation
 from pdz.moteur.pipeline import Contexte
-from pdz.production import cadrage
+from pdz.production import cadrage, fidelite_visuelle
 from pdz.production.continuite import indices_de_scene
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Univers
@@ -39,7 +39,7 @@ log = logging.getLogger(__name__)
 
 class ShotPromptWriter(Agent):
     nom = "shot_prompts"
-    version = "2.2.0"
+    version = "2.3.0"
     prompt_ref = "ecriture/plans"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
@@ -110,11 +110,22 @@ class ShotPromptWriter(Agent):
         """
         par_numero = {p["numero"]: p for p in sortie.get("plans", [])}
         fusionnes = []
+        renforces = 0
         for p in plans:
             ecrit = par_numero.get(p.numero)
             if ecrit is None:
                 fusionnes.append(p)
                 continue
-            fusionnes.append(replace(p, action=ecrit["prompt_image"],
+            prompt, manquants = fidelite_visuelle.renforcer(
+                ecrit["prompt_image"], ecrit.get("elements_obligatoires", [])
+            )
+            if manquants:
+                renforces += 1
+                log.info("Plan %d : élément(s) manquant(s) rajouté(s) — %s",
+                         p.numero, ", ".join(manquants))
+            fusionnes.append(replace(p, action=prompt,
                                      cadrage=ecrit.get("cadrage", p.cadrage)))
+        if renforces:
+            log.info("Fidélité visuelle : %d/%d plan(s) complété(s) après coup",
+                     renforces, len(fusionnes))
         return fusionnes
