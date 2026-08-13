@@ -84,6 +84,16 @@ def test_un_changement_de_decor_marque_une_nouvelle_scene():
     assert v["plans"][2]["nouvelle_scene"] is True
 
 
+def test_les_variables_portent_le_format_de_lunivers():
+    """La règle « personne n'est jamais visible » (plans@1.6.0) ne
+    s'applique qu'en narration — il faut donc savoir si l'univers est
+    animé ou non pour l'activer conditionnellement."""
+    u = Univers.charger(FRUITS)
+    v = ShotPromptWriter().variables(
+        {"univers": u, "plans": _plans(3), "repliques": _repliques(3)}, _contexte())
+    assert v["anime"] == u.anime
+
+
 def test_un_plan_de_reaction_est_marque_comme_tel():
     u = Univers.charger(FRUITS)
     v = ShotPromptWriter().variables(

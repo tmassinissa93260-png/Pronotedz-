@@ -34,9 +34,19 @@ MOTIFS_TEXTE_LISIBLE = [
 MOTIFS_LOGO = [
     r"\blogo\b", r"\bmarque déposée\b", r"\bbrand(ing)?\b", r"\bwordmark\b",
 ]
+# Mesuré à l'écran sur techno-holo : un prompt qui décrit « a determined
+# man » sans jamais dire « visage » ni « face » produit quand même un
+# visage humain complet, détaillé, photoréaliste — la consigne générale de
+# l'univers (« no human faces ») ne suffit pas à l'arrêter. Se limiter aux
+# formulations qui nomment explicitement un visage détaillé manquait donc
+# la vraie source du risque : toute présence humaine décrite suffit à en
+# produire un.
 MOTIFS_VISAGE = [
     r"\bvisage (net|d[ée]taill[ée]|reconnaissable)\b",
     r"\bface (close-?up|detailed)\b", r"\bfacial features\b", r"\bportrait\b",
+    r"\bman\b", r"\bwoman\b", r"\bperson\b", r"\bhuman figure\b",
+    r"\bhis face\b", r"\bher face\b", r"\bhomme\b", r"\bfemme\b",
+    r"\bfigure humaine\b", r"\bpersonnage humain\b",
 ]
 
 

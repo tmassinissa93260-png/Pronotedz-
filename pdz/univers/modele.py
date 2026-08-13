@@ -302,6 +302,14 @@ class Univers(BaseModel):
                       "« personnage » de chaque réplique, jamais le nom affiché) :")
         for p in self.personnages:
             bout = f"- [{p.id}] {p.nom} ({p.espece}) : {p.caractere}"
+            # Un narrateur défini comme « jamais représenté à l'écran »
+            # (voix off type de série sans personnages visibles) ne l'était
+            # que dans `apparence`, jamais lu ici avant — donc jamais vu par
+            # ScriptWriter ni ShotPromptWriter. Mesuré à l'écran : la
+            # consigne existait dans le fichier univers et n'atteignait
+            # pourtant aucun agent d'écriture.
+            if p.apparence.strip():
+                bout += f" — apparence : {p.apparence.strip()}"
             if p.tics_de_langage:
                 bout += f" — dit souvent : {', '.join(p.tics_de_langage)}"
             lignes.append(bout)

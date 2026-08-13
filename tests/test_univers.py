@@ -51,6 +51,17 @@ def test_le_contexte_script_contient_tout_le_casting():
     assert "INTERDITS" in ctx
 
 
+def test_le_contexte_script_porte_lapparence_de_chaque_personnage():
+    """Un narrateur défini comme « présence invisible, jamais représentée
+    à l'écran » (voir univers/techno-holo.yaml) doit vraiment atteindre
+    ScriptWriter et ShotPromptWriter — mesuré à l'écran : cette consigne
+    existait dans le fichier univers sans jamais apparaître ici, et un
+    plan a fini par montrer le narrateur comme un homme photoréaliste."""
+    u = Univers.charger(Path("univers/techno-holo.yaml"))
+    ctx = u.contexte_script()
+    assert "jamais representee a l ecran" in ctx
+
+
 def test_en_narration_le_contexte_previent_que_laction_doit_se_suffire():
     """Mesuré à l'écran : un sujet sans décor correspondant (un téléphone,
     un lit — rien de tel dans les 4 décors génériques de techno-holo)

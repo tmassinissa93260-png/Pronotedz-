@@ -77,3 +77,31 @@ def test_visage_est_interdit_lit_les_consignes_de_lunivers():
 
 def test_visage_est_interdit_reconnait_le_francais():
     assert risque_prompt.visage_est_interdit(["aucun visage reconnaissable"])
+
+
+# ── Présence humaine non qualifiée : le vrai bug mesuré à l'écran ────────
+
+def test_une_presence_humaine_non_qualifiee_declenche_le_risque():
+    """Bug réel (techno-holo) : « a determined man » sans jamais dire
+    « visage » ni « face » a quand même produit un visage humain complet,
+    détaillé, photoréaliste à l'écran — la consigne générale de l'univers
+    ne suffisait pas à l'arrêter."""
+    raisons = risque_prompt.raisons_de_correction(
+        "a determined man emerges through the data stream, eyes narrowed",
+        visage_interdit=True,
+    )
+    assert "visage" in raisons
+
+
+def test_une_presence_humaine_ne_declenche_rien_si_lunivers_lautorise():
+    raisons = risque_prompt.raisons_de_correction(
+        "a determined man emerges through the data stream", visage_interdit=False,
+    )
+    assert "visage" not in raisons
+
+
+def test_homme_en_francais_declenche_aussi_le_risque():
+    raisons = risque_prompt.raisons_de_correction(
+        "un homme se dresse au milieu du réseau numérique", visage_interdit=True,
+    )
+    assert "visage" in raisons

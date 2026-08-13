@@ -62,10 +62,13 @@ from pdz.agents.ecriture.plans import ShotPromptWriter
 from pdz.agents.ecriture.realisme import RealismWriter
 from pdz.agents.ecriture.script import ScriptWriter
 from pdz.analyse.adn import Adn
+from pdz.analyse.sonde import sonder
 from pdz.config import config
-from pdz.moteur.erreurs import ErreurConfig, ErreurPdz
+from pdz.moteur.erreurs import ErreurConfig, ErreurPdz, ErreurValidation
 from pdz.moteur.pipeline import Contexte, executer_avec_relance
-from pdz.production import animation, continuite, images, risque_prompt, storyboard, voix
+from pdz.production import (
+    animation, coherence_duree, continuite, images, risque_prompt, storyboard, voix,
+)
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Univers
 from pdz.video import soustitres
@@ -292,6 +295,19 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
         # sans lui plutôt que d'échouer.
         debuts_repliques = frozenset(fait_voix.get("debuts_repliques") or [])
 
+    # Un job repris peut relire des durées mises en cache pendant qu'un
+    # fichier voix plus récent (donc plus ou moins long) a été régénéré à
+    # côté — voir pdz/production/coherence_duree.py. Détecté ici, avant de
+    # payer images et animation pour la mauvaise durée.
+    mesure_s = voix.duree_ms(piste) / 1000
+    if (msg := coherence_duree.message_si_incoherent(
+        sum(durees), mesure_s, contexte="Voix",
+    )):
+        raise ErreurValidation(
+            f"{msg} Le fichier voix et les timings utilisés pour découper "
+            f"l'épisode ne sont pas d'accord — relance sans --reprendre."
+        )
+
     # ── 3. Découpage ─────────────────────────────────────────────────────
     # Le point de coupe parlant/réaction suit une vraie pause de la voix
     # quand on peut la retrouver, plutôt qu'un pourcentage fixe — voir
@@ -428,6 +444,17 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     sortie.parent.mkdir(parents=True, exist_ok=True)
     montage.rendre(sortie)
     log.info("Montage rendu en %.1f s", time.perf_counter() - debut)
+
+    # Dernier filet, après coup : un clip animé plus court que prévu ou un
+    # souci ffmpeg peut raccourcir la vidéo sans que rien d'autre ne le
+    # voie. L'épisode est déjà payé — on ne le jette pas pour ça — mais un
+    # écart doit être IMPOSSIBLE à manquer dans les journaux (voir
+    # pdz/production/coherence_duree.py, et le run qui a produit 28 s de
+    # vidéo pour 43 s de voix sans une seule erreur).
+    if (msg := coherence_duree.message_si_incoherent(
+        sum(p.duree_s for p in plans), sonder(sortie).duree_s, contexte="Montage",
+    )):
+        log.error("%s L'épisode livré est probablement tronqué.", msg)
 
     with db.connexion() as conn:
         conn.execute("UPDATE jobs SET statut = 'termine', maj_le = ? WHERE id = ?",

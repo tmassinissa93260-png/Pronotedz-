@@ -303,6 +303,35 @@ def test_une_image_effacee_est_refaite_et_pas_le_reste(atelier):
     assert second.video.exists()
 
 
+def test_une_voix_perimee_apres_reprise_est_detectee(atelier):
+    """Bug réel : un job repris peut relire des durées mises en cache
+    pendant qu'un fichier voix différent (donc plus ou moins long) traîne
+    au même endroit — l'épisode sortait tronqué, sans une seule erreur.
+    Imite ça : la piste est remplacée après coup, sans toucher aux durées
+    déjà enregistrées — exactement le désaccord qui a produit 28,1 s de
+    vidéo pour 42,7 s de voix."""
+    tmp_path, _ = atelier
+    episode, premier = _produire(atelier)
+
+    from pdz import db
+    with db.connexion() as conn:
+        ligne = conn.execute(
+            "SELECT resultat FROM etapes WHERE job_id = ? AND cle = 'voix'",
+            (premier.job_id,),
+        ).fetchone()
+    piste = Path(json.loads(ligne["resultat"])["fichier"])
+
+    subprocess.run(
+        ["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi",
+         "-i", "aevalsrc='0.3*sin(2*PI*160*t)':d=99:s=44100",
+         "-ac", "1", str(piste)],
+        check=True, timeout=60,
+    )
+
+    with pytest.raises(ErreurValidation, match="Voix"):
+        _produire(atelier, job_id=premier.job_id)
+
+
 # ── Sous-titres ──────────────────────────────────────────────────────────
 
 def test_les_sous_titres_sont_cales_sur_les_mots_reels(atelier):

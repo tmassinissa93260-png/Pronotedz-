@@ -119,7 +119,7 @@ def _empreinte(texte: str, voice_id: str, reglages: tuple) -> str:
     return hashlib.sha256(brut.encode()).hexdigest()[:20]
 
 
-def _duree_ms(fichier: Path) -> int:
+def duree_ms(fichier: Path) -> int:
     r = subprocess.run(
         ["ffprobe", "-v", "error", "-show_entries", "format=duration",
          "-of", "default=noprint_wrappers=1:nokey=1", str(fichier)],
@@ -191,7 +191,7 @@ def dire(repliques: list[dict], univers: Univers, sortie: Path, *,
         if cache and garde.exists():
             fichier = dossier / f"{r['numero']:03d}.mp3"
             fichier.write_bytes(garde.read_bytes())
-            duree = _duree_ms(fichier)
+            duree = duree_ms(fichier)
             # Le cache ne conserve pas l'alignement : on estime pour ce cas.
             mots = _repartir_faute_de_timings(texte, curseur_ms, duree)
             evites += len(texte)
@@ -204,7 +204,7 @@ def dire(repliques: list[dict], univers: Univers, sortie: Path, *,
                 style=perso.voix.style,
                 vitesse=perso.voix.vitesse,
             )
-            duree = _duree_ms(fichier)
+            duree = duree_ms(fichier)
             mots = (_decaler(mots_bruts, curseur_ms) if mots_bruts
                     else _repartir_faute_de_timings(texte, curseur_ms, duree))
             factures += len(texte)

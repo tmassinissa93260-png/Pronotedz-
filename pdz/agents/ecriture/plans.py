@@ -39,7 +39,7 @@ log = logging.getLogger(__name__)
 
 class ShotPromptWriter(Agent):
     nom = "shot_prompts"
-    version = "2.4.0"
+    version = "2.5.0"
     prompt_ref = "ecriture/plans"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
@@ -52,6 +52,11 @@ class ShotPromptWriter(Agent):
         scenes = indices_de_scene([p.decor for p in plans])
         return {
             "contexte_univers": univers.contexte_script(),
+            # En narration, personne n'est jamais montré à l'écran (voix off
+            # sur des images de ce dont elle parle) — voir la consigne dans
+            # plans@1.6.0.yaml. `univers.anime` distingue ce cas des séries à
+            # personnages, où un humain visible est au contraire attendu.
+            "anime": univers.anime,
             "plans": [
                 {
                     "numero": p.numero,
