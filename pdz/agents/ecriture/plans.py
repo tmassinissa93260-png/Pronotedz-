@@ -131,8 +131,12 @@ class ShotPromptWriter(Agent):
             prompt = fidelite_visuelle.exclure(
                 prompt, ecrit.get("elements_a_exclure", [])
             )
-            fusionnes.append(replace(p, action=prompt,
-                                     cadrage=ecrit.get("cadrage", p.cadrage)))
+            fusionnes.append(replace(
+                p, action=prompt, cadrage=ecrit.get("cadrage", p.cadrage),
+                elements_obligatoires=ecrit.get("elements_obligatoires", []),
+                elements_a_exclure=ecrit.get("elements_a_exclure", []),
+                corrections_fidelite=manquants,
+            ))
         if renforces:
             log.info("Fidélité visuelle : %d/%d plan(s) complété(s) après coup",
                      renforces, len(fusionnes))

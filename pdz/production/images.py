@@ -251,6 +251,22 @@ def _produire(prompt: str, destination: Path, *, univers: Univers,
     return cout, False
 
 
+def regenerer(prompt: str, destination: Path, *, univers: Univers,
+             reference: Path | None, profil: str, budget_restant_pct: float,
+             job_id: str | None) -> tuple[float, bool]:
+    """Regénère une image dont la QA visuelle a signalé un écart réel.
+
+    Jamais depuis le cache : le prompt vient d'être corrigé exprès pour
+    différer de celui qui a produit l'image jugée en écart — le cache est
+    keyé sur le texte du prompt, donc un prompt différent le manque de
+    toute façon, mais `cache=False` rend l'intention explicite plutôt que
+    de compter sur cet effet de bord.
+    """
+    return _produire(prompt, destination, univers=univers, reference=reference,
+                     profil=profil, budget_restant_pct=budget_restant_pct,
+                     cache=False, job_id=job_id)
+
+
 def fiches(univers: Univers, dossier: Path, *, profil: str = "equilibre",
            budget_restant_pct: float = 100.0, cache: bool = True,
            job_id: str | None = None,

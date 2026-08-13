@@ -16,7 +16,7 @@ Rappel de la distinction qui structure tout le projet :
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from pdz.moteur.erreurs import ErreurConfig
 from pdz.production.continuite import indices_de_scene
@@ -115,6 +115,20 @@ class PlanScript:
     # ShotPromptWriter, voir pdz/production/cadrage.py. Vide tant que cette
     # étape n'a pas encore enrichi le plan.
     cadrage: str = ""
+    # La checklist écrite par ShotPromptWriter pour ce plan précis : ce que
+    # l'image DOIT montrer, et ce qu'elle ne doit surtout PAS montrer — voir
+    # `pdz/production/fidelite_visuelle.py`. Sert à la fois à corriger le
+    # prompt texte et, pour les plans à risque, à vérifier l'image RÉELLEMENT
+    # produite (`pdz/production/qa_images.py`).
+    elements_obligatoires: list[str] = field(default_factory=list)
+    elements_a_exclure: list[str] = field(default_factory=list)
+    # Les éléments de `elements_obligatoires` que ShotPromptWriter avait
+    # d'abord OUBLIÉS dans son propre prompt, et que `fidelite_visuelle.
+    # renforcer()` a dû rajouter après coup. Vide dans le cas normal (le
+    # prompt les avait déjà). Non vide, c'est le signal qu'un plan mérite
+    # une vérification visuelle après génération — le modèle qui a déjà
+    # raté une fois est le plus probable à rater encore une fois.
+    corrections_fidelite: list[str] = field(default_factory=list)
 
     def en_dict(self) -> dict:
         """La forme attendue par `pdz.production.animation`."""
@@ -128,6 +142,9 @@ class PlanScript:
             "duree_s": self.duree_s,
             "fonction": self.fonction,
             "cadrage": self.cadrage,
+            "elements_obligatoires": self.elements_obligatoires,
+            "elements_a_exclure": self.elements_a_exclure,
+            "corrections_fidelite": self.corrections_fidelite,
         }
 
 

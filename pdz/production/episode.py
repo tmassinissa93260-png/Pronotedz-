@@ -67,7 +67,8 @@ from pdz.config import config
 from pdz.moteur.erreurs import ErreurConfig, ErreurPdz, ErreurValidation
 from pdz.moteur.pipeline import Contexte, executer_avec_relance
 from pdz.production import (
-    animation, coherence_duree, continuite, images, risque_prompt, storyboard, voix,
+    animation, coherence_duree, continuite, images, qa_images, risque_prompt,
+    storyboard, voix,
 )
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Univers
@@ -357,6 +358,10 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
         p for p in plans
         if risque_prompt.raisons_de_correction(p.action, visage_interdit=visage_interdit)
     ]
+    # Capturé AVANT la fusion ci-dessous, qui reconstruit `plans` : une
+    # réécriture de prompt par RealismWriter est un second endroit où un
+    # élément obligatoire peut disparaître — voir pdz/production/qa_images.py.
+    numeros_realisme = {p.numero for p in a_verifier}
     if not a_verifier:
         log.info("Réalisme : aucun plan à risque, étape sautée (0 appel IA)")
     else:
@@ -401,6 +406,35 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
             f"Le script a changé depuis : relance avec un nouveau job "
             f"(`pdz episode ...` sans --reprendre)."
         )
+
+    # ── 4b. Vérification visuelle ciblée ────────────────────────────────
+    # Vision, donc jamais gratuite — c'est pour ça qu'elle ne tourne QUE sur
+    # les plans qui ont déjà montré un signe de dérive côté texte (voir
+    # pdz/production/qa_images.py), jamais sur tous les plans, et jamais
+    # avant que l'image existe réellement.
+    numeros_qa = qa_images.plans_a_verifier(plans, numeros_realisme)
+    fait_qa = _fait(job_id, "qa_images")
+    if not numeros_qa:
+        log.info("QA image : aucun plan à risque, étape sautée (0 appel IA)")
+    elif fait_qa is None:
+        debut = time.perf_counter()
+        repliques_par_numero = {r["numero"]: r["replique"] for r in repliques}
+        verifications, fichiers, cout_qa = await qa_images.verifier(
+            plans, fichiers, numeros_qa, univers, dossier=travail / "images",
+            profil=profil, budget_restant=plafond - cout_total, job_id=job_id,
+            chemin_univers=chemin_univers, repliques_par_numero=repliques_par_numero,
+        )
+        _noter(job_id, "qa_images", "qa_image",
+               {"verifications": verifications, "fichiers": [str(f) for f in fichiers]},
+               cout_qa, int((time.perf_counter() - debut) * 1000))
+        cout_total += cout_qa
+        besoin_revue = [v["numero"] for v in verifications if v["statut"] == "NEEDS_REVIEW"]
+        if besoin_revue:
+            log.error("QA image : plan(s) %s toujours en écart après regénération "
+                     "— gardés tel quels, à revoir.", besoin_revue)
+    else:
+        repris.append("qa_images")
+        fichiers = [Path(f) for f in fait_qa["fichiers"]]
 
     # ── 5. Animation ─────────────────────────────────────────────────────
     fait_anim = _fait(job_id, "animation")

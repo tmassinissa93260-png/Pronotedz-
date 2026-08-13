@@ -66,11 +66,22 @@ def test_realisme_est_appele_quand_un_plan_decrit_un_risque(atelier, monkeypatch
                             for p in entrees["plans"]]}
         return self.apres(sortie, entrees, ctx)
 
+    async def qa_toujours_pass(self, entrees, ctx):
+        # Un plan passé par RealismWriter déclenche aussi la QA image (voir
+        # tests/test_qa_images_gating.py) — sans ce mock, ce test essaierait
+        # un vrai appel réseau.
+        ctx.facturer(0.0005)
+        return self.apres(
+            {"statut": "PASS", "manquants": [], "incorrects": [], "en_trop": []},
+            entrees, ctx,
+        )
+
     monkeypatch.setattr("pdz.agents.ecriture.realisme.RealismWriter.executer", compte)
     monkeypatch.setattr("pdz.agents.ecriture.plans.ShotPromptWriter.executer",
                         prompts_qui_gardent_laction)
     monkeypatch.setattr("pdz.agents.ecriture.script.ScriptWriter.executer",
                         _script_avec_action("phone screen showing a conversation visible"))
+    monkeypatch.setattr("pdz.agents.analyse.qa_image.ImageQA.executer", qa_toujours_pass)
 
     _, resultat = _produire(atelier)
 

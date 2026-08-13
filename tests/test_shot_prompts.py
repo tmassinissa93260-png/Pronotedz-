@@ -265,3 +265,34 @@ def test_fusionner_combine_renfort_et_exclusion():
     assert fusionnes[0].action == (
         "a generic glowing hologram, featuring submarine cable, no smartphone"
     )
+
+
+# ── Checklist persistée : QA image (pdz/production/qa_images.py) en a besoin ─
+
+def test_fusionner_garde_la_checklist_complete_sur_le_plan():
+    """`elements_obligatoires`/`elements_a_exclure` doivent survivre au-delà
+    de la fusion (pas seulement servir à corriger le texte du prompt) : la
+    QA image, plus tard dans le pipeline, doit encore savoir ce qui était
+    attendu sur CE plan précis."""
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "a wide shot of a city",
+        "elements_obligatoires": ["submarine cable", "city"],
+        "elements_a_exclure": ["smartphone"],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].elements_obligatoires == ["submarine cable", "city"]
+    assert fusionnes[0].elements_a_exclure == ["smartphone"]
+
+
+def test_fusionner_marque_corrections_fidelite_seulement_si_ca_a_manque():
+    plans = _plans(2)
+    sortie = {"plans": [
+        {"numero": 0, "prompt_image": "a submarine cable under the ocean",
+         "elements_obligatoires": ["submarine cable"]},
+        {"numero": 1, "prompt_image": "a generic glowing hologram",
+         "elements_obligatoires": ["submarine cable"]},
+    ]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].corrections_fidelite == []
+    assert fusionnes[1].corrections_fidelite == ["submarine cable"]
