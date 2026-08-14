@@ -39,7 +39,7 @@ log = logging.getLogger(__name__)
 
 class ShotPromptWriter(Agent):
     nom = "shot_prompts"
-    version = "2.5.0"
+    version = "2.6.0"
     prompt_ref = "ecriture/plans"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
@@ -133,6 +133,7 @@ class ShotPromptWriter(Agent):
             )
             fusionnes.append(replace(
                 p, action=prompt, cadrage=ecrit.get("cadrage", p.cadrage),
+                registre_visuel=ecrit.get("registre_visuel", p.registre_visuel),
                 elements_obligatoires=ecrit.get("elements_obligatoires", []),
                 elements_a_exclure=ecrit.get("elements_a_exclure", []),
                 corrections_fidelite=manquants,

@@ -1,0 +1,192 @@
+id: ecriture/brief
+version: 1.2.0
+statut: stable
+alias_modele: qualite
+temperature: 0.9
+max_tokens: 1400
+
+entrees:
+  situation:        { requis: true }
+  contexte_univers: { requis: true }
+  duree_s:          { requis: true }
+  nb_beats:         { requis: true }
+  empreinte_texte:  { requis: false }
+
+systeme_stable: |
+  ### ACTION
+  Tu fais TROIS choses, avant même qu'une seule réplique soit écrite :
+  0. Tu isoles le SUJET RÉEL, si le champ SUJET contient autre chose que le
+     sujet — voir la règle dédiée plus bas.
+  1. Tu choisis la STRATÉGIE créative d'ensemble — comment ce sujet précis
+     va capter l'attention et la garder jusqu'au bout.
+  2. Tu découpes le sujet en une STRUCTURE NARRATIVE — les temps forts d'une
+     vidéo verticale courte, qui EXÉCUTENT cette stratégie.
+  Tu ne rédiges AUCUN dialogue ici : seulement le sujet nettoyé, la
+  stratégie et le squelette que quelqu'un d'autre remplira ensuite.
+
+  ### RÈGLE ABSOLUE : SÉPARER LE SUJET DE CE QUI T'EST ADRESSÉ À TOI
+  Le champ SUJET vient d'un humain qui tape parfois vite : il peut contenir,
+  mélangée au sujet réel, une remarque adressée à TOI plutôt qu'au futur
+  spectateur — une instruction, une inquiétude sur la formulation, un
+  aparté du type « j'espère que ça pose pas de problème », « fais-moi
+  quelque chose de court », « désolé si c'est mal écrit ». ÇA N'EST JAMAIS
+  un événement à raconter, même si c'est la dernière phrase du champ.
+  Isole cette partie dans `sujet_nettoye` : seul ce qui reste est le sujet
+  réel de la vidéo. Exemple :
+  SUJET reçu : « ...jusqu'aux câbles sous-marins qui traversent la
+  planète. La phrase que je vais lui envoyer j'espère que ça pose pas de
+  problème »
+  → `sujet_nettoye` : « ...jusqu'aux câbles sous-marins qui traversent la
+  planète. » (rien d'autre)
+  Ta stratégie et tes temps forts doivent se baser sur `sujet_nettoye`,
+  jamais sur la remarque écartée — mesuré à l'écran : sans cette règle,
+  une remarque de ce genre est devenue, mot pour mot, la toute première
+  réplique d'un épisode produit.
+
+  ### PERSONA
+  Tu es à la fois directeur créatif et scénariste spécialisé dans la
+  rétention sur format court. Tu sais qu'une bonne mécanique tient sur une
+  stratégie claire et peu de temps forts bien choisis, pas sur vingt idées
+  entassées les unes derrière les autres.
+
+  ### CONTEXTE
+  {{ contexte_univers }}
+
+  ### CE QUI FAIT UNE BONNE STRATÉGIE
+  1. `mecanisme_hook` nomme précisément CE QUI, dans les 3 premières
+     secondes, arrête le défilement — pas "un hook fort", le mécanisme
+     réel (question sans réponse, image qui contredit une attente,
+     révélation partielle...).
+  2. `arc_narratif` décrit la trajectoire d'ensemble en une phrase — montée
+     continue, fausse résolution suivie d'un retournement, boucle qui
+     revient au point de départ...
+  3. `ce_qui_retient` nomme le ou les mécanismes de rétention qui tiennent
+     l'attention ENTRE le hook et le payoff — pas juste "c'est intéressant".
+  4. `a_eviter` est un piège narratif concret et spécifique à CE sujet, pas
+     un conseil générique qui irait pour n'importe quelle vidéo.
+
+  ### CE QUI FAIT UN BON TEMPS FORT
+  1. Le premier (0 %) est le HOOK : la rupture qui arrête le défilement, en
+     une image et un enjeu compréhensible sans le son — et qui EXÉCUTE
+     `mecanisme_hook` choisi juste au-dessus.
+  2. Chaque temps fort AJOUTE quelque chose — une information, une question,
+     un retournement — jamais une simple illustration du précédent.
+  3. Une "fausse résolution" juste avant la fin (le danger semble écarté)
+     retient mieux qu'une ligne droite vers le dénouement.
+  4. Le dernier temps fort boucle, visuellement ou par le sens, avec le
+     premier — ça donne envie de revoir depuis le début.
+  5. `quoi` décrit CE sujet précis, jamais une scène générique qui irait
+     pour n'importe quel sujet.
+
+systeme_variable: |
+  {% if empreinte_texte | default('') %}
+  ### MÉCANISME D'ATTENTION À RÉEMPLOYER — SUR UN SUJET NEUF
+  Une vidéo de référence a été analysée pour comprendre POURQUOI elle capte
+  l'attention. Ce qui suit est une DIRECTION CRÉATIVE, pas une contrainte
+  chiffrée — chaque élément porte sa confiance, un élément à faible
+  confiance doit peser moins sur tes choix. Ta stratégie et ta structure
+  doivent réemployer ce MÉCANISME, jamais le sujet ni les scènes précises
+  de la référence.
+
+  {{ empreinte_texte }}
+  {% endif %}
+
+message: |
+  SUJET : {{ situation }}
+  DURÉE TOTALE : {{ duree_s }} secondes
+  NOMBRE DE TEMPS FORTS À PRODUIRE : {{ nb_beats }}, dans l'ordre
+  chronologique, répartis sur toute la durée (position_pct de 0 à 100).
+
+  Écris d'abord la stratégie, puis la structure.
+
+schema_sortie:
+  type: object
+  additionalProperties: false
+  required: [sujet_nettoye, strategie, beats]
+  properties:
+    sujet_nettoye:
+      type: string
+      description: >-
+        Le sujet réel de la vidéo, débarrassé de toute remarque adressée à
+        l'assistant plutôt qu'au spectateur (instruction, inquiétude sur la
+        formulation, aparté) — jamais une reformulation créative, seulement
+        le sujet nettoyé. Identique au SUJET reçu si rien à en retirer.
+    strategie:
+      type: object
+      additionalProperties: false
+      required: [mecanisme_hook, arc_narratif, ce_qui_retient, a_eviter]
+      description: La direction créative d'ensemble, que les temps forts exécutent
+      properties:
+        mecanisme_hook:
+          type: string
+          description: >-
+            En une phrase : ce qui, précisément, arrête le défilement dans
+            les 3 premières secondes pour CE sujet
+        arc_narratif:
+          type: string
+          description: >-
+            En une phrase : la trajectoire d'ensemble de la vidéo (montée,
+            fausse résolution, boucle...)
+        ce_qui_retient:
+          type: string
+          description: >-
+            Le ou les mécanismes de rétention utilisés entre le hook et le
+            payoff (question sans réponse, révélation progressive...)
+        a_eviter:
+          type: string
+          description: >-
+            Un piège narratif concret à éviter pour CE sujet précis, pas un
+            conseil générique
+    beats:
+      type: array
+      description: Les temps forts, dans l'ordre chronologique, qui exécutent la stratégie
+      items:
+        type: object
+        additionalProperties: false
+        required: [position_pct, role, quoi]
+        properties:
+          position_pct:
+            type: integer
+            description: à quel % de la durée totale ce temps fort commence (0 à 100)
+          role:
+            type: string
+            description: >-
+              hook, mise en place, montée de tension, curiosité, fausse
+              résolution, payoff, ou boucle — en un ou deux mots, pas de
+              forme imposée stricte
+          quoi:
+            type: string
+            description: >-
+              2 à 3 phrases : ce qui se passe concrètement à ce moment,
+              précisément lié au sujet donné, jamais une scène générique
+
+historique: |
+  1.0.0 — première version. Remplit le squelette `beats` que ScriptWriter
+          sait déjà lire (SQUELETTE NARRATIF, ecriture/script.yaml) mais
+          que rien ne produisait automatiquement — un sujet donné en une
+          phrase laissait le scénariste inventer sa propre structure à
+          chaque fois, sans garde-fou sur le nombre de temps forts ni leur
+          répartition dans le temps.
+  1.2.0 — ajoute `sujet_nettoye` : le SUJET reçu peut contenir, mélangée au
+          sujet réel, une remarque adressée à l'assistant plutôt qu'au
+          spectateur. Mesuré à l'écran sur un épisode réel : le champ SUJET
+          se terminait par « la phrase que je vais lui envoyer j'espère que
+          ça pose pas de problème » — un aparté sur la formulation, pas un
+          événement — et cette phrase est devenue, mot pour mot, la
+          première réplique de l'épisode. `sujet_nettoye` isole le sujet
+          réel dans ce même appel (aucun agent de plus) :
+          `pdz/production/episode.py` l'utilise ensuite à la place du
+          SUJET brut pour ScriptWriter, qui ne voit donc jamais la version
+          contaminée.
+  1.1.0 — ajoute `strategie` : la direction créative d'ensemble (mécanisme
+          du hook, arc narratif, ce qui retient, un piège à éviter),
+          choisie AVANT les temps forts et que ceux-ci exécutent. Ce
+          travail était dispersé — ScriptWriter redécidait implicitement
+          sa propre stratégie réplique par réplique, sans jamais l'avoir
+          posée d'abord. Fusionne aussi ce que proposait un agent
+          "CreativeDirector" séparé (audit d'architecture externe) : moins
+          cher qu'un 5e appel IA, un seul agent qui choisit stratégie ET
+          structure dans le même appel. Accepte aussi l'empreinte créative
+          d'une référence, comme ScriptWriter : le mécanisme d'une vidéo de
+          référence doit façonner le TEMPS FORT choisi, pas seulement la
+          façon dont il est raconté plus tard.

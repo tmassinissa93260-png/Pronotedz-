@@ -35,3 +35,37 @@ def test_le_message_rapporte_lecart_absolu_quel_que_soit_le_sens():
 
 def test_ecart_est_toujours_positif():
     assert coherence_duree.ecart(10.0, 8.0) == coherence_duree.ecart(8.0, 10.0) == 2.0
+
+
+# ── Vidéo finale : flux vidéo et flux audio comparés séparément ──────────
+# Jamais `format.duration` — voir pdz/analyse/sonde.py et le bug réel :
+# un fichier où la vidéo s'arrête avant l'audio fait quand même remonter
+# `format.duration` = la durée de l'audio (le flux le plus long).
+
+def test_video_et_audio_coherents_ne_declenchent_rien():
+    assert coherence_duree.message_si_video_finale_incoherente(
+        28.5, video_s=28.5, audio_s=28.5,
+    ) is None
+
+
+def test_une_video_trop_courte_declenche_un_message():
+    msg = coherence_duree.message_si_video_finale_incoherente(
+        28.5, video_s=24.1, audio_s=28.58,
+    )
+    assert msg is not None
+    assert "trop courte" in msg
+
+
+def test_un_audio_plus_long_que_la_video_declenche_un_message():
+    msg = coherence_duree.message_si_video_finale_incoherente(
+        28.5, video_s=24.1, audio_s=28.58,
+    )
+    assert msg is not None
+
+
+def test_une_video_plus_longue_que_lattendu_ne_declenche_rien():
+    """Seule une vidéo trop COURTE ou un audio qui la dépasse comptent —
+    une vidéo plus longue que prévu n'est pas le défaut visé ici."""
+    assert coherence_duree.message_si_video_finale_incoherente(
+        20.0, video_s=25.0, audio_s=20.0,
+    ) is None

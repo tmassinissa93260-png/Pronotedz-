@@ -235,6 +235,12 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
             brief = fait_brief
         beats = brief["beats"]
         strategie = brief.get("strategie")
+        # Le SUJET reçu peut mélanger le sujet réel à une remarque adressée
+        # à l'assistant plutôt qu'au spectateur (voir ecriture/brief@1.2.0) —
+        # ScriptWriter ne doit plus jamais voir la version brute une fois
+        # BriefWriter l'a nettoyée. `.get` : un job en cache d'avant 1.2.0
+        # n'a pas ce champ, se reprend sur le SUJET brut comme avant.
+        situation = brief.get("sujet_nettoye") or situation
 
     # ── 1b. Script ───────────────────────────────────────────────────────
     script = _fait(job_id, "script")
@@ -479,16 +485,22 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     montage.rendre(sortie)
     log.info("Montage rendu en %.1f s", time.perf_counter() - debut)
 
-    # Dernier filet, après coup : un clip animé plus court que prévu ou un
-    # souci ffmpeg peut raccourcir la vidéo sans que rien d'autre ne le
-    # voie. L'épisode est déjà payé — on ne le jette pas pour ça — mais un
-    # écart doit être IMPOSSIBLE à manquer dans les journaux (voir
-    # pdz/production/coherence_duree.py, et le run qui a produit 28 s de
-    # vidéo pour 43 s de voix sans une seule erreur).
-    if (msg := coherence_duree.message_si_incoherent(
-        sum(p.duree_s for p in plans), sonder(sortie).duree_s, contexte="Montage",
+    # Dernier filet, après coup : un souci ffmpeg imprévu peut encore
+    # raccourcir la vidéo sans que rien d'autre ne le voie (l'animation
+    # elle-même est déjà protégée, voir pdz/production/animation.py). Une
+    # vidéo ne doit JAMAIS être livrée avec plusieurs secondes de narration
+    # sans image — voir pdz/production/coherence_duree.py, et le run qui a
+    # produit 24 s de vidéo pour 28,5 s de voix sans une seule erreur, parce
+    # que la vérification lisait `format.duration` (la durée du flux le plus
+    # LONG, ici l'audio) au lieu de la durée réelle du flux vidéo.
+    meta = sonder(sortie)
+    if (msg := coherence_duree.message_si_video_finale_incoherente(
+        sum(p.duree_s for p in plans), meta.duree_s, meta.duree_audio_s,
     )):
-        log.error("%s L'épisode livré est probablement tronqué.", msg)
+        raise ErreurValidation(
+            f"{msg} L'épisode ne peut pas être livré dans cet état — "
+            f"relance avec `pdz reprendre {job_id}`."
+        )
 
     with db.connexion() as conn:
         conn.execute("UPDATE jobs SET statut = 'termine', maj_le = ? WHERE id = ?",

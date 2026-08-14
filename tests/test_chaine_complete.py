@@ -60,6 +60,7 @@ def atelier(tmp_path, monkeypatch):
     async def faux_brief(self, entrees, ctx):
         ctx.facturer(0.001)
         sortie = {
+            "sujet_nettoye": entrees["situation"],
             "strategie": {
                 "mecanisme_hook": "une accusation lancée sans prévenir",
                 "arc_narratif": "montée continue jusqu'à la rupture",
@@ -171,6 +172,7 @@ def _produire(atelier, **surcharges):
         perso.voix.voice_id = f"voix_{perso.id}"
 
     sortie = tmp_path / "episode.mp4"
+    situation = surcharges.pop("situation", "une élimination qui tourne mal")
     # 12 s : la durée que SCRIPT_FACTICE tient réellement (27 mots ≈ 10 s à
     # voix haute). Viser les 45 s de l'univers ferait produire un épisode
     # deux fois trop court — ce que l'agent d'écriture refuse désormais, à
@@ -178,7 +180,7 @@ def _produire(atelier, **surcharges):
     options = dict(profil="economique", avec_animation=False, duree_s=12)
     options.update(surcharges)
     return episode, asyncio.run(episode.produire(
-        univers, "une élimination qui tourne mal", sortie, **options
+        univers, situation, sortie, **options
     ))
 
 
@@ -330,6 +332,26 @@ def test_une_voix_perimee_apres_reprise_est_detectee(atelier):
 
     with pytest.raises(ErreurValidation, match="Voix"):
         _produire(atelier, job_id=premier.job_id)
+
+
+def test_une_video_finale_tronquee_est_refusee(atelier, monkeypatch):
+    """Bug réel : 24,1 s de vidéo pour 28,58 s de voix, livrées sans une
+    seule erreur — le garde-fou d'alors comparait `format.duration` (la
+    durée du flux le plus long, ici l'audio) au lieu de la durée réelle du
+    flux vidéo. Ici, `sonder()` est simulé pour renvoyer exactement cette
+    forme, et la production doit être refusée plutôt que livrée."""
+    from pdz.analyse.sonde import Metadonnees
+    from pdz.production import episode as episode_module
+
+    def fausse_sonde(chemin):
+        return Metadonnees(duree_s=8.0, largeur=1080, hauteur=1920, fps=30.0,
+                           a_du_son=True, codec="h264", octets=1000,
+                           duree_audio_s=12.0)
+
+    monkeypatch.setattr(episode_module, "sonder", fausse_sonde)
+
+    with pytest.raises(ErreurValidation, match="trop courte"):
+        _produire(atelier)
 
 
 # ── Sous-titres ──────────────────────────────────────────────────────────

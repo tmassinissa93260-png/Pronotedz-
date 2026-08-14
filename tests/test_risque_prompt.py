@@ -7,6 +7,8 @@ déclencher sur un mot isolé anodin.
 
 from __future__ import annotations
 
+import pytest
+
 from pdz.production import risque_prompt
 
 
@@ -105,3 +107,59 @@ def test_homme_en_francais_declenche_aussi_le_risque():
         "un homme se dresse au milieu du réseau numérique", visage_interdit=True,
     )
     assert "visage" in raisons
+
+
+# ── HUMAN_PRESENCE_RISK : mains, doigts, bras — pas seulement un visage ──
+
+def test_un_doigt_qui_touche_lecran_declenche_le_risque():
+    """Bug réel (épisode #56) : « a finger touches an icon » a produit une
+    main photoréaliste à peau colorée, sur fond chaud — sans jamais dire
+    « man », « woman » ni « face »."""
+    raisons = risque_prompt.raisons_de_correction(
+        "a finger touches an icon on the screen", visage_interdit=True,
+    )
+    assert "visage" in raisons
+
+
+def test_une_main_ne_declenche_rien_si_lunivers_autorise_les_humains():
+    raisons = risque_prompt.raisons_de_correction(
+        "a hand touches an icon on the screen", visage_interdit=False,
+    )
+    assert "visage" not in raisons
+
+
+@pytest.mark.parametrize("mot", ["hand", "fingers", "arm", "wrist", "skin", "palm"])
+def test_chaque_mot_de_presence_humaine_declenche_le_risque(mot):
+    raisons = risque_prompt.raisons_de_correction(
+        f"a close-up of a {mot} reaching toward the light", visage_interdit=True,
+    )
+    assert "visage" in raisons
+
+
+# ── SCREEN_TEXT_RISK : formulations indirectes qui produisent du faux texte ─
+
+def test_un_digital_readout_declenche_le_risque_texte():
+    raisons = risque_prompt.raisons_de_correction(
+        "a wide shot with a digital readout in the corner", visage_interdit=True,
+    )
+    assert "texte lisible" in raisons
+
+
+def test_une_legende_de_carte_declenche_le_risque_texte():
+    """Bug réel (épisode #56) : une carte des câbles sous-marins avec sa
+    légende cartographique a produit du texte illisible partout."""
+    raisons = risque_prompt.raisons_de_correction(
+        "a realistic map of undersea cables with a map legend", visage_interdit=True,
+    )
+    assert "texte lisible" in raisons
+
+
+def test_un_flux_de_donnees_abstrait_ne_declenche_rien():
+    """« data stream » seul reste un motif visuel central de cet univers —
+    trop générique pour être un risque de texte, sinon presque tous les
+    plans déclencheraient RealismWriter."""
+    raisons = risque_prompt.raisons_de_correction(
+        "an abstract stream of glowing data particles flowing through the dark",
+        visage_interdit=True,
+    )
+    assert "texte lisible" not in raisons

@@ -30,6 +30,19 @@ MOTIFS_TEXTE_LISIBLE = [
     r"\bscreen (showing|displaying)\b", r"\bwritten text\b", r"\btext on screen\b",
     r"\bvisible text\b", r"\bnotification (affich[ée]e|visible)\b",
     r"\btexte (pr[ée]cis|exact) à l'écran\b",
+    # Élargi (mesuré à l'écran, techno-holo) : ces formulations INDIRECTES
+    # produisent le même faux texte/chiffres illisibles qu'un écran
+    # affichant un message, sans jamais dire « texte » ou « écran affichant »
+    # explicitement — une carte avec sa légende, une interface système, un
+    # « digital readout ». Volontairement PAS de motif sur « data stream »
+    # seul : trop générique dans cet univers (un flux lumineux abstrait n'a
+    # rien d'un risque de texte), ça ferait déclencher presque tous les plans.
+    r"\bdigital readout\b", r"\bscrolling code\b", r"\bsystem interface\b",
+    r"\bdisplayed information\b", r"\btechnical labels?\b", r"\bmap legend\b",
+    r"\blegend\b", r"\bdatabase interface\b", r"\b(visible|displayed) numbers\b",
+    r"\bl[ée]gende( (cartographique|de carte))?\b", r"\binterface syst[èe]me\b",
+    r"\blecture num[ée]rique\b", r"\bcode d[ée]filant\b",
+    r"\binformations? affich[ée]es?\b", r"\b[ée]tiquettes? techniques?\b",
 ]
 MOTIFS_LOGO = [
     r"\blogo\b", r"\bmarque déposée\b", r"\bbrand(ing)?\b", r"\bwordmark\b",
@@ -40,13 +53,21 @@ MOTIFS_LOGO = [
 # l'univers (« no human faces ») ne suffit pas à l'arrêter. Se limiter aux
 # formulations qui nomment explicitement un visage détaillé manquait donc
 # la vraie source du risque : toute présence humaine décrite suffit à en
-# produire un.
+# produire un — pas seulement un visage. Mesuré une deuxième fois : « a
+# finger touches an icon » a produit une main photoréaliste à peau colorée,
+# sur fond chaud — ni « man », ni « woman », ni « face » n'y figuraient.
+# HUMAN_PRESENCE_RISK, pas seulement un risque de visage.
 MOTIFS_VISAGE = [
     r"\bvisage (net|d[ée]taill[ée]|reconnaissable)\b",
     r"\bface (close-?up|detailed)\b", r"\bfacial features\b", r"\bportrait\b",
-    r"\bman\b", r"\bwoman\b", r"\bperson\b", r"\bhuman figure\b",
+    r"\bman\b", r"\bwoman\b", r"\bperson\b", r"\bhuman\b", r"\bhuman figure\b",
     r"\bhis face\b", r"\bher face\b", r"\bhomme\b", r"\bfemme\b",
     r"\bfigure humaine\b", r"\bpersonnage humain\b",
+    r"\bhand\b", r"\bhands\b", r"\bfinger\b", r"\bfingers\b",
+    r"\barm\b", r"\barms\b", r"\bpalm\b", r"\bwrist\b", r"\bskin\b",
+    r"\bhead\b", r"\bbody\b", r"\bsilhouette\b",
+    r"\bmain\b", r"\bmains\b", r"\bdoigt\b", r"\bdoigts\b",
+    r"\bbras\b", r"\bpaume\b", r"\bpoignet\b", r"\bpeau\b",
 ]
 
 

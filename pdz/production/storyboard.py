@@ -115,6 +115,14 @@ class PlanScript:
     # ShotPromptWriter, voir pdz/production/cadrage.py. Vide tant que cette
     # étape n'a pas encore enrichi le plan.
     cadrage: str = ""
+    # Le registre visuel imposé pour CE plan (ex: « abstract wireframe
+    # visualization, not a realistic map »). Distinct de `cadrage` : le
+    # cadrage dit COMMENT filmer, le registre dit à quel VOCABULAIRE visuel
+    # appartient l'image — mesuré à l'écran : un objet présent dans le
+    # prompt (« océans ») n'empêche pas Flux de choisir un registre entier
+    # différent (carte géographique réaliste au lieu d'un wireframe
+    # abstrait). Voir pdz/production/images.py::prompt_plan().
+    registre_visuel: str = ""
     # La checklist écrite par ShotPromptWriter pour ce plan précis : ce que
     # l'image DOIT montrer, et ce qu'elle ne doit surtout PAS montrer — voir
     # `pdz/production/fidelite_visuelle.py`. Sert à la fois à corriger le
@@ -142,6 +150,7 @@ class PlanScript:
             "duree_s": self.duree_s,
             "fonction": self.fonction,
             "cadrage": self.cadrage,
+            "registre_visuel": self.registre_visuel,
             "elements_obligatoires": self.elements_obligatoires,
             "elements_a_exclure": self.elements_a_exclure,
             "corrections_fidelite": self.corrections_fidelite,

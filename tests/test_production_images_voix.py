@@ -409,6 +409,44 @@ def test_le_cadrage_passe_avant_le_decor_et_le_style():
     assert prompt.index("wide shot") < prompt.index(u.style.rendu[:12])
 
 
+# ── registre_visuel : présence d'un objet ≠ bon registre visuel ──────────
+
+def test_le_registre_visuel_sajoute_au_prompt():
+    """Bug réel : un plan contenait bien « océans » et le générateur a
+    quand même produit une carte géographique réaliste — le registre visuel
+    doit être imposé explicitement, pas seulement les objets."""
+    u = Univers.charger(FRUITS)
+    perso = u.personnages[0]
+    sans = images.prompt_plan(perso, u, action="un câble sous-marin")
+    avec = images.prompt_plan(
+        perso, u, action="un câble sous-marin",
+        registre_visuel="abstract wireframe visualization, not a realistic map",
+    )
+    assert sans != avec
+    assert "not a realistic map" in avec
+
+
+def test_un_registre_visuel_vide_najoute_rien():
+    """Non-régression : un job en cache d'avant plans@1.7.0 n'a pas ce
+    champ — ne doit pas planter ni ajouter de texte parasite."""
+    u = Univers.charger(FRUITS)
+    perso = u.personnages[0]
+    sans = images.prompt_plan(perso, u, action="elle observe la pièce")
+    avec = images.prompt_plan(perso, u, action="elle observe la pièce", registre_visuel="")
+    assert sans == avec
+
+
+def test_le_registre_visuel_passe_avant_le_decor_et_le_style():
+    u = Univers.charger(FRUITS)
+    perso = u.personnages[0]
+    prompt = images.prompt_plan(
+        perso, u, action="elle observe la pièce", decor="ceremonie",
+        registre_visuel="cinematic hand-drawn illustration",
+    )
+    assert prompt.index("cinematic hand-drawn") < prompt.index(u.decor("ceremonie").description[:12])
+    assert prompt.index("cinematic hand-drawn") < prompt.index(u.style.rendu[:12])
+
+
 def test_la_fiche_de_personnage_est_neutre():
     """Une fiche prise en scène transmettrait ce décor à tous les plans."""
     u = Univers.charger(FRUITS)
@@ -598,6 +636,73 @@ def test_un_echec_total_danimation_est_crie_pas_chuchote(monkeypatch, caplog,
     assert any(e.levelno >= logging.ERROR for e in caplog.records), \
         "un échec total d'animation doit remonter en ERROR"
     assert "AUCUN plan animé" in caplog.text
+
+
+def test_un_clip_plus_court_que_prevu_retombe_sur_une_image_fixe(monkeypatch, tmp_path):
+    """Bug réel (audit de l'épisode #56) : un fournisseur peut rendre un
+    clip plus court que la durée allouée au plan. Le montage ne peut pas
+    RALLONGER un clip trop court (`trim=duration=...` ne fait que couper) —
+    laisser passer ça tronque la vidéo finale, silencieusement. Ici : 6 s
+    demandées, 4 s rendues → repli sur image fixe, jamais le clip court."""
+    import subprocess
+
+    def _clip_trop_court(image, prompt, destination, *, duree_s, **k):
+        subprocess.run([
+            "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+            "-f", "lavfi", "-t", "4", "-i", "color=c=blue:s=320x240:r=25",
+            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+            str(destination),
+        ], check=True, capture_output=True)
+        return destination, 0.23
+
+    monkeypatch.setattr(animation.fal, "animer_image", _clip_trop_court)
+
+    u = Univers.charger(FRUITS)
+    p = tmp_path / "p0.jpg"
+    Image.new("RGB", (64, 64), (10, 60, 90)).save(p)
+    plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
+             "emotion": "colere", "duree_s": 6.0}]
+
+    resultats = animation.animer(
+        plans, [p], u, tmp_path / "anim", budget_restant=100.0,
+        profil="equilibre", vie_pour_le_reste=False,
+    )
+
+    assert resultats[0].methode != "modele", (
+        "un clip plus court que la durée allouée ne doit jamais être gardé "
+        "tel quel — le montage le tronquerait"
+    )
+
+
+def test_un_clip_assez_long_est_garde(monkeypatch, tmp_path):
+    """Non-régression : un clip qui couvre bien la durée demandée doit
+    toujours être accepté normalement."""
+    import subprocess
+
+    def _clip_ok(image, prompt, destination, *, duree_s, **k):
+        subprocess.run([
+            "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+            "-f", "lavfi", "-t", "5", "-i", "color=c=blue:s=320x240:r=25",
+            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+            str(destination),
+        ], check=True, capture_output=True)
+        return destination, 0.23
+
+    monkeypatch.setattr(animation.fal, "animer_image", _clip_ok)
+
+    u = Univers.charger(FRUITS)
+    p = tmp_path / "p0.jpg"
+    Image.new("RGB", (64, 64), (10, 60, 90)).save(p)
+    plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
+             "emotion": "colere", "duree_s": 4.7}]
+
+    resultats = animation.animer(
+        plans, [p], u, tmp_path / "anim", budget_restant=100.0,
+        profil="equilibre", vie_pour_le_reste=False,
+    )
+
+    assert resultats[0].methode == "modele"
+    assert resultats[0].anime is True
 
 
 def test_lepisode_annonce_combien_de_plans_sont_animes():

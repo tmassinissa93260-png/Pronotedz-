@@ -190,6 +190,25 @@ def test_fusionner_sans_cadrage_garde_celui_dorigine():
     assert fusionnes[0].cadrage == ""
 
 
+def test_fusionner_reprend_aussi_le_registre_visuel():
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "x",
+        "registre_visuel": "abstract wireframe, not a realistic map",
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].registre_visuel == "abstract wireframe, not a realistic map"
+
+
+def test_fusionner_sans_registre_visuel_garde_celui_dorigine():
+    """Non-régression : un job en cache d'avant plans@1.7.0 n'a pas de
+    `registre_visuel` dans sa sortie stockée — ne doit pas planter."""
+    plans = _plans(1)
+    sortie = {"plans": [{"numero": 0, "prompt_image": "x"}]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].registre_visuel == ""
+
+
 def test_apres_ne_leve_jamais_pour_un_cadrage_repete(caplog):
     """Diagnostic seulement (voir cadrage.py) : deux plans consécutifs avec
     le même cadrage ne doivent jamais faire échouer la validation — ça

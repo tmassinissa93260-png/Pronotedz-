@@ -28,6 +28,7 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
+from pdz.analyse.sonde import sonder
 from pdz.ia import fal
 from pdz.ia.registre import registre
 from pdz.moteur.erreurs import ErreurPdz
@@ -38,6 +39,11 @@ log = logging.getLogger(__name__)
 # Durée d'un clip animé. Les modèles image→vidéo facturent à la seconde et
 # n'acceptent en général que 5 ou 10 s ; 5 s couvre déjà deux plans montés.
 DUREE_CLIP_S = 5
+
+# Marge sous laquelle un clip rendu plus court que la durée allouée est
+# encore acceptable (arrondis d'encodage). Au-delà, le montage tronquerait
+# la vidéo pour ce plan — voir la mesure en production dans `animer()`.
+TOLERANCE_DUREE_S = 0.3
 
 # Les émotions qui gagnent le plus à bouger. Une colère figée est une image
 # ratée ; un personnage calme figé passe très bien.
@@ -198,6 +204,24 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
                 continue
 
             depense += cout
+            duree_requise = float(plan.get("duree_s") or 0)
+            duree_reelle = sonder(destination).duree_s
+            if duree_reelle < duree_requise - TOLERANCE_DUREE_S:
+                # Le fournisseur a rendu un clip plus court que la durée
+                # allouée. `trim=duration=...` au montage ne peut pas
+                # RALLONGER un clip trop court — laisser passer ça produit
+                # une vidéo dont la piste vidéo s'arrête avant la voix.
+                # Mesuré en production : 4,5 s de narration sans image, sur
+                # exactement ce plan. L'argent est déjà dépensé (`depense`
+                # le garde) ; on ne perd que le clip, pas l'épisode.
+                log.warning(
+                    "Plan %d : clip animé trop court (%.2f s pour %.2f s "
+                    "requis) — le montage l'aurait tronqué. Repli sur une "
+                    "image fixe pour ce plan.", i, duree_reelle, duree_requise,
+                )
+                resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
+                                        duree_clip_s))
+                continue
             resultats.append(PlanAnime(i, destination, True, "modele", cout))
         else:
             resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,

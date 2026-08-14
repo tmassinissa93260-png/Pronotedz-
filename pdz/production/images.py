@@ -108,7 +108,8 @@ def prompt_fiche(personnage: Personnage, univers: Univers) -> str:
 def prompt_plan(personnage: Personnage, univers: Univers, *,
                 action: str, emotion: str = "calme",
                 decor: str = "", consignes: list[str] | None = None,
-                fonction: str = "", cadrage: str = "") -> str:
+                fonction: str = "", cadrage: str = "",
+                registre_visuel: str = "") -> str:
     """Le prompt d'un plan : qui, faisant quoi, où, avec quelle tête.
 
     L'ordre n'est pas indifférent. Les modèles d'image donnent plus de poids
@@ -135,6 +136,15 @@ def prompt_plan(personnage: Personnage, univers: Univers, *,
     cadrage en prose dans `action`, mais rien ne garantissait qu'un
     mot-clé de cadrage fiable atteigne vraiment le modèle d'image ; cette
     formule le garantit en plus du texte libre, sans jamais le remplacer.
+
+    `registre_visuel` (écrit par ShotPromptWriter, voir plans@1.7.0) répond
+    à un problème différent de `cadrage` : la PRÉSENCE d'un objet dans le
+    prompt ne garantit pas le bon REGISTRE visuel. Mesuré à l'écran : un
+    prompt sur des câbles sous-marins contenait bien le mot « océans », et
+    Flux a quand même produit une carte géographique réaliste en couleur —
+    pas une scène wireframe. Ajouter l'objet manquant ne change rien au
+    registre choisi par le modèle ; il faut l'imposer explicitement, tout
+    aussi tôt que le cadrage.
     """
     if not univers.anime:
         morceaux = [action.strip()]
@@ -147,6 +157,9 @@ def prompt_plan(personnage: Personnage, univers: Univers, *,
 
     if phrase := phrase_de_cadrage(cadrage):
         morceaux.append(phrase)
+
+    if registre_visuel.strip():
+        morceaux.append(registre_visuel.strip())
 
     if fonction.strip():
         morceaux.append(f"shot chosen to: {fonction.strip()}")
@@ -357,7 +370,8 @@ def fabriquer(plans: list[PlanScript], univers: Univers, dossier: Path, *,
         prompt = prompt_plan(perso, univers, action=plan.action,
                              emotion=plan.emotion, decor=plan.decor,
                              consignes=consignes, fonction=plan.fonction,
-                             cadrage=plan.cadrage)
+                             cadrage=plan.cadrage,
+                             registre_visuel=plan.registre_visuel)
         destination = dossier / f"plan_{plan.numero:03d}.jpg"
         reste_pct = max(0.0, (plafond - planche.cout) / max(1e-6, plafond) * 100)
 

@@ -35,7 +35,7 @@ from pdz.univers import Univers
 
 class BriefWriter(Agent):
     nom = "brief"
-    version = "1.1.0"
+    version = "1.2.0"
     prompt_ref = "ecriture/brief"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
@@ -64,6 +64,12 @@ class BriefWriter(Agent):
         return schema
 
     def apres(self, sortie: dict, entrees: dict, ctx: Contexte) -> dict:
+        if not (sortie.get("sujet_nettoye") or "").strip():
+            raise ErreurValidation(
+                "`sujet_nettoye` est vide : redonne le sujet réel, même "
+                "identique au SUJET reçu s'il n'y avait rien à en retirer."
+            )
+
         beats = sortie.get("beats", [])
         if not beats:
             raise ErreurValidation("Brief vide : aucun temps fort produit.")

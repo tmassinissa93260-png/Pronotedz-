@@ -19,6 +19,9 @@ class Metadonnees:
     a_du_son: bool
     codec: str
     octets: int
+    # La durée du flux AUDIO, séparément de `duree_s` (qui est celle du
+    # flux VIDÉO — voir sa docstring). 0.0 si `a_du_son` est faux.
+    duree_audio_s: float = 0.0
 
     @property
     def ratio(self) -> str:
@@ -56,16 +59,30 @@ def sonder(chemin: Path) -> Metadonnees:
     video = next((s for s in flux if s.get("codec_type") == "video"), None)
     if video is None:
         raise ErreurPdz(f"Aucune piste vidéo dans {Path(chemin).name}.")
+    audio = next((s for s in flux if s.get("codec_type") == "audio"), None)
 
     num, _, den = (video.get("r_frame_rate") or "0/1").partition("/")
     fps = float(num) / float(den or 1) if float(den or 1) else 0.0
 
+    # ⚠️ La durée du FLUX VIDÉO, pas `format.duration` (la durée du
+    # conteneur). Mesuré en production : sur un fichier où la piste vidéo
+    # s'arrête avant la piste audio (un clip animé plus court que prévu),
+    # `format.duration` rapporte quand même la durée de l'audio, le flux le
+    # plus long — un garde-fou qui comparait à `format.duration` n'a donc
+    # rien vu, alors que la vidéo était réellement tronquée de 4,5 s. Le
+    # flux vidéo, lui, rapporte sa propre durée correctement.
+    duree_video = video.get("duration")
+    duree_s = (round(float(duree_video), 2) if duree_video is not None
+              else round(float(d.get("format", {}).get("duration", 0)), 2))
+    duree_audio_s = round(float(audio["duration"]), 2) if audio and audio.get("duration") else 0.0
+
     return Metadonnees(
-        duree_s=round(float(d.get("format", {}).get("duration", 0)), 2),
+        duree_s=duree_s,
         largeur=int(video.get("width", 0)),
         hauteur=int(video.get("height", 0)),
         fps=round(fps, 2),
-        a_du_son=any(s.get("codec_type") == "audio" for s in flux),
+        a_du_son=audio is not None,
         codec=video.get("codec_name", "?"),
         octets=int(d.get("format", {}).get("size", 0)),
+        duree_audio_s=duree_audio_s,
     )
