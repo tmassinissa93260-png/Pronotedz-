@@ -36,8 +36,14 @@ from pdz.univers import Univers
 
 log = logging.getLogger(__name__)
 
-# Durée d'un clip animé. Les modèles image→vidéo facturent à la seconde et
-# n'acceptent en général que 5 ou 10 s ; 5 s couvre déjà deux plans montés.
+# Durée d'un clip animé demandée au modèle. Les modèles image→vidéo
+# facturent à la seconde et n'acceptent en général que 5 ou 10 s ; 5 s
+# couvre déjà deux plans courts montés bout à bout. Mais rien ne garantit
+# qu'UN SEUL plan reste sous cette durée : un épisode en narration (peu de
+# répliques, jamais coupées en deux) peut avoir des plans de 6-7 s — voir
+# `animer()`, qui saute directement au repli local pour ces plans-là plutôt
+# que de payer un appel voué à l'échec (mesuré en production : le modèle
+# ne rend jamais plus que ce qui est demandé, souvent un peu moins).
 DUREE_CLIP_S = 5
 
 # Marge sous laquelle un clip rendu plus court que la durée allouée est
@@ -203,6 +209,24 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
     for i, (plan, image) in enumerate(zip(plans, images, strict=True)):
         if i in elus:
             destination = dossier / f"anime_{i:03d}.mp4"
+            duree_requise = float(plan.get("duree_s") or 0)
+            if duree_requise > duree_clip_s:
+                # Mesuré en production (épisode #57) : le modèle ne rend
+                # jamais plus que la durée nominale demandée — souvent même
+                # un peu moins (4,84 s mesurés pour 5 s demandés, cinq fois
+                # de suite). Un plan qui a besoin de PLUS que `duree_clip_s`
+                # est donc voué à échouer la vérification plus bas, quel que
+                # soit le résultat du fournisseur : autant épargner l'appel
+                # payant (~0,09 €) et les 1 à 3 minutes d'attente, et aller
+                # direct au repli local, qui n'a lui aucune limite de durée.
+                log.info(
+                    "Plan %d : %.2f s requis, au-delà des %d s max d'un clip "
+                    "— animation modèle sautée, repli direct.",
+                    i, duree_requise, duree_clip_s,
+                )
+                resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
+                                        duree_clip_s))
+                continue
             reste = max(0.0, budget_restant - depense)
             try:
                 _, cout = fal.animer_image(
@@ -220,7 +244,6 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
                 continue
 
             depense += cout
-            duree_requise = float(plan.get("duree_s") or 0)
             duree_reelle = sonder(destination).duree_s
             if duree_reelle < duree_requise - TOLERANCE_DUREE_S:
                 # Le fournisseur a rendu un clip plus court que la durée
@@ -269,6 +292,17 @@ def _repli(index: int, image: Path, dossier: Path, plan: dict,
     particules — c'est meilleur, mais ça produit un fichier vidéo et prend
     quelques secondes de CPU. « camera » laisse le montage appliquer son
     recadrage glissant, ce qui ne coûte rien du tout.
+
+    `duree_clip_s` ne sert ici QUE de repli si `plan.duree_s` est absent —
+    jamais de plafond. `vie.animer()` fabrique son clip image par image,
+    sans aucune limite de durée technique, à la différence d'un modèle
+    payant qui ne rend jamais plus que ce qu'on lui demande. Un plafond
+    (`min(duree, duree_clip_s)`) était pourtant appliqué ici : sur un
+    épisode réel (#57) où plusieurs plans duraient plus que
+    `DUREE_CLIP_S` (5 s), leur repli local était tronqué à 5 s pour de
+    bon — l'écart cumulé (6,3 s sur 5 plans) a fait échouer la
+    vérification finale de durée (`coherence_duree`), qui a fait exactement
+    son travail en refusant de livrer une vidéo silencieuse sur la fin.
     """
     if not avec_vie:
         return PlanAnime(index, image, False, "camera")
@@ -280,7 +314,7 @@ def _repli(index: int, image: Path, dossier: Path, plan: dict,
     duree = float(plan.get("duree_s") or 0) or float(duree_clip_s)
     try:
         animer_localement(
-            image, min(duree, duree_clip_s), destination,
+            image, duree, destination,
             effets=Effets(sens=1 if index % 2 == 0 else -1, graine=index),
         )
     except Exception as e:                        # PIL, ffmpeg, disque plein…

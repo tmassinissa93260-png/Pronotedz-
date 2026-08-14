@@ -642,8 +642,9 @@ def test_un_clip_plus_court_que_prevu_retombe_sur_une_image_fixe(monkeypatch, tm
     """Bug réel (audit de l'épisode #56) : un fournisseur peut rendre un
     clip plus court que la durée allouée au plan. Le montage ne peut pas
     RALLONGER un clip trop court (`trim=duration=...` ne fait que couper) —
-    laisser passer ça tronque la vidéo finale, silencieusement. Ici : 6 s
-    demandées, 4 s rendues → repli sur image fixe, jamais le clip court."""
+    laisser passer ça tronque la vidéo finale, silencieusement. Ici : 4,8 s
+    demandées (sous le plafond de clip, donc le modèle est bien tenté), 4 s
+    rendues → repli sur image fixe, jamais le clip court."""
     import subprocess
 
     def _clip_trop_court(image, prompt, destination, *, duree_s, **k):
@@ -661,7 +662,7 @@ def test_un_clip_plus_court_que_prevu_retombe_sur_une_image_fixe(monkeypatch, tm
     p = tmp_path / "p0.jpg"
     Image.new("RGB", (64, 64), (10, 60, 90)).save(p)
     plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
-             "emotion": "colere", "duree_s": 6.0}]
+             "emotion": "colere", "duree_s": 4.8}]
 
     resultats = animation.animer(
         plans, [p], u, tmp_path / "anim", budget_restant=100.0,
@@ -703,6 +704,60 @@ def test_un_clip_assez_long_est_garde(monkeypatch, tmp_path):
 
     assert resultats[0].methode == "modele"
     assert resultats[0].anime is True
+
+
+def test_un_plan_plus_long_que_le_clip_saute_lappel_paye(monkeypatch, tmp_path):
+    """Bug réel (production épisode #57) : un plan qui a besoin de plus que
+    `DUREE_CLIP_S` (narration à peu de répliques, jamais coupées en deux —
+    plans de 6-7 s) était quand même envoyé au modèle, qui ne rend jamais
+    plus que ce qui est demandé (mesuré : 4,84 s pour 5 s demandés, cinq
+    fois de suite sur cet épisode) — l'appel payant était donc voué à
+    échouer à chaque fois. Le repli doit être pris directement, sans
+    dépenser ni attendre pour un clip qui sera de toute façon rejeté."""
+    appele = {"n": 0}
+
+    def _jamais_appele(*a, **k):
+        appele["n"] += 1
+        raise AssertionError("le modèle ne doit pas être appelé pour ce plan")
+
+    monkeypatch.setattr(animation.fal, "animer_image", _jamais_appele)
+
+    u = Univers.charger(FRUITS)
+    p = tmp_path / "p0.jpg"
+    Image.new("RGB", (64, 64), (10, 60, 90)).save(p)
+    plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
+             "emotion": "colere", "duree_s": 6.99}]
+
+    resultats = animation.animer(
+        plans, [p], u, tmp_path / "anim", budget_restant=100.0,
+        profil="equilibre", vie_pour_le_reste=True,
+    )
+
+    assert appele["n"] == 0
+    assert resultats[0].methode == "vie"
+
+
+def test_le_repli_local_couvre_toute_la_duree_du_plan(monkeypatch, tmp_path):
+    """Bug réel (production épisode #57) : le repli local (`vie.animer()`,
+    sans limite de durée technique) était plafonné à `DUREE_CLIP_S` par un
+    `min(duree, duree_clip_s)` — sur cinq plans de 6-7 s dans un même
+    épisode, l'écart cumulé (6,3 s) a produit une vidéo finale plus courte
+    que la voix, bloquée par la vérification de durée."""
+    from pdz.analyse.sonde import sonder
+
+    u = Univers.charger(FRUITS)
+    p = tmp_path / "p0.jpg"
+    Image.new("RGB", (64, 64), (10, 60, 90)).save(p)
+    plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
+             "emotion": "colere", "duree_s": 6.99}]
+
+    resultats = animation.animer(
+        plans, [p], u, tmp_path / "anim", budget_restant=100.0,
+        profil="economique", vie_pour_le_reste=True,
+    )
+
+    assert resultats[0].methode == "vie"
+    assert sonder(resultats[0].fichier).duree_s == pytest.approx(6.99, abs=0.15)
 
 
 def test_lepisode_annonce_combien_de_plans_sont_animes():
