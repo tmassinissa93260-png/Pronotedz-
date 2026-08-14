@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { config } from "../config";
 import { handleMessage } from "../agent/agent";
+import { verifyTwilioSignature } from "../security/webhookVerify";
 
 // Integration Twilio Voice : Twilio gere lui-meme la telephonie, la
 // reconnaissance vocale (speech-to-text) via <Gather input="speech"> et la
@@ -36,7 +37,7 @@ function hangupTwiml(prompt: string): string {
 }
 
 // Premier appel entrant : Twilio POST ici (a configurer dans "A call comes in" sur le numero Twilio).
-voiceRouter.post("/webhooks/voice/incoming", (req, res) => {
+voiceRouter.post("/webhooks/voice/incoming", verifyTwilioSignature(), (req, res) => {
   const to = req.body?.To as string;
   const businessId = config.voice.businessMap[to];
   res.type("text/xml");
@@ -51,7 +52,7 @@ voiceRouter.post("/webhooks/voice/incoming", (req, res) => {
 });
 
 // Reponse a chaque tour de parole : Twilio transcrit la voix et poste le texte dans SpeechResult.
-voiceRouter.post("/webhooks/voice/gather", async (req, res) => {
+voiceRouter.post("/webhooks/voice/gather", verifyTwilioSignature(), async (req, res) => {
   res.type("text/xml");
   try {
     const to = req.body?.To as string;

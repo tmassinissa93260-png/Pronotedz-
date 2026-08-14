@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import { db } from "../db/client";
+import { naiveToEpochMs, parseNaiveDateTime } from "../agent/datetime";
 import {
   Booking,
   Business,
@@ -116,12 +117,16 @@ function rowToBooking(r: any): Booking {
 }
 
 export function isSlotFree(businessId: string, datetimeIso: string, durationMinutes: number): boolean {
-  const start = new Date(datetimeIso).getTime();
+  const parsed = parseNaiveDateTime(datetimeIso);
+  if (!parsed) return false;
+  const start = naiveToEpochMs(parsed);
   const end = start + durationMinutes * 60000;
   const dayBookings = listBookingsForDay(businessId, datetimeIso);
   const services = new Map(listServices(businessId).map((s) => [s.id, s]));
   for (const b of dayBookings) {
-    const bStart = new Date(b.datetime).getTime();
+    const bParsed = parseNaiveDateTime(b.datetime);
+    if (!bParsed) continue;
+    const bStart = naiveToEpochMs(bParsed);
     const bDuration = services.get(b.serviceId)?.durationMinutes ?? 30;
     const bEnd = bStart + bDuration * 60000;
     if (start < bEnd && end > bStart) return false;
@@ -129,7 +134,7 @@ export function isSlotFree(businessId: string, datetimeIso: string, durationMinu
   return true;
 }
 
-export function createBooking(input: {
+function insertBooking(input: {
   businessId: string;
   serviceId: string;
   customerName: string;
@@ -144,8 +149,37 @@ export function createBooking(input: {
   return booking;
 }
 
-export function cancelBooking(id: string): boolean {
-  const res = db.prepare("UPDATE bookings SET status = 'cancelled' WHERE id = ? AND status = 'confirmed'").run(id);
+// Verifie la disponibilite ET cree la reservation dans UNE transaction SQLite
+// EXCLUSIVE : elimine la fenetre de race (TOCTOU) entre la verification et
+// l'ecriture, y compris entre plusieurs processus partageant le meme fichier
+// SQLite (ce que ne garantirait pas un simple check-puis-insert en JS).
+const createBookingIfAvailableTxn = db.transaction(
+  (input: { businessId: string; serviceId: string; customerName: string; customerPhone: string; datetime: string; durationMinutes: number }) => {
+    if (!isSlotFree(input.businessId, input.datetime, input.durationMinutes)) {
+      return { ok: false as const, reason: "slot_taken" as const };
+    }
+    const booking = insertBooking(input);
+    return { ok: true as const, booking };
+  }
+);
+
+export function createBookingIfAvailable(input: {
+  businessId: string;
+  serviceId: string;
+  customerName: string;
+  customerPhone: string;
+  datetime: string;
+  durationMinutes: number;
+}): { ok: true; booking: Booking } | { ok: false; reason: "slot_taken" } {
+  return createBookingIfAvailableTxn.exclusive(input);
+}
+
+export function cancelBooking(id: string, businessId: string, customerPhone: string): boolean {
+  const res = db
+    .prepare(
+      "UPDATE bookings SET status = 'cancelled' WHERE id = ? AND business_id = ? AND customer_phone = ? AND status = 'confirmed'"
+    )
+    .run(id, businessId, customerPhone);
   return res.changes > 0;
 }
 
@@ -162,11 +196,13 @@ export function findAvailableTable(
   datetimeIso: string,
   durationMinutes = 90
 ): RestaurantTable | null {
+  const parsed = parseNaiveDateTime(datetimeIso);
+  if (!parsed) return null;
   const tables = listTables(businessId)
     .filter((t) => t.capacity >= partySize)
     .sort((a, b) => a.capacity - b.capacity);
 
-  const start = new Date(datetimeIso).getTime();
+  const start = naiveToEpochMs(parsed);
   const end = start + durationMinutes * 60000;
   const dayReservations = db
     .prepare(
@@ -177,7 +213,9 @@ export function findAvailableTable(
   for (const table of tables) {
     const conflict = dayReservations.some((r) => {
       if (r.table_id !== table.id) return false;
-      const rStart = new Date(r.datetime).getTime();
+      const rParsed = parseNaiveDateTime(r.datetime);
+      if (!rParsed) return false;
+      const rStart = naiveToEpochMs(rParsed);
       const rEnd = rStart + durationMinutes * 60000;
       return start < rEnd && end > rStart;
     });
@@ -186,7 +224,7 @@ export function findAvailableTable(
   return null;
 }
 
-export function createTableReservation(input: {
+function insertTableReservation(input: {
   businessId: string;
   tableId: string;
   partySize: number;
@@ -202,16 +240,70 @@ export function createTableReservation(input: {
   return reservation;
 }
 
-export function cancelTableReservation(id: string): boolean {
+// Meme principe que createBookingIfAvailable : recherche de table libre +
+// insertion dans une seule transaction EXCLUSIVE pour eliminer la race.
+const createTableReservationIfAvailableTxn = db.transaction(
+  (input: { businessId: string; partySize: number; customerName: string; customerPhone: string; datetime: string; durationMinutes: number }) => {
+    const table = findAvailableTable(input.businessId, input.partySize, input.datetime, input.durationMinutes);
+    if (!table) return { ok: false as const, reason: "no_table" as const };
+    const reservation = insertTableReservation({
+      businessId: input.businessId,
+      tableId: table.id,
+      partySize: input.partySize,
+      customerName: input.customerName,
+      customerPhone: input.customerPhone,
+      datetime: input.datetime,
+    });
+    return { ok: true as const, reservation };
+  }
+);
+
+export function createTableReservationIfAvailable(input: {
+  businessId: string;
+  partySize: number;
+  customerName: string;
+  customerPhone: string;
+  datetime: string;
+  durationMinutes?: number;
+}): { ok: true; reservation: TableReservation } | { ok: false; reason: "no_table" } {
+  return createTableReservationIfAvailableTxn.exclusive({ durationMinutes: 90, ...input });
+}
+
+export function cancelTableReservation(id: string, businessId: string, customerPhone: string): boolean {
   const res = db
-    .prepare("UPDATE table_reservations SET status = 'cancelled' WHERE id = ? AND status = 'confirmed'")
-    .run(id);
+    .prepare(
+      "UPDATE table_reservations SET status = 'cancelled' WHERE id = ? AND business_id = ? AND customer_phone = ? AND status = 'confirmed'"
+    )
+    .run(id, businessId, customerPhone);
   return res.changes > 0;
 }
 
 // --- Orders (fast-food / restaurant takeout-delivery) ---
 
-export function createOrder(input: {
+const ORDER_DEDUP_WINDOW_MS = 2 * 60 * 1000;
+
+function itemsSignature(items: OrderItem[]): string {
+  return JSON.stringify(
+    [...items].sort((a, b) => a.menuItemId.localeCompare(b.menuItemId)).map((i) => `${i.menuItemId}x${i.quantity}`)
+  );
+}
+
+function rowToOrder(row: any): Order {
+  return {
+    id: row.id,
+    businessId: row.business_id,
+    customerName: row.customer_name,
+    customerPhone: row.customer_phone,
+    items: JSON.parse(row.items),
+    total: row.total,
+    orderType: row.order_type,
+    address: row.address,
+    status: row.status,
+    createdAt: row.created_at,
+  };
+}
+
+function insertOrder(input: {
   businessId: string;
   customerName: string;
   customerPhone: string;
@@ -234,10 +326,54 @@ export function createOrder(input: {
   return order;
 }
 
+// Empeche la creation de commandes en double : si une commande identique
+// (memes articles, meme client, meme type) pour ce commerce vient d'etre
+// enregistree (fenetre de 2 minutes), on renvoie la commande existante au
+// lieu d'en creer une nouvelle. Couvre les doubles appels d'outil du modele
+// et les retries de webhook qui auraient echappe a la deduplication d'evenement.
+const createOrderIdempotentTxn = db.transaction(
+  (input: {
+    businessId: string;
+    customerName: string;
+    customerPhone: string;
+    items: OrderItem[];
+    orderType: OrderType;
+    address: string | null;
+  }) => {
+    const signature = itemsSignature(input.items);
+    const cutoff = new Date(Date.now() - ORDER_DEDUP_WINDOW_MS).toISOString();
+    const candidates = db
+      .prepare(
+        `SELECT * FROM orders WHERE business_id = ? AND customer_phone = ? AND order_type = ? AND status != 'cancelled' AND created_at >= ?`
+      )
+      .all(input.businessId, input.customerPhone, input.orderType, cutoff) as any[];
+
+    for (const row of candidates) {
+      const existing = rowToOrder(row);
+      if (itemsSignature(existing.items) === signature && existing.address === input.address) {
+        return { order: existing, deduped: true as const };
+      }
+    }
+
+    const order = insertOrder(input);
+    return { order, deduped: false as const };
+  }
+);
+
+export function createOrder(input: {
+  businessId: string;
+  customerName: string;
+  customerPhone: string;
+  items: OrderItem[];
+  orderType: OrderType;
+  address: string | null;
+}): { order: Order; deduped: boolean } {
+  return createOrderIdempotentTxn.exclusive(input);
+}
+
 export function getOrder(id: string): Order | null {
   const row = db.prepare("SELECT * FROM orders WHERE id = ?").get(id) as any;
-  if (!row) return null;
-  return { ...row, items: JSON.parse(row.items), businessId: row.business_id, customerName: row.customer_name, customerPhone: row.customer_phone, orderType: row.order_type, createdAt: row.created_at };
+  return row ? rowToOrder(row) : null;
 }
 
 // --- Conversations (per channel + external user + business) ---
@@ -273,6 +409,17 @@ export function getOrCreateConversation(
      VALUES (@id, @channel, @externalUserId, @businessId, @history, @updatedAt)`
   ).run({ ...record, history: JSON.stringify(record.history) });
   return record;
+}
+
+// --- Deduplication des evenements webhook (anti-replay) ---
+
+// Retourne true si l'evenement N'AVAIT PAS deja ete traite (et le marque comme
+// traite). Retourne false s'il s'agit d'un doublon (retry Meta/Twilio) a ignorer.
+export function markEventProcessedOnce(channel: string, eventId: string): boolean {
+  const res = db
+    .prepare("INSERT OR IGNORE INTO processed_events (channel, event_id, processed_at) VALUES (?, ?, ?)")
+    .run(channel, eventId, new Date().toISOString());
+  return res.changes > 0;
 }
 
 export function saveConversation(record: ConversationRecord): void {

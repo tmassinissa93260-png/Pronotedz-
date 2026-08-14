@@ -66,12 +66,58 @@ Utilise les fonctions de `src/businesses/store.ts` (`createBusiness`, `createSer
 `createMenuItem` / `createTable`) — voir `src/businesses/seed.ts` pour des exemples
 concrets pour chacun des 3 types (`hairdresser`, `fastfood`, `restaurant`).
 
+## Sécurité et fiabilité (production)
+
+- **Signature des webhooks** : `META_APP_SECRET` (WhatsApp + Messenger/Instagram) et
+  `TWILIO_AUTH_TOKEN` + `PUBLIC_BASE_URL` (voix) sont **obligatoires en production**
+  (`NODE_ENV=production`) — sans eux, les webhooks correspondants répondent `503`
+  plutôt que d'accepter des requêtes non authentifiées. En développement, l'appel est
+  accepté avec un avertissement dans les logs.
+- **Anti-rejeu** : chaque message WhatsApp/Messenger porte un identifiant (`message.id`
+  / `message.mid`) dédupliqué en base (`processed_events`) — un retry Meta ne
+  déclenche pas de double traitement.
+- **Idempotence** : la création de réservation/commande est atomique (transaction
+  SQLite `EXCLUSIVE` combinant vérification de disponibilité + écriture) et les
+  commandes strictement identiques (même client, mêmes articles, même type) faites à
+  moins de 2 minutes d'intervalle renvoient la commande existante au lieu d'en créer
+  une nouvelle.
+- **Autorisation** : `cancel_booking`/`cancel_table_reservation` exigent le numéro de
+  téléphone utilisé lors de la création et sont strictement scopés au commerce
+  (`business_id`) — impossible d'annuler une réservation d'un autre commerce ou d'un
+  autre client.
+- **Le LLM ne décide jamais du prix** : le prix vient toujours du menu stocké en base ;
+  toute tentative d'injecter un prix/total via l'outil est ignorée. Quantités
+  bornées (1 à 50), tous les champs sont revalidés côté serveur avant toute écriture.
+- **Rate limiting** : `/api/chat` est limité à 20 requêtes/min/IP.
+
+## Tests
+
+```bash
+npm test
+```
+
+Suite `node:test` (48 tests) sur base SQLite en mémoire, couvrant : réservation
+réussie/en conflit/double appel, annulation avec vérification de propriété,
+commande valide/produit inconnu/prix falsifié/quantité invalide, idempotence des
+commandes, appels d'outils invalides, signatures webhook Meta/Twilio, verrou de
+conversation concurrent, isolation multi-tour et changement de canal, anti-rejeu
+webhook. Ce que ces tests **ne couvrent pas** : le comportement réel du LLM (aucune
+clé Anthropic dans l'environnement de développement), les appels réels
+WhatsApp/Instagram/Twilio (nécessitent de vrais comptes), et les races véritablement
+multi-processus (nécessiteraient plusieurs instances du serveur en charge réelle).
+
 ## Limites connues (MVP)
 
 - Un seul "créneau/ressource" par commerce pour la coiffure (pas de gestion multi-coiffeur).
 - Pas de paiement en ligne intégré (à ajouter si besoin : Stripe, CIB, etc.).
-- Pas d'authentification sur les endpoints webhook au-delà de la vérification Meta —
-  à durcir avant une mise en production (validation de signature `X-Hub-Signature-256`
-  pour WhatsApp/Messenger, validation de signature Twilio pour la voix).
-- SQLite en fichier local : suffisant pour démarrer, à migrer vers Postgres pour un usage
-  multi-serveur/production.
+- Pas d'outil `cancel_order` ni de gestion des statuts de commande
+  (`preparing`/`ready`/`completed`) côté agent — nécessiterait une interface staff
+  dédiée, hors périmètre de cet agent client-facing.
+- Pas de modification directe : une modification de rendez-vous/réservation se fait
+  via annulation + nouvelle création (l'agent est instruit pour le faire).
+- SQLite en fichier local : suffisant pour démarrer. Les transactions `EXCLUSIVE`
+  protègent contre les races même multi-processus sur un même fichier, mais pour un
+  vrai déploiement multi-serveur il faudra migrer vers Postgres et un rate limiter
+  partagé (Redis) plutôt que le limiteur en mémoire actuel.
+- Historique de conversation stocké sans limite de taille ni purge automatique — à
+  ajouter avant une mise en production à fort volume (TTL, troncature).

@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { config } from "../config";
 import { handleMessage } from "../agent/agent";
+import { verifyMetaSignature } from "../security/webhookVerify";
+import { markEventProcessedOnce } from "../businesses/store";
 
 export const messengerRouter = Router();
 
@@ -18,7 +20,7 @@ messengerRouter.get("/webhooks/messenger", (req, res) => {
 });
 
 // Reception des messages entrants (Messenger "page" et Instagram "instagram" partagent ce format).
-messengerRouter.post("/webhooks/messenger", async (req, res) => {
+messengerRouter.post("/webhooks/messenger", verifyMetaSignature(), async (req, res) => {
   res.sendStatus(200);
 
   try {
@@ -35,6 +37,10 @@ messengerRouter.post("/webhooks/messenger", async (req, res) => {
         const senderId = event.sender?.id as string;
         const text = event.message?.text as string | undefined;
         if (!text || event.message?.is_echo) continue;
+        const messageId = event.message?.mid as string | undefined;
+        if (messageId && !markEventProcessedOnce("messenger", messageId)) {
+          continue;
+        }
         const reply = await handleMessage("messenger", senderId, businessId, text);
         await sendMessengerMessage(senderId, reply);
       }
@@ -46,7 +52,9 @@ messengerRouter.post("/webhooks/messenger", async (req, res) => {
 
 export async function sendMessengerMessage(recipientId: string, text: string): Promise<void> {
   if (!config.messenger.pageAccessToken) {
-    console.warn("MESSENGER_PAGE_ACCESS_TOKEN manquant: message non envoye (mode simulation).", { recipientId, text });
+    console.warn(
+      `MESSENGER_PAGE_ACCESS_TOKEN manquant: message non envoye (mode simulation), destinataire se terminant par ...${recipientId.slice(-4)}, longueur=${text.length}`
+    );
     return;
   }
   const url = `https://graph.facebook.com/${config.messenger.apiVersion}/me/messages?access_token=${encodeURIComponent(

@@ -76,3 +76,21 @@ CREATE TABLE IF NOT EXISTS conversations (
   updated_at TEXT NOT NULL,
   UNIQUE(channel, external_user_id, business_id)
 );
+
+-- Deduplication des evenements webhook entrants (protection contre le replay
+-- / les retries de Meta en cas de reponse lente ou d'erreur transitoire).
+CREATE TABLE IF NOT EXISTS processed_events (
+  channel TEXT NOT NULL,
+  event_id TEXT NOT NULL,
+  processed_at TEXT NOT NULL,
+  PRIMARY KEY (channel, event_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_business_datetime ON bookings(business_id, datetime);
+CREATE INDEX IF NOT EXISTS idx_bookings_business_status ON bookings(business_id, status);
+CREATE INDEX IF NOT EXISTS idx_table_reservations_business_datetime ON table_reservations(business_id, datetime);
+CREATE INDEX IF NOT EXISTS idx_table_reservations_business_status ON table_reservations(business_id, status);
+CREATE INDEX IF NOT EXISTS idx_orders_business_created ON orders(business_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_orders_business_phone_created ON orders(business_id, customer_phone, created_at);
+-- Pas d'index supplementaire pour conversations: la contrainte UNIQUE ci-dessus
+-- cree deja un index couvrant (channel, external_user_id, business_id).

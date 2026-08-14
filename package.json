@@ -10,7 +10,7 @@
     "build": "tsc -p tsconfig.json && cp src/db/schema.sql dist/db/schema.sql",
     "start": "node dist/server.js",
     "seed": "ts-node src/businesses/seed.ts",
-    "test": "node --test --require ts-node/register src/**/*.test.ts"
+    "test": "node --test --require ts-node/register/transpile-only --require ./src/test/setupEnv.ts src/test/*.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",

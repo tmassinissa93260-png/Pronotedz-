@@ -3,9 +3,11 @@ import { Business, ConversationRecord } from "../businesses/types";
 import { toolsForBusiness, executeTool } from "./tools";
 import { systemPromptFor } from "./prompts";
 import * as store from "../businesses/store";
+import { conversationKey, withConversationLock } from "./conversationLock";
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-5";
 const MAX_TOOL_ROUNDS = 6;
+const MAX_MESSAGE_LENGTH = 4000;
 
 let client: Anthropic | null = null;
 function getClient(): Anthropic {
@@ -24,11 +26,26 @@ export async function handleMessage(
   businessId: string,
   userMessage: string
 ): Promise<string> {
+  const key = conversationKey(channel, externalUserId, businessId);
+  return withConversationLock(key, () => processMessage(channel, externalUserId, businessId, userMessage));
+}
+
+async function processMessage(
+  channel: string,
+  externalUserId: string,
+  businessId: string,
+  userMessage: string
+): Promise<string> {
   const business = store.getBusiness(businessId);
   if (!business) throw new Error(`Commerce inconnu: ${businessId}`);
 
+  const trimmed = (userMessage ?? "").slice(0, MAX_MESSAGE_LENGTH);
+  if (trimmed.trim().length === 0) {
+    return "Je n'ai pas recu de message, peux-tu reessayer ?";
+  }
+
   const conversation = store.getOrCreateConversation(channel, externalUserId, businessId);
-  conversation.history.push({ role: "user", content: userMessage });
+  conversation.history.push({ role: "user", content: trimmed });
 
   const reply = await runAgent(business, conversation);
 
