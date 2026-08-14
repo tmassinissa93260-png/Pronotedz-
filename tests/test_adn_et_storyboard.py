@@ -175,6 +175,37 @@ def test_une_replique_trop_courte_nest_pas_coupee():
     assert not any(p.reaction for p in plans)
 
 
+# ── `relance` : le temps fort de rétention, déjà écrit par ScriptWriter,
+# jusqu'ici jamais relu après sa propre validation (voir script.py) ─────
+
+def test_la_relance_est_portee_sur_le_plan():
+    u, repliques = _repliques(2, avec_reaction=False)
+    repliques[0]["relance"] = True
+    plans = storyboard.decouper(repliques, [4.0, 4.0], u)
+    assert plans[0].relance is True
+    assert plans[1].relance is False
+
+
+def test_sans_relance_le_plan_ne_lest_pas_par_defaut():
+    """Non-régression : un script en cache d'avant ce champ, ou un plan
+    normal (la plupart), ne doit ni planter ni être marqué relance."""
+    u, repliques = _repliques(1, avec_reaction=False)
+    plans = storyboard.decouper(repliques, [4.0], u)
+    assert plans[0].relance is False
+
+
+def test_la_relance_ne_se_propage_pas_au_plan_de_reaction():
+    """Le temps fort appartient à la réplique qui parle, pas à celle qui
+    l'encaisse — voir pdz/production/animation.py::noter()."""
+    u, repliques = _repliques(1, avec_reaction=True)
+    repliques[0]["relance"] = True
+    plans = storyboard.decouper(repliques, [4.0], u)
+    parlant = next(p for p in plans if not p.reaction)
+    reaction = next(p for p in plans if p.reaction)
+    assert parlant.relance is True
+    assert reaction.relance is False
+
+
 # ── Point de coupe naturel (pause de la voix plutôt que % fixe) ─────────
 
 def _mots(*paires):
@@ -379,3 +410,32 @@ def test_chaque_note_est_justifiee():
     """Une décision de dépense sans raison écrite est indéfendable."""
     plans = [{"emotion": "colere", "duree_s": 3.0}, {"emotion": "calme", "duree_s": 1.0}]
     assert all(c.raison for c in animation.noter(plans))
+
+
+def test_une_relance_passe_avant_un_plan_calme_ordinaire():
+    """Le temps fort de rétention que ScriptWriter place exprès (audit
+    data-flow : `relance` n'était relu par personne après sa propre
+    validation) mérite de bouger autant qu'une émotion forte."""
+    plans = [
+        {"emotion": "calme", "duree_s": 2.0},              # 0 : accroche
+        {"emotion": "calme", "duree_s": 2.0, "relance": True},
+        {"emotion": "calme", "duree_s": 2.0},
+    ]
+    classement = animation.noter(plans)
+    rangs = {c.index: i for i, c in enumerate(classement)}
+    assert rangs[1] < rangs[2]
+
+
+def test_un_plan_deja_signale_needs_review_est_penalise():
+    """Un défaut visuel déjà constaté (`pdz/production/qa_images.py`) ne
+    doit pas gagner le budget d'animation — le poste le plus cher du
+    pipeline, réservé aux plans qu'on sait déjà défectueux, est de
+    l'argent jeté (audit data-flow : ce verdict n'était lu par personne)."""
+    plans = [
+        {"emotion": "calme", "duree_s": 2.0},                              # 0 : accroche
+        {"emotion": "colere", "duree_s": 2.0, "besoin_revue": True},
+        {"emotion": "colere", "duree_s": 2.0},
+    ]
+    classement = animation.noter(plans)
+    rangs = {c.index: i for i, c in enumerate(classement)}
+    assert rangs[2] < rangs[1]

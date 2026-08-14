@@ -248,6 +248,45 @@ def test_une_image_est_produite_par_plan_plus_les_fiches(atelier):
     assert appels["images"] == 3 + len(resultat.plans)
 
 
+def test_la_relance_du_script_traverse_jusquau_plan(atelier):
+    """Audit data-flow : `relance` (réplique 2 de SCRIPT_FACTICE) n'était
+    relue par personne après sa propre validation dans script.py — elle
+    doit maintenant se retrouver sur le plan qui PARLE, pas sur celui qui
+    réagit."""
+    _, resultat = _produire(atelier)
+    parlant = next(p for p in resultat.plans
+                   if p.personnage == "bananito" and not p.reaction)
+    reaction = next(p for p in resultat.plans
+                    if p.personnage == "strawberina" and p.reaction
+                    and p.replique_numero == 2)
+    assert parlant.relance is True
+    assert reaction.relance is False
+
+
+def test_un_plan_needs_review_est_marque_et_disponible_pour_lanimation(atelier, monkeypatch):
+    """Audit data-flow : le verdict NEEDS_REVIEW de la QA visuelle n'était
+    lu par personne après coup — un plan déjà connu fautif pouvait quand
+    même être choisi pour l'animation, le poste le plus cher du pipeline."""
+    from pdz.production import qa_images as qa_images_module
+
+    # Force la vérification ciblée sur le plan 0, quel que soit le signal
+    # réel de risque du texte — seul le VERDICT nous intéresse ici.
+    monkeypatch.setattr(qa_images_module, "plans_a_verifier", lambda plans, numeros: {0})
+
+    async def faux_qa(self, entrees, ctx):
+        ctx.facturer(0.0)
+        return {"statut": "NEEDS_REVIEW", "manquants": ["x"], "incorrects": [], "en_trop": []}
+
+    monkeypatch.setattr("pdz.agents.analyse.qa_image.ImageQA.executer", faux_qa)
+
+    _, resultat = _produire(atelier)
+
+    plan0 = next(p for p in resultat.plans if p.numero == 0)
+    assert plan0.besoin_revue is True
+    autres = [p for p in resultat.plans if p.numero != 0]
+    assert all(not p.besoin_revue for p in autres)
+
+
 def test_le_cout_est_enregistre_et_non_nul(atelier):
     from pdz import db
 

@@ -94,6 +94,38 @@ def test_les_variables_portent_le_format_de_lunivers():
     assert v["anime"] == u.anime
 
 
+def test_le_dernier_plan_est_marque_comme_tel():
+    """Nécessaire pour cibler UNIQUEMENT ce plan avec la consigne de
+    bouclage — voir plans@1.8.0 et l'audit data-flow : `derniere_image`."""
+    u = Univers.charger(FRUITS)
+    v = ShotPromptWriter().variables(
+        {"univers": u, "plans": _plans(3), "repliques": _repliques(3)}, _contexte())
+    assert v["plans"][-1]["dernier"] is True
+    assert v["plans"][0]["dernier"] is False
+
+
+def test_derniere_image_passe_dans_les_variables():
+    """`derniere_image` est déjà écrit par ScriptWriter à chaque script
+    (CONTRAINTE ABSOLUE #7) mais n'atteignait jamais cet agent — voir
+    l'audit data-flow, dead metadata totale."""
+    u = Univers.charger(FRUITS)
+    v = ShotPromptWriter().variables(
+        {"univers": u, "plans": _plans(3), "repliques": _repliques(3),
+         "derniere_image": "le plan revient sur la même ville, vue de plus haut"},
+        _contexte(),
+    )
+    assert v["derniere_image"] == "le plan revient sur la même ville, vue de plus haut"
+
+
+def test_sans_derniere_image_les_variables_retombent_sur_une_chaine_vide():
+    """Non-régression : un appelant qui n'a pas encore ce champ (job en
+    cache d'avant plans@1.8.0) ne doit pas planter."""
+    u = Univers.charger(FRUITS)
+    v = ShotPromptWriter().variables(
+        {"univers": u, "plans": _plans(3), "repliques": _repliques(3)}, _contexte())
+    assert v["derniere_image"] == ""
+
+
 def test_un_plan_de_reaction_est_marque_comme_tel():
     u = Univers.charger(FRUITS)
     v = ShotPromptWriter().variables(
@@ -230,6 +262,45 @@ def test_la_signature_reference_le_prompt_actif():
     sig = ShotPromptWriter().signature()
     assert sig["agent"] == "shot_prompts"
     assert sig["prompt"] == charger("ecriture/plans").ref
+
+
+# ── Bouclage : `derniere_image` (plans@1.8.0) ────────────────────────────
+
+def test_le_prompt_actif_relaie_la_consigne_de_bouclage_au_dernier_plan():
+    """Le champ existe déjà côté script (CONTRAINTE ABSOLUE #7) ; ce test
+    vérifie que le PROMPT réellement envoyé au modèle relaie bien cette
+    description, et seulement pour le plan marqué comme le dernier."""
+    p = charger("ecriture/plans")
+    u = Univers.charger(FRUITS)
+    stable, _, message = p.rendre(
+        contexte_univers=u.contexte_script(), anime=u.anime,
+        derniere_image="le plan revient sur la ville, vue de plus haut",
+        plans=[
+            {"numero": 0, "personnage": "strawberina", "replique": "r1",
+             "reaction": False, "action": "a", "fonction_plan": "",
+             "nouvelle_scene": True, "dernier": False},
+            {"numero": 1, "personnage": "strawberina", "replique": "r2",
+             "reaction": False, "action": "b", "fonction_plan": "",
+             "nouvelle_scene": False, "dernier": True},
+        ],
+    )
+    assert "le plan revient sur la ville, vue de plus haut" in stable
+    assert "(dernier plan)" in message
+
+
+def test_sans_derniere_image_le_prompt_ne_mentionne_aucun_bouclage():
+    """Entrée optionnelle : la majorité des reprises n'ont rien à dire sur
+    le bouclage, et `.rendre()` ne doit ni planter ni ajouter de section
+    vide au prompt envoyé."""
+    p = charger("ecriture/plans")
+    u = Univers.charger(FRUITS)
+    stable, _, _ = p.rendre(
+        contexte_univers=u.contexte_script(), anime=u.anime,
+        plans=[{"numero": 0, "personnage": "strawberina", "replique": "r1",
+                "reaction": False, "action": "a", "fonction_plan": "",
+                "nouvelle_scene": True, "dernier": True}],
+    )
+    assert "### BOUCLAGE" not in stable
 
 
 # ── Fidélité visuelle : les éléments nommés par la réplique ─────────────

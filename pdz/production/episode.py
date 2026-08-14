@@ -52,7 +52,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -341,7 +341,11 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
         ctx = Contexte(job_id=job_id, etape_cle="shot_prompts", profil=profil,
                        budget_restant=plafond - cout_total)
         prompts = await executer_avec_relance(ShotPromptWriter(),
-            {"univers": univers, "plans": plans, "repliques": repliques}, ctx,
+            {"univers": univers, "plans": plans, "repliques": repliques,
+             # Déjà écrit par ScriptWriter à chaque script (CONTRAINTE
+             # ABSOLUE #7) — jusqu'ici jamais lu en aval, voir l'audit
+             # data-flow et ecriture/plans@1.8.0.
+             "derniere_image": script.get("derniere_image", "")}, ctx,
         )
         _noter(job_id, "shot_prompts", "shot_prompts", prompts, ctx.cout_engage,
                int((time.perf_counter() - debut) * 1000))
@@ -420,6 +424,7 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     # avant que l'image existe réellement.
     numeros_qa = qa_images.plans_a_verifier(plans, numeros_realisme)
     fait_qa = _fait(job_id, "qa_images")
+    verifications: list[dict] = []
     if not numeros_qa:
         log.info("QA image : aucun plan à risque, étape sautée (0 appel IA)")
     elif fait_qa is None:
@@ -434,13 +439,26 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
                {"verifications": verifications, "fichiers": [str(f) for f in fichiers]},
                cout_qa, int((time.perf_counter() - debut) * 1000))
         cout_total += cout_qa
-        besoin_revue = [v["numero"] for v in verifications if v["statut"] == "NEEDS_REVIEW"]
-        if besoin_revue:
+        echecs = [v["numero"] for v in verifications if v["statut"] == "NEEDS_REVIEW"]
+        if echecs:
             log.error("QA image : plan(s) %s toujours en écart après regénération "
-                     "— gardés tel quels, à revoir.", besoin_revue)
+                     "— gardés tel quels, à revoir.", echecs)
     else:
         repris.append("qa_images")
         fichiers = [Path(f) for f in fait_qa["fichiers"]]
+        # `.get` : une production notée avant l'ajout de ce champ se reprend
+        # sans lui plutôt que d'échouer.
+        verifications = fait_qa.get("verifications") or []
+
+    # Un plan déjà marqué NEEDS_REVIEW a un défaut visuel CONSTATÉ — voir
+    # l'audit data-flow : ce verdict n'était lu par personne après coup,
+    # l'animation (le poste le plus cher) pouvait donc encore choisir
+    # d'animer une image qu'on savait déjà fautive. Zéro appel IA de plus :
+    # juste porter un signal déjà payé jusqu'à `animation.noter()`.
+    numeros_a_revoir = {v["numero"] for v in verifications if v["statut"] == "NEEDS_REVIEW"}
+    if numeros_a_revoir:
+        plans = [replace(p, besoin_revue=True) if p.numero in numeros_a_revoir else p
+                 for p in plans]
 
     # ── 5. Animation ─────────────────────────────────────────────────────
     fait_anim = _fait(job_id, "animation")

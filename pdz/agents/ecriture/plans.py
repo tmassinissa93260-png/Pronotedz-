@@ -39,7 +39,7 @@ log = logging.getLogger(__name__)
 
 class ShotPromptWriter(Agent):
     nom = "shot_prompts"
-    version = "2.6.0"
+    version = "2.7.0"
     prompt_ref = "ecriture/plans"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
@@ -57,6 +57,11 @@ class ShotPromptWriter(Agent):
             # plans@1.6.0.yaml. `univers.anime` distingue ce cas des séries à
             # personnages, où un humain visible est au contraire attendu.
             "anime": univers.anime,
+            # ScriptWriter décrit déjà, à chaque script (CONTRAINTE ABSOLUE
+            # #7), comment le dernier plan doit boucler avec le premier —
+            # jamais lu par aucun agent en aval jusqu'ici (voir l'audit
+            # data-flow). Vide sur un job repris d'avant ce champ.
+            "derniere_image": entrees.get("derniere_image", ""),
             "plans": [
                 {
                     "numero": p.numero,
@@ -66,6 +71,7 @@ class ShotPromptWriter(Agent):
                     "action": p.action,
                     "fonction_plan": p.fonction,
                     "nouvelle_scene": i == 0 or scenes[i] != scenes[i - 1],
+                    "dernier": i == len(plans) - 1,
                 }
                 for i, p in enumerate(plans)
             ],

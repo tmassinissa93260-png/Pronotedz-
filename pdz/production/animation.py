@@ -76,11 +76,19 @@ def noter(plans: list[dict]) -> list[Candidature]:
     Les critères, du plus fort au plus faible :
       · **le premier plan** — trois secondes décident de tout, et c'est le
         seul endroit où un mouvement réel se remarque à coup sûr ;
+      · **une relance** — le temps fort de rétention que ScriptWriter place
+        exprès toutes les 15-20 s (`repliques[].relance`, voir
+        `pdz/agents/ecriture/script.py`) mérite de bouger autant que
+        l'accroche : c'est l'endroit où le spectateur décide de rester ;
       · **l'émotion** — un visage qui bouge vaut surtout pour les émotions
         fortes ;
       · **la durée** — un plan de 3 s figé se voit, un plan de 1 s non ;
       · **les plans de réaction** sont pénalisés : l'immobilité y est un
-        choix de montage valable, pas un défaut.
+        choix de montage valable, pas un défaut ;
+      · **un défaut visuel déjà constaté** (`besoin_revue`, voir
+        `pdz/production/qa_images.py`) est fortement pénalisé — animer une
+        image qu'on sait déjà fautive gaspille le poste le plus cher du
+        pipeline sans rien améliorer.
     """
     candidatures: list[Candidature] = []
 
@@ -90,6 +98,10 @@ def noter(plans: list[dict]) -> list[Candidature]:
         if i == 0:
             note += 3.0
             raisons.append("accroche")
+
+        if plan.get("relance"):
+            note += 1.5
+            raisons.append("relance (temps fort de rétention)")
 
         emotion = plan.get("emotion", "calme")
         if (bonus := EMOTIONS_FORTES.get(emotion, 0.0)):
@@ -111,6 +123,10 @@ def noter(plans: list[dict]) -> list[Candidature]:
         if i == len(plans) - 1:
             note += 0.8
             raisons.append("dernier plan")
+
+        if plan.get("besoin_revue"):
+            note -= 2.5
+            raisons.append("défaut visuel déjà constaté (QA)")
 
         candidatures.append(Candidature(i, round(note, 2), ", ".join(raisons)))
 

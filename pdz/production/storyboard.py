@@ -137,6 +137,18 @@ class PlanScript:
     # une vérification visuelle après génération — le modèle qui a déjà
     # raté une fois est le plus probable à rater encore une fois.
     corrections_fidelite: list[str] = field(default_factory=list)
+    # `relance` : ScriptWriter marque déjà la réplique qui installe un temps
+    # fort de rétention (contrainte de script.py, positions calculées exprès
+    # toutes les 15-20 s) — mais ce booléen n'était relu par personne après
+    # sa propre validation (voir pdz/agents/ecriture/script.py). Porté ici
+    # pour que l'animation puisse enfin en tenir compte — voir
+    # `pdz/production/animation.py::noter()`.
+    relance: bool = False
+    # Le verdict de `pdz.production.qa_images` quand il finit à NEEDS_REVIEW
+    # après regénération : un défaut visuel déjà constaté, gardé tel quel
+    # plutôt que bloquer l'épisode. Vide/False par défaut — c'est le cas
+    # normal, la vérification ciblée ne tourne que sur les plans à risque.
+    besoin_revue: bool = False
 
     def en_dict(self) -> dict:
         """La forme attendue par `pdz.production.animation`."""
@@ -154,6 +166,8 @@ class PlanScript:
             "elements_obligatoires": self.elements_obligatoires,
             "elements_a_exclure": self.elements_a_exclure,
             "corrections_fidelite": self.corrections_fidelite,
+            "relance": self.relance,
+            "besoin_revue": self.besoin_revue,
         }
 
 
@@ -201,6 +215,8 @@ def decouper(repliques: list[dict], durees_s: list[float], univers: Univers, *,
 
         fonction = replique.get("fonction_plan", "")
 
+        relance = bool(replique.get("relance"))
+
         if not coupable:
             plans.append(PlanScript(
                 numero=len(plans),
@@ -211,6 +227,7 @@ def decouper(repliques: list[dict], durees_s: list[float], univers: Univers, *,
                 decor=replique.get("decor", ""),
                 duree_s=round(duree, 3),
                 fonction=fonction,
+                relance=relance,
             ))
             continue
 
@@ -232,6 +249,7 @@ def decouper(repliques: list[dict], durees_s: list[float], univers: Univers, *,
             decor=replique.get("decor", ""),
             duree_s=round(duree * (1 - part_reaction), 3),
             fonction=fonction,
+            relance=relance,
         ))
         plans.append(PlanScript(
             numero=len(plans),
