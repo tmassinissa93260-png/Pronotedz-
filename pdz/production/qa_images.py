@@ -20,6 +20,7 @@ import logging
 from pathlib import Path
 
 from pdz.agents.analyse.qa_image import ImageQA
+from pdz.moteur.erreurs import ErreurPdz
 from pdz.moteur.pipeline import Contexte, executer_avec_relance
 from pdz.production import fidelite_visuelle, images
 from pdz.production.storyboard import PlanScript
@@ -90,13 +91,26 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
 
         ctx = Contexte(job_id=job_id, etape_cle="qa_images", profil=profil,
                        budget_restant=budget_restant - cout_total)
-        verdict = await executer_avec_relance(ImageQA(), {
-            "replique": repliques_par_numero.get(plan.numero, ""),
-            "action": plan.action,
-            "elements_obligatoires": plan.elements_obligatoires,
-            "elements_a_exclure": plan.elements_a_exclure,
-            "image": fichiers[i],
-        }, ctx)
+        try:
+            verdict = await executer_avec_relance(ImageQA(), {
+                "replique": repliques_par_numero.get(plan.numero, ""),
+                "action": plan.action,
+                "elements_obligatoires": plan.elements_obligatoires,
+                "elements_a_exclure": plan.elements_a_exclure,
+                "image": fichiers[i],
+            }, ctx)
+        except ErreurPdz as e:
+            # Un fournisseur qui ne répond plus (quota épuisé, 5xx...) ne
+            # doit jamais faire échouer l'ÉPISODE entier pour une simple
+            # vérification optionnelle — voir la docstring du module.
+            # Mesuré en production : la vidéo entière avortait alors que
+            # le script, la voix et les 6 images étaient déjà payés.
+            log.warning(
+                "Plan %d : vérification visuelle impossible (%s) — gardé "
+                "tel quel, non revérifié.", plan.numero, e.categorie,
+            )
+            cout_total += ctx.cout_engage
+            continue
         cout_total += ctx.cout_engage
 
         if verdict["statut"] == "PASS":
@@ -116,22 +130,39 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
         )
         perso = univers.personnage(plan.personnage)
         reference = fiches.get(perso.id) if perso else None
-        cout, _ = images.regenerer(
-            prompt_corrige, fichiers[i], univers=univers, reference=reference,
-            profil=profil, budget_restant_pct=100.0, job_id=job_id,
-        )
-        cout_total += cout
+        try:
+            cout, _ = images.regenerer(
+                prompt_corrige, fichiers[i], univers=univers, reference=reference,
+                profil=profil, budget_restant_pct=100.0, job_id=job_id,
+            )
+            cout_total += cout
 
-        ctx2 = Contexte(job_id=job_id, etape_cle="qa_images", profil=profil,
-                        budget_restant=budget_restant - cout_total)
-        second = await executer_avec_relance(ImageQA(), {
-            "replique": repliques_par_numero.get(plan.numero, ""),
-            "action": prompt_corrige,
-            "elements_obligatoires": plan.elements_obligatoires,
-            "elements_a_exclure": plan.elements_a_exclure,
-            "image": fichiers[i],
-        }, ctx2)
-        cout_total += ctx2.cout_engage
+            ctx2 = Contexte(job_id=job_id, etape_cle="qa_images", profil=profil,
+                            budget_restant=budget_restant - cout_total)
+            second = await executer_avec_relance(ImageQA(), {
+                "replique": repliques_par_numero.get(plan.numero, ""),
+                "action": prompt_corrige,
+                "elements_obligatoires": plan.elements_obligatoires,
+                "elements_a_exclure": plan.elements_a_exclure,
+                "image": fichiers[i],
+            }, ctx2)
+            cout_total += ctx2.cout_engage
+        except ErreurPdz as e:
+            # Même principe que plus haut : un fournisseur en panne pendant
+            # LA CORRECTION ne doit pas non plus faire échouer l'épisode.
+            # On ne peut plus confirmer ce plan — NEEDS_REVIEW plutôt qu'un
+            # PASS supposé, en gardant le dernier verdict réellement obtenu.
+            log.warning(
+                "Plan %d : correction/revérification impossible (%s) — "
+                "marqué NEEDS_REVIEW, gardé tel quel.", plan.numero, e.categorie,
+            )
+            verifications.append({
+                "numero": plan.numero, "statut": "NEEDS_REVIEW",
+                "manquants": verdict.get("manquants", []),
+                "incorrects": verdict.get("incorrects", []),
+                "en_trop": verdict.get("en_trop", []),
+            })
+            continue
 
         if second["statut"] == "PASS":
             verifications.append({"numero": plan.numero, "statut": "PASS",

@@ -380,12 +380,29 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
             debut = time.perf_counter()
             ctx = Contexte(job_id=job_id, etape_cle="realisme", profil=profil,
                            budget_restant=plafond - cout_total)
-            corrections = await executer_avec_relance(RealismWriter(),
-                {"univers": univers, "plans": a_verifier}, ctx,
-            )
-            _noter(job_id, "realisme", "realisme", corrections, ctx.cout_engage,
-                   int((time.perf_counter() - debut) * 1000))
-            cout_total += ctx.cout_engage
+            try:
+                corrections = await executer_avec_relance(RealismWriter(),
+                    {"univers": univers, "plans": a_verifier}, ctx,
+                )
+            except ErreurPdz as e:
+                # Un fournisseur en panne (quota Groq épuisé, mesuré en
+                # production sur ce même job — deux étapes plus loin, qa_images
+                # a fini par épuiser le même quota pour de bon) ne doit pas
+                # faire échouer l'épisode entier pour une correction de texte
+                # optionnelle : le script, la voix et le brief sont déjà
+                # payés. Les plans à risque gardent leur prompt d'origine,
+                # non corrigé — moins bon, mais l'épisode existe encore.
+                # Pas de `_noter()` : une reprise réessaiera cette étape.
+                log.warning(
+                    "Réalisme : correction impossible (%s) — %d plan(s) "
+                    "gardé(s) tel(s) quel(s), non corrigés.",
+                    e.categorie, len(a_verifier),
+                )
+                corrections = {"plans": []}
+            else:
+                _noter(job_id, "realisme", "realisme", corrections, ctx.cout_engage,
+                       int((time.perf_counter() - debut) * 1000))
+                cout_total += ctx.cout_engage
         else:
             repris.append("realisme")
             corrections = fait_realisme

@@ -134,6 +134,58 @@ def test_un_fail_persistant_marque_needs_review_sans_troisieme_appel(atelier, mo
     assert resultat.video.exists()
 
 
+def test_un_fournisseur_en_panne_ne_bloque_pas_lepisode(atelier, monkeypatch):
+    """Bug réel en production : un quota Groq épuisé pendant la QA visuelle
+    faisait planter l'épisode ENTIER — script, voix et images déjà payés
+    perdus pour une vérification qui n'est censée être qu'optionnelle (voir
+    la docstring de qa_images.py : « jamais d'épisode bloqué pour un seul
+    plan imparfait »). Le plan concerné doit juste rester tel quel, non
+    revérifié — l'épisode doit sortir."""
+    from pdz.moteur.erreurs import ErreurQuota
+
+    async def toujours_en_panne(self, entrees, ctx):
+        raise ErreurQuota("quota épuisé")
+
+    monkeypatch.setattr("pdz.agents.ecriture.plans.ShotPromptWriter.executer",
+                        _prompts_avec_un_element_manquant)
+    monkeypatch.setattr("pdz.agents.analyse.qa_image.ImageQA.executer",
+                        toujours_en_panne)
+
+    _, resultat = _produire(atelier)
+
+    assert resultat.video.exists()
+
+
+def test_un_fournisseur_en_panne_pendant_la_correction_marque_needs_review(
+        atelier, monkeypatch):
+    """Même principe, mais la panne survient APRÈS un FAIL, pendant la
+    regénération/revérification : le plan doit être marqué NEEDS_REVIEW
+    (on ne peut plus confirmer qu'il est bon) plutôt que de faire échouer
+    l'épisode."""
+    from pdz.moteur.erreurs import ErreurQuota
+
+    appels = {"n": 0}
+
+    async def fail_puis_en_panne(self, entrees, ctx):
+        appels["n"] += 1
+        if appels["n"] == 1:
+            ctx.facturer(0.0005)
+            return self.apres(
+                {"statut": "FAIL", "manquants": ["submarine cable"],
+                 "incorrects": [], "en_trop": []}, entrees, ctx,
+            )
+        raise ErreurQuota("quota épuisé")
+
+    monkeypatch.setattr("pdz.agents.ecriture.plans.ShotPromptWriter.executer",
+                        _prompts_avec_un_element_manquant)
+    monkeypatch.setattr("pdz.agents.analyse.qa_image.ImageQA.executer",
+                        fail_puis_en_panne)
+
+    _, resultat = _produire(atelier)
+
+    assert resultat.video.exists()
+
+
 def test_realisme_declenche_aussi_la_qa_image(atelier, monkeypatch):
     """Un plan réécrit par RealismWriter est un second endroit où un élément
     obligatoire peut disparaître : il doit, lui aussi, déclencher la QA

@@ -87,3 +87,45 @@ def test_realisme_est_appele_quand_un_plan_decrit_un_risque(atelier, monkeypatch
 
     assert appels["n"] == 1
     assert resultat.video.exists()
+
+
+def test_un_fournisseur_en_panne_ne_bloque_pas_lepisode(atelier, monkeypatch):
+    """Bug réel en production, mesuré sur le même job qui a ensuite épuisé
+    le même quota Groq dans la QA visuelle (voir
+    tests/test_qa_images_gating.py) : un fournisseur en panne pendant
+    RealismWriter (correction de texte optionnelle) ne doit pas non plus
+    faire échouer l'épisode entier. Les plans à risque gardent leur prompt
+    d'origine, non corrigé — moins bon, mais l'épisode sort."""
+    from pdz.moteur.erreurs import ErreurQuota
+
+    async def toujours_en_panne(self, entrees, ctx):
+        raise ErreurQuota("quota épuisé")
+
+    async def prompts_qui_gardent_laction(self, entrees, ctx):
+        ctx.facturer(0.001)
+        sortie = {"plans": [{"numero": p.numero, "prompt_image": p.action}
+                            for p in entrees["plans"]]}
+        return self.apres(sortie, entrees, ctx)
+
+    async def qa_toujours_pass(self, entrees, ctx):
+        # Le plan reste flagué « à risque » (le filtre déterministe l'a vu
+        # avant l'échec de RealismWriter) : il déclenche donc quand même la
+        # QA image — mockée ici pour isoler ce que ce test vérifie
+        # vraiment, sans dépendre d'un appel réseau réel.
+        ctx.facturer(0.0005)
+        return self.apres(
+            {"statut": "PASS", "manquants": [], "incorrects": [], "en_trop": []},
+            entrees, ctx,
+        )
+
+    monkeypatch.setattr("pdz.agents.ecriture.realisme.RealismWriter.executer",
+                        toujours_en_panne)
+    monkeypatch.setattr("pdz.agents.ecriture.plans.ShotPromptWriter.executer",
+                        prompts_qui_gardent_laction)
+    monkeypatch.setattr("pdz.agents.ecriture.script.ScriptWriter.executer",
+                        _script_avec_action("phone screen showing a conversation visible"))
+    monkeypatch.setattr("pdz.agents.analyse.qa_image.ImageQA.executer", qa_toujours_pass)
+
+    _, resultat = _produire(atelier)
+
+    assert resultat.video.exists()
