@@ -27,6 +27,13 @@ regles_du_monde:
   décors et lieux compris, pas seulement les personnages
 - Le sol est une grille en perspective, comme un plan technique
 - Une seule idée par plan, cadrée large ou en très gros plan, jamais entre les deux
+- 'Le réseau et Internet se montrent par leur infrastructure physique concrète
+  (câbles, tours-relais, centres de données, flux lumineux dirigés) — jamais par
+  un globe générique ni un hologramme flottant sans rapport avec ce dont parle la
+  réplique'
+- Une donnée ou un message se montre par un flux lumineux qui va d'un point précis
+  à un autre, dans une direction claire — jamais par des particules qui flottent
+  sans direction ni origine
 personnages:
 - id: narrateur
   nom: Le narrateur
