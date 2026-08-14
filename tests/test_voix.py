@@ -12,8 +12,13 @@ import pytest
 
 from pdz.moteur.erreurs import ErreurConfig
 from pdz.production import voix as mod
-from pdz.production.voix import PAUSE_CHANGEMENT_MS, PAUSE_MS, dire
-from pdz.univers import Univers
+from pdz.production.voix import (
+    PAUSE_CHANGEMENT_MS,
+    PAUSE_MS,
+    _reglages_avec_emotion,
+    dire,
+)
+from pdz.univers import Univers, Voix
 from pdz.video.soustitres import Mot
 
 
@@ -134,3 +139,67 @@ def test_les_durees_reelles_pilotent_les_plans(tmp_path, univers, fausse_synthes
     durees = b.durees_repliques_s
     assert len(durees) == 3
     assert all(d > 0 for d in durees)
+
+
+# ── Prosodie selon l'émotion : un champ écrit par ScriptWriter, jusqu'ici
+# jamais lu par la synthèse vocale ────────────────────────────────────────
+
+def test_une_emotion_forte_rend_la_voix_plus_dynamique():
+    """Colère : stabilité plus basse (plus variable), style plus haut (plus
+    expressif) que la base neutre du personnage."""
+    base = Voix(stabilite=0.5, style=0.5, vitesse=1.0)
+    stabilite, style, vitesse = _reglages_avec_emotion(base, "colere")
+    assert stabilite < base.stabilite
+    assert style > base.style
+    assert vitesse == base.vitesse
+
+
+def test_une_emotion_calme_reste_proche_de_la_base_posee():
+    base = Voix(stabilite=0.75, style=0.25, vitesse=1.0)
+    stabilite, style, vitesse = _reglages_avec_emotion(base, "calme")
+    assert 0.6 <= stabilite <= 0.8
+
+
+def test_une_emotion_inconnue_garde_la_base_du_personnage():
+    """Non-régression : un job en cache d'avant ce champ, ou un script qui
+    omet `emotion`, ne doit ni planter ni changer la voix."""
+    base = Voix(stabilite=0.5, style=0.5, vitesse=1.2)
+    assert _reglages_avec_emotion(base, "inconnue") == (0.5, 0.5, 1.2)
+
+
+def test_deux_emotions_differentes_donnent_des_reglages_differents():
+    base = Voix(stabilite=0.5, style=0.5, vitesse=1.0)
+    colere = _reglages_avec_emotion(base, "colere")
+    tristesse = _reglages_avec_emotion(base, "tristesse")
+    assert colere != tristesse
+
+
+def test_dire_transmet_les_reglages_ajustes_a_la_synthese(tmp_path, univers, monkeypatch):
+    """Bug réel : `emotion` était déjà écrit par ScriptWriter sur chaque
+    réplique, mais la synthèse vocale ne le lisait jamais — chaque
+    personnage gardait le même débit du hook au payoff."""
+    import subprocess as sp
+
+    vus = []
+
+    def _espion(texte, sortie, *, voice_id, stabilite, style, vitesse):
+        vus.append((stabilite, style))
+        duree = max(0.4, len(texte) * 0.05)
+        sp.run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+               "-f", "lavfi", "-i", f"sine=frequency=300:duration={duree}",
+               str(sortie)], check=True)
+        return sortie, []
+
+    monkeypatch.setattr(mod.elevenlabs, "synthetiser", _espion)
+
+    perso_id = univers.personnages[0].id
+    reps = [
+        {"numero": 1, "personnage": perso_id, "replique": "phrase calme",
+         "emotion": "calme"},
+        {"numero": 2, "personnage": perso_id, "replique": "phrase en colere",
+         "emotion": "colere"},
+    ]
+    dire(reps, univers, tmp_path / "v.m4a", cache=False)
+
+    assert len(vus) == 2
+    assert vus[0] != vus[1], "deux émotions différentes doivent produire des réglages différents"

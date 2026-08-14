@@ -31,7 +31,7 @@ from pathlib import Path
 from pdz.config import config
 from pdz.ia import elevenlabs
 from pdz.moteur.erreurs import ErreurConfig, ErreurPdz
-from pdz.univers import Univers
+from pdz.univers import Univers, Voix
 from pdz.video.soustitres import Mot
 
 log = logging.getLogger(__name__)
@@ -43,6 +43,39 @@ PAUSE_MS = 280
 # Pause plus longue quand la parole change de personnage : c'est ce qui rend
 # un échange lisible à l'oreille.
 PAUSE_CHANGEMENT_MS = 420
+
+# (stabilite, style) qu'une émotion suggère chez ElevenLabs : stabilite basse
+# + style haut = plus dynamique et expressif ; l'inverse = plus posé, plus
+# constant. Mélangées à la base du personnage dans `_reglages_avec_emotion`,
+# jamais substituées — la voix reste reconnaissable, mais varie vraiment
+# d'une réplique à l'autre selon ce que ScriptWriter a écrit.
+EMOTIONS_VOIX = {
+    "colere": (0.25, 0.75),
+    "surprise": (0.25, 0.70),
+    "peur": (0.30, 0.65),
+    "joie": (0.35, 0.60),
+    "tristesse": (0.65, 0.30),
+    "mepris": (0.55, 0.40),
+    "gene": (0.55, 0.35),
+    "calme": (0.60, 0.25),
+}
+
+
+def _reglages_avec_emotion(voix: Voix, emotion: str) -> tuple[float, float, float]:
+    """(stabilite, style, vitesse) à utiliser pour CETTE réplique précise.
+
+    `emotion` est déjà écrit par ScriptWriter pour chaque réplique, mais
+    n'était jusqu'ici jamais lu par la synthèse vocale : chaque personnage
+    gardait le même débit et la même expressivité du hook au payoff — le
+    genre de « débit monotone » qu'une bonne narration évite. Mélanger
+    (moitié-moitié) la base du personnage — sa personnalité vocale, fixe
+    d'un épisode à l'autre — avec ce que suggère son émotion à ce moment
+    précis fait varier la voix sans la rendre méconnaissable.
+    """
+    stabilite_e, style_e = EMOTIONS_VOIX.get(emotion, (voix.stabilite, voix.style))
+    stabilite = round((voix.stabilite + stabilite_e) / 2, 3)
+    style = round((voix.style + style_e) / 2, 3)
+    return stabilite, style, voix.vitesse
 
 
 @dataclass
@@ -179,7 +212,10 @@ def dire(repliques: list[dict], univers: Univers, sortie: Path, *,
             )
 
         texte = r["replique"]
-        reglages = (perso.voix.stabilite, perso.voix.style, perso.voix.vitesse)
+        stabilite, style, vitesse = _reglages_avec_emotion(
+            perso.voix, r.get("emotion", "calme")
+        )
+        reglages = (stabilite, style, vitesse)
         emp = _empreinte(texte, perso.voix.voice_id, reglages)
         garde = dossier_cache / f"{emp}.mp3"
 
@@ -200,9 +236,9 @@ def dire(repliques: list[dict], univers: Univers, sortie: Path, *,
             fichier, mots_bruts = elevenlabs.synthetiser(
                 texte, dossier / f"{r['numero']:03d}.mp3",
                 voice_id=perso.voix.voice_id,
-                stabilite=perso.voix.stabilite,
-                style=perso.voix.style,
-                vitesse=perso.voix.vitesse,
+                stabilite=stabilite,
+                style=style,
+                vitesse=vitesse,
             )
             duree = duree_ms(fichier)
             mots = (_decaler(mots_bruts, curseur_ms) if mots_bruts
