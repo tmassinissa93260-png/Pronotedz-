@@ -288,6 +288,21 @@ def test_le_prompt_actif_relaie_la_consigne_de_bouclage_au_dernier_plan():
     assert "(dernier plan)" in message
 
 
+def test_le_prompt_actif_exige_langlais_pour_prompt_image():
+    """Audit data-flow SCRIPT → PROMPT → IMAGE : `prompt_image` n'avait
+    jamais eu de consigne de langue, alors que `elements_obligatoires`,
+    `elements_a_exclure` et `registre_visuel` l'ont explicitement depuis
+    leur ajout — et que `style.rendu`/les décors/`consignes_image` de
+    chaque univers le sont déjà tous. Un `prompt_image` en français mêlé
+    aux morceaux anglais du prompt final est un risque de dérive/texte
+    illisible mesuré sur un épisode réel (audit épisode #56)."""
+    p = charger("ecriture/plans")
+    assert "anglais" in p.systeme_stable.lower()
+    description = p.schema_sortie["properties"]["plans"]["items"]["properties"][
+        "prompt_image"]["description"]
+    assert "anglais" in description.lower()
+
+
 def test_sans_derniere_image_le_prompt_ne_mentionne_aucun_bouclage():
     """Entrée optionnelle : la majorité des reprises n'ont rien à dire sur
     le bouclage, et `.rendre()` ne doit ni planter ni ajouter de section

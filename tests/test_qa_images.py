@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from pdz.production import qa_images
 from pdz.production.storyboard import PlanScript
+from pdz.prompts import charger
 
 
 def _plan(numero=0, corrections_fidelite=None):
@@ -59,3 +60,22 @@ def test_corriger_prompt_combine_les_trois():
     assert "submarine cable" in prompt
     assert "no male character" in prompt
     assert "no laptop" in prompt
+
+
+# ── Le verdict ne se fie plus SEULEMENT à la checklist auto-rapportée ────
+
+def test_le_prompt_actif_verifie_aussi_contre_la_replique():
+    """Bug structurel trouvé par l'audit data-flow : `elements_obligatoires`
+    est écrit par ShotPromptWriter DANS LE MÊME APPEL que `prompt_image` —
+    un oubli s'y répète presque toujours (même modèle, même angle mort).
+    `replique` vient d'un appel séparé (ScriptWriter) : la seule référence
+    réellement indépendante déjà disponible, zéro appel IA de plus."""
+    p = charger("analyse/qa_image")
+    texte = p.systeme_stable.lower()
+    assert "réplique" in texte
+    assert "manque" in texte  # le manquant évident doit rejoindre `manquants`
+    stable, _, message = p.rendre(
+        action="a wide shot", replique="Une mère regarde un message sur son téléphone.",
+        elements_obligatoires=[], elements_a_exclure=[],
+    )
+    assert "Une mère regarde un message sur son téléphone." in message

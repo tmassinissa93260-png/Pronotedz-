@@ -262,6 +262,22 @@ def test_le_prompt_se_charge_et_se_rend():
     assert "une dispute" in message
 
 
+def test_laction_doit_etre_ecrite_en_anglais():
+    """Audit data-flow SCRIPT → PROMPT : `action` devient directement le
+    prompt d'image (contrainte 12), mais c'était le seul maillon de toute
+    la chaîne visuelle sans consigne de langue — `replique` (la voix) reste
+    en français, `action` (l'image) doit être en anglais comme le style,
+    les décors et tout ce que ShotPromptWriter écrit déjà."""
+    p = charger("ecriture/script")
+    assert "anglais" in p.systeme_stable.lower()
+    proprietes = p.schema_sortie["properties"]["repliques"]["items"]["properties"]
+    assert "anglais" in proprietes["action"]["description"].lower()
+    # `replique` (la voix, jamais traduite) ne doit pas recevoir la même
+    # consigne — sinon ElevenLabs recevrait du texte anglais à dire en
+    # français.
+    assert "anglais" not in proprietes["replique"]["description"].lower()
+
+
 def test_les_entrees_optionnelles_sont_vraiment_optionnelles():
     """Ne rien passer d'optionnel doit rendre, pas lever.
 
@@ -402,11 +418,11 @@ def test_une_emotion_valide_traverse_intacte():
 def test_le_schema_actif_ne_contraint_plus_lemotion_par_enum():
     """Depuis script@1.4.0 : contraindre par `enum` un champ déjà rattrapable
     après coup ne protégeait rien et rendait tout le script fragile chez
-    Groq. Toujours vrai en 1.7.0."""
+    Groq. Toujours vrai sur la version active — figer le numéro ici
+    obligerait à modifier ce test à chaque amélioration du prompt."""
     schema = charger("ecriture/script").schema_sortie
     proprietes = schema["properties"]["repliques"]["items"]["properties"]
     assert "enum" not in proprietes["emotion"]
-    assert charger("ecriture/script").version == "1.7.0"
 
 
 def test_le_schema_impose_le_nombre_de_repliques_vise():
