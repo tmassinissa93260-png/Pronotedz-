@@ -261,6 +261,47 @@ def test_texte_illisible_est_journalise_meme_avec_le_reste_conforme(atelier, mon
     assert corrige["texte_lisible"] == "lisible"
 
 
+def test_conformite_univers_false_est_journalisee(atelier, monkeypatch):
+    """Ferme le trou de production #64 : un plan peut respecter toute sa
+    propre checklist et violer quand même une règle globale de l'univers
+    (ici, une marque détectée dans l'image) — `conformite_univers` et
+    `elements_interdits_detectes` doivent apparaître dans la trace, même
+    quand manquants/incorrects/en_trop sont vides."""
+    from pdz import db
+
+    appels = {"n": 0}
+
+    async def marque_toujours_detectee(self, entrees, ctx):
+        appels["n"] += 1
+        ctx.facturer(0.0005)
+        sortie = {"statut": "FAIL", "manquants": [], "incorrects": [], "en_trop": [],
+                  "lieu_correspond": True, "registre_correspond": True,
+                  "texte_lisible": "non_applicable",
+                  "conformite_univers": False,
+                  "elements_interdits_detectes": ["tesla logo"]}
+        return self.apres(sortie, entrees, ctx)
+
+    monkeypatch.setattr("pdz.agents.ecriture.plans.ShotPromptWriter.executer",
+                        _prompts_avec_un_element_manquant)
+    monkeypatch.setattr("pdz.agents.analyse.qa_image.ImageQA.executer",
+                        marque_toujours_detectee)
+
+    _, resultat = _produire(atelier)
+
+    assert appels["n"] == 2   # jamais un troisième appel, même en échec persistant
+    assert resultat.video.exists()
+
+    with db.connexion() as conn:
+        qa_row = conn.execute(
+            "SELECT resultat FROM etapes WHERE job_id = ? AND cle = 'qa_images'",
+            (resultat.job_id,),
+        ).fetchone()
+    verifications = json.loads(qa_row["resultat"])["verifications"]
+    needs_review = next(v for v in verifications if v.get("statut") == "NEEDS_REVIEW")
+    assert needs_review["conformite_univers"] is False
+    assert needs_review["elements_interdits_detectes"] == ["tesla logo"]
+
+
 def test_le_prompt_final_et_le_contrat_sont_journalises_par_plan(atelier, monkeypatch):
     """Verrou direct de l'exigence de traçabilité : le prompt EXACT envoyé
     au générateur d'image, et son Visual Contract, doivent être récupérables
@@ -310,6 +351,41 @@ def test_le_prompt_final_et_le_contrat_sont_journalises_par_plan(atelier, monkey
     assert corriges, "aucune correction journalisée alors qu'un FAIL a eu lieu"
 
 
+def test_une_marque_detectee_route_le_plan_vers_realismwriter(atelier, monkeypatch):
+    """Reproduit le trou trouvé en production #64 : un prompt qui nomme une
+    marque réelle (hors du vocabulaire de l'univers) doit déclencher
+    RealismWriter — l'agent EXISTANT, pas un nouvel appel — exactement
+    comme un risque de texte/logo/visage le fait déjà."""
+    appels_realisme = {"n": 0}
+
+    async def prompts_avec_une_marque(self, entrees, ctx):
+        ctx.facturer(0.001)
+        sortie = {"plans": [
+            {"numero": p.numero,
+             "prompt_image": "a Tesla trophy glowing on the podium" if p.numero == 0
+                             else f"prompt riche {p.numero}"}
+            for p in entrees["plans"]
+        ]}
+        return self.apres(sortie, entrees, ctx)
+
+    async def realisme_compte(self, entrees, ctx):
+        appels_realisme["n"] += 1
+        ctx.facturer(0.001)
+        sortie = {"plans": [{"numero": p.numero, "prompt_image": p.action}
+                            for p in entrees["plans"]]}
+        return self.apres(sortie, entrees, ctx)
+
+    monkeypatch.setattr("pdz.agents.ecriture.plans.ShotPromptWriter.executer",
+                        prompts_avec_une_marque)
+    monkeypatch.setattr("pdz.agents.ecriture.realisme.RealismWriter.executer",
+                        realisme_compte)
+
+    _, resultat = _produire(atelier)
+
+    assert appels_realisme["n"] == 1   # le même agent existant, pas un nouveau
+    assert resultat.video.exists()
+
+
 def test_realisme_declenche_aussi_la_qa_image(atelier, monkeypatch):
     """Un plan réécrit par RealismWriter est un second endroit où un élément
     obligatoire peut disparaître : il doit, lui aussi, déclencher la QA
@@ -350,3 +426,71 @@ def test_realisme_declenche_aussi_la_qa_image(atelier, monkeypatch):
 
     assert appels["n"] == 1
     assert resultat.video.exists()
+
+
+def test_le_cas_tesla_production_64_est_couvert_de_bout_en_bout(atelier, monkeypatch):
+    """Non-régression nommée explicitement d'après la production #64 : un
+    plan mentionnant une marque réelle route vers RealismWriter (existant),
+    et même si l'abstraction reste imparfaite (simulée ici : RealismWriter
+    garde le texte tel quel), la QA vision attrape le logo via
+    `conformite_univers` et le corrige — l'épisode sort quand même, sans
+    jamais un troisième appel de vérification."""
+    appels_realisme = {"n": 0}
+    appels_qa = {"n": 0}
+
+    async def prompts_avec_tesla(self, entrees, ctx):
+        ctx.facturer(0.001)
+        sortie = {"plans": [
+            {"numero": p.numero,
+             "prompt_image": "a Tesla accelerator pedal glowing in the dark" if p.numero == 0
+                             else f"prompt riche {p.numero}"}
+            for p in entrees["plans"]
+        ]}
+        return self.apres(sortie, entrees, ctx)
+
+    async def realisme_imparfait(self, entrees, ctx):
+        """Simule une abstraction incomplète : le texte de marque reste."""
+        appels_realisme["n"] += 1
+        ctx.facturer(0.001)
+        sortie = {"plans": [{"numero": p.numero, "prompt_image": p.action}
+                            for p in entrees["plans"]]}
+        return self.apres(sortie, entrees, ctx)
+
+    async def qa_attrape_le_logo_puis_pass(self, entrees, ctx):
+        appels_qa["n"] += 1
+        ctx.facturer(0.0005)
+        if appels_qa["n"] == 1:
+            sortie = {"statut": "FAIL", "manquants": [], "incorrects": [], "en_trop": [],
+                      "lieu_correspond": True, "registre_correspond": True,
+                      "texte_lisible": "non_applicable",
+                      "conformite_univers": False,
+                      "elements_interdits_detectes": ["tesla logo"]}
+        else:
+            sortie = {"statut": "PASS", "manquants": [], "incorrects": [], "en_trop": [],
+                      "lieu_correspond": True, "registre_correspond": True,
+                      "texte_lisible": "non_applicable",
+                      "conformite_univers": True, "elements_interdits_detectes": []}
+        return self.apres(sortie, entrees, ctx)
+
+    monkeypatch.setattr("pdz.agents.ecriture.plans.ShotPromptWriter.executer",
+                        prompts_avec_tesla)
+    monkeypatch.setattr("pdz.agents.ecriture.realisme.RealismWriter.executer",
+                        realisme_imparfait)
+    monkeypatch.setattr("pdz.agents.analyse.qa_image.ImageQA.executer",
+                        qa_attrape_le_logo_puis_pass)
+
+    _, resultat = _produire(atelier)
+
+    assert appels_realisme["n"] == 1     # routé vers l'agent EXISTANT, pas un nouveau
+    assert appels_qa["n"] == 2           # jamais un troisième appel
+    assert resultat.video.exists()
+
+    from pdz import db
+    with db.connexion() as conn:
+        qa_row = conn.execute(
+            "SELECT resultat FROM etapes WHERE job_id = ? AND cle = 'qa_images'",
+            (resultat.job_id,),
+        ).fetchone()
+    verifications = json.loads(qa_row["resultat"])["verifications"]
+    corrige = next(v for v in verifications if v.get("statut") == "PASS" and v.get("corrige"))
+    assert "conformite_univers" in corrige["branches_correction"]

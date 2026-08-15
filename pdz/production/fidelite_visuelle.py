@@ -80,6 +80,22 @@ def renforcer(prompt: str, elements: list[str]) -> tuple[str, list[str]]:
     return f"{prompt}, featuring {', '.join(manquants)}", manquants
 
 
+def renforcer_registre(prompt: str, registre: str) -> str:
+    """Réaffirme le registre visuel après un `registre_correspond=False`.
+
+    Volontairement plus insistant que le simple ajout passif que
+    `prompt_plan()` fait déjà par défaut (voir `images.py`) — celui-là a
+    déjà tourné une première fois et a échoué : le répéter à l'identique
+    n'apporterait aucun signal de plus. `", rendering strictly in this
+    style"` force explicitement le RENDU, pas seulement la présence d'un
+    mot-clé de style dans le prompt.
+    """
+    registre = registre.strip()
+    if not registre:
+        return prompt
+    return f"{prompt}, rendering strictly in this style: {registre}"
+
+
 def exclure(prompt: str, elements: list[str]) -> str:
     """Ajoute au prompt les éléments à exclure de CE plan précis.
 

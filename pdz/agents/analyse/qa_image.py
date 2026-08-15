@@ -19,7 +19,7 @@ from pdz.moteur.pipeline import Contexte
 
 class ImageQA(Agent):
     nom = "qa_image"
-    version = "1.1.0"
+    version = "1.2.0"
     prompt_ref = "analyse/qa_image"
 
     def variables(self, entrees: dict[str, Any], ctx: Contexte) -> dict[str, Any]:
@@ -30,6 +30,8 @@ class ImageQA(Agent):
             "elements_a_exclure": entrees.get("elements_a_exclure", []),
             "decor": entrees.get("decor", ""),
             "registre_visuel": entrees.get("registre_visuel", ""),
+            "interdits_univers": entrees.get("interdits_univers", []),
+            "consignes_image_univers": entrees.get("consignes_image_univers", []),
         }
 
     def images(self, entrees: dict[str, Any], ctx: Contexte) -> list[Path] | None:

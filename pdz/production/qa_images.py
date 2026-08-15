@@ -47,36 +47,80 @@ def plans_a_verifier(plans: list[PlanScript], numeros_realisme: set[int]) -> set
 
 
 def _dimensions(verdict: dict) -> dict:
-    """Les nouvelles dimensions de verdict (qa_image@1.3.0) — jamais un
+    """Les dimensions de verdict typées (qa_image@1.3.0/1.4.0) — jamais un
     score, seulement des faits typés. `.get()` : un verdict rejoué depuis un
-    job en cache d'avant cette version n'a pas ces clés, sans planter."""
+    job en cache d'avant ces versions n'a pas ces clés, sans planter."""
     return {
         "lieu_correspond": verdict.get("lieu_correspond"),
         "registre_correspond": verdict.get("registre_correspond"),
         "texte_lisible": verdict.get("texte_lisible"),
+        "conformite_univers": verdict.get("conformite_univers"),
+        "elements_interdits_detectes": verdict.get("elements_interdits_detectes", []),
     }
 
 
 def corriger_prompt(prompt: str, manquants: list[str], incorrects: list[str],
-                    en_trop: list[str]) -> str:
-    """Traduit un verdict FAIL en correction de texte, déterministe.
+                    en_trop: list[str], *, registre_correspond: bool = True,
+                    registre_attendu: str = "", conformite_univers: bool = True,
+                    elements_interdits_detectes: list[str] | None = None,
+                    texte_lisible: str = "non_applicable",
+                    ) -> tuple[str, list[str]]:
+    """Traduit un verdict FAIL en correction de texte, ciblée sur la VRAIE
+    cause de l'échec plutôt que toujours le même traitement.
 
-    Réutilise exactement le mécanisme de la première passe : ce que la QA
-    visuelle a vu manquer devient un élément à rajouter, ce qu'elle a vu en
-    trop ou à la place d'autre chose devient un élément à exclure. Aucune
-    nouvelle logique, aucun appel IA de plus pour la correction elle-même.
+    Renvoie `(prompt_corrige, branches_appliquees)` — cette dernière est la
+    trace forensique de POURQUOI la correction a eu lieu, journalisée par
+    l'appelant. Une seule tentative de correction existe (voir la docstring
+    du module) : toutes les branches pertinentes sont donc COMPOSÉES en une
+    seule correction plutôt que d'en choisir une seule au hasard — ce sont
+    des ajouts de texte, jamais des réécritures qui s'écraseraient entre
+    elles.
 
-    `manquants`/`incorrects`/`en_trop` viennent du verdict JSON de l'agent
-    de vision : rien ne garantit qu'ils respectent le format court-et-anglais
-    d'`elements_obligatoires` (voir `fidelite_visuelle.assainir()`) — bug
-    réel mesuré (audit 2) où une phrase française entière finissait injectée
-    telle quelle dans un prompt Flux anglais.
+    `manquants`/`incorrects`/`en_trop`/`elements_interdits_detectes`
+    viennent du verdict JSON de l'agent de vision : rien ne garantit qu'ils
+    respectent le format court-et-anglais d'`elements_obligatoires` (voir
+    `fidelite_visuelle.assainir()`) — bug réel mesuré (audit 2) où une
+    phrase française entière finissait injectée telle quelle dans un prompt
+    Flux anglais.
     """
+    branches: list[str] = []
     manquants = fidelite_visuelle.assainir(manquants)
     incorrects = fidelite_visuelle.assainir(incorrects)
     en_trop = fidelite_visuelle.assainir(en_trop)
-    prompt, _ = fidelite_visuelle.renforcer(prompt, manquants)
-    return fidelite_visuelle.exclure(prompt, incorrects + en_trop)
+    interdits_detectes = fidelite_visuelle.assainir(elements_interdits_detectes or [])
+
+    if manquants:
+        prompt, _ = fidelite_visuelle.renforcer(prompt, manquants)
+        branches.append("manquants")
+
+    a_exclure = list(incorrects) + list(en_trop)
+    if incorrects or en_trop:
+        branches.append("incorrects_en_trop")
+
+    if not conformite_univers and interdits_detectes:
+        a_exclure += interdits_detectes
+        branches.append("conformite_univers")
+
+    if texte_lisible == "illisible":
+        a_exclure += ["legible text", "readable words", "visible writing"]
+        branches.append("texte_illisible")
+
+    if a_exclure:
+        prompt = fidelite_visuelle.exclure(prompt, a_exclure)
+
+    if not conformite_univers and interdits_detectes:
+        # Même vocabulaire d'abstraction que RealismWriter (voir
+        # realisme@1.0.0.yaml, règle #2) — les deux couches parlent le même
+        # langage, pas une syntaxe d'injection inventée pour l'occasion.
+        prompt = (f"{prompt}, abstract shapes and textures only, no "
+                 f"real-world brand names, no recognizable trademarks or "
+                 f"logos of any kind")
+
+    if not registre_correspond and registre_attendu.strip():
+        prompt = fidelite_visuelle.renforcer_registre(prompt, registre_attendu)
+        branches.append("registre")
+
+    return prompt, branches
 
 
 async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[int],
@@ -127,6 +171,8 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
                 "elements_a_exclure": plan.elements_a_exclure,
                 "decor": decor_resolu,
                 "registre_visuel": plan.registre_visuel,
+                "interdits_univers": univers.interdits,
+                "consignes_image_univers": univers.style.consignes_image,
                 "image": fichiers[i],
             }, ctx)
         except ErreurPdz as e:
@@ -155,9 +201,15 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
         )
 
         # Un seul correctif, jamais de boucle — voir la docstring du module.
-        prompt_corrige = corriger_prompt(
+        registre_attendu = plan.registre_visuel.strip() or univers.style.rendu
+        prompt_corrige, branches_correction = corriger_prompt(
             plan.action, verdict.get("manquants", []),
             verdict.get("incorrects", []), verdict.get("en_trop", []),
+            registre_correspond=verdict.get("registre_correspond", True),
+            registre_attendu=registre_attendu,
+            conformite_univers=verdict.get("conformite_univers", True),
+            elements_interdits_detectes=verdict.get("elements_interdits_detectes", []),
+            texte_lisible=verdict.get("texte_lisible", "non_applicable"),
         )
         perso = univers.personnage(plan.personnage)
         reference = fiches.get(perso.id) if perso else None
@@ -177,6 +229,8 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
                 "elements_a_exclure": plan.elements_a_exclure,
                 "decor": decor_resolu,
                 "registre_visuel": plan.registre_visuel,
+                "interdits_univers": univers.interdits,
+                "consignes_image_univers": univers.style.consignes_image,
                 "image": fichiers[i],
             }, ctx2)
             cout_total += ctx2.cout_engage
@@ -195,6 +249,7 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
                 "incorrects": verdict.get("incorrects", []),
                 "en_trop": verdict.get("en_trop", []),
                 "prompt_corrige": prompt_corrige,
+                "branches_correction": branches_correction,
                 **_dimensions(verdict),
             })
             continue
@@ -202,6 +257,7 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
         if second["statut"] == "PASS":
             verifications.append({"numero": plan.numero, "statut": "PASS",
                                   "corrige": True, "prompt_corrige": prompt_corrige,
+                                  "branches_correction": branches_correction,
                                   **_dimensions(second)})
         else:
             log.error(
@@ -215,6 +271,7 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
                 "incorrects": second.get("incorrects", []),
                 "en_trop": second.get("en_trop", []),
                 "prompt_corrige": prompt_corrige,
+                "branches_correction": branches_correction,
                 **_dimensions(second),
             })
 
