@@ -68,6 +68,15 @@ MOTIFS_VISAGE = [
     r"\bhead\b", r"\bbody\b", r"\bsilhouette\b",
     r"\bmain\b", r"\bmains\b", r"\bdoigt\b", r"\bdoigts\b",
     r"\bbras\b", r"\bpaume\b", r"\bpoignet\b", r"\bpeau\b",
+    # Élargi une seconde fois (mesuré à l'écran, ep56 plan 5 puis ep60 plan
+    # 0 — ce dernier après le premier élargissement) : ces VERBES impliquent
+    # une main/un doigt jamais nommé — « an icon lights up as it is
+    # pressed » produit une main pleine, photoréaliste, sur un wireframe UI
+    # par ailleurs correct, sans qu'aucun des mots ci-dessus n'apparaisse.
+    r"\btouches?\b", r"\btouching\b", r"\btouched\b",
+    r"\bpress(es|ing|ed)?\b", r"\btaps?\b", r"\btapped\b",
+    r"\breach(es|ing)? (for|toward|out)\b", r"\bpoints? at\b",
+    r"\btouche(nt)?\b", r"\bappuie(nt)?\b", r"\btapote(nt)?\b",
 ]
 
 

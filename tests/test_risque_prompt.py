@@ -154,6 +154,17 @@ def test_une_legende_de_carte_declenche_le_risque_texte():
     assert "texte lisible" in raisons
 
 
+def test_une_icone_pressee_sans_le_mot_doigt_declenche_le_risque_visage():
+    """Bug réel (ep56 plan 5, ep60 plan 0) : « an icon lights up as it is
+    pressed » ne nomme jamais une main ni un doigt, et produit pourtant une
+    main pleine, photoréaliste, sur un wireframe UI par ailleurs correct."""
+    raisons = risque_prompt.raisons_de_correction(
+        "an icon lights up as it is pressed on the wireframe panel",
+        visage_interdit=True,
+    )
+    assert "visage" in raisons
+
+
 def test_un_flux_de_donnees_abstrait_ne_declenche_rien():
     """« data stream » seul reste un motif visuel central de cet univers —
     trop générique pour être un risque de texte, sinon presque tous les
