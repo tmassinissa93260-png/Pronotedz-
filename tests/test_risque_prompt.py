@@ -174,3 +174,61 @@ def test_un_flux_de_donnees_abstrait_ne_declenche_rien():
         visage_interdit=True,
     )
     assert "texte lisible" not in raisons
+
+
+# ── Risque de marque : bug réel (production #64, logo Tesla non détecté) ──
+
+def test_marque_est_interdite_lit_les_interdits_de_lunivers():
+    assert risque_prompt.marque_est_interdite(["marques réelles"])
+    assert risque_prompt.marque_est_interdite(["marques automobiles réelles nommées"])
+    assert risque_prompt.marque_est_interdite(["violence explicite"]) is False
+
+
+def test_un_nom_hors_vocabulaire_declenche_le_risque_marque():
+    """Reproduit exactement le cas de production #64 : le sujet nomme une
+    marque réelle, jamais présente dans le vocabulaire propre de
+    l'univers."""
+    vocabulaire = risque_prompt.vocabulaire_connu(["narrateur", "Le narrateur", "voix off"])
+    raisons = risque_prompt.raisons_de_correction(
+        "a Tesla accelerator pedal glowing in the dark",
+        visage_interdit=False, marque_interdite=True,
+        elements_obligatoires=[], vocabulaire_connu=vocabulaire,
+    )
+    assert "marque" in raisons
+
+
+def test_un_mot_du_vocabulaire_de_lunivers_ne_declenche_rien():
+    vocabulaire = risque_prompt.vocabulaire_connu(["Strawberina", "strawberina", "fraise"])
+    raisons = risque_prompt.raisons_de_correction(
+        "Strawberina holds a golden trophy on stage",
+        visage_interdit=False, marque_interdite=True,
+        elements_obligatoires=[], vocabulaire_connu=vocabulaire,
+    )
+    assert "marque" not in raisons
+
+
+def test_le_premier_mot_de_la_phrase_nest_jamais_un_signal_seul():
+    vocabulaire = risque_prompt.vocabulaire_connu([])
+    raisons = risque_prompt.raisons_de_correction(
+        "Wide shot of an empty wireframe room",
+        visage_interdit=False, marque_interdite=True,
+        elements_obligatoires=[], vocabulaire_connu=vocabulaire,
+    )
+    assert "marque" not in raisons
+
+
+def test_le_risque_marque_najamais_sans_le_vocabulaire_fourni():
+    """Défaut inerte : sans vocabulaire_connu explicite, aucun risque de
+    marque n'est jamais évalué — rétrocompatible avec tout appel existant."""
+    raisons = risque_prompt.raisons_de_correction(
+        "a Tesla accelerator pedal", visage_interdit=False, marque_interdite=True,
+    )
+    assert "marque" not in raisons
+
+
+def test_mots_hors_vocabulaire_scanne_aussi_les_elements_obligatoires():
+    vocabulaire = risque_prompt.vocabulaire_connu([])
+    trouves = risque_prompt.mots_hors_vocabulaire(
+        "a wide shot of a car", ["Tesla logo"], vocabulaire,
+    )
+    assert "Tesla" in trouves

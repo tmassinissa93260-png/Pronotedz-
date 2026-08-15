@@ -80,13 +80,20 @@ MOTIFS_VISAGE = [
 ]
 
 
-def raisons_de_correction(prompt: str, *, visage_interdit: bool) -> list[str]:
+def raisons_de_correction(prompt: str, *, visage_interdit: bool,
+                          marque_interdite: bool = False,
+                          elements_obligatoires: list[str] | None = None,
+                          vocabulaire_connu: frozenset[str] | None = None,
+                          ) -> list[str]:
     """Les raisons pour lesquelles ce prompt mérite RealismWriter — liste
     vide si rien ne le justifie (cas le plus fréquent, et le moins cher).
 
     `visage_interdit` vient de l'univers (voir `visage_est_interdit`) : un
     univers qui autorise les visages ne doit jamais déclencher cette
-    correction pour ça — la contrainte n'existe pas.
+    correction pour ça — la contrainte n'existe pas. Même principe pour
+    `marque_interdite` (voir `marque_est_interdite`) et `vocabulaire_connu`
+    (voir `vocabulaire_connu()`) : sans eux, aucun risque de marque n'est
+    évalué — défauts inertes, rétrocompatibles avec les appels existants.
     """
     p = prompt.lower()
     raisons: list[str] = []
@@ -96,6 +103,9 @@ def raisons_de_correction(prompt: str, *, visage_interdit: bool) -> list[str]:
         raisons.append("logo")
     if visage_interdit and any(re.search(m, p) for m in MOTIFS_VISAGE):
         raisons.append("visage")
+    if (marque_interdite and vocabulaire_connu is not None
+            and mots_hors_vocabulaire(prompt, elements_obligatoires or [], vocabulaire_connu)):
+        raisons.append("marque")
     return raisons
 
 
@@ -107,3 +117,65 @@ def visage_est_interdit(consignes_image: list[str]) -> bool:
         "face" in c.lower() or "visage" in c.lower() or "portrait" in c.lower()
         for c in consignes_image
     )
+
+
+def marque_est_interdite(interdits: list[str]) -> bool:
+    """Devine, depuis les interdits de l'univers, si les marques réelles
+    sont proscrites — même lecture sémantique que `visage_est_interdit`,
+    sur le champ `interdits` plutôt que `consignes_image`."""
+    return any(
+        "marque" in i.lower() or "brand" in i.lower() or "trademark" in i.lower()
+        for i in interdits
+    )
+
+
+# Mots grammaticaux capitalisés en début de proposition ou dans une formule
+# figée — jamais des noms propres, donc jamais un signal de marque à eux
+# seuls. Volontairement PAS une liste de marques : voir mots_hors_vocabulaire().
+_EXCEPTIONS_CAPITALISATION = {
+    "a", "an", "the", "in", "on", "with", "as", "at", "his", "her", "its",
+    "their", "he", "she", "it", "they", "i",
+}
+_MOTIF_CAPITALE = re.compile(r"\b[A-Z][a-z]+\b")  # exclut les ACRONYMES par construction
+
+
+def vocabulaire_connu(noms_connus: list[str]) -> frozenset[str]:
+    """Aplatit une liste de textes (id/nom/espèce des personnages, id/nom
+    des décors...) en un ensemble de mots en minuscules, pour distinguer un
+    nom propre LÉGITIME de l'univers d'un nom hors vocabulaire — voir
+    `mots_hors_vocabulaire()`. Reste texte-vers-texte, comme le reste de ce
+    module : jamais un import de `Univers` ici, c'est à l'appelant
+    d'aplatir une fois par épisode, pas par plan."""
+    mots: set[str] = set()
+    for texte in noms_connus:
+        mots.update(m.lower() for m in re.findall(r"[A-Za-zÀ-ÿ]+", texte))
+    return frozenset(mots)
+
+
+def mots_hors_vocabulaire(action: str, elements_obligatoires: list[str],
+                          vocabulaire: frozenset[str]) -> list[str]:
+    """Les mots capitalisés de `action`/`elements_obligatoires` qui ne sont
+    ni un mot grammatical figé, ni un mot du vocabulaire propre de
+    l'univers (personnages, décors) — un signal déterministe de nom de
+    marque potentiel, sans jamais maintenir une liste de marques.
+
+    Limite assumée : n'attrape qu'un nom de marque écrit explicitement dans
+    le texte. Un logo que le générateur d'image invente à partir d'une
+    description neutre (« a sleek electric sedan », sans jamais dire le
+    nom de la marque) reste hors de portée d'un filtre sur le TEXTE du
+    prompt — voir la dimension `conformite_univers` de `analyse/qa_image`,
+    qui vérifie l'IMAGE, pas le texte, pour ce cas résiduel.
+    """
+    trouves: list[str] = []
+    for m in _MOTIF_CAPITALE.finditer(action):
+        if m.start() == 0:
+            continue  # premier mot de la phrase — capitalisation structurelle, pas un signal
+        mot = m.group(0)
+        if mot.lower() not in _EXCEPTIONS_CAPITALISATION and mot.lower() not in vocabulaire:
+            trouves.append(mot)
+    for item in elements_obligatoires:
+        for m in _MOTIF_CAPITALE.finditer(item):
+            mot = m.group(0)
+            if mot.lower() not in _EXCEPTIONS_CAPITALISATION and mot.lower() not in vocabulaire:
+                trouves.append(mot)
+    return trouves

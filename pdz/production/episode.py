@@ -364,9 +364,24 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     # Groq de plus par plan même quand rien dans le prompt ne l'exigeait —
     # exactement ce qui a vidé le quota Groq en pleine production.
     visage_interdit = risque_prompt.visage_est_interdit(univers.style.consignes_image)
+    # Un nom hors du vocabulaire propre de l'univers (personnages, décors)
+    # est un signal déterministe de marque potentielle — voir la découverte
+    # de production #64 (un logo Tesla non détecté, sujet nommant la
+    # marque). Calculé une fois par épisode, pas par plan.
+    marque_interdite = risque_prompt.marque_est_interdite(univers.interdits)
+    vocabulaire = frozenset()
+    if marque_interdite:
+        noms_connus = [x for p in univers.personnages for x in (p.id, p.nom, p.espece)] \
+                     + [x for d in univers.decors for x in (d.id, d.nom)]
+        vocabulaire = risque_prompt.vocabulaire_connu(noms_connus)
     a_verifier = [
         p for p in plans
-        if risque_prompt.raisons_de_correction(p.action, visage_interdit=visage_interdit)
+        if risque_prompt.raisons_de_correction(
+            p.action, visage_interdit=visage_interdit,
+            marque_interdite=marque_interdite,
+            elements_obligatoires=p.elements_obligatoires,
+            vocabulaire_connu=vocabulaire,
+        )
     ]
     # Capturé AVANT la fusion ci-dessous, qui reconstruit `plans` : une
     # réécriture de prompt par RealismWriter est un second endroit où un
