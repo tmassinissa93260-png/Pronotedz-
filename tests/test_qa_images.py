@@ -62,6 +62,19 @@ def test_corriger_prompt_combine_les_trois():
     assert "no laptop" in prompt
 
 
+def test_corriger_prompt_najamais_dinjecter_une_phrase_qa_non_conforme():
+    """Verrou direct du bug prouvé par l'audit 2 : un verdict QA qui renvoie
+    une phrase française entière au lieu d'un court mot-clé anglais ne doit
+    jamais atteindre le prompt final — seul le token propre doit passer."""
+    phrase = "une main humaine qui touche l'écran alors qu'aucune main ne devrait être visible"
+    prompt = qa_images.corriger_prompt(
+        "a generic hologram", ["submarine cable", phrase], [phrase], [phrase],
+    )
+    assert "submarine cable" in prompt
+    assert phrase not in prompt
+    assert "main humaine" not in prompt
+
+
 # ── Le verdict ne se fie plus SEULEMENT à la checklist auto-rapportée ────
 
 def test_le_prompt_actif_verifie_aussi_contre_la_replique():

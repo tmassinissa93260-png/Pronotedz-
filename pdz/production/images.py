@@ -29,7 +29,9 @@ from pathlib import Path
 from pdz.config import config
 from pdz.ia import images as ia_images
 from pdz.moteur.erreurs import ErreurBudget, ErreurConfig
+from pdz.production import contrat_visuel
 from pdz.production.cadrage import phrase as phrase_de_cadrage
+from pdz.production.contrat_visuel import ContratVisuel
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Personnage, Univers
 
@@ -75,6 +77,7 @@ class PlanImage:
     fichier: Path
     cout: float = 0.0
     depuis_cache: bool = False
+    contrat: ContratVisuel | None = None
 
 
 @dataclass
@@ -197,6 +200,21 @@ def prompt_plan(personnage: Personnage, univers: Univers, *,
     morceaux.append("vertical 9:16 composition")
 
     return ", ".join(m for m in morceaux if m)
+
+
+def prompt_plan_depuis_contrat(contrat: ContratVisuel, univers: Univers, *,
+                               consignes: list[str] | None = None) -> str:
+    """Compile un `ContratVisuel` (voir `pdz.production.contrat_visuel`) en
+    prompt — un simple passe-plat vers `prompt_plan()`, qui reste l'unique
+    implémentation de l'assemblage, inchangée. N'existe que pour donner une
+    entrée typée et documentée au même résultat."""
+    perso = univers.personnage(contrat.qui)
+    return prompt_plan(
+        perso, univers, action=contrat.quoi, emotion=contrat.emotion,
+        decor=contrat.ou_id, consignes=consignes,
+        fonction=contrat.fonction, cadrage=contrat.cadrage,
+        registre_visuel=contrat.registre_visuel_plan,
+    )
 
 
 def graine_du_plan(univers: Univers, prompt: str) -> int | None:
@@ -367,11 +385,8 @@ def fabriquer(plans: list[PlanScript], univers: Univers, dossier: Path, *,
                 "produits sont en cache et ne seront pas repayés."
             )
 
-        prompt = prompt_plan(perso, univers, action=plan.action,
-                             emotion=plan.emotion, decor=plan.decor,
-                             consignes=consignes, fonction=plan.fonction,
-                             cadrage=plan.cadrage,
-                             registre_visuel=plan.registre_visuel)
+        contrat = contrat_visuel.compiler(plan, perso, univers)
+        prompt = prompt_plan_depuis_contrat(contrat, univers, consignes=consignes)
         destination = dossier / f"plan_{plan.numero:03d}.jpg"
         reste_pct = max(0.0, (plafond - planche.cout) / max(1e-6, plafond) * 100)
 
@@ -383,6 +398,7 @@ def fabriquer(plans: list[PlanScript], univers: Univers, dossier: Path, *,
         planche.plans.append(PlanImage(
             numero=plan.numero, personnage=perso.id, prompt=prompt,
             fichier=destination, cout=cout, depuis_cache=du_cache,
+            contrat=contrat,
         ))
         planche.cout += cout
         planche.images_evitees += int(du_cache)

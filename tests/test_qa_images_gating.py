@@ -186,6 +186,130 @@ def test_un_fournisseur_en_panne_pendant_la_correction_marque_needs_review(
     assert resultat.video.exists()
 
 
+def test_les_nouvelles_dimensions_qa_najoutent_aucun_appel(atelier, monkeypatch):
+    """`lieu_correspond`/`registre_correspond`/`texte_lisible` (qa_image@1.3.0)
+    sont de nouvelles dimensions de verdict, pas un nouveau site d'appel —
+    le plafond « un verdict, si FAIL un correctif, un second verdict »
+    reste exactement le même."""
+    appels = {"n": 0}
+
+    async def fail_puis_pass_avec_dimensions(self, entrees, ctx):
+        appels["n"] += 1
+        ctx.facturer(0.0005)
+        if appels["n"] == 1:
+            sortie = {"statut": "FAIL", "manquants": ["submarine cable"],
+                      "incorrects": [], "en_trop": [],
+                      "lieu_correspond": True, "registre_correspond": True,
+                      "texte_lisible": "non_applicable"}
+        else:
+            sortie = {"statut": "PASS", "manquants": [], "incorrects": [], "en_trop": [],
+                      "lieu_correspond": True, "registre_correspond": True,
+                      "texte_lisible": "non_applicable"}
+        return self.apres(sortie, entrees, ctx)
+
+    monkeypatch.setattr("pdz.agents.ecriture.plans.ShotPromptWriter.executer",
+                        _prompts_avec_un_element_manquant)
+    monkeypatch.setattr("pdz.agents.analyse.qa_image.ImageQA.executer",
+                        fail_puis_pass_avec_dimensions)
+
+    _, resultat = _produire(atelier)
+
+    assert appels["n"] == 2   # jamais un troisième appel
+    assert resultat.video.exists()
+
+
+def test_texte_illisible_est_journalise_meme_avec_le_reste_conforme(atelier, monkeypatch):
+    """Ferme le trou trouvé par l'audit 2 (ep56 plan 4) : un PASS silencieux
+    malgré un texte totalement illisible dans l'image, parce que rien ne
+    vérifiait la lisibilité. Même quand MANDATORY_ELEMENTS/FORBIDDEN_ELEMENTS
+    sont respectés, `texte_lisible=illisible` doit déclencher la correction
+    et rester visible dans la trace journalisée."""
+    from pdz import db
+
+    appels = {"n": 0}
+
+    async def texte_illisible_puis_pass(self, entrees, ctx):
+        appels["n"] += 1
+        ctx.facturer(0.0005)
+        if appels["n"] == 1:
+            sortie = {"statut": "FAIL", "manquants": [], "incorrects": [], "en_trop": [],
+                      "lieu_correspond": True, "registre_correspond": True,
+                      "texte_lisible": "illisible"}
+        else:
+            sortie = {"statut": "PASS", "manquants": [], "incorrects": [], "en_trop": [],
+                      "lieu_correspond": True, "registre_correspond": True,
+                      "texte_lisible": "lisible"}
+        return self.apres(sortie, entrees, ctx)
+
+    monkeypatch.setattr("pdz.agents.ecriture.plans.ShotPromptWriter.executer",
+                        _prompts_avec_un_element_manquant)
+    monkeypatch.setattr("pdz.agents.analyse.qa_image.ImageQA.executer",
+                        texte_illisible_puis_pass)
+
+    _, resultat = _produire(atelier)
+
+    assert appels["n"] == 2
+    assert resultat.video.exists()
+
+    with db.connexion() as conn:
+        qa_row = conn.execute(
+            "SELECT resultat FROM etapes WHERE job_id = ? AND cle = 'qa_images'",
+            (resultat.job_id,),
+        ).fetchone()
+    verifications = json.loads(qa_row["resultat"])["verifications"]
+    corrige = next(v for v in verifications if v.get("statut") == "PASS" and v.get("corrige"))
+    assert corrige["texte_lisible"] == "lisible"
+
+
+def test_le_prompt_final_et_le_contrat_sont_journalises_par_plan(atelier, monkeypatch):
+    """Verrou direct de l'exigence de traçabilité : le prompt EXACT envoyé
+    au générateur d'image, et son Visual Contract, doivent être récupérables
+    après coup — avant ce fix, seul un fragment pré-assemblage (le
+    `prompt_image` de ShotPromptWriter, avant apparence/expression/cadrage/
+    registre/décor/style) était incidemment journalisé."""
+    from pdz import db
+
+    appels = {"n": 0}
+
+    async def fail_puis_pass(self, entrees, ctx):
+        appels["n"] += 1
+        ctx.facturer(0.0005)
+        if appels["n"] == 1:
+            sortie = {"statut": "FAIL", "manquants": ["submarine cable"],
+                      "incorrects": [], "en_trop": []}
+        else:
+            sortie = {"statut": "PASS", "manquants": [], "incorrects": [], "en_trop": []}
+        return self.apres(sortie, entrees, ctx)
+
+    monkeypatch.setattr("pdz.agents.ecriture.plans.ShotPromptWriter.executer",
+                        _prompts_avec_un_element_manquant)
+    monkeypatch.setattr("pdz.agents.analyse.qa_image.ImageQA.executer", fail_puis_pass)
+
+    _, resultat = _produire(atelier)
+    assert resultat.video.exists()
+
+    with db.connexion() as conn:
+        images_row = conn.execute(
+            "SELECT resultat FROM etapes WHERE job_id = ? AND cle = 'images'",
+            (resultat.job_id,),
+        ).fetchone()
+        qa_row = conn.execute(
+            "SELECT resultat FROM etapes WHERE job_id = ? AND cle = 'qa_images'",
+            (resultat.job_id,),
+        ).fetchone()
+
+    prompts = json.loads(images_row["resultat"])["prompts"]
+    assert prompts, "aucun prompt journalisé à l'étape images"
+    for p in prompts:
+        assert p["prompt_final"]
+        assert p["contrat_visuel"] is not None
+        assert p["contrat_visuel"]["quoi"]
+
+    verifications = json.loads(qa_row["resultat"])["verifications"]
+    corriges = [v for v in verifications if v.get("prompt_corrige")]
+    assert corriges, "aucune correction journalisée alors qu'un FAIL a eu lieu"
+
+
 def test_realisme_declenche_aussi_la_qa_image(atelier, monkeypatch):
     """Un plan réécrit par RealismWriter est un second endroit où un élément
     obligatoire peut disparaître : il doit, lui aussi, déclencher la QA

@@ -46,6 +46,17 @@ def plans_a_verifier(plans: list[PlanScript], numeros_realisme: set[int]) -> set
     return {p.numero for p in plans if p.corrections_fidelite} | numeros_realisme
 
 
+def _dimensions(verdict: dict) -> dict:
+    """Les nouvelles dimensions de verdict (qa_image@1.3.0) — jamais un
+    score, seulement des faits typés. `.get()` : un verdict rejoué depuis un
+    job en cache d'avant cette version n'a pas ces clés, sans planter."""
+    return {
+        "lieu_correspond": verdict.get("lieu_correspond"),
+        "registre_correspond": verdict.get("registre_correspond"),
+        "texte_lisible": verdict.get("texte_lisible"),
+    }
+
+
 def corriger_prompt(prompt: str, manquants: list[str], incorrects: list[str],
                     en_trop: list[str]) -> str:
     """Traduit un verdict FAIL en correction de texte, déterministe.
@@ -54,7 +65,16 @@ def corriger_prompt(prompt: str, manquants: list[str], incorrects: list[str],
     visuelle a vu manquer devient un élément à rajouter, ce qu'elle a vu en
     trop ou à la place d'autre chose devient un élément à exclure. Aucune
     nouvelle logique, aucun appel IA de plus pour la correction elle-même.
+
+    `manquants`/`incorrects`/`en_trop` viennent du verdict JSON de l'agent
+    de vision : rien ne garantit qu'ils respectent le format court-et-anglais
+    d'`elements_obligatoires` (voir `fidelite_visuelle.assainir()`) — bug
+    réel mesuré (audit 2) où une phrase française entière finissait injectée
+    telle quelle dans un prompt Flux anglais.
     """
+    manquants = fidelite_visuelle.assainir(manquants)
+    incorrects = fidelite_visuelle.assainir(incorrects)
+    en_trop = fidelite_visuelle.assainir(en_trop)
     prompt, _ = fidelite_visuelle.renforcer(prompt, manquants)
     return fidelite_visuelle.exclure(prompt, incorrects + en_trop)
 
@@ -89,6 +109,14 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
         if plan.numero not in numeros:
             continue
 
+        # Résolu une fois, réutilisé pour les deux verdicts éventuels (avant
+        # et après correction) — même décor résolu que celui envoyé au
+        # générateur d'image (voir `contrat_visuel._lieu()`), pour que la QA
+        # vérifie contre ce qui a vraiment été demandé, pas une supposition.
+        decor_resolu = ""
+        if plan.decor and (d := univers.decor(plan.decor)):
+            decor_resolu = d.description
+
         ctx = Contexte(job_id=job_id, etape_cle="qa_images", profil=profil,
                        budget_restant=budget_restant - cout_total)
         try:
@@ -97,6 +125,8 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
                 "action": plan.action,
                 "elements_obligatoires": plan.elements_obligatoires,
                 "elements_a_exclure": plan.elements_a_exclure,
+                "decor": decor_resolu,
+                "registre_visuel": plan.registre_visuel,
                 "image": fichiers[i],
             }, ctx)
         except ErreurPdz as e:
@@ -114,7 +144,8 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
         cout_total += ctx.cout_engage
 
         if verdict["statut"] == "PASS":
-            verifications.append({"numero": plan.numero, "statut": "PASS"})
+            verifications.append({"numero": plan.numero, "statut": "PASS",
+                                  **_dimensions(verdict)})
             continue
 
         log.warning(
@@ -144,6 +175,8 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
                 "action": prompt_corrige,
                 "elements_obligatoires": plan.elements_obligatoires,
                 "elements_a_exclure": plan.elements_a_exclure,
+                "decor": decor_resolu,
+                "registre_visuel": plan.registre_visuel,
                 "image": fichiers[i],
             }, ctx2)
             cout_total += ctx2.cout_engage
@@ -161,12 +194,15 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
                 "manquants": verdict.get("manquants", []),
                 "incorrects": verdict.get("incorrects", []),
                 "en_trop": verdict.get("en_trop", []),
+                "prompt_corrige": prompt_corrige,
+                **_dimensions(verdict),
             })
             continue
 
         if second["statut"] == "PASS":
             verifications.append({"numero": plan.numero, "statut": "PASS",
-                                  "corrige": True})
+                                  "corrige": True, "prompt_corrige": prompt_corrige,
+                                  **_dimensions(second)})
         else:
             log.error(
                 "Plan %d : encore %s après une regénération — marqué "
@@ -178,6 +214,8 @@ async def verifier(plans: list[PlanScript], fichiers: list[Path], numeros: set[i
                 "manquants": second.get("manquants", []),
                 "incorrects": second.get("incorrects", []),
                 "en_trop": second.get("en_trop", []),
+                "prompt_corrige": prompt_corrige,
+                **_dimensions(second),
             })
 
     return verifications, fichiers, cout_total

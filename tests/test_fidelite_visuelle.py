@@ -70,3 +70,39 @@ def test_exclure_sans_element_ne_change_rien():
 def test_exclure_ignore_les_elements_vides():
     prompt = fidelite_visuelle.exclure("un prompt", ["", "  "])
     assert prompt == "un prompt"
+
+
+# ── assainir() : le filet contre un verdict QA hors format ───────────────
+
+def test_assainir_garde_un_court_token_anglais_valide():
+    assert fidelite_visuelle.assainir(["submarine cable"]) == ["submarine cable"]
+    assert fidelite_visuelle.assainir(["laptop"]) == ["laptop"]
+
+
+def test_assainir_rejette_une_phrase_francaise_reconstruite_de_laudit():
+    """Cas réel reconstruit (audit 2, ep56/ep62) : le verdict QA renvoie une
+    phrase française entière au lieu d'un court mot-clé anglais."""
+    phrase = ("une main humaine qui touche l'écran alors qu'aucune main ne "
+              "devrait être visible dans ce plan")
+    assert fidelite_visuelle.assainir([phrase]) == []
+
+
+def test_assainir_rejette_plus_de_quatre_mots():
+    assert fidelite_visuelle.assainir(["a very long descriptive phrase here"]) == []
+
+
+def test_assainir_rejette_un_caractere_accentue():
+    assert fidelite_visuelle.assainir(["écran affiché"]) == []
+
+
+def test_assainir_rejette_un_mot_vide_francais_meme_court():
+    assert fidelite_visuelle.assainir(["dans le cadre"]) == []
+
+
+def test_assainir_ignore_les_elements_vides():
+    assert fidelite_visuelle.assainir(["", "   "]) == []
+
+
+def test_assainir_garde_les_valides_et_rejette_les_autres():
+    resultat = fidelite_visuelle.assainir(["submarine cable", "une phrase française trop longue à rejeter"])
+    assert resultat == ["submarine cable"]

@@ -52,7 +52,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
@@ -418,8 +418,21 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
             profil=profil, budget_max=plafond - cout_total,
             job_id=job_id, chemin_univers=chemin_univers,
         )
+        # `prompts` : le texte EXACT envoyé au générateur d'image, et le
+        # ContratVisuel dont il vient — jamais journalisés nulle part avant
+        # (voir l'audit 2 : seul un fragment pré-assemblage, écrit par
+        # ShotPromptWriter avant apparence/expression/cadrage/registre/
+        # décor/style, était incidemment conservé côté `shot_prompts`).
+        # Un texte de prompt anglais ne contient jamais de "/" suivi d'une
+        # extension de fichier — `_fichiers_cites()` ne peut pas le confondre
+        # avec un chemin à revérifier au moment d'une reprise.
         _noter(job_id, "images", "directeur_image",
-               {"fichiers": [str(f) for f in planche.fichiers]},
+               {"fichiers": [str(f) for f in planche.fichiers],
+                "prompts": [
+                    {"numero": p.numero, "prompt_final": p.prompt,
+                     "contrat_visuel": asdict(p.contrat) if p.contrat else None}
+                    for p in planche.plans
+                ]},
                planche.cout, int((time.perf_counter() - debut) * 1000))
         cout_total += planche.cout
         fichiers = planche.fichiers

@@ -25,8 +25,9 @@ from pdz.analyse.visuel import AnalyseVisuelle, Couleur
 from pdz.analyse.voix import ProfilVoix
 from pdz.moteur.erreurs import ErreurValidation
 from pdz.moteur.pipeline import Contexte
-from pdz.production import animation, images
+from pdz.production import animation, contrat_visuel, images
 from pdz.production.appariement_voix import POIDS_HAUTEUR_SEULE, Candidat, profil_suppose
+from pdz.production.storyboard import PlanScript
 from pdz.univers import Univers
 
 FRUITS = Path(__file__).resolve().parent.parent / "univers" / "fruit-island.yaml"
@@ -445,6 +446,78 @@ def test_le_registre_visuel_passe_avant_le_decor_et_le_style():
     )
     assert prompt.index("cinematic hand-drawn") < prompt.index(u.decor("ceremonie").description[:12])
     assert prompt.index("cinematic hand-drawn") < prompt.index(u.style.rendu[:12])
+
+
+# ── prompt_plan_depuis_contrat() : compile un ContratVisuel, ne réassemble
+# jamais elle-même — verrous de non-régression sur prompt_plan() lui-même ──
+
+def test_prompt_plan_produit_exactement_le_meme_resultat_quavant():
+    """Chaîne figée : verrou explicite sur l'ordre d'assemblage de
+    `prompt_plan()`, que le Visual Contract ne doit jamais changer."""
+    u = Univers.charger(FRUITS)
+    perso = u.personnages[0]
+    prompt = images.prompt_plan(
+        perso, u, action="elle observe la pièce", emotion="colere",
+        decor="ceremonie", fonction="révèle un détail", cadrage="plan_large",
+        registre_visuel="cinematic hand-drawn illustration",
+    )
+    attendu = ", ".join([
+        perso.apparence,
+        images.EXPRESSIONS["colere"],
+        "elle observe la pièce",
+        "wide shot",
+        "cinematic hand-drawn illustration",
+        "shot chosen to: révèle un détail",
+        *u.style.consignes_image,
+        u.decor("ceremonie").description,
+        u.style.rendu,
+        u.style.eclairage,
+        "vertical 9:16 composition",
+    ])
+    assert prompt == attendu
+
+
+def test_prompt_plan_depuis_contrat_egale_lappel_direct():
+    """Le contrat compile vers exactement le même prompt que l'appel direct
+    à `prompt_plan()` avec les mêmes valeurs logiques — la compilation ne
+    change jamais le résultat, seulement sa forme d'entrée."""
+    u = Univers.charger(FRUITS)
+    perso = u.personnages[0]
+    plan = PlanScript(
+        numero=0, replique_numero=0, personnage=perso.id,
+        action="elle observe la pièce", emotion="colere", decor="ceremonie",
+        fonction="révèle un détail", cadrage="plan_large",
+        registre_visuel="cinematic hand-drawn illustration",
+        elements_obligatoires=["torch"],
+    )
+
+    direct = images.prompt_plan(
+        perso, u, action=plan.action, emotion=plan.emotion, decor=plan.decor,
+        fonction=plan.fonction, cadrage=plan.cadrage,
+        registre_visuel=plan.registre_visuel,
+    )
+    contrat = contrat_visuel.compiler(plan, perso, u)
+    depuis_contrat = images.prompt_plan_depuis_contrat(contrat, u)
+
+    assert depuis_contrat == direct
+
+
+def test_prompt_plan_depuis_contrat_najamais_de_registre_en_double():
+    """Bug qu'on a failli introduire : `ContratVisuel.registre` est le
+    plancher non négociable (jamais vide, retombe sur `style.rendu`), mais
+    `prompt_plan()` ajoute déjà `style.rendu` sans condition plus loin dans
+    l'assemblage. Compiler devait passer la valeur BRUTE du plan
+    (`registre_visuel_plan`), pas le plancher — sinon `style.rendu`
+    apparaît deux fois dans le prompt final."""
+    u = Univers.charger(FRUITS)
+    perso = u.personnages[0]
+    plan = PlanScript(
+        numero=0, replique_numero=0, personnage=perso.id,
+        action="elle observe la pièce", emotion="calme", registre_visuel="",
+    )
+    contrat = contrat_visuel.compiler(plan, perso, u)
+    prompt = images.prompt_plan_depuis_contrat(contrat, u)
+    assert prompt.count(u.style.rendu) == 1
 
 
 def test_la_fiche_de_personnage_est_neutre():
