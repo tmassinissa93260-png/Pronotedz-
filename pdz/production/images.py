@@ -29,7 +29,7 @@ from pathlib import Path
 from pdz.config import config
 from pdz.ia import images as ia_images
 from pdz.moteur.erreurs import ErreurBudget, ErreurConfig
-from pdz.production import contrat_visuel
+from pdz.production import contrat_visuel, risque_prompt
 from pdz.production.cadrage import phrase as phrase_de_cadrage
 from pdz.production.contrat_visuel import ContratVisuel
 from pdz.production.storyboard import PlanScript
@@ -370,6 +370,19 @@ def fabriquer(plans: list[PlanScript], univers: Univers, dossier: Path, *,
         chemin_univers=chemin_univers,
     )
 
+    # Vocabulaire propre à l'univers, construit une fois — pas un import
+    # depuis `episode.py` : ce vocabulaire ne coûte rien à reconstruire
+    # (aucun appel IA), et le texte du plan a pu changer depuis le routage
+    # RealismWriter (voir episode.py) — le recalculer ici garantit que le
+    # contrat journalisé reflète le prompt RÉELLEMENT envoyé, pas un signal
+    # devenu obsolète après correction.
+    marque_interdite = risque_prompt.marque_est_interdite(univers.interdits)
+    vocabulaire = frozenset()
+    if marque_interdite:
+        noms_connus = [x for p in univers.personnages for x in (p.id, p.nom, p.espece)] \
+                     + [x for d in univers.decors for x in (d.id, d.nom)]
+        vocabulaire = risque_prompt.vocabulaire_connu(noms_connus)
+
     for plan in plans:
         perso = univers.personnage(plan.personnage)
         if perso is None:
@@ -385,7 +398,11 @@ def fabriquer(plans: list[PlanScript], univers: Univers, dossier: Path, *,
                 "produits sont en cache et ne seront pas repayés."
             )
 
-        contrat = contrat_visuel.compiler(plan, perso, univers)
+        risques_marque = (
+            risque_prompt.mots_hors_vocabulaire(plan.action, plan.elements_obligatoires, vocabulaire)
+            if marque_interdite else []
+        )
+        contrat = contrat_visuel.compiler(plan, perso, univers, risques_marque=risques_marque)
         prompt = prompt_plan_depuis_contrat(contrat, univers, consignes=consignes)
         destination = dossier / f"plan_{plan.numero:03d}.jpg"
         reste_pct = max(0.0, (plafond - planche.cout) / max(1e-6, plafond) * 100)

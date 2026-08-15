@@ -80,3 +80,35 @@ def test_registre_du_plan_prime_sur_celui_de_lunivers_quand_precise():
 
     assert contrat.registre == "wireframe abstract diagram, no cartoon rendering"
     assert contrat.registre_univers == univers.style.rendu
+
+
+def test_avec_quoi_secondaire_reprend_les_elements_secondaires_du_plan():
+    univers = Univers.charger(FRUITS)
+    perso = univers.personnage("strawberina")
+    plan = _plan(elements_secondaires=["confetti"])
+
+    contrat = contrat_visuel.compiler(plan, perso, univers)
+
+    assert contrat.avec_quoi_secondaire == ["confetti"]
+
+
+def test_contrat_visuel_porte_les_risques_de_marque_deja_calcules():
+    """`risques_marque` vient de l'appelant, jamais recalculé par
+    `compiler()` — voir pdz/production/images.py::fabriquer()."""
+    univers = Univers.charger(FRUITS)
+    perso = univers.personnage("strawberina")
+    plan = _plan(action="a Tesla trophy on the podium")
+
+    contrat = contrat_visuel.compiler(plan, perso, univers, risques_marque=["Tesla"])
+
+    assert contrat.risques_marque == ["Tesla"]
+
+
+def test_risques_marque_est_vide_par_defaut():
+    univers = Univers.charger(FRUITS)
+    perso = univers.personnage("strawberina")
+    plan = _plan()
+
+    contrat = contrat_visuel.compiler(plan, perso, univers)
+
+    assert contrat.risques_marque == []

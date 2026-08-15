@@ -36,6 +36,15 @@ class ContratVisuel:
     qui_apparence: str
     quoi: str
     avec_quoi: list[str] = field(default_factory=list)
+    # Ce qui peut légitimement partager le cadre sans être ce que le plan
+    # cherche à montrer en premier — la hiérarchie visuelle entre PRIMARY
+    # (avec_quoi) et SECONDARY. Vient de `plan.elements_secondaires`
+    # (plans@1.10.0) — vide si ShotPromptWriter n'en a désigné aucun.
+    avec_quoi_secondaire: list[str] = field(default_factory=list)
+    # Mots hors du vocabulaire propre de l'univers, signal déterministe de
+    # marque potentielle (voir `risque_prompt.mots_hors_vocabulaire`) — déjà
+    # calculé par l'appelant, jamais recalculé ici (voir `compiler()`).
+    risques_marque: list[str] = field(default_factory=list)
     relations: list[str] = field(default_factory=list)
     # `ou_id` : l'identifiant brut du décor (`plan.decor`), nécessaire pour
     # que `prompt_plan_depuis_contrat()` reproduise EXACTEMENT la résolution
@@ -90,15 +99,24 @@ def _etat_moment(plan: PlanScript) -> str:
     return " · ".join(m for m in morceaux if m)
 
 
-def compiler(plan: PlanScript, personnage: Personnage, univers: Univers) -> ContratVisuel:
+def compiler(plan: PlanScript, personnage: Personnage, univers: Univers, *,
+            risques_marque: list[str] | None = None) -> ContratVisuel:
     """Compile un `ContratVisuel` depuis des données déjà écrites ailleurs
-    dans le pipeline — zéro appel IA, zéro donnée inventée."""
+    dans le pipeline — zéro appel IA, zéro donnée inventée.
+
+    `risques_marque` est optionnel et vient de l'appelant (voir
+    `pdz.production.images.fabriquer()`) : le calculer demande le
+    vocabulaire propre de l'univers, construit une fois par épisode — pas
+    une donnée que ce compilateur pur devrait recalculer lui-même.
+    """
     registre = plan.registre_visuel.strip() or univers.style.rendu.strip()
     return ContratVisuel(
         qui=plan.personnage,
         qui_apparence=personnage.apparence,
         quoi=plan.action,
         avec_quoi=list(plan.elements_obligatoires),
+        avec_quoi_secondaire=list(plan.elements_secondaires),
+        risques_marque=list(risques_marque or []),
         relations=_relations(plan.action, plan.elements_obligatoires),
         ou_id=plan.decor,
         ou=_lieu(plan, univers),
