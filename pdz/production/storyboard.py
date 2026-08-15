@@ -130,6 +130,12 @@ class PlanScript:
     # produite (`pdz/production/qa_images.py`).
     elements_obligatoires: list[str] = field(default_factory=list)
     elements_a_exclure: list[str] = field(default_factory=list)
+    # Ce que le plan peut montrer en plus, sans que ce soit ce qui doit
+    # attirer l'œil en premier — la hiérarchie visuelle entre PRIMARY
+    # (elements_obligatoires, doit apparaître) et SECONDARY (ici, peut
+    # apparaître). Optionnel : liste vide si ShotPromptWriter n'a rien
+    # jugé utile à préciser, jamais un oubli qui bloque quoi que ce soit.
+    elements_secondaires: list[str] = field(default_factory=list)
     # Les éléments de `elements_obligatoires` que ShotPromptWriter avait
     # d'abord OUBLIÉS dans son propre prompt, et que `fidelite_visuelle.
     # renforcer()` a dû rajouter après coup. Vide dans le cas normal (le
@@ -165,6 +171,7 @@ class PlanScript:
             "registre_visuel": self.registre_visuel,
             "elements_obligatoires": self.elements_obligatoires,
             "elements_a_exclure": self.elements_a_exclure,
+            "elements_secondaires": self.elements_secondaires,
             "corrections_fidelite": self.corrections_fidelite,
             "relance": self.relance,
             "besoin_revue": self.besoin_revue,

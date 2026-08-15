@@ -142,6 +142,7 @@ class ShotPromptWriter(Agent):
                 registre_visuel=ecrit.get("registre_visuel", p.registre_visuel),
                 elements_obligatoires=ecrit.get("elements_obligatoires", []),
                 elements_a_exclure=ecrit.get("elements_a_exclure", []),
+                elements_secondaires=ecrit.get("elements_secondaires", []),
                 corrections_fidelite=manquants,
             ))
         if renforces:

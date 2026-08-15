@@ -241,6 +241,25 @@ def test_fusionner_sans_registre_visuel_garde_celui_dorigine():
     assert fusionnes[0].registre_visuel == ""
 
 
+def test_fusionner_reprend_aussi_les_elements_secondaires():
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "x", "elements_secondaires": ["orange cable"],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].elements_secondaires == ["orange cable"]
+
+
+def test_elements_secondaires_sont_optionnels_et_narrivent_jamais_a_null():
+    """Non-régression : un job en cache d'avant plans@1.10.0 n'a pas
+    `elements_secondaires` dans sa sortie stockée — ne doit pas planter,
+    et ne doit jamais devenir None."""
+    plans = _plans(1)
+    sortie = {"plans": [{"numero": 0, "prompt_image": "x"}]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].elements_secondaires == []
+
+
 def test_apres_ne_leve_jamais_pour_un_cadrage_repete(caplog):
     """Diagnostic seulement (voir cadrage.py) : deux plans consécutifs avec
     le même cadrage ne doivent jamais faire échouer la validation — ça
