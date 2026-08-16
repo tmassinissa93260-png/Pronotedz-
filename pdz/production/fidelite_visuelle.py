@@ -80,6 +80,24 @@ def renforcer(prompt: str, elements: list[str]) -> tuple[str, list[str]]:
     return f"{prompt}, featuring {', '.join(manquants)}", manquants
 
 
+def renforcer_libre(prompt: str, phrases: list[str]) -> tuple[str, list[str]]:
+    """Comme `renforcer()`, mais pour des clauses déjà complètes (une
+    mitigation, un état d'action) plutôt que de simples objets à nommer —
+    sans le préfixe « featuring », qui ne convient qu'à un nom, pas à une
+    phrase entière (« featuring no visible human hand » lirait mal).
+
+    Même vérification de présence que `renforcer()` : une phrase déjà là,
+    même partiellement recopiée par le modèle, n'est jamais rajoutée en
+    double — c'est ce qui évite le remplissage quand ShotPromptWriter a
+    déjà bien fait son travail.
+    """
+    bas = prompt.lower()
+    manquantes = [p for p in phrases if p.strip() and p.strip().lower() not in bas]
+    if not manquantes:
+        return prompt, []
+    return f"{prompt}, {', '.join(manquantes)}", manquantes
+
+
 def renforcer_registre(prompt: str, registre: str) -> str:
     """Réaffirme le registre visuel après un `registre_correspond=False`.
 

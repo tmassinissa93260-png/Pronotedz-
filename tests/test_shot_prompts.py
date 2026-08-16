@@ -420,3 +420,191 @@ def test_fusionner_marque_corrections_fidelite_seulement_si_ca_a_manque():
     fusionnes = ShotPromptWriter().fusionner(plans, sortie)
     assert fusionnes[0].corrections_fidelite == []
     assert fusionnes[1].corrections_fidelite == ["submarine cable"]
+
+
+# ── ShotPromptWriter comme Visual Director : relations/abstractions/
+# risques_predits/disposition, tous écrits dans le même appel, tous
+# réellement consommés dans le prompt par fusionner() (voir le plan) ──────
+
+def test_abstraction_remplace_le_concept_risque_par_sa_representation():
+    """Cas Tesla / pédale d'accélérateur : le concept, s'il apparaît tel
+    quel dans le prompt, est remplacé — jamais laissé à côté de son
+    substitut."""
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "a Tesla accelerator pedal glowing in the dark",
+        "abstractions": [{"concept": "Tesla", "representation": "generic unbranded vehicle component"}],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert "Tesla" not in fusionnes[0].action
+    assert "generic unbranded vehicle component" in fusionnes[0].action
+
+
+def test_abstraction_est_ajoutee_meme_si_le_concept_nest_pas_dans_le_prompt():
+    """Défense en profondeur (voir le plan §6) : le concept peut avoir
+    disparu du texte final sans que sa representation ait été écrite."""
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "an accelerator pedal glowing in the dark",
+        "abstractions": [{"concept": "Tesla", "representation": "generic unbranded vehicle component"}],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert "generic unbranded vehicle component" in fusionnes[0].action
+
+
+def test_mere_smartphone_message_relation_ajoute_letat_pas_seulement_lobjet():
+    """Cas mère / smartphone / message : `relations` doit contribuer une
+    vraie formulation d'état, pas juste le nom nu de l'objet."""
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "a mother in her kitchen",
+        "elements_obligatoires": ["smartphone"],
+        "relations": [{"cible": "smartphone", "etat": "held up, screen visible"}],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert "smartphone held up, screen visible" in fusionnes[0].action
+
+
+def test_cables_sous_marins_le_registre_visuel_ecarte_map():
+    """Cas câbles sous-marins : le contrôle de contradiction déjà prévu
+    (registre_visuel explicite) est repris tel quel — aucune régression."""
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "glowing data pulses along a submarine cable",
+        "registre_visuel": "abstract wireframe, not a realistic map",
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].registre_visuel == "abstract wireframe, not a realistic map"
+    assert "map" not in fusionnes[0].action.lower()
+
+
+def test_interaction_humaine_avec_interface_ajoute_la_mitigation():
+    """Cas interaction humaine avec une interface : `risques_predits` doit
+    injecter la mitigation, pas seulement journaliser le risque."""
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "a finger taps a glowing interface",
+        "risques_predits": [{"risque": "human hand",
+                            "mitigation": "mechanical actuator only, no visible human hand"}],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert "mechanical actuator only, no visible human hand" in fusionnes[0].action
+
+
+def test_wireframe_technique_la_disposition_rejoint_le_registre_visuel_pas_laction():
+    """Cas wireframe technique : `disposition` est un vocabulaire fixe
+    replié dans `registre_visuel`, jamais injecté directement dans
+    `action`/`prompt_plan()`."""
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "a wireframe mechanism exposed",
+        "disposition": "technical-cutaway",
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert "technical cutaway view exposing internal mechanism" in fusionnes[0].registre_visuel
+    assert "technical cutaway" not in fusionnes[0].action
+
+
+def test_message_sans_texte_lisible_ajoute_la_mitigation_de_texte_illisible():
+    """Cas message sans texte lisible : une mitigation `risques_predits`
+    peut cibler du texte illisible, pas seulement une marque ou une main."""
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "an abstract message flashes on screen",
+        "risques_predits": [{"risque": "garbled text",
+                            "mitigation": "abstract interface marks, no legible typography"}],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert "abstract interface marks, no legible typography" in fusionnes[0].action
+
+
+def test_le_meme_plan_produit_un_prompt_enrichi_avec_les_nouveaux_champs_vs_sans():
+    """La garantie centrale : à texte de base identique, la version qui
+    porte les 4 nouveaux champs contient strictement plus d'information
+    vérifiable que la version qui ne les porte pas."""
+    plans = _plans(1)
+    base = "an accelerator pedal glowing in the dark"
+    sortie_sans = {"plans": [{"numero": 0, "prompt_image": base}]}
+    sortie_avec = {"plans": [{
+        "numero": 0, "prompt_image": base,
+        "abstractions": [{"concept": "Tesla", "representation": "generic unbranded vehicle component"}],
+        "risques_predits": [{"risque": "real brand",
+                            "mitigation": "no manufacturer badge, no logo, unbranded design"}],
+        "relations": [{"cible": "pedal", "etat": "visibly depressed"}],
+    }]}
+    action_sans = ShotPromptWriter().fusionner(plans, sortie_sans)[0].action
+    action_avec = ShotPromptWriter().fusionner(plans, sortie_avec)[0].action
+
+    assert action_sans == base
+    assert "generic unbranded vehicle component" in action_avec
+    assert "no manufacturer badge, no logo, unbranded design" in action_avec
+    assert "pedal visibly depressed" in action_avec
+    assert action_avec != action_sans
+
+
+def test_un_prompt_deja_complet_nest_pas_modifie():
+    """Non-remplissage : quand le modèle a déjà bien écrit sa prose, le
+    filet déterministe ne doit RIEN rajouter — prouve que chaque mécanisme
+    est conditionnel, pas systématique."""
+    plans = _plans(1)
+    prompt_deja_complet = (
+        "an accelerator pedal glowing in the dark, generic unbranded vehicle "
+        "component, no manufacturer badge, no logo, unbranded design, "
+        "pedal visibly depressed"
+    )
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": prompt_deja_complet,
+        "abstractions": [{"concept": "Tesla", "representation": "generic unbranded vehicle component"}],
+        "risques_predits": [{"risque": "real brand",
+                            "mitigation": "no manufacturer badge, no logo, unbranded design"}],
+        "relations": [{"cible": "pedal", "etat": "visibly depressed"}],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].action == prompt_deja_complet
+
+
+def test_priorite_visuelle_ajoute_une_clause_de_focus_jamais_de_position_physique():
+    """VISUAL_PRIORITY : jamais foreground/background — une clause de
+    priorité perceptuelle, ajoutée seulement quand des éléments secondaires
+    existent."""
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "a submarine cable under the ocean",
+        "elements_obligatoires": ["submarine cable"],
+        "elements_secondaires": ["distant fish"],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert "submarine cable as the visual focus, distant fish secondary in the frame" in fusionnes[0].action
+    assert "foreground" not in fusionnes[0].action
+    assert "background" not in fusionnes[0].action
+
+
+def test_fusionner_porte_les_nouveaux_champs_sur_le_plan_pour_la_qa():
+    """Comme `elements_obligatoires`/`elements_a_exclure` : ces champs
+    doivent survivre au-delà de la fusion, pour `ContratVisuel`/la QA en
+    aval — pas seulement corriger le texte du prompt."""
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "x",
+        "relations": [{"cible": "pedal", "etat": "visibly depressed"}],
+        "abstractions": [{"concept": "Tesla", "representation": "generic unbranded vehicle component"}],
+        "risques_predits": [{"risque": "real brand", "mitigation": "no logo"}],
+        "disposition": "technical-cutaway",
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].relations == [{"cible": "pedal", "etat": "visibly depressed"}]
+    assert fusionnes[0].abstractions == [{"concept": "Tesla", "representation": "generic unbranded vehicle component"}]
+    assert fusionnes[0].risques_predits == [{"risque": "real brand", "mitigation": "no logo"}]
+    assert fusionnes[0].disposition == "technical-cutaway"
+
+
+def test_sans_les_nouveaux_champs_ils_retombent_sur_des_valeurs_vides():
+    """Non-régression : un job en cache d'avant plans@1.11.0 n'a aucun de
+    ces champs dans sa sortie stockée — ne doit pas planter."""
+    plans = _plans(1)
+    sortie = {"plans": [{"numero": 0, "prompt_image": "x"}]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].relations == []
+    assert fusionnes[0].abstractions == []
+    assert fusionnes[0].risques_predits == []
+    assert fusionnes[0].disposition == ""

@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import copy
 import logging
+import re
 from dataclasses import replace
 from typing import Any
 
@@ -137,12 +138,73 @@ class ShotPromptWriter(Agent):
             prompt = fidelite_visuelle.exclure(
                 prompt, ecrit.get("elements_a_exclure", [])
             )
+
+            # abstractions : un concept risqué (marque, présence interdite…)
+            # remplacé par son substitut visuel s'il apparaît tel quel dans
+            # le prompt, sinon le substitut est simplement ajouté — défense
+            # en profondeur, au cas où le concept viendrait d'une reprise
+            # antérieure du texte plutôt que du prompt écrit ici.
+            abstractions = ecrit.get("abstractions", [])
+            for a in abstractions:
+                concept, representation = a.get("concept", ""), a.get("representation", "")
+                if not concept or not representation:
+                    continue
+                motif = re.compile(re.escape(concept), re.IGNORECASE)
+                if motif.search(prompt):
+                    prompt = motif.sub(representation, prompt)
+                else:
+                    prompt, _ = fidelite_visuelle.renforcer(prompt, [representation])
+
+            # risques_predits : le modèle anticipe lui-même un défaut connu
+            # du générateur ET sa formulation d'évitement, dans le même
+            # souffle qui écrit le prompt — jamais d'attendre qu'un mot
+            # interdit apparaisse d'abord (voir risque_prompt.py).
+            risques_predits = ecrit.get("risques_predits", [])
+            mitigations = [r["mitigation"] for r in risques_predits if r.get("mitigation")]
+            prompt, _ = fidelite_visuelle.renforcer_libre(prompt, mitigations)
+
+            # relations : qui fait quoi avec quoi, déjà formulé par le
+            # modèle qui vient d'écrire la phrase — jamais reconstruit par
+            # position côté Python (mécanisme superseded, voir plan).
+            relations = ecrit.get("relations", [])
+            etats = [
+                f"{r['cible']} {r['etat']}" for r in relations
+                if r.get("cible") and r.get("etat")
+            ]
+            prompt, _ = fidelite_visuelle.renforcer_libre(prompt, etats)
+
+            elements_obligatoires = ecrit.get("elements_obligatoires", [])
+            elements_secondaires = ecrit.get("elements_secondaires", [])
+            if elements_secondaires and elements_obligatoires:
+                # Priorité perceptuelle, jamais une position physique —
+                # « visual focus »/« secondary in the frame », jamais
+                # « foreground »/« background » (interdit par le plan).
+                primaires = ", ".join(elements_obligatoires)
+                secondaires = ", ".join(elements_secondaires)
+                prompt = f"{prompt}, {primaires} as the visual focus, {secondaires} secondary in the frame"
+
+            # disposition : vocabulaire qualitatif fixe, replié dans
+            # registre_visuel — jamais un nouveau paramètre sur
+            # prompt_plan(), qui reste intouché.
+            disposition = ecrit.get("disposition", "")
+            registre_visuel = ecrit.get("registre_visuel", p.registre_visuel)
+            phrase_disposition = cadrage.phrase_disposition(disposition)
+            if phrase_disposition and phrase_disposition.lower() not in registre_visuel.lower():
+                registre_visuel = (
+                    f"{registre_visuel}, {phrase_disposition}" if registre_visuel
+                    else phrase_disposition
+                )
+
             fusionnes.append(replace(
                 p, action=prompt, cadrage=ecrit.get("cadrage", p.cadrage),
-                registre_visuel=ecrit.get("registre_visuel", p.registre_visuel),
-                elements_obligatoires=ecrit.get("elements_obligatoires", []),
+                registre_visuel=registre_visuel,
+                elements_obligatoires=elements_obligatoires,
                 elements_a_exclure=ecrit.get("elements_a_exclure", []),
-                elements_secondaires=ecrit.get("elements_secondaires", []),
+                elements_secondaires=elements_secondaires,
+                relations=relations,
+                abstractions=abstractions,
+                risques_predits=risques_predits,
+                disposition=disposition,
                 corrections_fidelite=manquants,
             ))
         if renforces:

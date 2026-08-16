@@ -11,23 +11,10 @@ compilé une seule fois par plan.
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Personnage, Univers
-
-# Détecte, dans un texte déjà écrit (action + elements_obligatoires), un
-# verbe qui relie explicitement un personnage à un objet — « qui fait quoi
-# avec quoi », minimal et volontairement pas un scene-graph : même
-# technique que `pdz.production.risque_prompt` (un motif = une façon
-# d'exprimer une relation), pas une nouvelle architecture.
-_MOTIFS_RELATION = [
-    r"\btouches?\b", r"\btouching\b", r"\btouched\b",
-    r"\bholds?\b", r"\bholding\b", r"\bheld\b",
-    r"\bcarr(y|ies|ying)\b", r"\bpress(es|ing|ed)?\b", r"\btaps?\b",
-    r"\btient\b", r"\btouche(nt)?\b", r"\bporte(nt)?\b", r"\btapote(nt)?\b",
-]
 
 
 @dataclass(frozen=True)
@@ -45,7 +32,24 @@ class ContratVisuel:
     # marque potentielle (voir `risque_prompt.mots_hors_vocabulaire`) — déjà
     # calculé par l'appelant, jamais recalculé ici (voir `compiler()`).
     risques_marque: list[str] = field(default_factory=list)
-    relations: list[str] = field(default_factory=list)
+    # `{cible, etat}`, écrit directement par ShotPromptWriter (voir
+    # plans@1.11.0) — plus une supposition par position sur le texte déjà
+    # écrit (`_relations()`, retiré : le modèle qui rédige la phrase sait
+    # déjà qui fait quoi avec quoi, pas besoin de le redeviner après coup).
+    relations: list[dict] = field(default_factory=list)
+    # `{concept, representation}` : un concept narratif à risque (marque…)
+    # et son substitut visuel choisi par ShotPromptWriter dans le même
+    # appel — déjà consommé dans le prompt par `fusionner()`, porté ici
+    # pour la traçabilité/QA (voir `registre_contradictions`, plan §5).
+    abstractions: list[dict] = field(default_factory=list)
+    # `{risque, mitigation}` : un défaut connu du générateur anticipé par
+    # ShotPromptWriter, avec sa formulation d'évitement — PRÉDICTION
+    # textuelle, jamais une preuve (voir architecture PRÉDICTION/
+    # GÉNÉRATION/VÉRIFICATION).
+    risques_predits: list[dict] = field(default_factory=list)
+    # Vocabulaire qualitatif fixe (voir `cadrage.DISPOSITIONS`) — jamais une
+    # coordonnée physique, jamais premier-plan/arrière-plan.
+    disposition: str = ""
     # `ou_id` : l'identifiant brut du décor (`plan.decor`), nécessaire pour
     # que `prompt_plan_depuis_contrat()` reproduise EXACTEMENT la résolution
     # (et le repli anime-only) de `prompt_plan()`. `ou` est la description
@@ -71,15 +75,6 @@ class ContratVisuel:
     registre_visuel_plan: str = ""
     registre_univers: str = ""
     ne_doit_pas_apparaitre: list[str] = field(default_factory=list)
-
-
-def _relations(action: str, elements_obligatoires: list[str]) -> list[str]:
-    texte = " ".join([action, *elements_obligatoires]).lower()
-    trouvees = []
-    for motif in _MOTIFS_RELATION:
-        if m := re.search(motif, texte):
-            trouvees.append(m.group(0))
-    return trouvees
 
 
 def _lieu(plan: PlanScript, univers: Univers) -> str:
@@ -117,7 +112,10 @@ def compiler(plan: PlanScript, personnage: Personnage, univers: Univers, *,
         avec_quoi=list(plan.elements_obligatoires),
         avec_quoi_secondaire=list(plan.elements_secondaires),
         risques_marque=list(risques_marque or []),
-        relations=_relations(plan.action, plan.elements_obligatoires),
+        relations=list(plan.relations),
+        abstractions=list(plan.abstractions),
+        risques_predits=list(plan.risques_predits),
+        disposition=plan.disposition,
         ou_id=plan.decor,
         ou=_lieu(plan, univers),
         emotion=plan.emotion,

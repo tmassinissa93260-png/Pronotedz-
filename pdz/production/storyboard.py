@@ -136,6 +136,26 @@ class PlanScript:
     # apparaître). Optionnel : liste vide si ShotPromptWriter n'a rien
     # jugé utile à préciser, jamais un oubli qui bloque quoi que ce soit.
     elements_secondaires: list[str] = field(default_factory=list)
+    # Qui fait quoi avec quoi, écrit DIRECTEMENT par ShotPromptWriter (il
+    # vient d'écrire la phrase, il sait déjà la réponse) — chaque élément
+    # est {"cible": ..., "etat": ...}, `etat` déjà formulé prêt à l'emploi
+    # (« visibly pressed »), pas un verbe brut à conjuguer côté Python.
+    # Voir `pdz.agents.ecriture.plans.ShotPromptWriter.fusionner()`.
+    relations: list[dict] = field(default_factory=list)
+    # Un concept narratif à risque (marque, présence interdite...) et sa
+    # représentation visuelle compatible avec l'univers — {"concept": ...,
+    # "representation": ...}. Le concept brut ne doit jamais rester dans le
+    # prompt final si une représentation existe (voir `fusionner()`).
+    abstractions: list[dict] = field(default_factory=list)
+    # Un défaut connu du générateur anticipé PAR ShotPromptWriter lui-même,
+    # avec sa formulation de mitigation — {"risque": ..., "mitigation":
+    # ...}. Complète (ne remplace pas) la détection après-coup de
+    # `pdz.production.risque_prompt`.
+    risques_predits: list[dict] = field(default_factory=list)
+    # Une disposition QUALITATIVE (« ce qui domine perceptuellement »),
+    # vocabulaire fixe et court comme `cadrage` — jamais une position
+    # spatiale. Voir `pdz.production.cadrage.PHRASES_DISPOSITION`.
+    disposition: str = ""
     # Les éléments de `elements_obligatoires` que ShotPromptWriter avait
     # d'abord OUBLIÉS dans son propre prompt, et que `fidelite_visuelle.
     # renforcer()` a dû rajouter après coup. Vide dans le cas normal (le
@@ -172,6 +192,10 @@ class PlanScript:
             "elements_obligatoires": self.elements_obligatoires,
             "elements_a_exclure": self.elements_a_exclure,
             "elements_secondaires": self.elements_secondaires,
+            "relations": self.relations,
+            "abstractions": self.abstractions,
+            "risques_predits": self.risques_predits,
+            "disposition": self.disposition,
             "corrections_fidelite": self.corrections_fidelite,
             "relance": self.relance,
             "besoin_revue": self.besoin_revue,

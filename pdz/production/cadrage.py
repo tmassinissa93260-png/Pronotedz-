@@ -38,6 +38,33 @@ def phrase(cadrage_id: str) -> str:
     return PHRASES.get(cadrage_id, "")
 
 
+# Même discipline que CADRAGES : un vocabulaire fixe et court, choisi par
+# ShotPromptWriter dans le même appel, jamais des coordonnées physiques —
+# une disposition QUALITATIVE (« ce qui domine perceptuellement »), jamais
+# « premier plan »/« arrière-plan ». Replié dans `registre_visuel`, jamais
+# un nouveau paramètre sur `images.prompt_plan()`, qui reste intouché.
+DISPOSITIONS = [
+    "subject-dominant", "center-weighted", "off-center", "technical-cutaway",
+    "layered-technical-view", "environment-establishing", "detail-reveal",
+]
+
+PHRASES_DISPOSITION = {
+    "subject-dominant": "composition where the primary subject dominates the frame",
+    "center-weighted": "centered composition, subject weighted at the middle of frame",
+    "off-center": "off-center composition, subject placed away from frame center",
+    "technical-cutaway": "technical cutaway view exposing internal mechanism",
+    "layered-technical-view": "layered technical view, distinct visual planes of detail",
+    "environment-establishing": "environment-establishing composition, wide sense of place",
+    "detail-reveal": "detail-reveal composition, close focus on a single mechanism",
+}
+
+
+def phrase_disposition(disposition_id: str) -> str:
+    """La formule anglaise prête pour `registre_visuel` — vide si la
+    disposition n'est pas renseignée, même principe que `phrase()`."""
+    return PHRASES_DISPOSITION.get(disposition_id, "")
+
+
 def verifier_diversite(cadrages: list[str]) -> list[str]:
     """Les avertissements pour les paires consécutives qui répètent le même
     cadrage — jamais une erreur qui bloque ou relance.

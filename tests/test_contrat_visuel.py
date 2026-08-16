@@ -48,7 +48,23 @@ def test_compiler_reprend_les_champs_du_plan_sans_appel_ia():
     assert "joie" in contrat.etat_moment
 
 
-def test_relations_detecte_une_main_qui_touche_sans_appel_ia():
+def test_relations_reprend_directement_celles_ecrites_par_shotpromptwriter():
+    """`relations` n'est plus deviné par position sur le texte déjà écrit —
+    ShotPromptWriter les écrit directement (voir plans@1.11.0), `compiler()`
+    les reprend telles quelles."""
+    univers = Univers.charger(FRUITS)
+    perso = univers.personnage("strawberina")
+    plan = _plan(action="a hand touches the glowing trophy",
+                elements_obligatoires=["glowing trophy"],
+                relations=[{"cible": "glowing trophy", "etat": "visibly touched"}])
+
+    contrat = contrat_visuel.compiler(plan, perso, univers)
+
+    assert contrat.relations == [{"cible": "glowing trophy", "etat": "visibly touched"}]
+    assert contrat.avec_quoi == ["glowing trophy"]
+
+
+def test_relations_est_vide_par_defaut_sans_supposition_par_position():
     univers = Univers.charger(FRUITS)
     perso = univers.personnage("strawberina")
     plan = _plan(action="a hand touches the glowing trophy",
@@ -56,8 +72,23 @@ def test_relations_detecte_une_main_qui_touche_sans_appel_ia():
 
     contrat = contrat_visuel.compiler(plan, perso, univers)
 
-    assert contrat.relations != []
-    assert contrat.avec_quoi == ["glowing trophy"]
+    assert contrat.relations == []
+
+
+def test_abstractions_risques_predits_disposition_reprennent_le_plan():
+    univers = Univers.charger(FRUITS)
+    perso = univers.personnage("strawberina")
+    plan = _plan(
+        abstractions=[{"concept": "Tesla", "representation": "generic unbranded vehicle component"}],
+        risques_predits=[{"risque": "human hand", "mitigation": "mechanical actuator only, no visible human hand"}],
+        disposition="technical-cutaway",
+    )
+
+    contrat = contrat_visuel.compiler(plan, perso, univers)
+
+    assert contrat.abstractions == [{"concept": "Tesla", "representation": "generic unbranded vehicle component"}]
+    assert contrat.risques_predits == [{"risque": "human hand", "mitigation": "mechanical actuator only, no visible human hand"}]
+    assert contrat.disposition == "technical-cutaway"
 
 
 def test_registre_univers_reste_le_plancher_si_le_plan_ne_precise_rien():

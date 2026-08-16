@@ -106,3 +106,30 @@ def test_assainir_ignore_les_elements_vides():
 def test_assainir_garde_les_valides_et_rejette_les_autres():
     resultat = fidelite_visuelle.assainir(["submarine cable", "une phrase française trop longue à rejeter"])
     assert resultat == ["submarine cable"]
+
+
+# ── renforcer_libre() : des clauses complètes, pas des objets à nommer ───
+
+def test_renforcer_libre_ajoute_une_clause_absente():
+    prompt, ajoutees = fidelite_visuelle.renforcer_libre(
+        "an accelerator pedal glowing in the dark",
+        ["no manufacturer badge, no logo, unbranded design"],
+    )
+    assert "no manufacturer badge, no logo, unbranded design" in prompt
+    assert ajoutees == ["no manufacturer badge, no logo, unbranded design"]
+
+
+def test_renforcer_libre_najoute_rien_si_deja_present():
+    prompt, ajoutees = fidelite_visuelle.renforcer_libre(
+        "a pedal, no manufacturer badge, no logo, unbranded design",
+        ["no manufacturer badge, no logo, unbranded design"],
+    )
+    assert prompt == "a pedal, no manufacturer badge, no logo, unbranded design"
+    assert ajoutees == []
+
+
+def test_renforcer_libre_najamais_le_prefixe_featuring():
+    prompt, _ = fidelite_visuelle.renforcer_libre(
+        "a pedal", ["mechanical actuator only, no visible human hand"],
+    )
+    assert "featuring" not in prompt
