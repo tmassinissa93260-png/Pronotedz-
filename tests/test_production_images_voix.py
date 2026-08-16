@@ -857,6 +857,43 @@ def test_le_prompt_de_mouvement_reste_court_et_protege_le_personnage():
     assert "identical" in prompt
 
 
+def test_le_prompt_de_mouvement_porte_le_registre_visuel_du_plan():
+    """`registre_visuel` (où vit `disposition`, ex. « technical-cutaway »)
+    n'atteignait jamais ce prompt-ci — un plan animé pouvait dériver de son
+    registre en cours de clip, faute de ce signal (voir animation.py)."""
+    u = Univers.charger(FRUITS)
+    prompt = animation._prompt_mouvement(
+        {"emotion": "calme", "action": "a wireframe mechanism exposed",
+         "registre_visuel": "abstract wireframe, not a realistic map"},
+        u,
+    )
+    assert "abstract wireframe, not a realistic map" in prompt
+
+
+def test_le_prompt_de_mouvement_ne_double_pas_un_registre_deja_couvert():
+    """Non-remplissage : si `action` mentionne déjà le registre en toutes
+    lettres, `registre_visuel` n'est pas rajouté une seconde fois."""
+    u = Univers.charger(FRUITS)
+    prompt = animation._prompt_mouvement(
+        {"emotion": "calme",
+         "action": "a wireframe mechanism, abstract wireframe rendering",
+         "registre_visuel": "abstract wireframe rendering"},
+        u,
+    )
+    assert prompt.lower().count("abstract wireframe rendering") == 1
+
+
+def test_le_prompt_de_mouvement_sans_registre_visuel_ne_change_rien():
+    """Non-régression : un plan sans `registre_visuel` (job en cache
+    d'avant plans@1.7.0, ou plan qui n'en précise simplement aucun) ne doit
+    ni planter ni ajouter de clause vide."""
+    u = Univers.charger(FRUITS)
+    prompt = animation._prompt_mouvement(
+        {"emotion": "calme", "action": "elle sourit"}, u
+    )
+    assert "maintain style" not in prompt
+
+
 # ── Appariement de voix ──────────────────────────────────────────────────
 
 def _profil(hauteur, debit=5.0, etendue=6.0, timbre=1500.0):

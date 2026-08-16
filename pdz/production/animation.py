@@ -335,6 +335,16 @@ def _prompt_mouvement(plan: dict, univers: Univers) -> str:
     Court et concret. Les modèles image→vidéo réagissent mal aux longues
     descriptions : ils tentent alors de refabriquer la scène au lieu de
     l'animer, et le personnage change de tête en cours de clip.
+
+    `action` porte déjà tout ce que ShotPromptWriter/`fusionner()` y ont
+    ajouté (relations, abstractions, mitigations…) — c'est le même texte
+    que celui envoyé au modèle d'image. Seul `registre_visuel` (où vit
+    `disposition`, ex. « technical-cutaway ») n'atteignait jamais ce
+    prompt-ci : un plan animé pouvait donc dériver de son registre en
+    cours de clip, faute de ce signal. Ajouté seulement s'il apporte une
+    information réellement absente (même vérification de présence que
+    `fidelite_visuelle.renforcer_libre()`) — jamais un ajout systématique
+    qui gonflerait le prompt sans raison.
     """
     action = (plan.get("action") or "").strip()
     emotion = plan.get("emotion", "calme")
@@ -354,6 +364,12 @@ def _prompt_mouvement(plan: dict, univers: Univers) -> str:
     if action:
         morceaux.append(action)
     morceaux.append("camera holds steady, character design stays identical")
+    prompt = ", ".join(morceaux)
+
+    registre = (plan.get("registre_visuel") or "").strip()
+    if registre and registre.lower() not in prompt.lower():
+        prompt = f"{prompt}, maintain style: {registre}"
+
     if univers.style.ambiance:
-        morceaux.append(univers.style.ambiance)
-    return ", ".join(morceaux)
+        prompt = f"{prompt}, {univers.style.ambiance}"
+    return prompt
