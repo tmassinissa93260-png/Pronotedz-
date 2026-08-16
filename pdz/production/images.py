@@ -29,7 +29,7 @@ from pathlib import Path
 from pdz.config import config
 from pdz.ia import images as ia_images
 from pdz.moteur.erreurs import ErreurBudget, ErreurConfig
-from pdz.production import contrat_visuel, risque_prompt
+from pdz.production import contrat_visuel, decision_visuelle, risque_prompt
 from pdz.production.cadrage import phrase as phrase_de_cadrage
 from pdz.production.contrat_visuel import ContratVisuel
 from pdz.production.storyboard import PlanScript
@@ -403,6 +403,8 @@ def fabriquer(plans: list[PlanScript], univers: Univers, dossier: Path, *,
             if marque_interdite else []
         )
         contrat = contrat_visuel.compiler(plan, perso, univers, risques_marque=risques_marque)
+        for fait in decision_visuelle.verifier(contrat):
+            log.info("Plan %d : décision visuelle — %s", plan.numero, fait)
         prompt = prompt_plan_depuis_contrat(contrat, univers, consignes=consignes)
         destination = dossier / f"plan_{plan.numero:03d}.jpg"
         reste_pct = max(0.0, (plafond - planche.cout) / max(1e-6, plafond) * 100)

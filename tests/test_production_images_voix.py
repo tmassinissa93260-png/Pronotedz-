@@ -981,3 +981,67 @@ def test_sans_registre_les_personnages_sont_etales():
     hauteurs = [hauteur_attendue(p, i, len(persos)) for i, p in enumerate(persos)]
     assert len(set(hauteurs)) == len(hauteurs)
     assert min(hauteurs) >= 110 and max(hauteurs) <= 255
+
+
+# ── decision_visuelle : diagnostic seulement, jamais un coût de plus ─────
+
+def test_fabriquer_journalise_les_faits_de_decision_visuelle_sans_rien_changer(
+    monkeypatch, tmp_path, caplog,
+):
+    """Un plan dont la relation vise un objet non désigné doit produire une
+    ligne de log « décision visuelle » — mais ni le prompt envoyé au
+    fournisseur d'image, ni le coût, ne doivent en dépendre : c'est un
+    diagnostic (voir `pdz.production.decision_visuelle`), jamais une
+    correction ni un appel de plus."""
+    import logging
+
+    appels = []
+
+    def fausse_image(prompt, destination, **kwargs):
+        appels.append(prompt)
+        Image.new("RGB", (64, 64), (10, 60, 90)).save(destination)
+        return destination, 0.001
+
+    monkeypatch.setattr(images.ia_images, "generer_image", fausse_image)
+
+    u = Univers.charger(FRUITS)
+    plan = PlanScript(
+        numero=0, replique_numero=0, personnage=u.personnages[0].id,
+        action="strawberina holds a golden trophy", emotion="joie",
+        elements_obligatoires=["golden trophy"],
+        relations=[{"cible": "spotlight beam", "etat": "sweeping across"}],
+    )
+
+    with caplog.at_level(logging.INFO):
+        planche = images.fabriquer([plan], u, tmp_path / "images", cache=False)
+
+    assert any("décision visuelle" in m and "orpheline" in m for m in caplog.messages)
+    # Les fiches de personnages de l'univers sont aussi produites par
+    # `fabriquer()` (un appel par personnage) — seul le DERNIER appel
+    # correspond au plan lui-même.
+    assert planche.plans[0].prompt == appels[-1]
+    assert planche.cout == pytest.approx(0.001)
+
+
+def test_fabriquer_sans_incoherence_ne_journalise_aucune_decision_visuelle(
+    monkeypatch, tmp_path, caplog,
+):
+    import logging
+
+    def fausse_image(prompt, destination, **kwargs):
+        Image.new("RGB", (64, 64), (10, 60, 90)).save(destination)
+        return destination, 0.001
+
+    monkeypatch.setattr(images.ia_images, "generer_image", fausse_image)
+
+    u = Univers.charger(FRUITS)
+    plan = PlanScript(
+        numero=0, replique_numero=0, personnage=u.personnages[0].id,
+        action="strawberina holds a golden trophy", emotion="joie",
+        elements_obligatoires=["golden trophy"],
+    )
+
+    with caplog.at_level(logging.INFO):
+        images.fabriquer([plan], u, tmp_path / "images", cache=False)
+
+    assert not any("décision visuelle" in m for m in caplog.messages)
