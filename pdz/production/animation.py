@@ -37,14 +37,19 @@ from pdz.univers import Univers
 log = logging.getLogger(__name__)
 
 # Durée d'un clip animé demandée au modèle. Les modèles image→vidéo
-# facturent à la seconde et n'acceptent en général que 5 ou 10 s ; 5 s
-# couvre déjà deux plans courts montés bout à bout. Mais rien ne garantit
-# qu'UN SEUL plan reste sous cette durée : un épisode en narration (peu de
-# répliques, jamais coupées en deux) peut avoir des plans de 6-7 s — voir
-# `animer()`, qui saute directement au repli local pour ces plans-là plutôt
-# que de payer un appel voué à l'échec (mesuré en production : le modèle
-# ne rend jamais plus que ce qui est demandé, souvent un peu moins).
-DUREE_CLIP_S = 5
+# facturent à la seconde et n'acceptent en général que 5 ou 10 s. Fixé à
+# 10 s (pas 5) : mesuré en production (épisode #65) qu'à 5 s, la majorité
+# des plans réels (4 à 8 s selon le rythme de la voix) dépassaient déjà ce
+# plafond et sautaient systématiquement l'appel payant pour retomber sur le
+# repli local — sur un épisode de 6 plans, un seul avait reçu une vraie
+# animation malgré un budget qui en autorisait 6. Rien ne garantit pour
+# autant qu'UN SEUL plan reste sous cette durée : un épisode en narration
+# (peu de répliques, jamais coupées en deux) peut avoir des plans de plus
+# de 10 s — voir `animer()`, qui saute directement au repli local pour
+# ces plans-là plutôt que de payer un appel voué à l'échec (mesuré en
+# production : le modèle ne rend jamais plus que ce qui est demandé,
+# souvent un peu moins).
+DUREE_CLIP_S = 10
 
 # Marge sous laquelle un clip rendu plus court que la durée allouée est
 # encore acceptable (arrondis d'encodage). Au-delà, le montage tronquerait

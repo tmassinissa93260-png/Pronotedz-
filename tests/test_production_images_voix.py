@@ -780,13 +780,13 @@ def test_un_clip_assez_long_est_garde(monkeypatch, tmp_path):
 
 
 def test_un_plan_plus_long_que_le_clip_saute_lappel_paye(monkeypatch, tmp_path):
-    """Bug réel (production épisode #57) : un plan qui a besoin de plus que
-    `DUREE_CLIP_S` (narration à peu de répliques, jamais coupées en deux —
-    plans de 6-7 s) était quand même envoyé au modèle, qui ne rend jamais
-    plus que ce qui est demandé (mesuré : 4,84 s pour 5 s demandés, cinq
-    fois de suite sur cet épisode) — l'appel payant était donc voué à
-    échouer à chaque fois. Le repli doit être pris directement, sans
-    dépenser ni attendre pour un clip qui sera de toute façon rejeté."""
+    """Bug réel (production épisode #57, puis #65 à un plafond plus large) :
+    un plan qui a besoin de plus que `DUREE_CLIP_S` était quand même envoyé
+    au modèle, qui ne rend jamais plus que ce qui est demandé (mesuré :
+    4,84 s pour 5 s demandés, cinq fois de suite sur cet épisode) —
+    l'appel payant était donc voué à échouer à chaque fois. Le repli doit
+    être pris directement, sans dépenser ni attendre pour un clip qui sera
+    de toute façon rejeté."""
     appele = {"n": 0}
 
     def _jamais_appele(*a, **k):
@@ -799,7 +799,7 @@ def test_un_plan_plus_long_que_le_clip_saute_lappel_paye(monkeypatch, tmp_path):
     p = tmp_path / "p0.jpg"
     Image.new("RGB", (64, 64), (10, 60, 90)).save(p)
     plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
-             "emotion": "colere", "duree_s": 6.99}]
+             "emotion": "colere", "duree_s": 12.99}]
 
     resultats = animation.animer(
         plans, [p], u, tmp_path / "anim", budget_restant=100.0,
