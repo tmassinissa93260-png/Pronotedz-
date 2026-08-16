@@ -31,6 +31,7 @@ from pdz.agents.base import Agent
 from pdz.moteur.erreurs import ErreurValidation
 from pdz.moteur.pipeline import Contexte
 from pdz.production import cadrage, fidelite_visuelle
+from pdz.production import geometrie as geometrie_mod
 from pdz.production.continuite import indices_de_scene
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Univers
@@ -173,6 +174,21 @@ class ShotPromptWriter(Agent):
             ]
             prompt, _ = fidelite_visuelle.renforcer_libre(prompt, etats)
 
+            # geometrie : où se place chaque objet nommé l'un par rapport à
+            # l'autre — jamais une coordonnée, jamais confondu avec la
+            # priorité perceptuelle (élements_obligatoires/secondaires,
+            # juste en dessous). Même filet conditionnel que les autres
+            # champs : une position déjà couverte par la prose n'est pas
+            # rajoutée en double.
+            geo = ecrit.get("geometrie", [])
+            phrases_geo = [
+                p2 for g in geo
+                if (p2 := geometrie_mod.phrase(
+                    g.get("entite", ""), g.get("zone", ""), g.get("profondeur", ""),
+                ))
+            ]
+            prompt, _ = fidelite_visuelle.renforcer_libre(prompt, phrases_geo)
+
             elements_obligatoires = ecrit.get("elements_obligatoires", [])
             elements_secondaires = ecrit.get("elements_secondaires", [])
             if elements_secondaires and elements_obligatoires:
@@ -205,6 +221,7 @@ class ShotPromptWriter(Agent):
                 abstractions=abstractions,
                 risques_predits=risques_predits,
                 disposition=disposition,
+                geometrie=geo,
                 corrections_fidelite=manquants,
             ))
         if renforces:

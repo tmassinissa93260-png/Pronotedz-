@@ -608,3 +608,58 @@ def test_sans_les_nouveaux_champs_ils_retombent_sur_des_valeurs_vides():
     assert fusionnes[0].abstractions == []
     assert fusionnes[0].risques_predits == []
     assert fusionnes[0].disposition == ""
+
+
+# ── geometrie : où se place chaque objet, jamais une coordonnée (plans@1.12.0) ─
+
+def test_geometrie_avion_piste_aeroport_ajoute_une_phrase_par_objet():
+    """Cas obligatoire (dossier « geometry-light ») : avion + piste +
+    aéroport, chacun avec sa position — le prompt final doit porter les
+    trois positions ET la relation de trajectoire."""
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0,
+        "prompt_image": "a futuristic passenger airliner climbing into the sky just after takeoff",
+        "elements_obligatoires": ["airliner", "runway", "airport"],
+        "relations": [{"cible": "flight path",
+                       "etat": "originates at the aircraft, curves upward to the right, glowing blue holographic line"}],
+        "geometrie": [
+            {"entite": "airliner", "zone": "center", "profondeur": "foreground"},
+            {"entite": "runway", "zone": "bottom", "profondeur": "foreground"},
+            {"entite": "airport", "zone": "center", "profondeur": "background"},
+        ],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    action = fusionnes[0].action
+    assert "airliner, centered in the frame, in the foreground" in action
+    assert "runway, near the bottom of the frame, in the foreground" in action
+    assert "airport, centered in the frame, in the background" in action
+    assert "originates at the aircraft, curves upward to the right" in action
+
+
+def test_geometrie_deja_couverte_par_la_prose_nest_pas_dupliquee():
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0,
+        "prompt_image": "a runway, near the bottom of the frame, in the foreground, wet asphalt",
+        "geometrie": [{"entite": "runway", "zone": "bottom", "profondeur": "foreground"}],
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].action.count("near the bottom of the frame") == 1
+
+
+def test_geometrie_est_vide_par_defaut_sans_regression():
+    """Non-régression : un job en cache d'avant plans@1.12.0 n'a pas ce
+    champ dans sa sortie stockée — ne doit pas planter."""
+    plans = _plans(1)
+    sortie = {"plans": [{"numero": 0, "prompt_image": "x"}]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].geometrie == []
+
+
+def test_geometrie_est_portee_sur_le_plan_pour_la_qa():
+    plans = _plans(1)
+    geo = [{"entite": "airliner", "zone": "center", "profondeur": "foreground"}]
+    sortie = {"plans": [{"numero": 0, "prompt_image": "x", "geometrie": geo}]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].geometrie == geo

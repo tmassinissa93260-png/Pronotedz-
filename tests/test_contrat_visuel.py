@@ -91,6 +91,27 @@ def test_abstractions_risques_predits_disposition_reprennent_le_plan():
     assert contrat.disposition == "technical-cutaway"
 
 
+def test_geometrie_reprend_directement_celle_ecrite_par_shotpromptwriter():
+    univers = Univers.charger(FRUITS)
+    perso = univers.personnage("strawberina")
+    geo = [{"entite": "trophy", "zone": "center", "profondeur": "foreground"}]
+    plan = _plan(geometrie=geo)
+
+    contrat = contrat_visuel.compiler(plan, perso, univers)
+
+    assert contrat.geometrie == geo
+
+
+def test_geometrie_est_vide_par_defaut():
+    univers = Univers.charger(FRUITS)
+    perso = univers.personnage("strawberina")
+    plan = _plan()
+
+    contrat = contrat_visuel.compiler(plan, perso, univers)
+
+    assert contrat.geometrie == []
+
+
 def test_registre_univers_reste_le_plancher_si_le_plan_ne_precise_rien():
     univers = Univers.charger(FRUITS)
     perso = univers.personnage("strawberina")

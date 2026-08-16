@@ -50,6 +50,12 @@ class ContratVisuel:
     # Vocabulaire qualitatif fixe (voir `cadrage.DISPOSITIONS`) — jamais une
     # coordonnée physique, jamais premier-plan/arrière-plan.
     disposition: str = ""
+    # `{entite, zone, profondeur}`, écrit directement par ShotPromptWriter
+    # (voir plans@1.12.0) — où se place chaque objet nommé, jamais une
+    # coordonnée physique. Distinct de la priorité perceptuelle
+    # (`avec_quoi`/`avec_quoi_secondaire`) : la position spatiale et
+    # l'importance narrative sont deux décisions différentes.
+    geometrie: list[dict] = field(default_factory=list)
     # `ou_id` : l'identifiant brut du décor (`plan.decor`), nécessaire pour
     # que `prompt_plan_depuis_contrat()` reproduise EXACTEMENT la résolution
     # (et le repli anime-only) de `prompt_plan()`. `ou` est la description
@@ -116,6 +122,7 @@ def compiler(plan: PlanScript, personnage: Personnage, univers: Univers, *,
         abstractions=list(plan.abstractions),
         risques_predits=list(plan.risques_predits),
         disposition=plan.disposition,
+        geometrie=list(plan.geometrie),
         ou_id=plan.decor,
         ou=_lieu(plan, univers),
         emotion=plan.emotion,

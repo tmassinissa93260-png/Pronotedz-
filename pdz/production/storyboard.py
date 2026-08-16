@@ -156,6 +156,15 @@ class PlanScript:
     # vocabulaire fixe et court comme `cadrage` — jamais une position
     # spatiale. Voir `pdz.production.cadrage.PHRASES_DISPOSITION`.
     disposition: str = ""
+    # Où se place chaque objet nommé l'un par rapport à l'autre — {"entite":
+    # ..., "zone": "top"/"bottom"/"left"/"right"/"center", "profondeur":
+    # "background"/"midground"/"foreground"}, jamais une coordonnée
+    # physique. Distinct de la priorité perceptuelle (`elements_
+    # obligatoires`/`elements_secondaires`) : une position spatiale n'est
+    # jamais déduite d'une importance narrative, ni l'inverse. Vide sauf
+    # quand plusieurs objets ont une position relative qui compte
+    # vraiment — voir `pdz.production.geometrie.phrase()`.
+    geometrie: list[dict] = field(default_factory=list)
     # Les éléments de `elements_obligatoires` que ShotPromptWriter avait
     # d'abord OUBLIÉS dans son propre prompt, et que `fidelite_visuelle.
     # renforcer()` a dû rajouter après coup. Vide dans le cas normal (le
@@ -196,6 +205,7 @@ class PlanScript:
             "abstractions": self.abstractions,
             "risques_predits": self.risques_predits,
             "disposition": self.disposition,
+            "geometrie": self.geometrie,
             "corrections_fidelite": self.corrections_fidelite,
             "relance": self.relance,
             "besoin_revue": self.besoin_revue,
