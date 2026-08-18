@@ -696,3 +696,93 @@ def test_sans_mouvement_les_champs_retombent_sur_des_valeurs_vides():
     assert fusionnes[0].mouvement_camera == ""
     assert fusionnes[0].mouvement_environnement == ""
     assert fusionnes[0].intensite_mouvement == ""
+
+
+# ── Contrat allégé sur relance : une vidéo moins riche > pas de vidéo ────
+#
+# Le run #76 est mort ici : trois tentatives, trois « Failed to parse tool
+# call arguments as JSON », épisode perdu alors que le script était écrit.
+# Sur le palier gratuit Groq la requête complète demande 7677 jetons pour
+# une limite de 8000 par minute, dont 2200 réservés à la sortie — il n'y a
+# de marge nulle part. Les champs d'enrichissement pèsent 75 % du schéma et
+# l'essentiel de la sortie : les sacrifier est ce qui reste quand tout le
+# reste est bloqué.
+
+_BASE = charger("ecriture/plans").schema_sortie
+
+
+def _schema(erreur_precedente: str | None, n: int = 6) -> dict:
+    entrees = {"plans": list(range(n))}
+    if erreur_precedente is not None:
+        entrees["_erreur_precedente"] = erreur_precedente
+    return ShotPromptWriter().schema(_BASE, entrees, None)
+
+
+def test_la_premiere_tentative_garde_le_contrat_complet():
+    """Non-régression, et c'est le point le plus important : on ne renonce
+    à l'enrichissement qu'APRÈS un échec, jamais par précaution."""
+    proprietes = _schema(None)["properties"]["plans"]["items"]["properties"]
+    for champ in ("geometrie", "relations", "mouvement_sujet",
+                  "intensite_mouvement", "abstractions"):
+        assert champ in proprietes
+
+
+def test_une_relance_retire_les_enrichissements():
+    proprietes = _schema("Failed to parse tool call arguments as JSON")[
+        "properties"]["plans"]["items"]["properties"]
+    for champ in ("geometrie", "relations", "risques_predits", "abstractions",
+                  "disposition", "elements_secondaires", "mouvement_sujet",
+                  "mouvement_camera", "mouvement_environnement",
+                  "intensite_mouvement"):
+        assert champ not in proprietes
+
+
+def test_une_relance_garde_intact_ce_qui_fabrique_limage():
+    """Ce qui reste doit suffire à produire un épisode entier : sans
+    `prompt_image` ni `cadrage`, alléger reviendrait à tout casser."""
+    items = _schema("400")["properties"]["plans"]["items"]
+    for champ in ("numero", "prompt_image", "cadrage", "registre_visuel",
+                  "elements_obligatoires", "elements_a_exclure"):
+        assert champ in items["properties"]
+    assert items["required"] == _BASE["properties"]["plans"]["items"]["required"]
+
+
+def test_alleger_ne_relache_pas_lexigence_dun_prompt_par_plan():
+    """Le contrat se simplifie, il ne se rétrécit pas : il faut toujours
+    autant de plans écrits."""
+    assert _schema("400", n=9)["properties"]["plans"]["minItems"] == 9
+
+
+def test_le_contrat_allege_pese_bien_moins_lourd():
+    """La raison d'être du correctif, chiffrée — un seuil, pas une valeur
+    exacte, pour ne pas casser au premier mot ajouté à une description."""
+    import json
+
+    plein = len(json.dumps(_schema(None), ensure_ascii=False))
+    allege = len(json.dumps(_schema("400"), ensure_ascii=False))
+    assert allege < plein * 0.45, f"{allege} vs {plein} : allègement insuffisant"
+
+
+def test_le_schema_de_base_nest_jamais_modifie_en_place():
+    """`_BASE` est partagé par tous les appels : le muter ferait perdre
+    l'enrichissement à tous les épisodes suivants du processus."""
+    avant = len(_BASE["properties"]["plans"]["items"]["properties"])
+    _schema("400")
+    assert len(_BASE["properties"]["plans"]["items"]["properties"]) == avant
+
+
+def test_fusionner_survit_a_un_plan_sans_enrichissement():
+    """Bout en bout : ce que renvoie un contrat allégé doit traverser
+    `fusionner()` sans lever, et produire un plan utilisable."""
+    plans = [PlanScript(numero=1, personnage="p", replique_numero=1,
+                        action="a", emotion="calme", duree_s=3.0)]
+    sortie = {"plans": [{
+        "numero": 1, "prompt_image": "a wireframe face scanning grid",
+        "cadrage": "plan_serre", "registre_visuel": "abstract wireframe",
+        "elements_obligatoires": ["scanning grid"], "elements_a_exclure": [],
+    }]}
+
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert "wireframe face scanning grid" in fusionnes[0].action
+    assert fusionnes[0].geometrie == []
+    assert fusionnes[0].mouvement_sujet == ""

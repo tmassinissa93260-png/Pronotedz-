@@ -38,6 +38,32 @@ from pdz.univers import Univers
 
 log = logging.getLogger(__name__)
 
+# Les champs que ce contrat sait perdre — tout ce qui ENRICHIT le prompt sans
+# être nécessaire pour fabriquer une image. Les six champs requis
+# (`prompt_image`, `cadrage`, `registre_visuel`, `elements_obligatoires`,
+# `elements_a_exclure`, `numero`) suffisent à produire un épisode ; ceux-ci
+# le rendent meilleur.
+#
+# Ils sont retirés du schéma dès qu'une tentative a échoué, parce qu'ils
+# pèsent 75 % du schéma (3193 caractères sur 4262) ET la majeure partie de
+# la sortie. Mesuré sur le palier gratuit Groq : la requête complète demande
+# 7677 jetons pour une limite de 8000 par minute, dont 2200 réservés à la
+# sortie. Il n'y a donc de marge NULLE PART — `max_tokens` ne peut pas
+# monter sans dépasser la limite, ni descendre sans couper la réponse.
+# Le run #76 est mort là-dessus : trois tentatives, trois « Failed to parse
+# tool call arguments as JSON », épisode perdu alors que le script était
+# écrit.
+#
+# Même philosophie que partout ailleurs ici : un plan qui rate son animation
+# retombe sur la parallaxe, une voix indisponible retombe sur le muet — un
+# contrat visuel trop lourd retombe sur sa version essentielle. Une vidéo
+# moins riche vaut mieux que pas de vidéo.
+_ENRICHISSEMENTS = (
+    "geometrie", "abstractions", "relations", "risques_predits",
+    "disposition", "elements_secondaires", "mouvement_sujet",
+    "mouvement_camera", "mouvement_environnement", "intensite_mouvement",
+)
+
 
 class ShotPromptWriter(Agent):
     nom = "shot_prompts"
@@ -82,9 +108,24 @@ class ShotPromptWriter(Agent):
     def schema(self, base: dict, entrees: dict[str, Any], ctx: Contexte) -> dict:
         """Impose au moins un prompt par plan — y compris les plans de
         réaction, qui n'existent qu'après le découpage et n'ont sinon
-        jamais reçu de prompt écrit pour eux."""
+        jamais reçu de prompt écrit pour eux.
+
+        Et, sur une SECONDE tentative, allège le contrat : voir
+        `_ENRICHISSEMENTS`.
+        """
         schema = copy.deepcopy(base)
         schema["properties"]["plans"]["minItems"] = len(entrees["plans"])
+
+        if entrees.get("_erreur_precedente"):
+            proprietes = schema["properties"]["plans"]["items"]["properties"]
+            retires = [c for c in _ENRICHISSEMENTS if proprietes.pop(c, None)]
+            if retires:
+                log.warning(
+                    "Contrat visuel allégé pour la relance : %d champ(s) "
+                    "d'enrichissement retirés (%s). Les images resteront "
+                    "correctes ; l'animation retombera sur son vocabulaire "
+                    "par émotion.", len(retires), ", ".join(retires),
+                )
         return schema
 
     def apres(self, sortie: dict, entrees: dict, ctx: Contexte) -> dict:
