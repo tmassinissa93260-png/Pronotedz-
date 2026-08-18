@@ -269,9 +269,49 @@ def _lever_si_erreur(r: httpx.Response) -> None:
     if r.status_code >= 500:
         raise ErreurFournisseur(f"Groq indisponible ({r.status_code}). {detail}")
     raise ErreurValidation(
-        f"Requête refusée par Groq ({r.status_code}). {detail}",
+        f"Requête refusée par Groq ({r.status_code}). {detail}"
+        f"{_pourquoi_le_json_est_casse(r)}",
         retry_after=_attente_fenetre_jetons(r),
     )
+
+
+def _pourquoi_le_json_est_casse(r: httpx.Response) -> str:
+    """Ce que le modèle avait COMMENCÉ à écrire, quand Groq le renvoie.
+
+    « Failed to parse tool call arguments as JSON » ne dit pas si le modèle
+    a écrit n'importe quoi ou s'il a été COUPÉ en plein milieu — deux pannes
+    opposées : la première se rejoue, la seconde se rejouera à l'identique
+    tant que `max_tokens` n'aura pas bougé. Groq met pourtant le texte fautif
+    dans `error.failed_generation`, et le code le jetait : trois épisodes
+    (#74, #75, #76) ont buté là-dessus sans jamais dire lequel des deux cas
+    s'appliquait.
+
+    La fin du texte tranche : un JSON tronqué s'arrête au milieu d'une chaîne
+    ou d'une clé, sans accolade fermante.
+    """
+    try:
+        brut = r.json().get("error", {}).get("failed_generation")
+    except Exception:
+        return ""
+    if not isinstance(brut, str) or not brut:
+        return ""
+
+    fin = brut.rstrip()
+    tronque = not fin.endswith(("}", "]"))
+    # Ce texte repart aussi AU MODÈLE, via `_erreur_precedente` : d'où
+    # l'instruction explicite plutôt qu'un simple constat. Une sortie coupée
+    # se rejouerait sinon à l'identique, et se ferait couper au même endroit.
+    diagnostic = (
+        " SORTIE TRONQUÉE : coupée avant la fin du JSON, faute de place — pas "
+        "une erreur de forme. Rejouer à l'identique redonnera le même "
+        "résultat. Recommence en produisant BEAUCOUP MOINS DE TEXTE : ne "
+        "remplis que les champs obligatoires, laisse vides tous les champs "
+        "optionnels, et raccourcis chaque description."
+        if tronque else
+        " JSON malformé mais COMPLET : une vraie erreur de forme, que rejouer "
+        "peut corriger. Reprends le format demandé à la lettre."
+    )
+    return f"{diagnostic} [{len(brut)} caractères produits, fin : …{fin[-120:]}]"
 
 
 

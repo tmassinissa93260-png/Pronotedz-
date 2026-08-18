@@ -421,3 +421,56 @@ def test_un_fournisseur_sans_adaptateur_de_texte_est_signale(monkeypatch):
             alias="qualite", systeme_stable="x", message="y", schema_sortie={},
         ))
     assert "modeles.yaml" in str(e.value)
+
+
+# ── « Failed to parse tool call arguments as JSON » : lequel des deux ? ───
+#
+# Mesuré (run #76) : `shot_prompts` a pris ce 400 trois fois de suite, et
+# l'épisode est mort dessus. Le message ne dit pas si le modèle a écrit
+# n'importe quoi ou s'il a été COUPÉ en plein milieu — deux pannes opposées.
+# Groq met pourtant le texte fautif dans `error.failed_generation`, et le
+# code le jetait.
+
+def _400_json(fragment: str | None) -> httpx.Response:
+    erreur = {"message": "Failed to parse tool call arguments as JSON"}
+    if fragment is not None:
+        erreur["failed_generation"] = fragment
+    return _reponse(400, {"error": erreur})
+
+
+def test_une_sortie_coupee_est_reconnue_comme_tronquee():
+    """Un JSON coupé s'arrête au milieu d'une chaîne : pas d'accolade
+    fermante. Le rejouer à l'identique le fera couper au même endroit."""
+    with pytest.raises(ErreurValidation) as e:
+        _lever_si_erreur(_400_json('{"plans": [{"numero": 1, "action": "un long text'))
+    assert "TRONQUÉE" in str(e.value)
+    assert "MOINS DE TEXTE" in str(e.value), \
+        "le texte repart au modèle : il doit porter une consigne, pas un constat"
+
+
+def test_un_json_complet_mais_invalide_nest_pas_dit_tronque():
+    """L'inverse compte autant : accuser `max_tokens` là où le modèle s'est
+    juste trompé de format enverrait chercher le mauvais problème."""
+    with pytest.raises(ErreurValidation) as e:
+        _lever_si_erreur(_400_json('{"plans": [{"numero": "un"},]}'))
+    assert "TRONQUÉE" not in str(e.value)
+    assert "malformé mais COMPLET" in str(e.value)
+
+
+def test_le_texte_fautif_est_resume_pas_recrache_en_entier():
+    """La fin suffit à trancher, et le message finit dans un journal."""
+    with pytest.raises(ErreurValidation) as e:
+        _lever_si_erreur(_400_json('{"x": "' + "a" * 5000))
+    message = str(e.value)
+    assert "5007 caractères produits" in message
+    assert len(message) < 700, "un journal ne doit pas recevoir 5000 caractères"
+
+
+def test_un_400_sans_failed_generation_garde_son_message():
+    """Non-régression : les autres 400 (schéma refusé, outil inconnu) ne
+    doivent hériter d'aucun diagnostic inventé."""
+    with pytest.raises(ErreurValidation) as e:
+        _lever_si_erreur(_400_json(None))
+    assert "TRONQUÉE" not in str(e.value)
+    assert "COMPLET" not in str(e.value)
+    assert "Failed to parse tool call arguments" in str(e.value)
