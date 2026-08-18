@@ -93,10 +93,29 @@ jobs:
 
       # ffmpeg fait tout le montage et toutes les mesures ; les polices
       # DejaVu servent aux sous-titres karaoké.
+      #
+      # `timeout` sur chaque commande, et pas seulement sur l'étape : un
+      # miroir Ubuntu injoignable fait BLOQUER apt, il ne le fait pas
+      # échouer. Mesuré le 18/08/2026 : `apt-get update` est resté pendu
+      # 1 h 0 min 15 s, jusqu'à épuiser les 60 minutes du job — la
+      # production a été annulée sans qu'une seule étape utile ait tourné,
+      # et sans autre message que « The operation was canceled ». Une
+      # relance ne sert à rien si le blocage n'est jamais converti en
+      # échec : c'est `timeout` qui rend la relance possible.
       - name: Installer ffmpeg et les polices
+        timeout-minutes: 15
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq ffmpeg fonts-dejavu-core fonts-dejavu-extra
+          for tentative in 1 2 3; do
+            if timeout 120 sudo apt-get update -qq \
+               && timeout 240 sudo apt-get install -y -qq \
+                    ffmpeg fonts-dejavu-core fonts-dejavu-extra; then
+              exit 0
+            fi
+            echo "::warning::apt indisponible (tentative $tentative/3) — nouvelle tentative dans 15 s"
+            sleep 15
+          done
+          echo "::error::apt reste injoignable après 3 tentatives — miroir Ubuntu ou réseau du runner, pas le dépôt. Relancer plus tard."
+          exit 1
 
       - name: Installer Pronotedz
         run: pip install -e . --quiet
