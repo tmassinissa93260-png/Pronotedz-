@@ -139,21 +139,41 @@ modeles:
   # la soumission partait en 404, et l'échec était rattrapé en image fixe.
   # Versions réellement publiées : v1/standard, v2.1/standard, v2.1/pro,
   # v2.1/master, v2.6/pro.
-  # Réservé au profil « premium » (voir plus bas) : meilleure cohérence de
-  # mouvement, ~2,5× le prix de ltx-video.
+  # Modèle d'animation par défaut. Plus cher que ltx-video (~2,5×), mais
+  # c'est le seul des deux à dépasser 5 s — et c'est CE plafond, pas la
+  # qualité du mouvement, qui bloquait la production : mesuré sur l'épisode
+  # #74, 5 plans sur 6 (5,9 à 7,1 s) n'atteignaient jamais le modèle vidéo et
+  # repartaient en parallaxe mécanique. Le seul plan réellement animé, lui,
+  # mesurait 18,4/255 de mouvement inter-frame contre 1,6 à 6,2 pour les
+  # replis. Le goulot était la durée, pas le prompt.
+  # ⚠️ L'identifiant doit correspondre EXACTEMENT à un endpoint publié par
+  # fal.ai. `v2/standard/image-to-video` n'existe pas — il a été mesuré en
+  # conditions réelles comme produisant des épisodes sans aucune animation :
+  # la soumission partait en 404, et l'échec était rattrapé en image fixe.
+  # Versions réellement publiées : v1/standard, v2.1/standard, v2.1/pro,
+  # v2.1/master, v2.6/pro.
   - id: fal-ai/kling-video/v2.1/standard/image-to-video
     fournisseur: fal
     fait: [animation]
     prix: { par_seconde: 0.046 }
     options: [image_depart, duree]
+    # Les deux seules valeurs que le endpoint accepte. ANNONCÉES par fal, pas
+    # encore mesurées ici — contrairement au 5 de ltx-video ci-dessous, qui
+    # l'est. Si le 10 s ne tient pas ses promesses, rien ne casse : la
+    # vérification de durée dans `animation.animer()` rejette le clip et le
+    # plan repart en repli local, comme aujourd'hui.
+    durees_s: [5, 10]
 
-  # Modèle d'animation par défaut : même famille d'usage que Kling, ~61 %
-  # moins cher. C'est lui qui pilote l'alias « animation » ci-dessous.
+  # Repli d'animation : ~61 % moins cher, mais plafonné à 5 s.
   - id: fal-ai/ltx-video-v097/image-to-video
     fournisseur: fal
     fait: [animation]
     prix: { par_seconde: 0.018 }
     options: [image_depart, duree]
+    # MESURÉ (enquêtes runs #57, #65, #66) : ce endpoint rend ~4,84 s qu'on
+    # lui demande 5 ou 10 — le paramètre `duration` n'a aucun effet au-delà.
+    # Un seul palier réel, donc, et c'est bien 5 et pas 10.
+    durees_s: [5]
 
   # ── Voix ─────────────────────────────────────────────────────────────
   - id: eleven_turbo_v2_5
@@ -196,7 +216,7 @@ alias:
   rapide:     { principal: openai/gpt-oss-120b }
   vision:     { principal: qwen/qwen3.6-27b }
   images:     { principal: fal-ai/flux/schnell,        repli: fal-ai/flux/dev }
-  animation:  { principal: fal-ai/ltx-video-v097/image-to-video, repli: fal-ai/kling-video/v2.1/standard/image-to-video }
+  animation:  { principal: fal-ai/kling-video/v2.1/standard/image-to-video, repli: fal-ai/ltx-video-v097/image-to-video }
   voix:       { principal: eleven_turbo_v2_5 }
   transcription: { principal: whisper-large-v3-turbo }
   musique:       { principal: audd/recognize }

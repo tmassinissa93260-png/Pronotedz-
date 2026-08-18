@@ -170,7 +170,12 @@ def animer_image(
     alias: str = "animation",
     profil: str = "equilibre",
     budget_restant_pct: float = 100.0,
-    attente_max_s: int = 420,
+    # 420 s était trop juste, et de peu : l'épisode #74 a mesuré 409 s
+    # d'attente pour un clip de 5 s — 11 s de marge. Depuis que la durée
+    # demandée suit le plan, un clip de 10 s peut partir, et un dépassement
+    # ici ne coûte pas qu'une seconde chance : l'appel est déjà facturé
+    # (0,46 € chez Kling) et le plan repart quand même en repli local.
+    attente_max_s: int = 720,
     job_id: str | None = None,
     etape: str | None = None,
     agent: str | None = None,

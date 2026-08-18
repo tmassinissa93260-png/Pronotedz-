@@ -573,6 +573,83 @@ def test_on_nanime_jamais_plus_de_plans_quil_nen_existe():
     assert combien == 2
 
 
+# ── Le plafond de durée appartient au MODÈLE, pas au module ──────────────
+#
+# Mesuré sur l'épisode #74 : 5 plans sur 6 (5,9 à 7,1 s) n'ont jamais atteint
+# le modèle vidéo, écartés par un plafond de 5 s qui était une propriété
+# MESURÉE de ltx-video — pas une loi de l'image→vidéo. Le seul plan animé
+# mesurait 18,4/255 de mouvement contre 1,6 à 6,2 pour les replis mécaniques.
+# Le goulot était la durée. Appliquer le plafond d'un modèle à un autre
+# gaspillait donc exactement ce qu'on venait d'acheter.
+
+def test_le_plafond_de_duree_suit_le_modele_reellement_resolu():
+    from pdz.ia.registre import registre
+
+    modele = registre().resoudre("animation", profil="equilibre",
+                                 repli_si_cle_absente=True).modele
+    assert animation.duree_max_du_modele("equilibre") == modele.duree_max_s
+
+
+def test_un_modele_sans_durees_declarees_garde_le_plafond_historique():
+    """Non-régression : un `modeles.yaml` qui ne déclare rien ne doit pas
+    faire tomber le plafond à zéro et tout envoyer en repli."""
+    from pdz.ia.registre import Modele
+
+    muet = Modele(id="x", fournisseur="fal", fait=["animation"])
+    assert muet.duree_max_s == 0.0
+    assert muet.durees_s == []
+
+
+def test_la_duree_demandee_est_le_plus_petit_palier_qui_couvre_le_plan():
+    """Facturé à la seconde : demander 10 s pour un plan de 4 s, ce serait
+    payer le double pour rien."""
+    from pdz.ia.registre import Modele
+
+    m = Modele(id="x", fournisseur="fal", fait=["animation"], durees_s=[5, 10])
+    assert m.duree_facturable(3.9) == 5
+    assert m.duree_facturable(5.0) == 5
+    assert m.duree_facturable(6.16) == 10
+    assert m.duree_facturable(9.9) == 10
+
+
+def test_un_plan_hors_de_portee_retombe_sur_le_plus_grand_palier():
+    """Il ne reste alors que le contrôle de durée post-génération pour
+    trancher — mais le code ne doit pas lever pour autant."""
+    from pdz.ia.registre import Modele
+
+    m = Modele(id="x", fournisseur="fal", fait=["animation"], durees_s=[5, 10])
+    assert m.duree_facturable(30.0) == 10
+
+
+def test_un_palier_unique_ne_change_rien(monkeypatch):
+    """ltx-video n'a qu'une valeur réelle : son comportement est identique
+    avant et après ce correctif."""
+    from pdz.ia.registre import Modele
+
+    m = Modele(id="ltx", fournisseur="fal", fait=["animation"], durees_s=[5])
+    assert m.duree_max_s == 5.0
+    assert m.duree_facturable(3.0) == 5
+    assert m.duree_facturable(9.0) == 5
+
+
+def test_le_budget_estime_sur_le_palier_le_plus_cher():
+    """Depuis que la durée demandée s'adapte au plan, estimer le coût sur le
+    palier le plus COURT promettrait un nombre de plans que le budget ne
+    couvre pas."""
+    from pdz.ia.registre import registre
+
+    modele = registre().resoudre("animation", profil="equilibre",
+                                 repli_si_cle_absente=True).modele
+    if not modele.durees_s:
+        pytest.skip("le modèle en place ne déclare aucun palier")
+
+    cher = modele.cout_unites(modele.duree_max_s, "seconde")
+    combien, raison = animation.combien_animer(20, budget_restant=cher * 3.5,
+                                               profil="equilibre")
+    assert combien == 3, "3,5 plans payables au tarif le plus cher → 3"
+    assert "budget" in raison
+
+
 # ── Narration : personne à l'écran ───────────────────────────────────────
 
 HOLO = Path(__file__).resolve().parent.parent / "univers" / "techno-holo.yaml"
@@ -882,8 +959,12 @@ def test_un_plan_jamais_tente_ne_coute_rien(monkeypatch, tmp_path):
     p = tmp_path / "p0.jpg"
     Image.new("RGB", (64, 64), (10, 60, 90)).save(p)
     # Plus long que ce que le modèle rend réellement → repli avant tout appel.
+    # Le plafond est dérivé du modèle EN PLACE, pas d'une constante : il vaut
+    # 5 s pour ltx-video et 10 s pour Kling, et ce test doit rester juste quel
+    # que soit celui que `modeles.yaml` désigne.
     plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
-             "emotion": "colere", "duree_s": animation.DUREE_REELLE_MAX_S + 2}]
+             "emotion": "colere",
+             "duree_s": animation.duree_max_du_modele("equilibre") + 2}]
 
     resultats = animation.animer(
         plans, [p], u, tmp_path / "anim", budget_restant=100.0,

@@ -46,6 +46,30 @@ class Modele(BaseModel):
     cache: Cache = Field(default_factory=Cache)
     sorties_structurees: bool = False
     options: list[str] = Field(default_factory=list)
+    # Les durées de clip que ce endpoint d'animation livre RÉELLEMENT, en
+    # secondes croissantes. Vide pour tout ce qui n'anime pas. Ce n'est pas
+    # une préférence : demander une durée hors de cette liste ne la produit
+    # pas — mesuré sur ltx-video, qui rend ~4,84 s qu'on lui demande 5 ou 10.
+    # C'est donc une propriété du MODÈLE, et elle doit vivre ici plutôt que
+    # dans une constante de `animation.py` valable pour un seul fournisseur.
+    durees_s: list[int] = Field(default_factory=list)
+
+    @property
+    def duree_max_s(self) -> float:
+        """Le plus long clip que ce modèle livre vraiment. 0 si inconnu."""
+        return float(max(self.durees_s)) if self.durees_s else 0.0
+
+    def duree_facturable(self, requise: float, tolerance: float = 0.0) -> int:
+        """Le plus petit palier qui couvre `requise` — le dernier sinon.
+
+        Facturé à la seconde : demander 10 s pour un plan de 4 s serait payer
+        le double pour rien, et demander 5 s pour un plan de 7 s produirait un
+        clip trop court que le montage tronquerait.
+        """
+        for palier in sorted(self.durees_s):
+            if palier >= requise - tolerance:
+                return palier
+        return max(self.durees_s)
 
     def cout_texte(self, entree: int, sortie: int,
                    cache_lu: int = 0, cache_ecrit: int = 0) -> float:

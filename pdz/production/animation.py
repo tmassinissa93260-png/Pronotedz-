@@ -36,21 +36,19 @@ from pdz.univers import Univers
 
 log = logging.getLogger(__name__)
 
-# Durée d'un clip animé DEMANDÉE au modèle. Les modèles image→vidéo
-# facturent à la seconde. Remis à 5 (pas 10, comme ce matin) : l'enquête sur
-# le run #66 a mesuré que demander 10 s produit EXACTEMENT le même résultat
-# que demander 5 s — 4,84 s rendus dans les deux cas, identique à la mesure
-# historique de l'épisode #57 — le paramètre `duration` n'a donc aucun effet
-# constaté sur ce endpoint au-delà de ce plafond. Demander plus ne fait que
-# doubler le coût par tentative pour rien.
+# Ces deux constantes ne sont plus que des REPLIS, pour un `modeles.yaml`
+# qui ne déclarerait aucun `durees_s`. La durée qu'un modèle livre vraiment
+# est une propriété DU MODÈLE et vit désormais à côté de lui (voir
+# `registre.Modele.durees_s`) : les ~4,84 s ci-dessous ont été mesurées sur
+# ltx-video, et les appliquer à Kling — qui livre 10 s — écartait des plans
+# que le modèle en place traitait très bien (5 sur 6, épisode #74).
+
+# Durée demandée par défaut. Les modèles image→vidéo facturent à la seconde.
 DUREE_CLIP_S = 5
 
-# Ce que le modèle rend RÉELLEMENT, mesuré (voir ci-dessus) — distinct de
-# `DUREE_CLIP_S` (ce qu'on ENVOIE), qui n'a plus d'effet sur ce chiffre.
-# C'est CE plafond qui doit décider si un plan mérite l'appel payant : un
-# plan de 6 s a exactement la même chance de succès qu'on demande 5 ou 10 s
-# au modèle, puisque le rendu réel plafonne ici quel que soit ce qu'on
-# demande.
+# Plafond par défaut. MESURÉ sur ltx-video (runs #57, #65, #66) : ce endpoint
+# rend ~4,84 s qu'on lui demande 5 ou 10 — `duration` n'y a aucun effet
+# au-delà. C'est ce plafond-là qui décide si un plan mérite l'appel payant.
 DUREE_REELLE_MAX_S = 5.0
 
 # Marge sous laquelle un clip rendu plus court que la durée allouée est
@@ -93,7 +91,36 @@ class PlanAnime:
     diagnostic: str = ""
 
 
-def noter(plans: list[dict]) -> list[Candidature]:
+def duree_max_du_modele(profil: str = "equilibre") -> float:
+    """Le plafond de durée du modèle d'animation réellement résolu.
+
+    Longtemps une constante de module, ce qui était faux dès qu'un second
+    modèle est entré dans `modeles.yaml` : les ~4,84 s sont une propriété
+    MESURÉE de ltx-video, pas une loi de l'image→vidéo. Kling en livre 10.
+    Appliquer le plafond de l'un à l'autre faisait sauter des plans que le
+    modèle en place savait très bien traiter (5 sur 6, épisode #74).
+    """
+    try:
+        res = registre().resoudre("animation", profil=profil,
+                                  repli_si_cle_absente=True)
+    except ErreurPdz:
+        return DUREE_REELLE_MAX_S
+    return res.modele.duree_max_s or DUREE_REELLE_MAX_S
+
+
+def _duree_a_demander(duree_requise: float, profil: str, defaut: int) -> int:
+    """Ce qu'on ENVOIE au fournisseur pour ce plan précis."""
+    try:
+        res = registre().resoudre("animation", profil=profil,
+                                  repli_si_cle_absente=True)
+    except ErreurPdz:
+        return defaut
+    if not res.modele.durees_s:
+        return defaut
+    return res.modele.duree_facturable(duree_requise, TOLERANCE_DUREE_S)
+
+
+def noter(plans: list[dict], *, duree_max_s: float = DUREE_REELLE_MAX_S) -> list[Candidature]:
     """Classe les plans par ce que l'animation leur apporterait.
 
     Les critères, du plus fort au plus faible :
@@ -143,13 +170,13 @@ def noter(plans: list[dict]) -> list[Candidature]:
             raisons.append(emotion)
 
         duree = float(plan.get("duree_s", 0) or 0)
-        if 3.0 <= duree <= DUREE_REELLE_MAX_S:
+        if 3.0 <= duree <= duree_max_s:
             note += 1.0
             raisons.append(f"{duree:.1f} s à l'écran, dans la capacité du modèle")
-        elif duree > DUREE_REELLE_MAX_S:
+        elif duree > duree_max_s:
             note -= 0.5
             raisons.append(
-                f"{duree:.1f} s hors de portée du modèle (max ~{DUREE_REELLE_MAX_S:.1f} s)")
+                f"{duree:.1f} s hors de portée du modèle (max ~{duree_max_s:.1f} s)")
         elif duree < 1.2:
             note -= 1.0
             raisons.append("trop court pour se voir")
@@ -193,7 +220,12 @@ def combien_animer(nb_plans: int, budget_restant: float, *,
     demande = int(reg.option_profil(profil, "plans_animes_max", 6))
 
     res = reg.resoudre("animation", profil=profil, repli_si_cle_absente=True)
-    cout_unitaire = res.modele.cout_unites(duree_clip_s, "seconde")
+    # Le palier le PLUS CHER que ce modèle peut facturer, pas le plus court :
+    # depuis que la durée demandée s'adapte au plan, estimer sur 5 s alors
+    # qu'un plan peut en coûter 10 promettrait un nombre de plans que le
+    # budget ne couvre pas. Mieux vaut sous-estimer ce qu'on peut s'offrir.
+    cout_unitaire = res.modele.cout_unites(
+        res.modele.duree_max_s or duree_clip_s, "seconde")
     if cout_unitaire <= 0:
         payables = demande
     else:
@@ -230,9 +262,10 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
         )
 
     dossier.mkdir(parents=True, exist_ok=True)
+    duree_max_s = duree_max_du_modele(profil)
     combien, raison = combien_animer(len(plans), budget_restant, profil=profil,
                                      duree_clip_s=duree_clip_s)
-    classement = noter(plans)
+    classement = noter(plans, duree_max_s=duree_max_s)
     elus = {c.index for c in classement[:combien]}
 
     log.info("Animation : %d plan(s) sur %d — %s", combien, len(plans), raison)
@@ -246,7 +279,7 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
         if i in elus:
             destination = dossier / f"anime_{i:03d}.mp4"
             duree_requise = float(plan.get("duree_s") or 0)
-            if duree_requise > DUREE_REELLE_MAX_S:
+            if duree_requise > duree_max_s:
                 # Mesuré (enquête run #65 ET #66, deux valeurs de `duration`
                 # différentes, même résultat) : le modèle ne rend jamais plus
                 # que ~4,84 s, quel que soit ce qu'on demande. Un plan qui a
@@ -258,16 +291,21 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
                 log.info(
                     "Plan %d : %.2f s requis, au-delà des ~%.1f s que le "
                     "modèle rend réellement — animation modèle sautée, "
-                    "repli direct.", i, duree_requise, DUREE_REELLE_MAX_S,
+                    "repli direct.", i, duree_requise, duree_max_s,
                 )
                 resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
                                         duree_clip_s, diagnostic="hors_portee"))
                 continue
             reste = max(0.0, budget_restant - depense)
+            # Le plus petit palier qui couvre le plan, pas une constante :
+            # facturé à la seconde, demander 10 s pour un plan de 4 s serait
+            # payer le double pour rien. Un modèle à palier unique (ltx-video)
+            # retombe sur sa seule valeur, donc rien ne change pour lui.
+            duree_demandee = _duree_a_demander(duree_requise, profil, duree_clip_s)
             try:
                 _, cout = fal.animer_image(
                     image, _prompt_mouvement(plan, univers), destination,
-                    duree_s=duree_clip_s, profil=profil,
+                    duree_s=duree_demandee, profil=profil,
                     budget_restant_pct=100.0 if reste > 0 else 0.0,
                     job_id=job_id, agent="animation",
                 )
