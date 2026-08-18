@@ -57,17 +57,27 @@ modeles:
     cache: { lecture: 0.10, ecriture: 1.25 }
     sorties_structurees: true
 
-  # Alternative GRATUITE à Claude, pour écrire sans avoir de crédit Anthropic.
-  # Sert le profil « gratuit » ci-dessous. Limites à connaître : pas de
-  # vision (donc pas d'analyse de vidéo de référence), pas de cache de
-  # prompt, une écriture probablement moins fine que Claude.
-  # ⚠️ Nom de modèle non vérifiable depuis l'environnement de développement
-  # (api.groq.com y est bloqué) — si Groq l'a renommé, `pdz cles` le dira
-  # clairement plutôt que d'échouer en silence.
-  - id: llama-3.3-70b-versatile
+  # Remplace `llama-3.3-70b-versatile`, qui vivait ici et servait TOUTE
+  # l'écriture. Groq l'a déprécié le 17/06/2026 puis coupé : mesuré en
+  # production le 18/08/2026, l'épisode échouait en 2 s sur « Modèle Groq
+  # introuvable » (404) AVANT le premier appel. Une `ErreurConfig` a
+  # `repli_modele=False` (voir pdz/moteur/erreurs.py) : un identifiant
+  # périmé n'est PAS rattrapé par un repli, il arrête la production net —
+  # d'où l'importance de garder ce champ juste.
+  # Groq recommande deux remplaçants : celui-ci et `qwen/qwen3.6-27b`.
+  # C'est celui-ci qui convient, et pas seulement parce qu'il est plus
+  # gros (120 B contre 70 B) : il est SANS VISION, donc il occupe
+  # exactement la même place que le modèle retiré. Mesuré en essayant
+  # l'autre : donner écriture ET vision au même modèle désactive toute la
+  # substitution de capacité de `registre.resoudre()` (elle ne se
+  # déclenche que si le modèle résolu ne sait PAS faire) — la vision
+  # cessait de repasser chez Claude quand une clé Anthropic est là, et
+  # l'erreur « aucun modèle capable » ne se levait plus. Deux garanties
+  # perdues d'un coup, pour un modèle plus petit.
+  - id: openai/gpt-oss-120b
     fournisseur: groq
     fait: [ecriture, critique]
-    contexte: 128000
+    contexte: 131000
     prix: { entree_par_million: 0.0, sortie_par_million: 0.0 }
     sorties_structurees: true
 
@@ -84,6 +94,12 @@ modeles:
   # écartée). Si CE modèle disparaît à son tour, `pdz cles` et l'erreur de
   # `charte`/`qa_image` le diront clairement — c'est le même filet qui a
   # permis de repérer le retrait précédent aussi vite.
+  # Reste VOLONTAIREMENT limité à la vision et à l'analyse, même s'il sait
+  # écrire : lui confier aussi l'écriture ferait de lui le modèle résolu
+  # pour l'alias `qualite`, et comme il fait déjà la vision, la
+  # substitution de capacité ne se déclencherait plus jamais (voir le
+  # commentaire de `openai/gpt-oss-120b` ci-dessus). Un modèle qui sait
+  # tout faire supprime le mécanisme même qui sert à choisir le meilleur.
   - id: qwen/qwen3.6-27b
     fournisseur: groq
     fait: [vision, analyse]
@@ -175,9 +191,9 @@ modeles:
 #  `economique` sous profils, plus bas).
 # ═══════════════════════════════════════════════════════════════════════
 alias:
-  qualite:    { principal: llama-3.3-70b-versatile }
-  critique:   { principal: llama-3.3-70b-versatile,    temperature: 0.2 }
-  rapide:     { principal: llama-3.3-70b-versatile }
+  qualite:    { principal: openai/gpt-oss-120b }
+  critique:   { principal: openai/gpt-oss-120b,    temperature: 0.2 }
+  rapide:     { principal: openai/gpt-oss-120b }
   vision:     { principal: qwen/qwen3.6-27b }
   images:     { principal: fal-ai/flux/schnell,        repli: fal-ai/flux/dev }
   animation:  { principal: fal-ai/ltx-video-v097/image-to-video, repli: fal-ai/kling-video/v2.1/standard/image-to-video }
@@ -193,7 +209,7 @@ alias:
 profils:
   economique:
     images: fal-ai/flux/schnell
-    qualite: llama-3.3-70b-versatile     # temporaire, voir la note sur les alias plus haut
+    qualite: openai/gpt-oss-120b     # temporaire, voir la note sur les alias plus haut
     animer: false                       # aucune animation, images fixes animées
   equilibre:
     images: fal-ai/flux/schnell
@@ -209,8 +225,8 @@ profils:
   # un agent envoie des images. Les personnages seront moins constants d'un
   # plan à l'autre qu'avec fal.ai — voir pdz/ia/pollinations.py.
   gratuit:
-    qualite: llama-3.3-70b-versatile
-    critique: llama-3.3-70b-versatile
+    qualite: openai/gpt-oss-120b
+    critique: openai/gpt-oss-120b
     images: pollinations/flux
     animer: false
   # Écrit gratuitement avec Llama via Groq, comme « gratuit » — mais illustre
@@ -220,8 +236,8 @@ profils:
   # ANTHROPIC_API_KEY. Pas d'animation ici non plus — voir « equilibre » ou
   # « premium » une fois prêt à payer aussi l'écriture chez Claude.
   hybride:
-    qualite: llama-3.3-70b-versatile
-    critique: llama-3.3-70b-versatile
+    qualite: openai/gpt-oss-120b
+    critique: openai/gpt-oss-120b
     images: fal-ai/flux/schnell
     animer: false
 
@@ -231,6 +247,6 @@ profils:
 # ═══════════════════════════════════════════════════════════════════════
 regles:
   - si: { budget_restant_pourcent: "<20" }
-    alors: { qualite: llama-3.3-70b-versatile, images: fal-ai/flux/schnell, animer: false }  # temporaire, voir la note sur les alias plus haut
+    alors: { qualite: openai/gpt-oss-120b, images: fal-ai/flux/schnell, animer: false }  # temporaire, voir la note sur les alias plus haut
   - si: { budget_restant_pourcent: "<5" }
     alors: { stop: true }
