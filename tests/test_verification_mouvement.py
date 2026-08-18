@@ -107,3 +107,35 @@ def test_verifier_segment_isole_une_fenetre_dune_video_deja_montee(tmp_path):
 
     assert premier.mouvement_detecte is False
     assert second.mouvement_detecte is True
+
+
+def test_le_mouvement_est_juge_sur_la_fenetre_gardee_par_le_montage(tmp_path):
+    """Le montage ne garde que les `plan.duree_s` premières secondes d'un
+    clip (`trim=duration=`). Un clip immobile sur cette fenêtre mais animé
+    dans la portion COUPÉE ne doit pas passer pour animé : le spectateur ne
+    verra jamais ce mouvement."""
+    statique = tmp_path / "statique.mp4"
+    anime = tmp_path / "anime.mp4"
+    clip = tmp_path / "immobile_puis_anime.mp4"
+    _clip_statique(statique, duree_s=3.0)
+    _clip_anime(anime, duree_s=3.0)
+    subprocess.run([
+        "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+        "-i", str(statique), "-i", str(anime),
+        "-filter_complex",
+        "[0:v]trim=duration=3,setpts=PTS-STARTPTS[v0];"
+        "[1:v]trim=duration=3,setpts=PTS-STARTPTS[v1];"
+        "[v0][v1]concat=n=2:v=1:a=0[v]",
+        "-map", "[v]", str(clip),
+    ], check=True, capture_output=True)
+
+    # Sur le clip ENTIER, le mouvement de la fin masque l'immobilité du début.
+    assert vm.verifier(clip).mouvement_detecte is True
+
+    # Sur la fenêtre réellement montée (3 s), il n'y a aucun mouvement.
+    fenetre = vm.verifier(clip, fenetre_s=3.0)
+    assert fenetre.mouvement_detecte is False
+    assert fenetre.raison == "static_clip"
+    # La durée reste celle du clip complet : c'est elle qui dit s'il est
+    # assez long, une question distincte de celle du mouvement.
+    assert fenetre.duree_s > 5.0

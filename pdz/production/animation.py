@@ -281,7 +281,13 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
                 continue
 
             depense += cout
-            verdict = verification_mouvement.verifier(destination)
+            # Le mouvement est jugé sur la fenêtre que le montage gardera
+            # VRAIMENT (`trim=duration=plan.duree_s`), pas sur le clip
+            # entier — sinon un sursaut de mouvement dans la portion coupée
+            # ferait accepter un plan que le spectateur verra immobile. La
+            # durée, elle, reste mesurée sur le clip complet.
+            verdict = verification_mouvement.verifier(
+                destination, fenetre_s=duree_requise)
             duree_ok = verdict.fichier_valide and verdict.duree_s >= duree_requise - TOLERANCE_DUREE_S
 
             if not duree_ok:

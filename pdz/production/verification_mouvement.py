@@ -83,8 +83,18 @@ def _echantillonner(source: Path, dossier_frames: Path, *,
     subprocess.run(cmd, check=True, timeout=60, capture_output=True)
 
 
-def verifier(chemin: Path) -> VerdictMouvement:
-    """Le verdict de mouvement pour un clip entier."""
+def verifier(chemin: Path, *, fenetre_s: float | None = None) -> VerdictMouvement:
+    """Le verdict de mouvement pour un clip.
+
+    `fenetre_s` restreint la MESURE DU MOUVEMENT aux premières secondes du
+    clip — celles que le montage gardera réellement (`trim=duration=…`,
+    voir `pdz/video/montage.py`). Sans ça, un clip de 4,84 s dont le
+    montage n'utilise que 3 s était jugé sur 4,84 s : du mouvement
+    concentré dans la fin coupée comptait comme un succès alors que le
+    spectateur ne le verrait jamais. La DURÉE rapportée, elle, reste celle
+    du clip ENTIER — c'est elle qui dit si le clip est assez long, une
+    question distincte de celle du mouvement.
+    """
     try:
         meta = sonder(chemin)
     except (ErreurPdz, ErreurConfig) as e:
@@ -94,7 +104,7 @@ def verifier(chemin: Path) -> VerdictMouvement:
     with tempfile.TemporaryDirectory() as tmp:
         dossier = Path(tmp)
         try:
-            _echantillonner(chemin, dossier)
+            _echantillonner(chemin, dossier, duree_s=fenetre_s)
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
             log.warning("Échantillonnage impossible (%s) : %s", chemin.name, e)
             return VerdictMouvement(fichier_valide=False, raison="fichier_invalide")
