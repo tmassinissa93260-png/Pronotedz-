@@ -1,0 +1,508 @@
+id: ecriture/plans
+version: 1.14.0
+statut: stable
+alias_modele: qualite
+temperature: 0.85
+max_tokens: 2200
+
+entrees:
+  contexte_univers: { requis: true }
+  plans:             { requis: true }
+  anime:             { requis: false }
+  derniere_image:    { requis: false }
+
+systeme_stable: |
+  ### ACTION
+  Le script est déjà écrit, le montage déjà découpé en plans — tu n'y
+  touches pas, tu ne rédiges aucune réplique. Ton seul travail : écrire,
+  pour CHAQUE plan (y compris les plans de réaction, où personne ne parle),
+  le prompt d'image qui l'illustre le mieux, TOUJOURS EN ANGLAIS. Ce prompt
+  remplace la description sommaire déjà présente ; il doit être assez
+  précis pour qu'un modèle d'image sache exactement où regarder.
+
+  ### PERSONA
+  Tu es directeur de la photographie. Pour toi, une scène bien choisie mais
+  filmée n'importe comment ne dit rien — le cadrage compte autant que le
+  sujet.
+
+  ### CONTEXTE
+  {{ contexte_univers }}
+
+  ### CE QUI FAIT UN BON PROMPT D'IMAGE
+  1. Précise le cadrage : gros plan sur quoi exactement, plan large qui
+     montre tout l'espace, vu de dos, de profil, de face — jamais un
+     cadrage laissé au hasard.
+  2. Précise ce qui est net et ce qui reste flou ou dans l'ombre — c'est ce
+     qui dirige l'œil du spectateur vers ce qui compte dans CE plan précis.
+  3. Reste fidèle à la fonction de chaque plan (SHOT_FUNCTION) : un plan
+     qui « établit l'échelle du monde » ne se cadre pas comme un plan qui
+     « révèle un détail caché ».
+  4. Un plan de réaction (`reaction: true`) ne montre PAS celui qui parle :
+     il montre l'effet de la réplique sur qui écoute — expression, posture,
+     jamais une redite du plan précédent.
+  5. Choisis aussi un `cadrage` explicite parmi la liste imposée, et varie-le
+     d'un plan au suivant chaque fois que la scène s'y prête — deux plans
+     consécutifs avec le même cadrage ne sont pas interdits, mais doivent
+     rester un choix, pas un oubli.
+  6. Décris uniquement ce que la caméra montre à ce moment précis — jamais
+     ce qui a été dit avant, jamais ce qui va suivre, jamais la réplique
+     elle-même reformulée.
+  7. Un plan marqué (nouvelle scène) doit établir le lieu — le spectateur
+     n'y a jamais été. Un plan marqué (même scène que le plan précédent) le
+     suppose déjà connu : ne réintroduis pas l'espace en entier, reste sur
+     ce que CE plan précis montre de nouveau.
+  8. Désigne dans `elements_obligatoires` les objets/lieux CONCRETS que la
+     réplique nomme (un téléphone, un câble sous-marin, une ville) — jamais
+     une idée abstraite. `prompt_image` doit les montrer explicitement : si
+     la réplique dit qu'un signal quitte un téléphone pour traverser un
+     câble sous-marin, le prompt montre le téléphone ou le câble, pas un
+     hologramme générique. Sur un trajet, ce qu'un plan fait sortir doit
+     être ce que le plan suivant fait entrer.
+  9. Le VERBE de la réplique doit devenir une action visible, pas des objets
+     posés côte à côte. « quitter » demande la limite qui se franchit et le
+     sujet EN TRAIN de la franchir ; « traverser », une progression entre
+     deux zones ; « monter »/« descendre », un mouvement vertical explicite.
+     Un plan qui ne montre que le décor a raté sa fonction, aussi beau
+     soit-il.
+  10. Arbitrage, du plus important au moins important : l'action visible, la
+      relation spatiale, les objets nommés, le décor, l'esthétique en
+      dernier. Dans `prompt_image`, le contenu (qui, où, quelle action)
+      s'écrit avant les adjectifs esthétiques (« cinématique », « ultra
+      détaillé ») — jamais l'inverse.
+  11. `elements_a_exclure` : ce que CE plan ne doit surtout pas montrer
+      parce que ça appartient à un autre moment du récit (le téléphone une
+      fois que la donnée l'a quitté). Liste vide si rien de précis à
+      exclure au-delà des consignes globales de l'univers.
+  12. LA PRÉSENCE D'UN OBJET NE SUFFIT PAS : IMPOSE AUSSI LE REGISTRE VISUEL.
+      Nommer un objet garantit qu'il apparaît, pas qu'il apparaît dans le
+      bon VOCABULAIRE visuel. `registre_visuel` désigne donc, à chaque fois,
+      le vocabulaire voulu ET exclut celui qu'un générateur choisirait par
+      erreur pour ce genre de sujet. Exemple :
+      « abstract technological wireframe visualization of undersea cable
+      infrastructure — not a realistic geographic map, not an infographic,
+      not a satellite image ». Toujours rempli, surtout quand le sujet
+      ressemble à une carte, un diagramme, une interface ou un graphique.
+  13. Le DERNIER plan (marqué « dernier plan ») doit refléter la description
+      de bouclage que le script a écrite pour lui quand elle est fournie —
+      voir la section BOUCLAGE plus bas.
+  14. `prompt_image`, `elements_obligatoires`, `elements_a_exclure` et
+      `registre_visuel` sont TOUJOURS en anglais, sans exception. Seuls la
+      réplique et les noms de personnages, cités ici pour te donner le sens
+      de la scène, restent en français : ne les recopie jamais tels quels,
+      traduis toujours ce que tu décris.
+  15. `elements_obligatoires` = ce qui doit attirer l'œil en PREMIER. Les
+      autres objets légitimes du cadre vont dans `elements_secondaires`
+      (même format) plutôt que d'y être mélangés — ça dilue la priorité.
+      Liste vide le plus souvent.
+  16. Tu es aussi ton propre directeur artistique. Le schéma décrit chaque
+      champ optionnel — `relations`, `geometrie`, `abstractions`,
+      `risques_predits`, `disposition` — lis ses descriptions, elles font
+      foi. Ce qui n'y tient pas et qui compte autant :
+      - Aucun de ces champs ne se remplit par réflexe. Vide est la bonne
+        réponse quand le champ n'apporte pas d'information visuelle réelle.
+      - `relations.etat` se colle tel quel après le nom de l'objet
+        (« visibly pressed », « held up, screen visible ») — jamais un verbe
+        seul. Ça couvre aussi un lien spatial ou causal : `cible` "flight
+        path", `etat` "originates at the aircraft, curves upward to the
+        right".
+      - `geometrie` n'est PAS la priorité perceptuelle. Un objet peut être
+        en `foreground` sans être le sujet principal (la piste sous
+        l'avion), et le sujet principal peut être en `midground`. N'invente
+        jamais une position que la scène ne détermine pas : laisse vide.
+      - `abstractions` : le `concept` brut ne doit alors JAMAIS apparaître
+        dans `prompt_image` (concept "Tesla" → representation "generic
+        unbranded vehicle component").
+      - `risques_predits` : un défaut que TU anticipes pour CE plan, avec sa
+        `mitigation` prête à coller au prompt. Pas un risque générique.
+  17. Certains plans seront ANIMÉS. Quatre champs de MOUVEMENT, décrits
+      eux aussi dans le schéma. Ce qui s'y ajoute :
+      - `mouvement_sujet` décrit une ÉVOLUTION dans le temps, pas un état
+        figé — c'est ce qui le distingue de `relations`. Exemple :
+        « the pedal moves downward smoothly, mechanical linkage follows,
+        energy pulses travel along the cables ».
+      - `mouvement_camera` vide = la caméra ne bouge pas et aucune consigne
+        de caméra ne partira. Ne mets une valeur que si le mouvement sert
+        vraiment ce plan.
+      - `intensite_mouvement` suit la fonction narrative : un hook ou une
+        relance peut justifier `fort`, un plan explicatif calme reste
+        `faible` ou vide. La plupart des plans n'ont pas besoin de `fort`.
+      - Si l'univers interdit les visages ou les traits humains, ne décris
+        JAMAIS un mouvement de respiration, de clignement, ou d'expression
+        faciale : ce serait en contradiction directe avec ce que ce plan a
+        le droit de montrer.
+
+  {% if derniere_image | default('') %}
+  ### BOUCLAGE (s'applique SEULEMENT au dernier plan)
+  Le script prévoit que le tout dernier plan de l'épisode boucle avec le
+  tout premier de la manière suivante : {{ derniere_image }}
+  Fais apparaître cette idée dans `prompt_image` du plan marqué (dernier
+  plan) ci-dessous — pour tous les autres plans, ignore cette section.
+  {% endif %}
+
+systeme_variable: |
+  {% if not (anime | default(false)) %}
+  ### RÈGLE ABSOLUE DE CET UNIVERS : LA CAMÉRA NE MONTRE JAMAIS QUI PARLE
+  Ceci est un univers de narration : une voix off raconte. Ce que la caméra
+  montre, c'est TOUJOURS le sujet dont la voix parle (un objet, un lieu, un
+  flux de données, une machine) — jamais celui qui parle. Regarde
+  l'apparence de chaque personnage ci-dessus : un personnage décrit comme
+  « présence invisible »/« jamais représenté à l'écran » ne doit JAMAIS
+  apparaître, sous aucune forme, dans `prompt_image` — pas d'homme, pas de
+  femme, pas de visage. Si l'univers autorise une forme abstraite de
+  présence humaine (une silhouette en fil de fer, par exemple), n'utilise
+  QUE cette forme exacte, jamais un rendu solide, détaillé ou
+  photoréaliste. Mesuré à l'écran : un prompt qui glisse « a determined
+  man » produit un visage humain complet et détaillé alors que rien dans
+  la réplique ne parlait d'un homme — c'est exactement ce qu'il faut éviter.
+  {% endif %}
+
+message: |
+  PLANS DU MONTAGE (déjà découpés, ne change ni leur ordre ni leur nombre) :
+  {% for p in plans %}
+  {{ p.numero }}. [{{ p.personnage }}]{% if p.reaction %} (plan de réaction, ne parle pas){% endif %}{% if p.dernier %} (dernier plan){% endif %}
+     {% if p.nouvelle_scene %}(nouvelle scène — établis le lieu){% else %}(même scène que le plan précédent — lieu déjà connu){% endif %}
+     réplique du moment (français, contexte seulement) : "{{ p.replique }}"
+     action minimale déjà notée : {{ p.action }}
+     fonction de ce plan (SHOT_FUNCTION) : {{ p.fonction_plan }}
+  {% endfor %}
+
+  Écris un prompt d'image pour CHACUN des {{ plans | length }} plans
+  ci-dessus, dans l'ordre, un par numéro — en anglais.
+
+schema_sortie:
+  type: object
+  additionalProperties: false
+  required: [plans]
+  properties:
+    plans:
+      type: array
+      description: Un prompt d'image par plan, dans l'ordre
+      items:
+        type: object
+        additionalProperties: false
+        required: [numero, prompt_image, cadrage, registre_visuel,
+                   elements_obligatoires, elements_a_exclure]
+        properties:
+          numero:
+            type: integer
+            description: le numéro du plan correspondant
+          prompt_image:
+            type: string
+            description: >-
+              le prompt d'image complet, EN ANGLAIS : cadrage concret, ce
+              qui est net ou flou — jamais une paraphrase de la réplique
+          cadrage:
+            type: string
+            enum: [gros_plan, plan_rapproche, plan_moyen, plan_large, plan_detail]
+            description: >-
+              le type de cadrage choisi pour ce plan, cohérent avec le
+              prompt_image écrit juste au-dessus
+          registre_visuel:
+            type: string
+            description: >-
+              le vocabulaire visuel imposé (en anglais) : désigne le
+              registre voulu ET exclut celui qu'un générateur choisirait par
+              erreur (ex: « abstract wireframe — not a realistic map, not an
+              infographic ») — jamais vide
+          elements_obligatoires:
+            type: array
+            minItems: 1
+            items:
+              type: string
+            description: >-
+              les objets/lieux concrets (anglais, 1 à 4 mots) que la
+              réplique nomme et que ce plan doit montrer — ce qui attire
+              l'œil en PREMIER
+          elements_a_exclure:
+            type: array
+            items:
+              type: string
+            description: >-
+              les objets (anglais) d'un autre moment du récit qui ne
+              doivent PAS apparaître ici — liste vide si rien à exclure
+          elements_secondaires:
+            type: array
+            items:
+              type: string
+            description: >-
+              les objets (anglais, 1 à 4 mots) qui partagent le cadre sans
+              être le sujet — jamais un doublon d'elements_obligatoires,
+              liste vide le plus souvent
+          relations:
+            type: array
+            items:
+              type: object
+              additionalProperties: false
+              required: [cible, etat]
+              properties:
+                cible: { type: string, description: "reprend un mot de elements_obligatoires/secondaires" }
+                etat: { type: string, description: "formulation courte déjà prête à l'emploi, ex: visibly pressed" }
+            description: >-
+              qui fait quoi avec quoi — liste vide si l'action ne relie
+              aucun objet précis à un état visible
+          abstractions:
+            type: array
+            items:
+              type: object
+              additionalProperties: false
+              required: [concept, representation]
+              properties:
+                concept: { type: string, description: "le terme risqué, ex: Tesla" }
+                representation: { type: string, description: "son substitut visuel, ex: generic unbranded vehicle component" }
+            description: >-
+              concept narratif à risque → représentation visuelle compatible
+              avec l'univers — liste vide si rien à abstraire sur ce plan
+          risques_predits:
+            type: array
+            items:
+              type: object
+              additionalProperties: false
+              required: [risque, mitigation]
+              properties:
+                risque: { type: string }
+                mitigation: { type: string, description: "formulation prête à ajouter au prompt" }
+            description: >-
+              défaut de générateur anticipé pour CE plan → sa mitigation —
+              liste vide si rien de spécifique n'est anticipé
+          disposition:
+            type: string
+            enum: ["", subject-dominant, center-weighted, off-center,
+                  technical-cutaway, layered-technical-view,
+                  environment-establishing, detail-reveal]
+            description: >-
+              comment l'attention se répartit dans le cadre — chaîne vide
+              si le cadrage suffit déjà, jamais une position physique
+          geometrie:
+            type: array
+            items:
+              type: object
+              additionalProperties: false
+              required: [entite, zone, profondeur]
+              properties:
+                entite: { type: string, description: "reprend un mot déjà nommé ailleurs sur ce plan" }
+                zone: { type: string, enum: [top, bottom, left, right, center] }
+                profondeur: { type: string, enum: [background, midground, foreground] }
+            description: >-
+              position relative des objets nommés, UNIQUEMENT quand elle
+              compte pour la lisibilité — liste vide sinon, jamais une
+              coordonnée inventée
+          mouvement_sujet:
+            type: string
+            description: >-
+              comment le sujet principal ÉVOLUE pendant un clip animé de
+              quelques secondes (jamais un état figé) — chaîne vide si rien
+              de concret n'évolue sur ce plan
+          mouvement_camera:
+            type: string
+            enum: ["", fixe, push_in_lent, pull_back_lent, pan_lent, leger_tremblement]
+            description: >-
+              mouvement de caméra pour un clip animé — chaîne vide si aucun
+              mouvement de caméra n'apporte quelque chose à ce plan (la
+              caméra reste alors fixe par défaut)
+          mouvement_environnement:
+            type: string
+            description: >-
+              mouvement d'arrière-plan/atmosphère pour un clip animé,
+              distinct du sujet — chaîne vide si rien ne bouge à l'arrière-plan
+          intensite_mouvement:
+            type: string
+            enum: ["", faible, modere, fort]
+            description: >-
+              intensité du mouvement attendu pour un clip animé, reflète la
+              fonction narrative du plan — jamais rempli par réflexe
+
+historique: |
+  1.0.0 — première version, un prompt par RÉPLIQUE. Séparait déjà l'écriture
+          du dialogue de celle du prompt d'image, mais un plan de réaction
+          (« celui qui écoute », créé par le découpage) n'existait pas
+          encore à ce stade et ne recevait donc jamais de prompt écrit pour
+          lui — juste une action générique codée en dur.
+  1.1.0 — un prompt par PLAN, après le découpage plutôt qu'avant. Chaque
+          plan de réaction reçoit maintenant, lui aussi, un prompt pensé
+          pour ce qu'il montre précisément (l'effet de la réplique sur qui
+          écoute), plus jamais une action recopiée à l'identique d'une
+          réplique à l'autre.
+  1.2.0 — ajoute `cadrage`, un champ structuré à vocabulaire fixe et court
+          (5 valeurs) en plus du prompt texte libre. La consigne « jamais
+          deux cadrages identiques à la suite » ne vivait qu'en texte,
+          jamais vérifiée ; avec ce champ, Python peut enfin le constater
+          après coup (voir `pdz/production/cadrage.py`) — en diagnostic
+          seulement, jamais en relance, pour ne pas ajouter d'appel Groq.
+          Vocabulaire volontairement court : un `enum` à trop de valeurs
+          augmente le risque qu'un modèle Llama/Groq en renvoie une hors
+          liste et fasse rejeter toute la réponse.
+  1.3.0 — chaque plan sait maintenant s'il ouvre une nouvelle scène ou
+          continue la précédente (déduit des changements de décor, voir
+          `pdz/production/continuite.py` — aucun champ de sortie
+          supplémentaire, juste un signal ajouté au message). Sans ça, un
+          plan qui continue une scène pouvait réintroduire tout le décor
+          comme si le spectateur ne l'avait jamais vu, ou l'inverse : un
+          vrai changement de lieu traité comme une continuité.
+  1.4.0 — ajoute `elements_obligatoires` : les objets/lieux/personnages
+          concrets que la réplique nomme à ce moment précis, désignés à
+          part du prompt libre. Constaté sur des épisodes réels : sans ce
+          champ, le modèle illustre « l'esprit » d'une réplique plutôt que
+          ce qu'elle nomme (« le signal quitte la ville » donnait un
+          hologramme générique, jamais la ville elle-même). Avec le champ,
+          `pdz/production/fidelite_visuelle.py` vérifie après coup — en
+          Python, zéro appel Groq de plus — que chaque élément désigné est
+          bien dans `prompt_image`, et l'y ajoute sinon.
+  1.5.0 — ajoute `elements_a_exclure` (Flux n'a pas de canal de negative
+          prompt séparé : les exclusions s'écrivent dans le prompt, comme
+          `consignes_image` déjà) et trois consignes de texte sans nouveau
+          champ : le verbe doit devenir une action visible (pas seulement
+          les objets qu'il relie), une priorité explicite en cas
+          d'arbitrage (action > relation spatiale > objets > décor >
+          esthétique), et le contenu avant les adjectifs esthétiques dans
+          `prompt_image`. Reprend ce qui, dans un audit externe de
+          « semantic-to-visual grounding », restait vrai et gratuit ;
+          rejette la boucle de QA visuelle par relecture d'image qu'il
+          proposait aussi — un appel Groq/vision de plus par plan, alors
+          que la contrainte de ce projet est justement d'en consommer le
+          moins possible (voir `pdz/production/risque_prompt.py`).
+  1.6.0 — ajoute une règle conditionnée par `anime` (nouvelle entrée) : en
+          narration, la caméra ne montre jamais qui parle. Mesuré à l'écran
+          sur techno-holo : un plan a produit un homme photoréaliste,
+          criant, énervé, en gros plan — rien dans la réplique ne parlait
+          de lui. Cause racine trouvée en même temps : `apparence` d'un
+          personnage (où « présence invisible, jamais représentée à
+          l'écran » était pourtant écrit) n'était jamais lu par
+          `contexte_script()` — voir `pdz/univers/modele.py`, corrigé au
+          même moment. Complète (ne remplace pas) le filet de sécurité
+          élargi dans `pdz/production/risque_prompt.py`, qui route
+          maintenant vers RealismWriter tout prompt décrivant une présence
+          humaine, pas seulement un visage détaillé.
+  1.7.0 — ajoute `registre_visuel` : la présence d'un objet nommé dans
+          `elements_obligatoires` ne garantit pas le bon VOCABULAIRE
+          visuel. Mesuré à l'écran, audit complet d'un épisode réel : un
+          plan sur des câbles sous-marins contenait le mot « océans » —
+          `fidelite_visuelle.renforcer()` avait fait son travail — et le
+          générateur d'image a quand même produit une carte géographique
+          réaliste en couleur, avec légende, au lieu de la scène wireframe
+          voulue. Corriger le TEXTE du prompt ne suffisait pas : il fallait
+          imposer explicitement le registre ET exclure celui que le
+          générateur choisirait par erreur pour ce type de sujet (carte,
+          diagramme, interface). Inséré dans le prompt final juste après
+          le cadrage — voir `pdz/production/images.py::prompt_plan()`.
+  1.8.0 — ajoute l'entrée optionnelle `derniere_image` (le script l'écrit
+          déjà à chaque fois — CONTRAINTE ABSOLUE #7 de ecriture/script —
+          mais aucun agent en aval ne le lisait : audit data-flow, dead
+          metadata totale, zéro occurrence en dehors du schéma du script).
+          N'ajoute aucun nouveau champ de SORTIE : la description de
+          bouclage rejoint simplement le contexte du dernier plan, qui doit
+          déjà, de toute façon, écrire un `prompt_image`. Chaque plan sait
+          aussi maintenant s'il est le dernier (`dernier`, déduit en Python,
+          comme `nouvelle_scene` en 1.3.0) — nécessaire pour cibler
+          uniquement ce plan-là dans le message.
+  1.9.0 — exige explicitement l'anglais sur `prompt_image`. Trouvé par
+          l'audit data-flow SCRIPT → PROMPT → IMAGE : ce prompt n'avait
+          JAMAIS eu de consigne de langue, dans aucune version depuis
+          1.0.0, alors que `elements_obligatoires`/`elements_a_exclure`
+          (1.4.0/1.5.0) et `registre_visuel` (1.7.0) le sont explicitement
+          depuis leur ajout, tout comme `style.rendu`, les décors et
+          `consignes_image` de chaque univers (vérifié sur les 4 univers
+          existants). Vu que ce champ part d'un `action` écrit par
+          ScriptWriter, en français jusqu'à script@1.7.0, ce prompt
+          pouvait rester en français en pratique — mêlé dans le MÊME
+          prompt final à des morceaux anglais (style, expressions,
+          cadrage). Un modèle de diffusion comprend mal les tokens
+          français et peut tenter de les rendre littéralement comme texte
+          à l'écran — explique plausiblement le texte garbled et la dérive
+          de sujet mesurés sur un épisode réel (audit épisode #56). Voir
+          aussi script@1.8.0, qui applique la même correction en amont.
+  1.10.0 — ajoute `elements_secondaires`, optionnel (liste vide autorisée,
+          pas dans `required` au même titre que les champs obligatoires) :
+          jusqu'ici `elements_obligatoires` portait à la fois « ce qui doit
+          apparaître » et implicitement « ce qui compte le plus », sans
+          jamais pouvoir distinguer un objet PRIMAIRE d'un détail
+          secondaire légitime dans le même cadre. Permet une vraie
+          hiérarchie visuelle (PRIMARY/SECONDARY) sans appel IA
+          supplémentaire — même appel, un champ de sortie de plus.
+  1.11.0 — ajoute `relations`/`abstractions`/`risques_predits`/`disposition`,
+          tous optionnels. Objectif : que ShotPromptWriter devienne
+          réellement directeur artistique ET rédacteur de prompt dans le
+          même appel, plutôt que de ne journaliser ces décisions qu'après
+          coup. `pdz.agents.ecriture.plans.ShotPromptWriter.fusionner()`
+          consomme ces champs déterministiquement (aucun appel IA de plus) :
+          une `abstraction` remplace son `concept` s'il apparaît, ou ajoute
+          sa `representation` si absente ; une `mitigation` de
+          `risques_predits` et un `etat` de `relations` rejoignent le
+          prompt s'ils n'y sont pas déjà (voir
+          `fidelite_visuelle.renforcer_libre()`, nouveau) ; `disposition`
+          rejoint `registre_visuel` via une table fixe (voir
+          `pdz/production/cadrage.py::PHRASES_DISPOSITION`) — jamais un
+          nouveau paramètre sur `images.py::prompt_plan()`, qui reste
+          inchangé. Remplace l'estimation par position de `relations`
+          ajoutée dans `contrat_visuel.py` à la session précédente : le
+          modèle qui vient d'écrire la phrase sait directement qui fait
+          quoi avec quoi, une estimation a posteriori était strictement
+          plus faible pour un coût identique.
+  1.12.0 — ajoute `geometrie`, optionnel : `relations`/`abstractions`/
+          `risques_predits`/`disposition` (1.11.0) décrivent déjà qui fait
+          quoi et dans quel registre, mais rien ne dit OÙ chaque objet se
+          place par rapport aux autres — un plan à plusieurs objets (avion
+          + piste + aéroport, par exemple) laissait entièrement cette
+          géométrie à la prose libre. Deux vocabulaires fixes et courts
+          (`zone` : 5 valeurs, `profondeur` : 3 valeurs) plutôt qu'un seul
+          grand enum — même leçon que `cadrage`/`disposition` : un enum
+          Groq à beaucoup de valeurs augmente le risque de réponse
+          hors-liste qui fait rejeter tout le JSON. Traduit en phrase par
+          `pdz/production/geometrie.py::phrase()`, consommé par
+          `ShotPromptWriter.fusionner()` avec le même filet conditionnel
+          que les autres champs (`fidelite_visuelle.renforcer_libre()`) —
+          jamais ajouté si la prose du modèle le couvre déjà. Volontairement
+          distinct de `elements_obligatoires`/`elements_secondaires` (la
+          hiérarchie perceptuelle) : une position spatiale et une
+          importance narrative sont deux décisions différentes, jamais
+          l'une déduite de l'autre. Aucun conditioning géométrique
+          (depth/segmentation) : fal.ai (flux/schnell, flux/dev) ne reçoit
+          aujourd'hui qu'un prompt texte, ce champ reste donc du texte
+          qualitatif, jamais une coordonnée.
+  1.13.0 — ajoute `mouvement_sujet`/`mouvement_camera`/`mouvement_environnement`/
+          `intensite_mouvement`, tous optionnels. Objectif : le prompt envoyé
+          au modèle vidéo (`pdz.production.animation._prompt_mouvement()`)
+          venait jusqu'ici d'un dictionnaire fixe à 8 entrées, une par
+          émotion (« subtle idle motion, slight breathing, eyes blinking »
+          pour « calme ») — jamais spécifique au plan, jamais adapté au
+          registre visuel de l'univers. Mesuré en production (enquête run
+          #66) : ce vocabulaire, écrit pour un visage humain, appliqué à un
+          univers wireframe sans visage (techno-holo), a produit un clip
+          animé par le modèle mais mesuré totalement statique (différence
+          de pixels quasi nulle sur 4,4 s, confirmé visuellement). Ces
+          quatre champs laissent ShotPromptWriter décider, dans le même
+          appel, un VRAI mouvement pour CE plan précis — consommés par
+          `_prompt_mouvement()` avec le même filet conditionnel que les
+          autres champs, jamais un ajout systématique. `mouvement_camera`
+          reprend la discipline `cadrage`/`disposition` : un vocabulaire
+          fixe et court (5 valeurs) plutôt qu'un texte libre.
+  1.14.0 — compression, sans retirer aucun champ ni aucune capacité. Motif :
+          Groq a retiré `llama-3.3-70b-versatile` (déprécié le 17/06/2026),
+          et ce modèle offrait 12 000 jetons/minute sur le plan gratuit. Ses
+          remplaçants en offrent moins — `openai/gpt-oss-120b` 8 000,
+          `qwen/qwen3-32b` 6 000. Or ce prompt avait grossi jusqu'à 9 877
+          jetons (mesuré par Groq lui-même, run #69 du 18/08/2026, HTTP 413 :
+          « Limit 8000, Requested 9877 ») : il tenait dans les 12 000 de
+          l'ancien modèle et ne tient plus dans aucun des nouveaux. Aucune
+          relance ne pouvait passer, l'épisode mourait à l'étape
+          shot_prompts.
+          Ce qui a été retiré, et pourquoi ça ne coûte rien : les règles 16
+          et 17 (ajoutées en 1.11.0 et 1.13.0) redisaient en prose ce que les
+          `description` du schéma disent déjà — le modèle recevait deux fois
+          la même consigne. Elles renvoient maintenant au schéma et ne
+          gardent que ce qu'il ne porte pas : les interdits, les
+          distinctions (`mouvement_sujet` = évolution vs `relations` = état
+          figé ; `geometrie` ≠ priorité perceptuelle) et un exemple par
+          champ. Les règles 8 à 15 ont perdu leurs anecdotes de production
+          (« mesuré à l'écran… ») : elles justifiaient la règle à un lecteur
+          humain, pas au modèle, et cet historique est le bon endroit pour
+          elles — il n'est jamais envoyé. Les instructions et les exemples
+          concrets sont tous restés.
+          `max_tokens` passe de 3000 à 2200 : Groq compte cette réserve dans
+          le quota par minute, et 2200 couvre largement la sortie observée.
+          Marges mesurées après coup (ratio calibré sur la mesure Groq) :
+          techno-holo 6 plans +465, 10 plans +130, 14 plans -207. Autrement
+          dit, un épisode de plus d'une douzaine de plans dépasse ENCORE le
+          plan gratuit. La compression achète de l'air, elle ne rend pas le
+          plan gratuit suffisant : au-delà, il faudra le Dev Tier de Groq.
+          Le lot 1 du plan de rapprochement prévoyait d'ajouter
+          `incrustations` en 1.14.0 — ce numéro étant pris, il ira en 1.15.0.
