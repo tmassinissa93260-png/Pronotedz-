@@ -67,8 +67,8 @@ from pdz.config import config
 from pdz.moteur.erreurs import ErreurConfig, ErreurPdz, ErreurValidation
 from pdz.moteur.pipeline import Contexte, executer_avec_relance
 from pdz.production import (
-    animation, coherence_duree, continuite, images, qa_images, risque_prompt,
-    storyboard, voix,
+    animation, coherence_duree, continuite, images, qa_images, qa_video_finale,
+    risque_prompt, storyboard, voix,
 )
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Univers
@@ -89,6 +89,14 @@ class Episode:
     plans: list[PlanScript] = field(default_factory=list)
     etapes_reprises: list[str] = field(default_factory=list)
     plans_animes: int = 0
+    # Combien de plans ont un mouvement RÉELLEMENT confirmé dans la vidéo
+    # FINALE déjà montée (voir `pdz.production.qa_video_finale`) — distinct
+    # de `plans_animes`, qui compte les requêtes techniquement acceptées
+    # (modèle payant OU parallaxe locale). Enquête run #66 : ces deux
+    # nombres peuvent diverger, un clip peut être accepté et rester
+    # visuellement statique. `-1` : QA finale non exécutée (job repris d'un
+    # cache antérieur à cette vérification).
+    plans_avec_mouvement_confirme: int = -1
 
     def resume(self) -> str:
         repris = (f" · {len(self.etapes_reprises)} étape(s) reprises sans repayer"
@@ -98,8 +106,13 @@ class Episode:
         # identifiant de modèle périmé.
         anim = (f" · {self.plans_animes} plan(s) animé(s)" if self.plans_animes
                 else " · aucune animation (images fixes)")
+        # « combien ont réussi » n'est pas « combien bougent vraiment » —
+        # voir la docstring du champ.
+        mouvement = (f" · {self.plans_avec_mouvement_confirme}/{len(self.plans)} "
+                    f"avec mouvement confirmé" if self.plans_avec_mouvement_confirme >= 0
+                    else "")
         return (f"« {self.titre} » · {self.duree_s:.1f} s · "
-                f"{len(self.plans)} plans{anim} · {self.cout:.3f} €{repris}\n"
+                f"{len(self.plans)} plans{anim}{mouvement} · {self.cout:.3f} €{repris}\n"
                 f"   {self.video}")
 
 
@@ -565,6 +578,20 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
             f"relance avec `pdz reprendre {job_id}`."
         )
 
+    # QA finale : combien de plans ont un mouvement RÉELLEMENT confirmé
+    # dans le fichier qui part au spectateur — pas combien de requêtes
+    # d'animation ont réussi (voir `Episode.plans_avec_mouvement_confirme`).
+    # Déterministe, zéro appel IA, ne bloque jamais la livraison — un souci
+    # ici ne doit pas faire échouer un épisode par ailleurs valide.
+    plans_avec_mouvement_confirme = -1
+    try:
+        verdicts = qa_video_finale.verifier(sortie, plans)
+        plans_avec_mouvement_confirme = sum(1 for v in verdicts if v["mouvement_confirme"])
+        log.info("QA finale : %d/%d plan(s) avec mouvement confirmé dans la vidéo montée",
+                 plans_avec_mouvement_confirme, len(plans))
+    except ErreurPdz as e:
+        log.warning("QA finale du mouvement impossible (%s) : %s", e.categorie, e)
+
     with db.connexion() as conn:
         conn.execute("UPDATE jobs SET statut = 'termine', maj_le = ? WHERE id = ?",
                      (db.maintenant(), job_id))
@@ -574,6 +601,7 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
         duree_s=sum(p.duree_s for p in plans), cout=cout_total,
         script=script, plans=plans, etapes_reprises=repris,
         plans_animes=sum(1 for a in animes if a.anime),
+        plans_avec_mouvement_confirme=plans_avec_mouvement_confirme,
     )
 
 

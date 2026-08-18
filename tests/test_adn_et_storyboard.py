@@ -439,3 +439,34 @@ def test_un_plan_deja_signale_needs_review_est_penalise():
     classement = animation.noter(plans)
     rangs = {c.index: i for i, c in enumerate(classement)}
     assert rangs[2] < rangs[1]
+
+
+def test_un_plan_hors_de_portee_du_modele_est_penalise():
+    """Enquête run #66 : un plan plus long que ce que le modèle rend
+    réellement (`DUREE_REELLE_MAX_S`) était noté COMME un atout (`duree >=
+    3.0`), alors que c'est précisément ce qui le fait échouer au contrôle
+    de durée post-génération — le plan le mieux noté de l'épisode n'avait
+    reçu aucune vraie animation. Un plan dans la capacité du modèle doit
+    désormais toujours passer devant un plan hors de portée, à égalité
+    d'ailleurs."""
+    plans = [
+        {"emotion": "calme", "duree_s": 2.0},                          # 0 : accroche
+        {"emotion": "surprise", "duree_s": 4.0},                       # dans la capacité
+        {"emotion": "surprise", "duree_s": animation.DUREE_REELLE_MAX_S + 1.5},  # hors de portée
+    ]
+    classement = animation.noter(plans)
+    rangs = {c.index: i for i, c in enumerate(classement)}
+    assert rangs[1] < rangs[2]
+
+
+def test_une_intensite_de_mouvement_forte_est_recompensee():
+    """Relie enfin la sélection à une vraie décision de mouvement
+    (`intensite_mouvement`, ShotPromptWriter) plutôt qu'à une intuition."""
+    plans = [
+        {"emotion": "calme", "duree_s": 2.0},                                    # 0 : accroche
+        {"emotion": "calme", "duree_s": 2.0},
+        {"emotion": "calme", "duree_s": 2.0, "intensite_mouvement": "fort"},
+    ]
+    classement = animation.noter(plans)
+    rangs = {c.index: i for i, c in enumerate(classement)}
+    assert rangs[2] < rangs[1]

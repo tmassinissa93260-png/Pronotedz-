@@ -7,9 +7,15 @@ déclencher sur un mot isolé anodin.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from pdz.production import risque_prompt
+from pdz.univers import Univers
+
+TECHNO_HOLO = Path("univers/techno-holo.yaml")
+FRUITS = Path("univers/fruit-island.yaml")
 
 
 def test_un_prompt_neutre_ne_declenche_rien():
@@ -232,3 +238,31 @@ def test_mots_hors_vocabulaire_scanne_aussi_les_elements_obligatoires():
         "a wide shot of a car", ["Tesla logo"], vocabulaire,
     )
     assert "Tesla" in trouves
+
+
+# ── purger_mouvement_interdit() : le prompt d'ANIMATION, pas d'image ─────
+
+def test_purger_mouvement_interdit_ajoute_une_contrainte_si_lunivers_linterdit():
+    techno = Univers.charger(TECHNO_HOLO)
+    prompt = risque_prompt.purger_mouvement_interdit(
+        "subtle idle motion, slight breathing, eyes blinking", techno,
+    )
+    assert "no visible human face" in prompt
+    assert "no breathing motion" in prompt
+    assert "no blinking eyes" in prompt
+
+
+def test_purger_mouvement_interdit_ne_change_rien_si_lunivers_autorise():
+    fruits = Univers.charger(FRUITS)
+    prompt = risque_prompt.purger_mouvement_interdit(
+        "subtle idle motion, slight breathing, eyes blinking", fruits,
+    )
+    assert prompt == "subtle idle motion, slight breathing, eyes blinking"
+
+
+def test_purger_mouvement_interdit_ne_touche_pas_un_prompt_sans_motif():
+    techno = Univers.charger(TECHNO_HOLO)
+    prompt = risque_prompt.purger_mouvement_interdit(
+        "the pedal moves downward smoothly, mechanical linkage follows", techno,
+    )
+    assert prompt == "the pedal moves downward smoothly, mechanical linkage follows"

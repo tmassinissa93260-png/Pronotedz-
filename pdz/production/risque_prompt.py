@@ -19,6 +19,12 @@ Groq de cette nuit (4 appels IA par épisode rien que pour l'écriture).
 from __future__ import annotations
 
 import re
+from typing import TYPE_CHECKING
+
+from pdz.production import fidelite_visuelle
+
+if TYPE_CHECKING:
+    from pdz.univers import Univers
 
 # Chaque motif capte une FAÇON de décrire une scène qui implique un détail
 # qu'un modèle d'image ne sait pas bien rendre — jamais un mot isolé qui
@@ -79,6 +85,20 @@ MOTIFS_VISAGE = [
     r"\btouche(nt)?\b", r"\bappuie(nt)?\b", r"\btapote(nt)?\b",
 ]
 
+# Même esprit que MOTIFS_VISAGE, appliqué au prompt d'ANIMATION plutôt qu'au
+# prompt d'image : un mouvement de respiration/clignement/expression implique
+# un visage humain aussi sûrement qu'un mot comme « face » ou « portrait ».
+# Mesuré (enquête run #66) : le vocabulaire d'animation par défaut
+# (« subtle idle motion, slight breathing, eyes blinking ») était envoyé sans
+# condition à un univers wireframe qui interdit explicitement les visages —
+# une contradiction directe entre le prompt et les règles de l'univers.
+MOTIFS_MOUVEMENT_HUMAIN = [
+    r"\bbreath(e|es|ing)?\b", r"\bblink(s|ing)?\b", r"\beyes?\b",
+    r"\bsmiles?\b", r"\blaughs?\b", r"\bshouts?\b", r"\bshrugs?\b",
+    r"\bfacial expression\b", r"\brespir[ea]\b", r"\bcligne(nt)?\b",
+    r"\byeux\b", r"\bsourit\b", r"\brit\b",
+]
+
 
 def raisons_de_correction(prompt: str, *, visage_interdit: bool,
                           marque_interdite: bool = False,
@@ -117,6 +137,25 @@ def visage_est_interdit(consignes_image: list[str]) -> bool:
         "face" in c.lower() or "visage" in c.lower() or "portrait" in c.lower()
         for c in consignes_image
     )
+
+
+def purger_mouvement_interdit(prompt: str, univers: Univers) -> str:
+    """Retire toute promesse de mouvement facial/humain quand l'univers
+    l'interdit — même détection que `MOTIFS_VISAGE`, appliquée au prompt
+    d'ANIMATION plutôt qu'au prompt d'image.
+
+    Ne supprime jamais le texte en place (risque de casser la grammaire du
+    prompt) : ajoute une contrainte négative qui prime, même principe que
+    `qa_images.corriger_prompt()`. Univers qui autorise les visages → prompt
+    inchangé, aucun coût de plus.
+    """
+    if not visage_est_interdit(univers.style.consignes_image):
+        return prompt
+    p = prompt.lower()
+    if any(re.search(m, p) for m in MOTIFS_VISAGE + MOTIFS_MOUVEMENT_HUMAIN):
+        return fidelite_visuelle.exclure(
+            prompt, ["visible human face", "breathing motion", "blinking eyes"])
+    return prompt
 
 
 def marque_est_interdite(interdits: list[str]) -> bool:

@@ -211,6 +211,11 @@ class ShotPromptWriter(Agent):
                     else phrase_disposition
                 )
 
+            # mouvement_* : décisions pour un clip ANIMÉ, jamais consommées
+            # ici — `action`/`prompt` restent le prompt d'IMAGE, intouché
+            # par ces champs. Simple passthrough, lu directement par
+            # `pdz.production.animation._prompt_mouvement()` plus tard dans
+            # le pipeline (voir plans@1.13.0).
             fusionnes.append(replace(
                 p, action=prompt, cadrage=ecrit.get("cadrage", p.cadrage),
                 registre_visuel=registre_visuel,
@@ -222,6 +227,10 @@ class ShotPromptWriter(Agent):
                 risques_predits=risques_predits,
                 disposition=disposition,
                 geometrie=geo,
+                mouvement_sujet=ecrit.get("mouvement_sujet", ""),
+                mouvement_camera=ecrit.get("mouvement_camera", ""),
+                mouvement_environnement=ecrit.get("mouvement_environnement", ""),
+                intensite_mouvement=ecrit.get("intensite_mouvement", ""),
                 corrections_fidelite=manquants,
             ))
         if renforces:

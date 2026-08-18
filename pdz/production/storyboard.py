@@ -165,6 +165,24 @@ class PlanScript:
     # quand plusieurs objets ont une position relative qui compte
     # vraiment — voir `pdz.production.geometrie.phrase()`.
     geometrie: list[dict] = field(default_factory=list)
+    # Comment le SUJET PRINCIPAL évolue pendant un clip animé de quelques
+    # secondes — jamais un état figé (ça, c'est `relations`), une VRAIE
+    # évolution dans le temps, en prose prête à l'emploi. Vide si le sujet
+    # n'a rien de concret à faire évoluer sur ce plan. Voir
+    # `pdz.production.animation._prompt_mouvement()`.
+    mouvement_sujet: str = ""
+    # Vocabulaire fixe et court, comme `cadrage`/`disposition` — jamais un
+    # texte libre. Voir `pdz.production.animation._PHRASES_CAMERA`.
+    mouvement_camera: str = ""
+    # Mouvement d'arrière-plan/atmosphère pour un clip animé, distinct du
+    # sujet — particules, brume, pulsations lumineuses, prose prête à
+    # l'emploi. Vide si rien ne bouge à l'arrière-plan.
+    mouvement_environnement: str = ""
+    # `""`/`faible`/`modere`/`fort` — reflète la fonction narrative du plan
+    # (un hook peut justifier `fort`), jamais rempli par réflexe. Alimente
+    # aussi `animation.noter()` : un mouvement fort décidé pour ce plan
+    # pèse dans le choix des plans à animer.
+    intensite_mouvement: str = ""
     # Les éléments de `elements_obligatoires` que ShotPromptWriter avait
     # d'abord OUBLIÉS dans son propre prompt, et que `fidelite_visuelle.
     # renforcer()` a dû rajouter après coup. Vide dans le cas normal (le
@@ -206,6 +224,10 @@ class PlanScript:
             "risques_predits": self.risques_predits,
             "disposition": self.disposition,
             "geometrie": self.geometrie,
+            "mouvement_sujet": self.mouvement_sujet,
+            "mouvement_camera": self.mouvement_camera,
+            "mouvement_environnement": self.mouvement_environnement,
+            "intensite_mouvement": self.intensite_mouvement,
             "corrections_fidelite": self.corrections_fidelite,
             "relance": self.relance,
             "besoin_revue": self.besoin_revue,

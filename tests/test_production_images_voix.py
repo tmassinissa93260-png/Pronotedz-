@@ -748,15 +748,17 @@ def test_un_clip_plus_court_que_prevu_retombe_sur_une_image_fixe(monkeypatch, tm
     )
 
 
-def test_un_clip_assez_long_est_garde(monkeypatch, tmp_path):
-    """Non-régression : un clip qui couvre bien la durée demandée doit
-    toujours être accepté normalement."""
+def test_un_clip_assez_long_avec_mouvement_est_garde(monkeypatch, tmp_path):
+    """Non-régression : un clip qui couvre bien la durée demandée ET
+    contient un vrai mouvement doit toujours être accepté normalement.
+    `testsrc` (motif animé), pas `color` (image fixe) — un clip de bonne
+    durée mais statique doit désormais être rejeté (voir le test dédié)."""
     import subprocess
 
     def _clip_ok(image, prompt, destination, *, duree_s, **k):
         subprocess.run([
             "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
-            "-f", "lavfi", "-t", "5", "-i", "color=c=blue:s=320x240:r=25",
+            "-f", "lavfi", "-t", "5", "-i", "testsrc=size=320x240:rate=25",
             "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
             str(destination),
         ], check=True, capture_output=True)
@@ -777,6 +779,40 @@ def test_un_clip_assez_long_est_garde(monkeypatch, tmp_path):
 
     assert resultats[0].methode == "modele"
     assert resultats[0].anime is True
+    assert resultats[0].diagnostic == "mouvement_confirme"
+
+
+def test_un_clip_de_bonne_duree_mais_statique_est_rejete(monkeypatch, tmp_path):
+    """Cœur de l'enquête run #66 : un clip peut être un fichier vidéo
+    valide, de la bonne durée, et pourtant visuellement statique — l'API a
+    répondu 200, mais ce n'est pas une animation. `methode == "modele"` ne
+    doit plus jamais être vrai pour un clip sans mouvement détecté."""
+    import subprocess
+
+    def _clip_statique(image, prompt, destination, *, duree_s, **k):
+        subprocess.run([
+            "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+            "-f", "lavfi", "-t", "5", "-i", "color=c=blue:s=320x240:r=25",
+            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+            str(destination),
+        ], check=True, capture_output=True)
+        return destination, 0.23
+
+    monkeypatch.setattr(animation.fal, "animer_image", _clip_statique)
+
+    u = Univers.charger(FRUITS)
+    p = tmp_path / "p0.jpg"
+    Image.new("RGB", (64, 64), (10, 60, 90)).save(p)
+    plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
+             "emotion": "colere", "duree_s": 4.7}]
+
+    resultats = animation.animer(
+        plans, [p], u, tmp_path / "anim", budget_restant=100.0,
+        profil="equilibre", vie_pour_le_reste=False,
+    )
+
+    assert resultats[0].methode != "modele"
+    assert resultats[0].diagnostic == "rejete_mouvement"
 
 
 def test_un_plan_plus_long_que_le_clip_saute_lappel_paye(monkeypatch, tmp_path):
@@ -892,6 +928,94 @@ def test_le_prompt_de_mouvement_sans_registre_visuel_ne_change_rien():
         {"emotion": "calme", "action": "elle sourit"}, u
     )
     assert "maintain style" not in prompt
+
+
+# ── mouvement_sujet/camera/environnement/intensite (plans@1.13.0) ────────
+
+def test_mouvement_sujet_remplace_le_vocabulaire_par_emotion():
+    """Cas pédale (dossier « Animation 2.0 ») : une vraie décision de
+    mouvement écrite par ShotPromptWriter remplace le dictionnaire fixe par
+    émotion, jamais l'inverse."""
+    u = Univers.charger(FRUITS)
+    prompt = animation._prompt_mouvement(
+        {"emotion": "calme", "action": "an accelerator pedal glowing in the dark",
+         "mouvement_sujet": "the pedal moves downward smoothly, mechanical "
+                            "linkage follows, energy pulses travel along the cables"},
+        u,
+    )
+    assert "the pedal moves downward smoothly" in prompt
+    assert "subtle idle motion" not in prompt
+
+
+def test_sans_mouvement_sujet_le_repli_par_emotion_sapplique_toujours():
+    """Non-régression : un job en cache d'avant plans@1.13.0, ou un plan où
+    le modèle n'a rien décidé de plus précis, retombe sur l'ancien
+    vocabulaire — jamais un prompt vide."""
+    u = Univers.charger(FRUITS)
+    prompt = animation._prompt_mouvement({"emotion": "joie", "action": "elle danse"}, u)
+    assert "the character laughs, body bouncing" in prompt
+
+
+def test_mouvement_camera_remplace_camera_holds_steady():
+    u = Univers.charger(FRUITS)
+    prompt = animation._prompt_mouvement(
+        {"emotion": "calme", "action": "a rocket on the launchpad",
+         "mouvement_camera": "push_in_lent"},
+        u,
+    )
+    assert "camera performs a slow forward push-in" in prompt
+    assert "camera holds steady" not in prompt
+
+
+def test_sans_mouvement_camera_le_defaut_reste_camera_fixe():
+    u = Univers.charger(FRUITS)
+    prompt = animation._prompt_mouvement({"emotion": "calme", "action": "x"}, u)
+    assert "camera holds steady" in prompt
+
+
+def test_mouvement_environnement_est_ajoute_au_prompt():
+    u = Univers.charger(FRUITS)
+    prompt = animation._prompt_mouvement(
+        {"emotion": "calme", "action": "x",
+         "mouvement_environnement": "holographic particles drift slowly"},
+        u,
+    )
+    assert "holographic particles drift slowly" in prompt
+
+
+def test_intensite_forte_ajoute_une_clause_de_visibilite():
+    u = Univers.charger(FRUITS)
+    prompt = animation._prompt_mouvement(
+        {"emotion": "calme", "action": "x", "intensite_mouvement": "fort"}, u
+    )
+    assert "clearly visible, unmistakable motion throughout" in prompt
+
+
+def test_intensite_faible_najoute_rien_de_plus():
+    u = Univers.charger(FRUITS)
+    prompt = animation._prompt_mouvement(
+        {"emotion": "calme", "action": "x", "intensite_mouvement": "faible"}, u
+    )
+    assert "clearly visible" not in prompt
+
+
+def test_le_prompt_de_mouvement_purge_le_vocabulaire_facial_interdit():
+    """Univers avec `no human faces` : le repli par émotion « calme »
+    (« slight breathing, eyes blinking ») déclenche une contrainte
+    négative corrective — même sur le vocabulaire hérité, pas seulement
+    sur les nouveaux champs (voir `risque_prompt.purger_mouvement_interdit`)."""
+    techno = Univers.charger(Path("univers/techno-holo.yaml"))
+    prompt = animation._prompt_mouvement({"emotion": "calme", "action": "x"}, techno)
+    assert "no breathing motion" in prompt
+    assert "no blinking eyes" in prompt
+
+
+def test_le_prompt_de_mouvement_univers_sans_interdit_facial_reste_inchange():
+    """Univers qui n'interdit pas les visages (fruit-island) : aucune
+    contrainte n'est ajoutée, coût zéro."""
+    u = Univers.charger(FRUITS)
+    prompt = animation._prompt_mouvement({"emotion": "calme", "action": "x"}, u)
+    assert "no breathing motion" not in prompt
 
 
 # ── Appariement de voix ──────────────────────────────────────────────────

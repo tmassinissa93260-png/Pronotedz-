@@ -56,6 +56,16 @@ class ContratVisuel:
     # (`avec_quoi`/`avec_quoi_secondaire`) : la position spatiale et
     # l'importance narrative sont deux décisions différentes.
     geometrie: list[dict] = field(default_factory=list)
+    # Décisions de mouvement pour un clip animé — jamais consommées par
+    # `prompt_plan_depuis_contrat()` (le prompt d'IMAGE), seulement par
+    # `pdz.production.animation._prompt_mouvement()`, qui les lit
+    # directement sur le `PlanScript`. Portées ici pour la même raison que
+    # `relations`/`geometrie` : traçabilité et vérification déterministe
+    # (voir `pdz.production.decision_visuelle`), pas pour être recompilées.
+    mouvement_sujet: str = ""
+    mouvement_camera: str = ""
+    mouvement_environnement: str = ""
+    intensite_mouvement: str = ""
     # `ou_id` : l'identifiant brut du décor (`plan.decor`), nécessaire pour
     # que `prompt_plan_depuis_contrat()` reproduise EXACTEMENT la résolution
     # (et le repli anime-only) de `prompt_plan()`. `ou` est la description
@@ -123,6 +133,10 @@ def compiler(plan: PlanScript, personnage: Personnage, univers: Univers, *,
         risques_predits=list(plan.risques_predits),
         disposition=plan.disposition,
         geometrie=list(plan.geometrie),
+        mouvement_sujet=plan.mouvement_sujet,
+        mouvement_camera=plan.mouvement_camera,
+        mouvement_environnement=plan.mouvement_environnement,
+        intensite_mouvement=plan.intensite_mouvement,
         ou_id=plan.decor,
         ou=_lieu(plan, univers),
         emotion=plan.emotion,

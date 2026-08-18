@@ -164,3 +164,34 @@ def test_risques_marque_est_vide_par_defaut():
     contrat = contrat_visuel.compiler(plan, perso, univers)
 
     assert contrat.risques_marque == []
+
+
+def test_mouvement_reprend_directement_celui_ecrit_par_shotpromptwriter():
+    univers = Univers.charger(FRUITS)
+    perso = univers.personnage("strawberina")
+    plan = _plan(
+        mouvement_sujet="the pedal moves downward smoothly",
+        mouvement_camera="push_in_lent",
+        mouvement_environnement="energy pulses travel along the cables",
+        intensite_mouvement="fort",
+    )
+
+    contrat = contrat_visuel.compiler(plan, perso, univers)
+
+    assert contrat.mouvement_sujet == "the pedal moves downward smoothly"
+    assert contrat.mouvement_camera == "push_in_lent"
+    assert contrat.mouvement_environnement == "energy pulses travel along the cables"
+    assert contrat.intensite_mouvement == "fort"
+
+
+def test_mouvement_est_vide_par_defaut():
+    univers = Univers.charger(FRUITS)
+    perso = univers.personnage("strawberina")
+    plan = _plan()
+
+    contrat = contrat_visuel.compiler(plan, perso, univers)
+
+    assert contrat.mouvement_sujet == ""
+    assert contrat.mouvement_camera == ""
+    assert contrat.mouvement_environnement == ""
+    assert contrat.intensite_mouvement == ""

@@ -663,3 +663,36 @@ def test_geometrie_est_portee_sur_le_plan_pour_la_qa():
     sortie = {"plans": [{"numero": 0, "prompt_image": "x", "geometrie": geo}]}
     fusionnes = ShotPromptWriter().fusionner(plans, sortie)
     assert fusionnes[0].geometrie == geo
+
+
+# ── mouvement_* (plans@1.13.0) : passthrough pur, jamais dans le prompt image ─
+
+def test_mouvement_est_porte_sur_le_plan_sans_toucher_au_prompt_image():
+    plans = _plans(1)
+    sortie = {"plans": [{
+        "numero": 0, "prompt_image": "an accelerator pedal glowing in the dark",
+        "mouvement_sujet": "the pedal moves downward smoothly",
+        "mouvement_camera": "push_in_lent",
+        "mouvement_environnement": "energy pulses travel along the cables",
+        "intensite_mouvement": "fort",
+    }]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].mouvement_sujet == "the pedal moves downward smoothly"
+    assert fusionnes[0].mouvement_camera == "push_in_lent"
+    assert fusionnes[0].mouvement_environnement == "energy pulses travel along the cables"
+    assert fusionnes[0].intensite_mouvement == "fort"
+    # Le prompt d'IMAGE reste intouché — ces champs sont pour l'animation
+    # uniquement (voir pdz.production.animation._prompt_mouvement()).
+    assert fusionnes[0].action == "an accelerator pedal glowing in the dark"
+
+
+def test_sans_mouvement_les_champs_retombent_sur_des_valeurs_vides():
+    """Non-régression : un job en cache d'avant plans@1.13.0 n'a aucun de
+    ces champs dans sa sortie stockée — ne doit pas planter."""
+    plans = _plans(1)
+    sortie = {"plans": [{"numero": 0, "prompt_image": "x"}]}
+    fusionnes = ShotPromptWriter().fusionner(plans, sortie)
+    assert fusionnes[0].mouvement_sujet == ""
+    assert fusionnes[0].mouvement_camera == ""
+    assert fusionnes[0].mouvement_environnement == ""
+    assert fusionnes[0].intensite_mouvement == ""

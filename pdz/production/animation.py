@@ -32,24 +32,27 @@ from pdz.analyse.sonde import sonder
 from pdz.ia import fal
 from pdz.ia.registre import registre
 from pdz.moteur.erreurs import ErreurPdz
+from pdz.production import risque_prompt, verification_mouvement
 from pdz.univers import Univers
 
 log = logging.getLogger(__name__)
 
-# Durée d'un clip animé demandée au modèle. Les modèles image→vidéo
-# facturent à la seconde et n'acceptent en général que 5 ou 10 s. Fixé à
-# 10 s (pas 5) : mesuré en production (épisode #65) qu'à 5 s, la majorité
-# des plans réels (4 à 8 s selon le rythme de la voix) dépassaient déjà ce
-# plafond et sautaient systématiquement l'appel payant pour retomber sur le
-# repli local — sur un épisode de 6 plans, un seul avait reçu une vraie
-# animation malgré un budget qui en autorisait 6. Rien ne garantit pour
-# autant qu'UN SEUL plan reste sous cette durée : un épisode en narration
-# (peu de répliques, jamais coupées en deux) peut avoir des plans de plus
-# de 10 s — voir `animer()`, qui saute directement au repli local pour
-# ces plans-là plutôt que de payer un appel voué à l'échec (mesuré en
-# production : le modèle ne rend jamais plus que ce qui est demandé,
-# souvent un peu moins).
-DUREE_CLIP_S = 10
+# Durée d'un clip animé DEMANDÉE au modèle. Les modèles image→vidéo
+# facturent à la seconde. Remis à 5 (pas 10, comme ce matin) : l'enquête sur
+# le run #66 a mesuré que demander 10 s produit EXACTEMENT le même résultat
+# que demander 5 s — 4,84 s rendus dans les deux cas, identique à la mesure
+# historique de l'épisode #57 — le paramètre `duration` n'a donc aucun effet
+# constaté sur ce endpoint au-delà de ce plafond. Demander plus ne fait que
+# doubler le coût par tentative pour rien.
+DUREE_CLIP_S = 5
+
+# Ce que le modèle rend RÉELLEMENT, mesuré (voir ci-dessus) — distinct de
+# `DUREE_CLIP_S` (ce qu'on ENVOIE), qui n'a plus d'effet sur ce chiffre.
+# C'est CE plafond qui doit décider si un plan mérite l'appel payant : un
+# plan de 6 s a exactement la même chance de succès qu'on demande 5 ou 10 s
+# au modèle, puisque le rendu réel plafonne ici quel que soit ce qu'on
+# demande.
+DUREE_REELLE_MAX_S = 5.0
 
 # Marge sous laquelle un clip rendu plus court que la durée allouée est
 # encore acceptable (arrondis d'encodage). Au-delà, le montage tronquerait
@@ -79,6 +82,16 @@ class PlanAnime:
     anime: bool
     methode: str            # « modele » | « vie » | « camera »
     cout: float = 0.0
+    # Trace fine de CE QUI S'EST PASSÉ pour ce plan — « methode » seul
+    # mélangeait déjà un vrai clip modèle et un repli local sous le même
+    # `anime=True` (voir l'enquête run #66, § résumé trompeur). Avec ce
+    # champ, `methode == "modele"` implique TOUJOURS `diagnostic ==
+    # "mouvement_confirme"` — plus jamais un simple succès d'API. Valeurs :
+    # "mouvement_confirme" (methode="modele"), "rejete_duree",
+    # "rejete_mouvement", "timeout", "erreur_appel", "hors_portee"
+    # (méthode="vie"/"camera" — pourquoi le modèle n'a pas été retenu),
+    # "non_elu" (jamais tenté, budget/note).
+    diagnostic: str = ""
 
 
 def noter(plans: list[dict]) -> list[Candidature]:
@@ -93,7 +106,18 @@ def noter(plans: list[dict]) -> list[Candidature]:
         l'accroche : c'est l'endroit où le spectateur décide de rester ;
       · **l'émotion** — un visage qui bouge vaut surtout pour les émotions
         fortes ;
-      · **la durée** — un plan de 3 s figé se voit, un plan de 1 s non ;
+      · **la durée** — un plan de 3 s figé se voit, un plan de 1 s non, MAIS
+        seulement si cette durée reste dans ce que le modèle rend
+        réellement (`DUREE_REELLE_MAX_S`) — un plan plus long que ça est
+        voué à échouer le contrôle de durée post-génération quoi qu'on lui
+        demande (mesuré, enquête run #66) : le noter comme un atout aurait
+        fait gagner exactement les plans les moins susceptibles de
+        réussir, ce qui est arrivé en production (le plan le mieux noté de
+        l'épisode #66 n'a reçu aucune vraie animation) ;
+      · **une intensité de mouvement forte**, quand ShotPromptWriter l'a
+        décidée pour ce plan précis (`intensite_mouvement`, voir
+        `pdz/agents/ecriture/plans.py`) — relie enfin la sélection à une
+        vraie décision de mouvement plutôt qu'à une intuition ;
       · **les plans de réaction** sont pénalisés : l'immobilité y est un
         choix de montage valable, pas un défaut ;
       · **un défaut visuel déjà constaté** (`besoin_revue`, voir
@@ -120,12 +144,20 @@ def noter(plans: list[dict]) -> list[Candidature]:
             raisons.append(emotion)
 
         duree = float(plan.get("duree_s", 0) or 0)
-        if duree >= 3.0:
+        if 3.0 <= duree <= DUREE_REELLE_MAX_S:
             note += 1.0
-            raisons.append(f"{duree:.1f} s à l'écran")
+            raisons.append(f"{duree:.1f} s à l'écran, dans la capacité du modèle")
+        elif duree > DUREE_REELLE_MAX_S:
+            note -= 0.5
+            raisons.append(
+                f"{duree:.1f} s hors de portée du modèle (max ~{DUREE_REELLE_MAX_S:.1f} s)")
         elif duree < 1.2:
             note -= 1.0
             raisons.append("trop court pour se voir")
+
+        if plan.get("intensite_mouvement") == "fort":
+            note += 0.8
+            raisons.append("mouvement fort décidé pour ce plan")
 
         if plan.get("reaction"):
             note -= 0.8
@@ -215,22 +247,22 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
         if i in elus:
             destination = dossier / f"anime_{i:03d}.mp4"
             duree_requise = float(plan.get("duree_s") or 0)
-            if duree_requise > duree_clip_s:
-                # Mesuré en production (épisode #57) : le modèle ne rend
-                # jamais plus que la durée nominale demandée — souvent même
-                # un peu moins (4,84 s mesurés pour 5 s demandés, cinq fois
-                # de suite). Un plan qui a besoin de PLUS que `duree_clip_s`
-                # est donc voué à échouer la vérification plus bas, quel que
-                # soit le résultat du fournisseur : autant épargner l'appel
-                # payant (~0,09 €) et les 1 à 3 minutes d'attente, et aller
-                # direct au repli local, qui n'a lui aucune limite de durée.
+            if duree_requise > DUREE_REELLE_MAX_S:
+                # Mesuré (enquête run #65 ET #66, deux valeurs de `duration`
+                # différentes, même résultat) : le modèle ne rend jamais plus
+                # que ~4,84 s, quel que soit ce qu'on demande. Un plan qui a
+                # besoin de PLUS que `DUREE_REELLE_MAX_S` est donc voué à
+                # échouer la vérification plus bas quoi qu'on envoie comme
+                # `duration` : autant épargner l'appel payant (~0,09 €) et
+                # les 1 à 3 minutes d'attente, et aller direct au repli
+                # local, qui n'a lui aucune limite de durée.
                 log.info(
-                    "Plan %d : %.2f s requis, au-delà des %d s max d'un clip "
-                    "— animation modèle sautée, repli direct.",
-                    i, duree_requise, duree_clip_s,
+                    "Plan %d : %.2f s requis, au-delà des ~%.1f s que le "
+                    "modèle rend réellement — animation modèle sautée, "
+                    "repli direct.", i, duree_requise, DUREE_REELLE_MAX_S,
                 )
                 resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
-                                        duree_clip_s))
+                                        duree_clip_s, diagnostic="hors_portee"))
                 continue
             reste = max(0.0, budget_restant - depense)
             try:
@@ -244,32 +276,58 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
                 # Une animation ratée n'annule pas l'épisode : le plan reste
                 # une image fixe, que le montage saura faire bouger.
                 log.warning("Plan %d non animé (%s) : %s", i, e.categorie, e)
+                diag = "timeout" if e.categorie == "ErreurReseau" else "erreur_appel"
                 resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
-                                        duree_clip_s))
+                                        duree_clip_s, diagnostic=diag))
                 continue
 
             depense += cout
-            duree_reelle = sonder(destination).duree_s
-            if duree_reelle < duree_requise - TOLERANCE_DUREE_S:
-                # Le fournisseur a rendu un clip plus court que la durée
-                # allouée. `trim=duration=...` au montage ne peut pas
-                # RALLONGER un clip trop court — laisser passer ça produit
-                # une vidéo dont la piste vidéo s'arrête avant la voix.
-                # Mesuré en production : 4,5 s de narration sans image, sur
-                # exactement ce plan. L'argent est déjà dépensé (`depense`
-                # le garde) ; on ne perd que le clip, pas l'épisode.
-                log.warning(
-                    "Plan %d : clip animé trop court (%.2f s pour %.2f s "
-                    "requis) — le montage l'aurait tronqué. Repli sur une "
-                    "image fixe pour ce plan.", i, duree_reelle, duree_requise,
+            verdict = verification_mouvement.verifier(destination)
+            duree_ok = verdict.fichier_valide and verdict.duree_s >= duree_requise - TOLERANCE_DUREE_S
+
+            if not duree_ok:
+                # Le fournisseur a rendu un clip invalide ou plus court que
+                # la durée allouée. `trim=duration=...` au montage ne peut
+                # pas RALLONGER un clip trop court — laisser passer ça
+                # produit une vidéo dont la piste vidéo s'arrête avant la
+                # voix. Mesuré en production : 4,5 s de narration sans
+                # image, sur exactement ce plan. L'argent est déjà dépensé
+                # (`depense` le garde) ; on ne perd que le clip, pas l'épisode.
+                log.info(
+                    "Plan %d : API=SUCCESS FICHIER=%s DURÉE=%s ANIMATION=REJECTED "
+                    "RAISON=%s", i, "VALID" if verdict.fichier_valide else "INVALID",
+                    "TOO_SHORT" if verdict.fichier_valide else "N/A",
+                    "clip_invalide" if not verdict.fichier_valide else "clip_too_short",
                 )
                 resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
-                                        duree_clip_s))
+                                        duree_clip_s, diagnostic="rejete_duree"))
                 continue
-            resultats.append(PlanAnime(i, destination, True, "modele", cout))
+
+            if not verdict.mouvement_detecte:
+                # Point critique de l'enquête run #66 : un clip peut être un
+                # fichier vidéo valide, de la bonne durée, et pourtant
+                # visuellement statique. « API 200 » et « fichier livré » ne
+                # prouvent jamais qu'une image a réellement changé d'une
+                # frame à l'autre — voir `verification_mouvement.py`.
+                log.info(
+                    "Plan %d : API=SUCCESS FICHIER=VALID DURÉE=VALID "
+                    "MOUVEMENT=ABSENT ANIMATION=REJECTED RAISON=STATIC_CLIP "
+                    "(diff. moyenne %.3f/255)", i, verdict.diff_moyenne,
+                )
+                resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
+                                        duree_clip_s, diagnostic="rejete_mouvement"))
+                continue
+
+            log.info(
+                "Plan %d : API=SUCCESS FICHIER=VALID DURÉE=VALID "
+                "MOUVEMENT=DETECTED ANIMATION=ACCEPTED (diff. moyenne %.3f/255)",
+                i, verdict.diff_moyenne,
+            )
+            resultats.append(PlanAnime(i, destination, True, "modele", cout,
+                                       diagnostic="mouvement_confirme"))
         else:
             resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
-                                    duree_clip_s))
+                                    duree_clip_s, diagnostic="non_elu"))
 
     reussis = sum(1 for r in resultats if r.anime)
     if combien and not reussis:
@@ -284,19 +342,33 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
             "d'animation dans modeles.yaml correspond à un endpoint publié "
             "par le fournisseur (voir les avertissements ci-dessus).", combien,
         )
-    log.info("Animation terminée : %d plan(s) animé(s) sur %d tenté(s), "
-             "%.3f € dépensés", reussis, combien, depense)
+    # Répartition par méthode+diagnostic — remplace le seul « X animés » qui
+    # mélangeait un vrai clip modèle et un repli local sous `anime=True`
+    # (voir l'enquête run #66). C'est la réponse factuelle à « combien de
+    # plans ont réellement un mouvement modèle confirmé », pas seulement
+    # « combien de requêtes ont réussi ».
+    mouvement_confirme = sum(1 for r in resultats if r.diagnostic == "mouvement_confirme")
+    parallaxe = sum(1 for r in resultats if r.methode == "vie")
+    image_fixe = sum(1 for r in resultats if r.methode == "camera")
+    log.info(
+        "Animation terminée : %d plan(s) sur %d — mouvement modèle confirmé : %d · "
+        "parallaxe locale : %d · image fixe : %d · %.3f € dépensés",
+        len(resultats), combien, mouvement_confirme, parallaxe, image_fixe, depense,
+    )
     return resultats
 
 
 def _repli(index: int, image: Path, dossier: Path, plan: dict,
-           avec_vie: bool, duree_clip_s: int) -> PlanAnime:
+           avec_vie: bool, duree_clip_s: int, *, diagnostic: str = "") -> PlanAnime:
     """Le plan n'est pas animé par un modèle : que fait-on à la place ?
 
     Deux niveaux, tous les deux gratuits. « vie » ajoute parallaxe et
     particules — c'est meilleur, mais ça produit un fichier vidéo et prend
     quelques secondes de CPU. « camera » laisse le montage appliquer son
     recadrage glissant, ce qui ne coûte rien du tout.
+
+    `diagnostic` (voir `PlanAnime`) explique POURQUOI on est ici plutôt
+    qu'avec un vrai clip modèle — porté par l'appelant, jamais recalculé.
 
     `duree_clip_s` ne sert ici QUE de repli si `plan.duree_s` est absent —
     jamais de plafond. `vie.animer()` fabrique son clip image par image,
@@ -310,7 +382,7 @@ def _repli(index: int, image: Path, dossier: Path, plan: dict,
     son travail en refusant de livrer une vidéo silencieuse sur la fin.
     """
     if not avec_vie:
-        return PlanAnime(index, image, False, "camera")
+        return PlanAnime(index, image, False, "camera", diagnostic=diagnostic)
 
     from pdz.video.vie import Effets
     from pdz.video.vie import animer as animer_localement
@@ -324,46 +396,70 @@ def _repli(index: int, image: Path, dossier: Path, plan: dict,
         )
     except Exception as e:                        # PIL, ffmpeg, disque plein…
         log.warning("Effet « vie » impossible sur le plan %d : %s", index, e)
-        return PlanAnime(index, image, False, "camera")
+        return PlanAnime(index, image, False, "camera", diagnostic=diagnostic)
 
-    return PlanAnime(index, destination, True, "vie")
+    return PlanAnime(index, destination, True, "vie", diagnostic=diagnostic)
+
+
+# Repli historique, gardé pour un job en cache d'avant plans@1.13.0, ou un
+# plan où ShotPromptWriter n'a rien décidé de plus précis que l'émotion.
+# Toujours filtré par `risque_prompt.purger_mouvement_interdit()` — ce
+# vocabulaire, écrit pour un visage humain, a produit un clip mesuré
+# statique sur un univers wireframe sans visage (enquête run #66).
+_VOCABULAIRE_EMOTION = {
+    "colere": "the character shouts, shoulders heaving",
+    "surprise": "the character recoils sharply, then freezes",
+    "peur": "the character shrinks back, trembling slightly",
+    "joie": "the character laughs, body bouncing",
+    "tristesse": "the character looks down slowly",
+    "mepris": "the character slowly turns their head away",
+    "gene": "the character shifts weight, eyes darting sideways",
+    "calme": "subtle idle motion, slight breathing, eyes blinking",
+}
+
+# Vocabulaire fixe et court, comme `cadrage.PHRASES`/`cadrage.PHRASES_DISPOSITION`
+# — ShotPromptWriter choisit une valeur, cette table la traduit en anglais.
+_PHRASES_CAMERA = {
+    "push_in_lent": "camera performs a slow forward push-in",
+    "pull_back_lent": "camera performs a slow pull-back",
+    "pan_lent": "camera pans slowly across the scene",
+    "leger_tremblement": "subtle handheld camera vibration",
+    "fixe": "camera holds steady",
+}
 
 
 def _prompt_mouvement(plan: dict, univers: Univers) -> str:
     """Ce qu'on demande au modèle vidéo de faire bouger.
 
-    Court et concret. Les modèles image→vidéo réagissent mal aux longues
-    descriptions : ils tentent alors de refabriquer la scène au lieu de
-    l'animer, et le personnage change de tête en cours de clip.
+    Compilé depuis les décisions de mouvement de ShotPromptWriter
+    (`mouvement_sujet`/`mouvement_camera`/`mouvement_environnement`/
+    `intensite_mouvement`, voir plans@1.13.0) — plus un dictionnaire fixe
+    par émotion appliqué sans discernement à tous les plans. Le modèle qui
+    a déjà lu le script entier sait, plan par plan, ce qui doit RÉELLEMENT
+    évoluer ; un vocabulaire figé par émotion ne peut pas le savoir.
 
-    `action` porte déjà tout ce que ShotPromptWriter/`fusionner()` y ont
-    ajouté (relations, abstractions, mitigations…) — c'est le même texte
-    que celui envoyé au modèle d'image. Seul `registre_visuel` (où vit
-    `disposition`, ex. « technical-cutaway ») n'atteignait jamais ce
-    prompt-ci : un plan animé pouvait donc dériver de son registre en
-    cours de clip, faute de ce signal. Ajouté seulement s'il apporte une
-    information réellement absente (même vérification de présence que
-    `fidelite_visuelle.renforcer_libre()`) — jamais un ajout systématique
-    qui gonflerait le prompt sans raison.
+    `"camera holds steady"` n'est plus inconditionnel : une décision de
+    mouvement de caméra explicite le remplace, plutôt que de la contredire
+    silencieusement comme un ajout naïf l'aurait fait.
     """
-    action = (plan.get("action") or "").strip()
-    emotion = plan.get("emotion", "calme")
+    sujet = (plan.get("mouvement_sujet") or "").strip()
+    if not sujet:
+        emotion = plan.get("emotion", "calme")
+        sujet = _VOCABULAIRE_EMOTION.get(emotion, "subtle idle motion")
 
-    mouvement = {
-        "colere": "the character shouts, shoulders heaving",
-        "surprise": "the character recoils sharply, then freezes",
-        "peur": "the character shrinks back, trembling slightly",
-        "joie": "the character laughs, body bouncing",
-        "tristesse": "the character looks down slowly",
-        "mepris": "the character slowly turns their head away",
-        "gene": "the character shifts weight, eyes darting sideways",
-        "calme": "subtle idle motion, slight breathing, eyes blinking",
-    }.get(emotion, "subtle idle motion")
-
-    morceaux = [mouvement]
-    if action:
+    morceaux = [sujet]
+    if action := (plan.get("action") or "").strip():
         morceaux.append(action)
-    morceaux.append("camera holds steady, character design stays identical")
+
+    morceaux.append(_PHRASES_CAMERA.get(plan.get("mouvement_camera") or "", "camera holds steady"))
+    morceaux.append("character design stays identical")
+
+    if env := (plan.get("mouvement_environnement") or "").strip():
+        morceaux.append(env)
+
+    if plan.get("intensite_mouvement") == "fort":
+        morceaux.append("clearly visible, unmistakable motion throughout")
+
     prompt = ", ".join(morceaux)
 
     registre = (plan.get("registre_visuel") or "").strip()
@@ -372,4 +468,5 @@ def _prompt_mouvement(plan: dict, univers: Univers) -> str:
 
     if univers.style.ambiance:
         prompt = f"{prompt}, {univers.style.ambiance}"
-    return prompt
+
+    return risque_prompt.purger_mouvement_interdit(prompt, univers)
