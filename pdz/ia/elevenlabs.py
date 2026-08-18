@@ -56,13 +56,42 @@ def _cle() -> str:
     return registre().cle_fournisseur("elevenlabs")
 
 
+# Ce qu'ElevenLabs met dans `detail.status` sur un 401 quand la clé est
+# parfaitement valide — et que le problème est ailleurs. Mesuré en production
+# (run #75) : deux répliques synthétisées avec succès, puis 401 sur la
+# troisième. Une clé refusée échoue à la PREMIÈRE, jamais à la troisième.
+_401_QUI_NE_SONT_PAS_UNE_CLE = {
+    "quota_exceeded": "Crédits ElevenLabs épuisés.",
+    "detected_unusual_activity": (
+        "ElevenLabs a désactivé le palier gratuit pour ce compte — c'est ce "
+        "qu'il fait quand les requêtes viennent d'une IP de centre de données, "
+        "ce qu'est un runner GitHub Actions."
+    ),
+}
+
+
 def _lever(r: httpx.Response) -> None:
     if r.status_code < 400:
         return
     detail = r.text[:300]
     if r.status_code == 401:
+        # Ne PAS accuser la clé sans avoir lu ce qu'ElevenLabs répond. Le
+        # message générique « vérifie ELEVENLABS_API_KEY » envoyait chercher
+        # un problème inexistant, et jetait au passage la seule explication
+        # disponible — celle du fournisseur, qui dit précisément lequel de
+        # ces cas s'applique et combien de crédits il reste.
+        statut = ""
+        try:
+            corps = r.json().get("detail")
+            statut = (corps or {}).get("status", "") if isinstance(corps, dict) else ""
+        except Exception:
+            statut = ""
+        if explication := _401_QUI_NE_SONT_PAS_UNE_CLE.get(statut):
+            # Pas une ErreurConfig : la clé est bonne, l'arrêt n'est pas
+            # définitif, et le repli garde un sens.
+            raise ErreurQuota(f"{explication} {detail}")
         raise ErreurConfig(
-            "Clé ElevenLabs refusée. Vérifie ELEVENLABS_API_KEY dans .env."
+            f"Clé ElevenLabs refusée. Vérifie ELEVENLABS_API_KEY dans .env. {detail}"
         )
     if r.status_code == 429:
         raise ErreurQuota(f"Quota ElevenLabs atteint. {detail}")

@@ -78,3 +78,76 @@ def test_les_pauses_font_deriver_lestimation():
     ecart_max = max(abs(a.debut_ms - b.debut_ms)
                     for a, b in zip(reels, estimes, strict=True))
     assert ecart_max > 200, f"écart attendu en fin de phrase, mesuré {ecart_max} ms"
+
+
+# ── Classement des 401 ───────────────────────────────────────────────────
+#
+# Mesuré en production (run #75) : deux répliques synthétisées avec succès,
+# puis 401 sur la troisième — et l'épisode s'arrête sur « Vérifie
+# ELEVENLABS_API_KEY dans .env. » Une clé refusée échoue à la PREMIÈRE
+# requête, jamais à la troisième : le diagnostic envoyait chercher un
+# problème inexistant, et jetait la seule explication disponible, celle
+# qu'ElevenLabs renvoie dans le corps de sa réponse.
+
+import httpx
+import pytest
+
+from pdz.ia.elevenlabs import _lever
+from pdz.moteur.erreurs import ErreurConfig, ErreurQuota
+
+
+def _401(statut: str | None, message: str = "") -> httpx.Response:
+    corps = {"detail": {"status": statut, "message": message}} if statut else {}
+    return httpx.Response(
+        401, json=corps,
+        request=httpx.Request("POST", "https://api.elevenlabs.io/v1/text-to-speech/x"),
+    )
+
+
+def test_un_401_de_quota_nest_pas_un_probleme_de_cle():
+    """`ErreurQuota`, pas `ErreurConfig` : la clé est bonne, l'arrêt n'est pas
+    définitif, et le repli garde un sens."""
+    with pytest.raises(ErreurQuota) as e:
+        _lever(_401("quota_exceeded", "You have 12 credits remaining"))
+    assert "Crédits ElevenLabs épuisés" in str(e.value)
+    assert "ELEVENLABS_API_KEY" not in str(e.value)
+    assert "12 credits remaining" in str(e.value), "le détail du fournisseur doit survivre"
+
+
+def test_un_401_dactivite_inhabituelle_explique_le_runner():
+    """Le cas le plus probable ici : ElevenLabs coupe le palier gratuit quand
+    les requêtes viennent d'une IP de centre de données — ce qu'est un runner
+    GitHub Actions."""
+    with pytest.raises(ErreurQuota) as e:
+        _lever(_401("detected_unusual_activity", "Free Tier usage disabled"))
+    assert "palier gratuit" in str(e.value)
+    assert "GitHub Actions" in str(e.value)
+
+
+def test_un_vrai_401_de_cle_reste_une_erreur_de_config():
+    """Non-régression : quand la clé EST en cause, le message d'avant reste,
+    et il reste actionnable."""
+    with pytest.raises(ErreurConfig) as e:
+        _lever(_401("invalid_api_key", "Invalid API key"))
+    assert "ELEVENLABS_API_KEY" in str(e.value)
+
+
+def test_un_401_sans_corps_exploitable_accuse_toujours_la_cle():
+    """Sans explication du fournisseur, l'hypothèse de la clé reste la bonne
+    par défaut — mais elle ne doit plus être la SEULE."""
+    with pytest.raises(ErreurConfig):
+        _lever(_401(None))
+
+
+def test_un_401_au_corps_illisible_ne_plante_pas():
+    r = httpx.Response(
+        401, text="<html>gateway</html>",
+        request=httpx.Request("POST", "https://api.elevenlabs.io/v1/text-to-speech/x"),
+    )
+    with pytest.raises(ErreurConfig):
+        _lever(r)
+
+
+def test_une_reponse_valide_ne_leve_rien():
+    _lever(httpx.Response(
+        200, request=httpx.Request("GET", "https://api.elevenlabs.io/v1/voices")))
