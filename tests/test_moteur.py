@@ -209,3 +209,37 @@ def test_le_cache_evite_de_repayer(job):
     assert r.statut is Statut.TERMINE
     assert compteur["stable"] == 1, "l'agent ne doit être appelé qu'une seule fois"
     assert r.cout == 0.01, "les 4 réutilisations sont gratuites"
+
+
+def test_une_relance_journalise_le_motif_pas_seulement_la_categorie(caplog):
+    """Mesuré en production (run #70) : trois agents ont pris des « 400 Bad
+    Request » de Groq, et le journal n'affichait que « ErreurValidation ».
+    Impossible de savoir ce que Groq reprochait à la requête, alors que le
+    fournisseur l'explique dans sa réponse — et que cette même explication
+    était déjà renvoyée au modèle via `_erreur_precedente`. Le motif doit
+    apparaître dans le journal de relance, pas seulement la classe."""
+    import logging
+
+    from pdz.moteur.pipeline import Contexte, executer_avec_relance
+
+    detail = "Requête refusée par Groq (400). json_schema: unsupported keyword"
+    essais = {"n": 0}
+
+    class AgentQuiRateUneFois:
+        nom = "agent_test"
+
+        async def executer(self, entrees, ctx):
+            essais["n"] += 1
+            if essais["n"] == 1:
+                raise ErreurValidation(detail)
+            return {"ok": True}
+
+    ctx = Contexte(job_id="j", etape_cle="e", profil="equilibre", budget_restant=1.0)
+    with caplog.at_level(logging.WARNING):
+        resultat = asyncio.run(executer_avec_relance(AgentQuiRateUneFois(), {}, ctx))
+
+    assert resultat == {"ok": True}
+    assert any("json_schema: unsupported keyword" in m for m in caplog.messages), \
+        "le motif renvoyé par le fournisseur doit être journalisé"
+    assert any("ErreurValidation" in m for m in caplog.messages), \
+        "la catégorie reste utile, elle ne doit pas disparaître"

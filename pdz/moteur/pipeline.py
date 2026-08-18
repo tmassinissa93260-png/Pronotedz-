@@ -135,9 +135,18 @@ async def executer_avec_relance(agent: Agent, entrees: dict[str, Any], ctx: Cont
                 raise
 
             attente = getattr(e, "retry_after", None) or delai_backoff(tentative)
+            # Le MOTIF, pas seulement la catégorie. Mesuré en production
+            # (run #70) : trois agents ont pris des « 400 Bad Request » de
+            # Groq, et le journal n'affichait que « ErreurValidation » —
+            # impossible de savoir ce que Groq reprochait à la requête,
+            # alors que le fournisseur l'explique dans sa réponse et que
+            # `_erreur_precedente` la renvoie déjà au modèle juste en
+            # dessous. Tronqué : un détail de fournisseur peut être long,
+            # et le message complet reste dans l'erreur finale.
+            motif = str(e).replace("\n", " ")
             log.warning(
-                "⟳  %s tentative %d/%d — %s — nouvelle tentative dans %.1fs",
-                agent.nom, tentative, plafond, e.categorie, attente,
+                "⟳  %s tentative %d/%d — %s : %s — nouvelle tentative dans %.1fs",
+                agent.nom, tentative, plafond, e.categorie, motif[:200], attente,
             )
             await asyncio.sleep(attente)
             if isinstance(e, ErreurValidation):
