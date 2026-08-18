@@ -209,6 +209,7 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
                    job_id: str | None = None,
                    musique: Path | None = None,
                    avec_animation: bool = True,
+                   avec_voix: bool = True,
                    chemin_univers: Path | None = None,
                    style_soustitres: soustitres.StyleSousTitres | None = None,
                    ) -> Episode:
@@ -291,7 +292,9 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     piste = travail / "voix.m4a"
     if fait_voix is None:
         debut = time.perf_counter()
-        bande = voix.dire(repliques, univers, piste, job_id=job_id)
+        bande = (voix.dire(repliques, univers, piste, job_id=job_id)
+                 if avec_voix
+                 else voix.dire_muet(repliques, univers, piste))
         _noter(job_id, "voix", "voix", {
             "fichier": str(bande.fichier),
             "duree_ms": bande.duree_ms,

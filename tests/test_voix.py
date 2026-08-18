@@ -203,3 +203,92 @@ def test_dire_transmet_les_reglages_ajustes_a_la_synthese(tmp_path, univers, mon
 
     assert len(vus) == 2
     assert vus[0] != vus[1], "deux émotions différentes doivent produire des réglages différents"
+
+
+# ── Mode muet : voir l'image quand la voix est indisponible ──────────────
+#
+# La voix est le PREMIER poste de l'épisode, et c'est elle qui fixe la durée
+# de chaque plan. Un 401 ElevenLabs arrêtait donc la production avant les
+# images, avant l'animation, avant le montage — alors que rien du visuel
+# n'était en cause (mesuré, run #75).
+
+def _sans_reseau(monkeypatch):
+    """Garantit qu'aucune synthèse ne peut partir, même par accident."""
+    def _interdit(*a, **k):
+        raise AssertionError("aucune synthèse ne doit partir en mode muet")
+    monkeypatch.setattr(mod.elevenlabs, "synthetiser", _interdit)
+
+
+def test_le_mode_muet_nappelle_aucun_fournisseur(tmp_path, univers, monkeypatch):
+    _sans_reseau(monkeypatch)
+    bande = mod.dire_muet(_repliques(univers), univers, tmp_path / "muet.m4a")
+    assert bande.fichier.exists()
+    assert bande.caracteres_factures == 0
+
+
+def test_la_piste_muette_dure_exactement_ce_que_la_bande_annonce(
+        tmp_path, univers, monkeypatch):
+    """C'est la garantie qui fait tenir tout l'aval : le montage découpe les
+    plans sur ces durées-là."""
+    _sans_reseau(monkeypatch)
+    bande = mod.dire_muet(_repliques(univers), univers, tmp_path / "muet.m4a")
+
+    reelle = mod.duree_ms(bande.fichier)
+    assert abs(reelle - bande.duree_ms) < 100, "la piste doit couvrir la bande"
+    assert sum(bande.durees_couvrantes_s) == pytest.approx(
+        bande.duree_ms / 1000, abs=0.01)
+
+
+def test_les_mots_sont_dates_et_couvrent_la_piste(tmp_path, univers, monkeypatch):
+    """Sans mots datés, pas de sous-titres — et le karaoké est le seul repère
+    qui reste dans une vidéo sans son."""
+    _sans_reseau(monkeypatch)
+    bande = mod.dire_muet(_repliques(univers), univers, tmp_path / "muet.m4a")
+
+    assert bande.mots
+    assert bande.mots[0].debut_ms == 0
+    assert bande.mots[-1].fin_ms <= bande.duree_ms
+    for a, b in zip(bande.mots, bande.mots[1:], strict=False):
+        assert a.debut_ms <= b.debut_ms, "les mots doivent rester ordonnés"
+
+
+def test_les_pauses_separent_toujours_les_repliques(tmp_path, univers, monkeypatch):
+    _sans_reseau(monkeypatch)
+    bande = mod.dire_muet(_repliques(univers, 3), univers, tmp_path / "muet.m4a")
+    for a, b in zip(bande.repliques, bande.repliques[1:], strict=False):
+        assert b.debut_ms - a.fin_ms in (PAUSE_MS, PAUSE_CHANGEMENT_MS)
+
+
+def test_un_personnage_sans_voix_ne_bloque_plus_en_muet(tmp_path, monkeypatch):
+    """Tout l'intérêt du mode : réclamer un `voice_id` alors que rien ne sera
+    synthétisé bloquerait pour une raison qui n'existe pas."""
+    _sans_reseau(monkeypatch)
+    u = Univers.charger(Path("univers/fruit-island.yaml"))
+    for p in u.personnages:
+        p.voix.voice_id = ""
+
+    bande = mod.dire_muet(_repliques(u), u, tmp_path / "muet.m4a")
+    assert len(bande.repliques) == 3
+
+
+def test_une_replique_plus_longue_dure_plus_longtemps(tmp_path, univers, monkeypatch):
+    """L'estimation doit rester proportionnelle : sinon les plans d'un
+    épisode muet auraient tous la même durée, ce qui se verrait."""
+    _sans_reseau(monkeypatch)
+    ident = univers.personnages[0].id
+    bande = mod.dire_muet([
+        {"numero": 1, "personnage": ident, "replique": "Court."},
+        {"numero": 2, "personnage": ident,
+         "replique": "Une réplique nettement plus longue que la précédente, "
+                     "avec beaucoup plus de mots à prononcer d'affilée."},
+    ], univers, tmp_path / "muet.m4a")
+
+    assert bande.repliques[1].duree_ms > bande.repliques[0].duree_ms * 2
+
+
+def test_aucune_replique_est_signale(tmp_path, univers, monkeypatch):
+    from pdz.moteur.erreurs import ErreurPdz
+
+    _sans_reseau(monkeypatch)
+    with pytest.raises(ErreurPdz):
+        mod.dire_muet([], univers, tmp_path / "muet.m4a")

@@ -179,6 +179,93 @@ def _repartir_faute_de_timings(texte: str, debut_ms: int, duree_ms: int) -> list
     return mots_depuis_texte(texte, debut_ms, duree_ms)
 
 
+# Débit de parole retenu pour ESTIMER une durée sans rien synthétiser.
+# 165 mots/minute est déjà la valeur que `pdz.analyse.adn` prend par défaut
+# quand aucun profil de voix n'a été mesuré : la reprendre ici évite
+# d'inventer un second chiffre pour exactement la même chose.
+DEBIT_ESTIME_WPM = 165
+
+
+def _duree_estimee_ms(texte: str, debit_wpm: int) -> int:
+    """Combien de temps cette réplique prendrait à dire. Estimé, jamais mesuré."""
+    mots = len(texte.split())
+    return max(600, round(mots / max(1, debit_wpm) * 60_000))
+
+
+def _silence(sortie: Path, duree_ms: int) -> Path:
+    sortie.parent.mkdir(parents=True, exist_ok=True)
+    r = subprocess.run(
+        ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+         "-f", "lavfi", "-i", "anullsrc=channel_layout=stereo:sample_rate=44100",
+         "-t", f"{duree_ms / 1000:.3f}", "-c:a", "aac", "-b:a", "128k",
+         str(sortie)],
+        capture_output=True, text=True, timeout=120,
+    )
+    if r.returncode != 0:
+        raise ErreurPdz(f"Piste muette impossible :\n{r.stderr[-500:]}")
+    return sortie
+
+
+def dire_muet(repliques: list[dict], univers: Univers, sortie: Path, *,
+              debit_wpm: int = DEBIT_ESTIME_WPM) -> BandeVoix:
+    """La même `BandeVoix`, sans appeler le moindre fournisseur de voix.
+
+    À quoi ça sert : la voix est le PREMIER poste de l'épisode, et c'est elle
+    qui fixe la durée de chaque plan. Quand ElevenLabs refuse de répondre
+    (crédits épuisés, palier gratuit coupé sur une IP de runner — voir
+    `pdz.ia.elevenlabs`), l'épisode s'arrête avant les images, avant
+    l'animation, avant le montage : impossible de voir le résultat visuel
+    d'un travail qui n'a rien à voir avec le son.
+
+    Ici, les durées sont ESTIMÉES au débit de parole plutôt que mesurées sur
+    un fichier audio, et la piste est un silence de la bonne longueur. Tout
+    l'aval — découpage, sous-titres, montage — reçoit exactement le même
+    contrat qu'avec une vraie voix et n'a rien à savoir de la différence.
+
+    Ce n'est pas un remplaçant d'ElevenLabs : la vidéo est MUETTE, et les
+    sous-titres dérivent de ce que la parole aurait duré. C'est un moyen de
+    voir l'image, pas de livrer un épisode.
+    """
+    dites: list[RepliqueDite] = []
+    curseur_ms = 0
+    precedent: str | None = None
+
+    for r in repliques:
+        perso = univers.personnage(r["personnage"])
+        # Aucune exigence de `voice_id` ici : c'est tout l'intérêt du mode.
+        identite = perso.id if perso else r["personnage"]
+        texte = r["replique"]
+
+        if dites:
+            curseur_ms += (PAUSE_CHANGEMENT_MS if identite != precedent
+                           else PAUSE_MS)
+
+        duree = _duree_estimee_ms(texte, debit_wpm)
+        dites.append(RepliqueDite(
+            numero=r.get("numero", len(dites) + 1),
+            personnage=identite, texte=texte, fichier=sortie,
+            debut_ms=curseur_ms, duree_ms=duree,
+            mots=_repartir_faute_de_timings(texte, curseur_ms, duree),
+        ))
+        curseur_ms += duree
+        precedent = identite
+
+    if not dites:
+        raise ErreurPdz("Aucune réplique : rien à mettre en musique, même muet.")
+
+    # Une seule piste pour tout l'épisode : il n'y a rien à assembler quand
+    # chaque morceau est du silence. `RepliqueDite.fichier` pointe donc vers
+    # elle pour toutes les répliques — un détail assumé de ce mode.
+    _silence(sortie, curseur_ms)
+
+    bande = BandeVoix(fichier=sortie, duree_ms=curseur_ms, repliques=dites)
+    log.warning(
+        "Bande voix MUETTE — aucune synthèse, durées estimées à %d mots/min : %s",
+        debit_wpm, bande.resume(),
+    )
+    return bande
+
+
 def dire(repliques: list[dict], univers: Univers, sortie: Path, *,
          cache: bool = True, job_id: str | None = None) -> BandeVoix:
     """Synthétise tout un dialogue et assemble la bande son.
