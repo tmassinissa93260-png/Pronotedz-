@@ -31,9 +31,18 @@ class ErreurPdz(Exception):
         repli_modele=False, bruyante=True,
     )
 
-    def __init__(self, message: str, *, detail: object = None):
+    def __init__(self, message: str, *, detail: object = None,
+                 retry_after: float | None = None):
         super().__init__(message)
         self.detail = detail
+        # Le délai que le FOURNISSEUR indique, quand il l'indique — toujours
+        # préféré au backoff générique (voir `pipeline._appeler_avec_replis`).
+        # Porté par la classe de base et non par la seule `ErreurQuota` :
+        # un 429 n'est pas le seul cas où l'on SAIT qu'il faut attendre. Un
+        # 400 renvoyé par un appel qui a bel et bien atteint le modèle a,
+        # lui aussi, consommé la fenêtre de jetons — le rejouer deux
+        # secondes plus tard ne peut que produire un 429 (mesuré, run #73).
+        self.retry_after = retry_after
 
     @property
     def categorie(self) -> str:
@@ -50,10 +59,6 @@ class ErreurQuota(ErreurPdz):
     """429. On attend le délai indiqué, puis on bascule sur le repli."""
 
     politique = Politique(True, 3, False, True, False)
-
-    def __init__(self, message: str, *, retry_after: float | None = None, detail=None):
-        super().__init__(message, detail=detail)
-        self.retry_after = retry_after
 
 
 class ErreurFournisseur(ErreurPdz):

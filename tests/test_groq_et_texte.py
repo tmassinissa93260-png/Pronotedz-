@@ -109,6 +109,77 @@ def test_le_message_ne_pretend_plus_que_la_limite_est_toujours_journaliere():
     assert "tokens per minute" in str(e.value)
 
 
+# ── Fenêtre de jetons épuisée par un appel qui a échoué quand même ───────
+#
+# Le défaut mesuré (run #73), qui a fait échouer l'épisode entier :
+#
+#   19:49:46  429  → attente 44 s   (Groq disait ~48 s)
+#   19:50:35  400  → attente 2,4 s  ← l'appel a atteint le modèle, donc vidé
+#                                     la fenêtre ; rejouer si vite est perdu
+#   19:50:37  429  → attente 50 s   ← une tentative TRANSITOIRE grillée
+#   19:51:32  400  → attente 3,3 s  ← même piège
+#   19:51:36  429  → fatal
+#
+# Le 400 était récupérable, mais il n'a jamais eu de seconde vraie chance :
+# chaque relance rapide se transformait en 429, et les trois tentatives
+# transitoires y sont passées.
+
+def _reponse_400(reste: str, limite: str = "8000", reinit: str = "59.5s"):
+    r = _reponse(400, {"error": {"message": "Failed to parse tool call arguments"}})
+    r.headers["x-ratelimit-remaining-tokens"] = reste
+    r.headers["x-ratelimit-limit-tokens"] = limite
+    r.headers["x-ratelimit-reset-tokens"] = reinit
+    return r
+
+
+def test_un_400_qui_a_vide_la_fenetre_fait_attendre_sa_recharge():
+    """Le correctif : un 400 reste une erreur de contenu (donc rejouable
+    vite), sauf quand la fenêtre de jetons est vide — là, rejouer vite ne
+    peut produire qu'un 429."""
+    with pytest.raises(ErreurValidation) as e:
+        _lever_si_erreur(_reponse_400(reste="323"))
+    assert e.value.retry_after == pytest.approx(59.5)
+
+
+def test_un_400_avec_du_budget_restant_se_rejoue_sans_attendre():
+    """L'inverse compte autant : ne pas imposer une minute d'attente à une
+    erreur de contenu ordinaire quand la fenêtre est encore large."""
+    with pytest.raises(ErreurValidation) as e:
+        _lever_si_erreur(_reponse_400(reste="7000"))
+    assert e.value.retry_after is None
+
+
+def test_un_400_sans_en_tetes_de_fenetre_garde_lancien_comportement():
+    """Non-régression : sans ces en-têtes (autre fournisseur, réponse
+    tronquée), le moteur retombe sur son backoff générique."""
+    with pytest.raises(ErreurValidation) as e:
+        _lever_si_erreur(_reponse(400, {"error": {"message": "x"}}))
+    assert e.value.retry_after is None
+
+
+def test_lattente_de_fenetre_est_plafonnee_comme_le_reste():
+    with pytest.raises(ErreurValidation) as e:
+        _lever_si_erreur(_reponse_400(reste="0", reinit="2m30s"))
+    assert e.value.retry_after == groq.RETRY_AFTER_MAX_S
+
+
+@pytest.mark.parametrize("valeur, attendu", [
+    ("7.66s", 7.66),
+    ("59.5s", 59.5),
+    ("1m", 60.0),
+    ("2m30s", 150.0),
+    ("2m59.56s", 179.56),
+    ("", None),
+    ("bientot", None),
+])
+def test_le_format_de_duree_des_en_tetes_est_bien_lu(valeur, attendu):
+    """`x-ratelimit-reset-tokens` n'est pas un nombre de secondes : c'est
+    « 7.66s » ou « 2m59.56s ». Le lire comme un float rendrait le correctif
+    silencieusement inopérant."""
+    assert groq._duree_groq(valeur) == (
+        pytest.approx(attendu) if attendu is not None else None)
+
+
 def test_un_modele_renomme_est_signale_comme_config_a_corriger():
     """Si Groq change le nom du modèle, l'erreur doit dire quoi faire —
     pas ressembler à une clé cassée."""

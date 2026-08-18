@@ -243,3 +243,33 @@ def test_une_relance_journalise_le_motif_pas_seulement_la_categorie(caplog):
         "le motif renvoyé par le fournisseur doit être journalisé"
     assert any("ErreurValidation" in m for m in caplog.messages), \
         "la catégorie reste utile, elle ne doit pas disparaître"
+
+
+def test_le_delai_annonce_par_le_fournisseur_prime_sur_le_backoff(monkeypatch):
+    """Mesuré en production (run #73) : un 400 rejoué 2,4 s plus tard prenait
+    systématiquement un 429, parce que l'appel qui venait d'échouer avait déjà
+    vidé la fenêtre de jetons. Quand le fournisseur dit combien de temps
+    attendre — même sur une erreur de CONTENU — c'est lui qui a raison, pas le
+    backoff générique."""
+    from pdz.moteur.pipeline import Contexte, executer_avec_relance
+
+    dormi = []
+
+    async def faux_sleep(secondes):
+        dormi.append(secondes)
+
+    monkeypatch.setattr(asyncio, "sleep", faux_sleep)
+    essais = {"n": 0}
+
+    class AgentQuiRateUneFois:
+        nom = "agent_test"
+
+        async def executer(self, entrees, ctx):
+            essais["n"] += 1
+            if essais["n"] == 1:
+                raise ErreurValidation("400 refusé", retry_after=59.5)
+            return {"ok": True}
+
+    ctx = Contexte(job_id="j", etape_cle="e", profil="equilibre", budget_restant=1.0)
+    assert asyncio.run(executer_avec_relance(AgentQuiRateUneFois(), {}, ctx)) == {"ok": True}
+    assert dormi == [59.5], "le backoff générique (~2 s) ne doit pas l'emporter"

@@ -268,7 +268,10 @@ def _lever_si_erreur(r: httpx.Response) -> None:
         )
     if r.status_code >= 500:
         raise ErreurFournisseur(f"Groq indisponible ({r.status_code}). {detail}")
-    raise ErreurValidation(f"Requête refusée par Groq ({r.status_code}). {detail}")
+    raise ErreurValidation(
+        f"Requête refusée par Groq ({r.status_code}). {detail}",
+        retry_after=_attente_fenetre_jetons(r),
+    )
 
 
 
@@ -301,7 +304,62 @@ def _retry_after_groq(r: httpx.Response, detail: str) -> float | None:
             pass
     if m := re.search(r"try again in (\d+(?:\.\d+)?)s", detail):
         return min(float(m.group(1)), RETRY_AFTER_MAX_S)
-    return None
+    # Dernier recours avant de deviner : l'état de la fenêtre, que Groq
+    # renvoie sur chaque réponse même quand il n'a pas chiffré l'attente.
+    return _attente_fenetre_jetons(r)
+
+
+# En dessous de cette fraction de la fenêtre, une relance à l'identique n'a
+# aucune chance : elle redemande à peu près autant de jetons que l'appel qui
+# vient d'échouer. Mesuré (run #73) : `shot_prompts` demande 7677 jetons pour
+# une fenêtre de 8000, soit 96 % — il ne reste alors quasiment rien, et
+# rejouer 2,4 s plus tard a produit un 429 à chaque fois.
+FRACTION_FENETRE_SUFFISANTE = 0.5
+
+
+def _duree_groq(valeur: str) -> float | None:
+    """« 7.66s », « 2m59.56s », « 1m » → secondes. Le format des en-têtes
+    `x-ratelimit-reset-*`, qui n'est pas un simple nombre."""
+    if not (m := re.fullmatch(r"(?:(\d+(?:\.\d+)?)m)?(?:(\d+(?:\.\d+)?)s)?",
+                              valeur.strip())):
+        return None
+    minutes, secondes = m.group(1), m.group(2)
+    if minutes is None and secondes is None:
+        return None
+    return float(minutes or 0) * 60 + float(secondes or 0)
+
+
+def _attente_fenetre_jetons(r: httpx.Response) -> float | None:
+    """Le temps avant que la fenêtre de jetons se recharge — quand ce qu'il
+    en reste ne suffit manifestement pas pour rejouer.
+
+    Le vrai défaut corrigé ici (mesuré, run #73). Un 400 « Failed to parse
+    tool call arguments as JSON » est une erreur de CONTENU : le moteur la
+    rejoue vite, et il a raison — sauf que cet appel-là a bel et bien
+    atteint le modèle et vidé la fenêtre de jetons au passage. La relance
+    2,4 s plus tard prenait donc un 429, qui coûtait à son tour une
+    tentative TRANSITOIRE et une attente d'une minute. Deux allers-retours
+    de ce genre et l'épisode entier échouait, sur une erreur pourtant
+    récupérable — le 400 n'avait jamais eu de seconde vraie chance.
+
+    Groq renvoie l'état de la fenêtre sur CHAQUE réponse, succès comme
+    erreur : il n'y a donc rien à deviner. Sans ces en-têtes (autre
+    fournisseur, réponse tronquée), on rend `None` et le moteur retombe sur
+    son backoff générique — comportement d'avant, inchangé.
+    """
+    reste, limite = (r.headers.get("x-ratelimit-remaining-tokens"),
+                     r.headers.get("x-ratelimit-limit-tokens"))
+    reinit = r.headers.get("x-ratelimit-reset-tokens")
+    if not (reste and limite and reinit):
+        return None
+    try:
+        if float(reste) >= float(limite) * FRACTION_FENETRE_SUFFISANTE:
+            return None                 # de quoi rejouer : inutile d'attendre
+    except ValueError:
+        return None
+    if (attente := _duree_groq(reinit)) is None:
+        return None
+    return min(attente, RETRY_AFTER_MAX_S)
 
 
 def _extraire_outil(charge: dict, nom_outil: str) -> dict:
