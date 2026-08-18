@@ -209,7 +209,14 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
                    job_id: str | None = None,
                    musique: Path | None = None,
                    avec_animation: bool = True,
-                   avec_voix: bool = True,
+                   # Par DÉFAUT sans voix. ElevenLabs a bloqué trois épisodes
+                   # d'affilée (401 sur un palier gratuit coupé, runs #73 et
+                   # #75) en arrêtant la production avant même les images,
+                   # alors que rien du visuel n'était en cause. La voix étant
+                   # le premier poste, sa panne coûtait tout l'épisode.
+                   # `dire_muet()` estime les durées et rend une piste
+                   # silencieuse : l'aval ne voit aucune différence.
+                   avec_voix: bool = False,
                    chemin_univers: Path | None = None,
                    style_soustitres: soustitres.StyleSousTitres | None = None,
                    ) -> Episode:

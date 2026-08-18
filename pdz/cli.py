@@ -750,10 +750,10 @@ def episode(
     sortie: Path = typer.Option(None, "--sortie", help="fichier .mp4 de sortie"),
     musique: Path = typer.Option(None, "--musique"),
     sans_animation: bool = typer.Option(False, "--sans-animation"),
-    sans_voix: bool = typer.Option(
-        False, "--sans-voix",
-        help="vidéo MUETTE : aucune synthèse vocale, durées estimées au débit "
-             "de parole — pour voir l'image quand la voix est indisponible",
+    avec_voix: bool = typer.Option(
+        False, "--avec-voix",
+        help="rallumer la synthèse ElevenLabs (éteinte par défaut) : demande "
+             "une clé valide et un voice_id par personnage",
     ),
     reprendre: str = typer.Option(None, "--reprendre", help="identifiant d'un job à finir"),
     verbeux: bool = typer.Option(False, "--verbeux", "-v"),
@@ -767,10 +767,10 @@ def episode(
     univers, chemin = _charger_univers(univers_nom)
     cfg = config()
 
-    # Exigence levée en mode muet : rien ne sera synthétisé, donc réclamer un
-    # `voice_id` y bloquerait pour une raison qui n'existe pas.
+    # Exigence levée par défaut : rien n'est synthétisé sans `--avec-voix`,
+    # donc réclamer un `voice_id` bloquerait pour une raison qui n'existe pas.
     muets = [p.nom for p in univers.personnages if not p.voix.voice_id]
-    if muets and not sans_voix:
+    if muets and avec_voix:
         console.print(
             f"[red]Ces personnages n'ont pas de voix : {', '.join(muets)}[/red]\n"
             f"→ [bold]pdz voix apparier {univers.id}[/bold]"
@@ -794,7 +794,7 @@ def episode(
             univers, situation, destination,
             duree_s=duree, profil=profil or cfg.profil, adn=adn,
             musique=musique, avec_animation=not sans_animation,
-            avec_voix=not sans_voix,
+            avec_voix=avec_voix,
             job_id=reprendre, chemin_univers=chemin,
         ))
     except ErreurPdz as e:

@@ -68,11 +68,11 @@ on:
         description: "Plafond de dépense pour CETTE vidéo, en euros (l'animation coûte ~0,23 €/plan)"
         required: false
         default: "0.60"
-      sans_voix:
+      avec_voix:
         description: >-
-          Vidéo MUETTE : ne pas appeler ElevenLabs. Les durées de plan sont
-          estimées au débit de parole. À cocher pour voir l'image quand la
-          voix est indisponible (crédits épuisés, palier gratuit coupé).
+          Rallumer la voix ElevenLabs. Éteinte par défaut : les épisodes sont
+          MUETS et les durées de plan estimées au débit de parole. Ne cocher
+          qu'avec une clé valide et un voice_id par personnage.
         required: false
         default: false
         type: boolean
@@ -248,7 +248,7 @@ jobs:
           JOB: ${{ inputs.job }}
           DUREE: ${{ inputs.duree }}
           FORME: ${{ inputs.forme }}
-          SANS_VOIX: ${{ inputs.sans_voix }}
+          AVEC_VOIX: ${{ inputs.avec_voix }}
         run: |
           set -o pipefail
           SORTIE=$(mktemp)
@@ -270,13 +270,14 @@ jobs:
               if [ -n "$FORME" ]; then
                 ARGS_FORME=(--forme "$FORME")
               fi
-              # Vidéo muette : aucun appel à ElevenLabs, durées de plan
-              # estimées au débit de parole. Sert à voir l'image quand la voix
-              # est indisponible — l'épisode s'arrêtait sinon avant même les
-              # images, alors que rien du visuel n'était en cause.
+              # La voix est ÉTEINTE par défaut : aucun appel à ElevenLabs, et
+              # les durées de plan sont estimées au débit de parole. Elle
+              # arrêtait la production avant même les images (401 sur un
+              # palier gratuit coupé, runs #73 et #75), alors que rien du
+              # visuel n'était en cause.
               ARGS_VOIX=()
-              if [ "$SANS_VOIX" = "true" ]; then
-                ARGS_VOIX=(--sans-voix)
+              if [ "$AVEC_VOIX" = "true" ]; then
+                ARGS_VOIX=(--avec-voix)
               fi
               pdz episode "$UNIVERS" "$SUJET" \
                 --duree "$DUREE" --profil "${{ inputs.profil }}" \

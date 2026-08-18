@@ -292,3 +292,16 @@ def test_aucune_replique_est_signale(tmp_path, univers, monkeypatch):
     _sans_reseau(monkeypatch)
     with pytest.raises(ErreurPdz):
         mod.dire_muet([], univers, tmp_path / "muet.m4a")
+
+
+def test_la_voix_est_eteinte_par_defaut():
+    """Le défaut, pas seulement la possibilité. ElevenLabs a arrêté trois
+    épisodes d'affilée avant même les images (401, runs #73 et #75) : la voix
+    étant le PREMIER poste, sa panne coûtait tout l'épisode — script, images,
+    animation, montage — pour une raison sans rapport avec le visuel."""
+    import inspect
+
+    from pdz.production import episode
+
+    defaut = inspect.signature(episode.produire).parameters["avec_voix"].default
+    assert defaut is False, "produire() ne doit appeler aucun fournisseur de voix"

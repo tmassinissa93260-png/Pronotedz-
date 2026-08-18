@@ -123,8 +123,14 @@ SERVICES = [
     # autres profils, et le seul qui anime les plans.
     ("fal.ai", "fal_key", verifier_fal,
      "les images de meilleure qualité, et l'animation", False),
+    # ElevenLabs n'est plus obligatoire non plus : la voix est éteinte par
+    # défaut depuis qu'elle a coûté trois épisodes entiers (401 sur un palier
+    # gratuit coupé côté runner, runs #73 et #75) en arrêtant la production
+    # avant même les images. Un épisode se produit désormais sans elle, muet,
+    # avec des durées de plan estimées. Elle reste vérifiée et affichée pour
+    # qui rallume `--avec-voix`.
     ("ElevenLabs", "elevenlabs_api_key", verifier_elevenlabs,
-     "la voix", True),
+     "la voix (éteinte par défaut, voir --avec-voix)", False),
     ("Groq", "groq_api_key", verifier_groq,
      "la transcription, l'écriture en profil gratuit", False),
 ]

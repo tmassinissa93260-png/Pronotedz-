@@ -38,13 +38,24 @@ Puis bouton vert **New repository secret**, et tu ajoutes une clé par une :
 |---|---|
 | `ANTHROPIC_API_KEY` | ta clé Anthropic |
 | `FAL_KEY` | ta clé fal.ai |
-| `ELEVENLABS_API_KEY` | ta clé ElevenLabs |
+| `ELEVENLABS_API_KEY` | ta clé ElevenLabs (facultatif — la voix est éteinte par défaut, voir encadré) |
 | `AUDD_API_KEY` | ta clé AudD (facultatif) |
 | `GROQ_API_KEY` | ta clé Groq (facultatif — voir encadré ci-dessous) |
 
 Ces clés sont chiffrées par GitHub. Elles n'apparaissent jamais dans le code,
 jamais dans les journaux, et personne d'autre que toi ne peut les relire —
 même toi, tu ne peux que les remplacer.
+
+> **Les épisodes sont muets par défaut.**
+> ElevenLabs n'est plus appelé : la voix est le premier poste d'un épisode,
+> et quand elle tombe (crédits épuisés, ou palier gratuit coupé parce que les
+> requêtes viennent d'une machine GitHub), la production s'arrêtait avant
+> même les images — script, images, animation et montage perdus pour une
+> raison sans rapport avec le visuel.
+> Les durées de plan sont désormais estimées au débit de parole, et la piste
+> son est un silence. Pour rallumer la voix : coche **« Rallumer la voix
+> ElevenLabs »** dans le formulaire. Il te faut alors une clé qui marche et
+> un `voice_id` par personnage.
 
 > **Pas envie de payer pour Anthropic tout de suite ?**
 > Contrairement à l'appli où tu me parles, la Console Anthropic

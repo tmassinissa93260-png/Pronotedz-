@@ -115,7 +115,17 @@ def test_fal_nest_plus_obligatoire():
     assert obligatoire["fal.ai"] is False
 
 
-def test_elevenlabs_reste_obligatoire():
-    """Aucune alternative gratuite n'existe pour la voix."""
+def test_elevenlabs_nest_plus_obligatoire():
+    """La voix est éteinte par défaut : un épisode se produit sans elle,
+    muet, avec des durées de plan estimées au débit de parole. La réclamer
+    ferait échouer `pdz cles` pour un service que la production n'appelle
+    plus — et c'est justement en bloquant tout qu'elle a coûté trois
+    épisodes entiers (401 sur un palier gratuit coupé, runs #73 et #75)."""
     obligatoire = {nom: o for nom, _, _, _, o in SERVICES}
-    assert obligatoire["ElevenLabs"] is True
+    assert obligatoire["ElevenLabs"] is False
+
+
+def test_plus_aucune_cle_nest_obligatoire():
+    """Conséquence, et elle vaut d'être gardée : aucun service ne peut plus
+    empêcher à lui seul de produire quelque chose."""
+    assert not [nom for nom, _, _, _, o in SERVICES if o]
