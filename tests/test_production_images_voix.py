@@ -988,12 +988,20 @@ def test_le_prompt_de_mouvement_reste_court_et_protege_le_personnage():
 
 
 # Pire cas MESURÉ (les quatre champs de mouvement remplis au maximum, plus
-# registre et ambiance) : 52 mots. Au-dessus des 45 visés, et c'est assumé —
-# retirer `action` était le correctif demandé, et il fait tomber ce cas de
-# 119 à 52. Le reste vient de `registre_visuel` et `univers.style.ambiance`,
-# tous deux volontaires et hors du périmètre de ce correctif. Ce plafond
-# garde la vraie régression : que `action` revienne.
-PLAFOND_MOTS_PIRE_CAS = 55
+# `geometrie`, registre et ambiance) : 71 mots. Historique du plafond, parce
+# qu'il ne s'agit pas d'un glissement mais de deux décisions distinctes :
+#
+#   119 → 52 : retrait de `action`, le prompt d'IMAGE (~65 mots de DESCRIPTION
+#              DE SCÈNE) qui était réinjecté ici et faisait refabriquer.
+#    52 → 71 : ajout, par le compilateur de prompt (`motion_program`), de
+#              l'ouverture « animate this still image » et des blocs de
+#              PRÉSERVATION et d'INTERDICTION.
+#
+# Le second n'annule pas le premier : ces mots-là ne décrivent pas la scène,
+# ils disent au modèle ce qu'il n'a pas le droit d'y changer — c'est-à-dire
+# exactement le contraire de ce qui avait été retiré. Ce plafond continue de
+# garder la vraie régression : que `action` revienne.
+PLAFOND_MOTS_PIRE_CAS = 72
 
 
 def test_un_plan_riche_reste_sous_le_seuil_et_ne_redecrit_pas_la_scene():
@@ -1014,12 +1022,15 @@ def test_un_plan_riche_reste_sous_le_seuil_et_ne_redecrit_pas_la_scene():
          "mouvement_environnement": "ground fog drifts laterally, holographic "
                                     "particles rise slowly",
          "intensite_mouvement": "fort",
+         # Déclenche l'invariant « relative object placement » : sans lui, ce
+         # test mesurait un pire cas qui n'en était pas un.
+         "geometrie": [{"objet": "airliner", "ancre": "centre"}],
          "registre_visuel": "abstract wireframe hologram, not a photorealistic render"},
         u,
     )
 
-    # Moins de la moitié des 119 mots d'avant le correctif : c'est le retrait
-    # de `action` qui fait la différence, et c'est ça que ce plafond garde.
+    # Bien en deçà des 119 mots d'avant le correctif : c'est le retrait de
+    # `action` qui fait la différence, et c'est ça que ce plafond garde.
     assert len(prompt.split()) <= PLAFOND_MOTS_PIRE_CAS
     # Aucun fragment de la description de scène ne doit se retrouver ici.
     assert "centered in the frame" not in prompt

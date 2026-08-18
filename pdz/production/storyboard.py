@@ -172,7 +172,7 @@ class PlanScript:
     # `pdz.production.animation._prompt_mouvement()`.
     mouvement_sujet: str = ""
     # Vocabulaire fixe et court, comme `cadrage`/`disposition` — jamais un
-    # texte libre. Voir `pdz.production.animation._PHRASES_CAMERA`.
+    # texte libre. Voir `pdz.production.motion_program.PHRASES_CAMERA`.
     mouvement_camera: str = ""
     # Mouvement d'arrière-plan/atmosphère pour un clip animé, distinct du
     # sujet — particules, brume, pulsations lumineuses, prose prête à

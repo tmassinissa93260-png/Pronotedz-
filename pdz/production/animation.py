@@ -31,7 +31,7 @@ from pathlib import Path
 from pdz.ia import fal
 from pdz.ia.registre import registre
 from pdz.moteur.erreurs import ErreurPdz
-from pdz.production import risque_prompt, verification_mouvement
+from pdz.production import motion_program, verification_mouvement
 from pdz.univers import Univers
 
 log = logging.getLogger(__name__)
@@ -425,44 +425,18 @@ def _repli(index: int, image: Path, dossier: Path, plan: dict,
     return PlanAnime(index, destination, True, "vie", cout, diagnostic=diagnostic)
 
 
-# Repli historique, gardé pour un job en cache d'avant plans@1.13.0, ou un
-# plan où ShotPromptWriter n'a rien décidé de plus précis que l'émotion.
-# Toujours filtré par `risque_prompt.purger_mouvement_interdit()` — ce
-# vocabulaire, écrit pour un visage humain, a produit un clip mesuré
-# statique sur un univers wireframe sans visage (enquête run #66).
-_VOCABULAIRE_EMOTION = {
-    "colere": "the character shouts, shoulders heaving",
-    "surprise": "the character recoils sharply, then freezes",
-    "peur": "the character shrinks back, trembling slightly",
-    "joie": "the character laughs, body bouncing",
-    "tristesse": "the character looks down slowly",
-    "mepris": "the character slowly turns their head away",
-    "gene": "the character shifts weight, eyes darting sideways",
-    "calme": "subtle idle motion, slight breathing, eyes blinking",
-}
-
-# Vocabulaire fixe et court, comme `cadrage.PHRASES`/`cadrage.PHRASES_DISPOSITION`
-# — ShotPromptWriter choisit une valeur, cette table la traduit en anglais.
-_PHRASES_CAMERA = {
-    "push_in_lent": "camera performs a slow forward push-in",
-    "pull_back_lent": "camera performs a slow pull-back",
-    "pan_lent": "camera pans slowly across the scene",
-    "leger_tremblement": "subtle handheld camera vibration",
-    "fixe": "camera holds steady",
-}
-
-
 def _prompt_mouvement(plan: dict, univers: Univers) -> str:
     """Ce qu'on demande au modèle vidéo de faire bouger.
 
-    Compilé depuis les décisions de mouvement de ShotPromptWriter
-    (`mouvement_sujet`/`mouvement_camera`/`mouvement_environnement`/
-    `intensite_mouvement`, voir plans@1.13.0) — plus un dictionnaire fixe
-    par émotion appliqué sans discernement à tous les plans. Le modèle qui
-    a déjà lu le script entier sait, plan par plan, ce qui doit RÉELLEMENT
-    évoluer ; un vocabulaire figé par émotion ne peut pas le savoir.
+    Ne fabrique plus rien lui-même : passe par le programme de mouvement
+    (`pdz.production.motion_program`), qui sépare enfin l'INTENTION
+    temporelle du plan (ce qui bouge, ce qui doit rester, ce qui est
+    interdit — une donnée typée, exploitable par le diagnostic en aval) du
+    TEXTE qu'on finit par envoyer au fournisseur. Cette fonction reste le
+    point d'entrée historique : `animer()` et les tests l'appellent sans
+    rien savoir de cette séparation.
 
-    Deux choses que ce prompt ne fait PLUS, mesurées comme nuisibles :
+    Ce que le prompt ne fait toujours PAS, mesuré comme nuisible :
 
     · **il ne redécrit pas la scène.** `action` (le prompt d'IMAGE, ~65 mots
       une fois enrichi par `fusionner()`) y était réinjecté, portant le
@@ -476,30 +450,5 @@ def _prompt_mouvement(plan: dict, univers: Univers) -> str:
       phrase de caméra. Seul un choix EXPLICITE (« fixe » compris) en
       produit une.
     """
-    sujet = (plan.get("mouvement_sujet") or "").strip()
-    if not sujet:
-        emotion = plan.get("emotion", "calme")
-        sujet = _VOCABULAIRE_EMOTION.get(emotion, "subtle idle motion")
-
-    morceaux = [sujet]
-
-    if phrase_camera := _PHRASES_CAMERA.get(plan.get("mouvement_camera") or ""):
-        morceaux.append(phrase_camera)
-    morceaux.append("character design stays identical")
-
-    if env := (plan.get("mouvement_environnement") or "").strip():
-        morceaux.append(env)
-
-    if plan.get("intensite_mouvement") == "fort":
-        morceaux.append("clearly visible, unmistakable motion throughout")
-
-    prompt = ", ".join(morceaux)
-
-    registre = (plan.get("registre_visuel") or "").strip()
-    if registre and registre.lower() not in prompt.lower():
-        prompt = f"{prompt}, maintain style: {registre}"
-
-    if univers.style.ambiance:
-        prompt = f"{prompt}, {univers.style.ambiance}"
-
-    return risque_prompt.purger_mouvement_interdit(prompt, univers)
+    return motion_program.compiler_prompt(
+        motion_program.depuis_plan(plan, univers), univers)
