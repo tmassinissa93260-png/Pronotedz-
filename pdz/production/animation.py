@@ -28,7 +28,6 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
-from pdz.analyse.sonde import sonder
 from pdz.ia import fal
 from pdz.ia.registre import registre
 from pdz.moteur.erreurs import ErreurPdz
@@ -300,7 +299,8 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
                     "clip_invalide" if not verdict.fichier_valide else "clip_too_short",
                 )
                 resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
-                                        duree_clip_s, diagnostic="rejete_duree"))
+                                        duree_clip_s, diagnostic="rejete_duree",
+                                        cout=cout))
                 continue
 
             if not verdict.mouvement_detecte:
@@ -315,7 +315,8 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
                     "(diff. moyenne %.3f/255)", i, verdict.diff_moyenne,
                 )
                 resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
-                                        duree_clip_s, diagnostic="rejete_mouvement"))
+                                        duree_clip_s, diagnostic="rejete_mouvement",
+                                        cout=cout))
                 continue
 
             log.info(
@@ -350,16 +351,25 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
     mouvement_confirme = sum(1 for r in resultats if r.diagnostic == "mouvement_confirme")
     parallaxe = sum(1 for r in resultats if r.methode == "vie")
     image_fixe = sum(1 for r in resultats if r.methode == "camera")
+    # `perdu` : de l'argent réellement dépensé pour un clip finalement
+    # écarté. Journalisé à part parce que c'est la seule dépense du système
+    # qui n'achète rien — la voir, c'est pouvoir décider si le modèle vaut
+    # encore son prix. Il est bien compté dans `depense` ET dans le total
+    # de l'épisode (voir `_repli(cout=...)`), jamais silencieux.
+    perdu = sum(r.cout for r in resultats if r.methode != "modele")
     log.info(
         "Animation terminée : %d plan(s) sur %d — mouvement modèle confirmé : %d · "
-        "parallaxe locale : %d · image fixe : %d · %.3f € dépensés",
-        len(resultats), combien, mouvement_confirme, parallaxe, image_fixe, depense,
+        "parallaxe locale : %d · image fixe : %d · %.3f € dépensés (dont %.3f € "
+        "sur des clips écartés)",
+        len(resultats), combien, mouvement_confirme, parallaxe, image_fixe,
+        depense, perdu,
     )
     return resultats
 
 
 def _repli(index: int, image: Path, dossier: Path, plan: dict,
-           avec_vie: bool, duree_clip_s: int, *, diagnostic: str = "") -> PlanAnime:
+           avec_vie: bool, duree_clip_s: int, *, diagnostic: str = "",
+           cout: float = 0.0) -> PlanAnime:
     """Le plan n'est pas animé par un modèle : que fait-on à la place ?
 
     Deux niveaux, tous les deux gratuits. « vie » ajoute parallaxe et
@@ -369,6 +379,14 @@ def _repli(index: int, image: Path, dossier: Path, plan: dict,
 
     `diagnostic` (voir `PlanAnime`) explique POURQUOI on est ici plutôt
     qu'avec un vrai clip modèle — porté par l'appelant, jamais recalculé.
+
+    `cout` est l'argent DÉJÀ dépensé pour ce plan avant d'arriver ici : un
+    clip payé puis rejeté (durée ou mouvement) a coûté malgré tout. Sans
+    ce report, `episode.py` (`sum(a.cout for a in animes)`) n'additionnait
+    que les clips ACCEPTÉS — mesuré sur le run #66 : 0,900 € réellement
+    dépensés, 0,200 € comptabilisés, soit 78 % de la dépense d'animation
+    invisible, alors que le plafond budgétaire est justement vérifié
+    contre ce total. Le repli est gratuit ; ce qui l'a précédé ne l'est pas.
 
     `duree_clip_s` ne sert ici QUE de repli si `plan.duree_s` est absent —
     jamais de plafond. `vie.animer()` fabrique son clip image par image,
@@ -382,7 +400,7 @@ def _repli(index: int, image: Path, dossier: Path, plan: dict,
     son travail en refusant de livrer une vidéo silencieuse sur la fin.
     """
     if not avec_vie:
-        return PlanAnime(index, image, False, "camera", diagnostic=diagnostic)
+        return PlanAnime(index, image, False, "camera", cout, diagnostic=diagnostic)
 
     from pdz.video.vie import Effets
     from pdz.video.vie import animer as animer_localement
@@ -396,9 +414,9 @@ def _repli(index: int, image: Path, dossier: Path, plan: dict,
         )
     except Exception as e:                        # PIL, ffmpeg, disque plein…
         log.warning("Effet « vie » impossible sur le plan %d : %s", index, e)
-        return PlanAnime(index, image, False, "camera", diagnostic=diagnostic)
+        return PlanAnime(index, image, False, "camera", cout, diagnostic=diagnostic)
 
-    return PlanAnime(index, destination, True, "vie", diagnostic=diagnostic)
+    return PlanAnime(index, destination, True, "vie", cout, diagnostic=diagnostic)
 
 
 # Repli historique, gardé pour un job en cache d'avant plans@1.13.0, ou un
@@ -438,9 +456,19 @@ def _prompt_mouvement(plan: dict, univers: Univers) -> str:
     a déjà lu le script entier sait, plan par plan, ce qui doit RÉELLEMENT
     évoluer ; un vocabulaire figé par émotion ne peut pas le savoir.
 
-    `"camera holds steady"` n'est plus inconditionnel : une décision de
-    mouvement de caméra explicite le remplace, plutôt que de la contredire
-    silencieusement comme un ajout naïf l'aurait fait.
+    Deux choses que ce prompt ne fait PLUS, mesurées comme nuisibles :
+
+    · **il ne redécrit pas la scène.** `action` (le prompt d'IMAGE, ~65 mots
+      une fois enrichi par `fusionner()`) y était réinjecté, portant le
+      prompt de mouvement à 119 mots — 2,6× le seuil de 45 que ce module
+      documente lui-même. En image→vidéo, l'image d'entrée porte déjà la
+      scène : la redécrire fait REFABRIQUER au lieu d'animer.
+    · **il ne fige plus la caméra par défaut.** Le schéma demande au modèle
+      de laisser `mouvement_camera` vide quand aucun mouvement n'apporte
+      rien à ce plan ; traduire ce vide en « camera holds steady » revenait
+      à instruire l'immobilité sur la majorité des plans. Vide ⇒ aucune
+      phrase de caméra. Seul un choix EXPLICITE (« fixe » compris) en
+      produit une.
     """
     sujet = (plan.get("mouvement_sujet") or "").strip()
     if not sujet:
@@ -448,10 +476,9 @@ def _prompt_mouvement(plan: dict, univers: Univers) -> str:
         sujet = _VOCABULAIRE_EMOTION.get(emotion, "subtle idle motion")
 
     morceaux = [sujet]
-    if action := (plan.get("action") or "").strip():
-        morceaux.append(action)
 
-    morceaux.append(_PHRASES_CAMERA.get(plan.get("mouvement_camera") or "", "camera holds steady"))
+    if phrase_camera := _PHRASES_CAMERA.get(plan.get("mouvement_camera") or ""):
+        morceaux.append(phrase_camera)
     morceaux.append("character design stays identical")
 
     if env := (plan.get("mouvement_environnement") or "").strip():

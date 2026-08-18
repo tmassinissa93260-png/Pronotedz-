@@ -406,3 +406,26 @@ def test_les_sous_titres_sont_cales_sur_les_mots_reels(atelier):
     assert "Dialogue:" in contenu
     # Le dernier mot du script doit être daté après le premier.
     assert contenu.count("Dialogue:") >= 3
+
+
+def test_la_qa_finale_du_mouvement_est_persistee(atelier):
+    """Sans trace en base, le verdict « combien de plans bougent vraiment »
+    ne vivait que dans le journal d'un run et disparaissait — impossible de
+    comparer deux épisodes ou de constater qu'une correction a servi."""
+    from pdz import db
+
+    _, resultat = _produire(atelier)
+
+    with db.connexion() as conn:
+        ligne = conn.execute(
+            "SELECT resultat, cout FROM etapes "
+            "WHERE job_id = ? AND cle = 'qa_video_finale'",
+            (resultat.job_id,),
+        ).fetchone()
+
+    assert ligne is not None, "la QA finale doit laisser une trace en base"
+    enregistre = json.loads(ligne["resultat"])
+    assert len(enregistre["verdicts"]) == len(resultat.plans)
+    assert enregistre["plans_avec_mouvement_confirme"] == \
+        resultat.plans_avec_mouvement_confirme
+    assert ligne["cout"] == 0.0          # une mesure, jamais un appel payant

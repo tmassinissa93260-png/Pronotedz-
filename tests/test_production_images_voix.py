@@ -815,6 +815,85 @@ def test_un_clip_de_bonne_duree_mais_statique_est_rejete(monkeypatch, tmp_path):
     assert resultats[0].diagnostic == "rejete_mouvement"
 
 
+def test_un_clip_paye_puis_rejete_garde_son_cout(monkeypatch, tmp_path):
+    """Fuite budgétaire mesurée sur le run #66 : 0,900 € réellement dépensés,
+    0,200 € comptabilisés. `_repli()` renvoyait `PlanAnime(cout=0.0)`, donc
+    `sum(a.cout for a in animes)` (episode.py) n'additionnait que les clips
+    ACCEPTÉS — alors que le plafond budgétaire est vérifié contre ce total.
+    Un clip payé puis écarté a coûté malgré tout."""
+    import subprocess
+
+    def _clip_statique(image, prompt, destination, *, duree_s, **k):
+        subprocess.run([
+            "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
+            "-f", "lavfi", "-t", "5", "-i", "color=c=blue:s=320x240:r=25",
+            "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
+            str(destination),
+        ], check=True, capture_output=True)
+        return destination, 0.18
+
+    monkeypatch.setattr(animation.fal, "animer_image", _clip_statique)
+
+    u = Univers.charger(FRUITS)
+    p = tmp_path / "p0.jpg"
+    Image.new("RGB", (64, 64), (10, 60, 90)).save(p)
+    plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
+             "emotion": "colere", "duree_s": 4.7}]
+
+    resultats = animation.animer(
+        plans, [p], u, tmp_path / "anim", budget_restant=100.0,
+        profil="equilibre", vie_pour_le_reste=True,
+    )
+
+    assert resultats[0].diagnostic == "rejete_mouvement"
+    assert resultats[0].methode != "modele"
+    # C'est CE total que `episode.py` additionne.
+    assert sum(r.cout for r in resultats) == pytest.approx(0.18)
+
+
+def test_un_enregistrement_danimation_davant_ce_lot_se_reprend_sans_planter():
+    """`cout` et `diagnostic` viennent d'être ajoutés à ce que `_noter()`
+    écrit. Un job mis en cache AVANT ne les a pas : la reprise doit repartir
+    avec des valeurs neutres plutôt que lever un KeyError — c'est la
+    régression que ce lot pourrait introduire."""
+    ancien = {"index": 0, "fichier": "/tmp/anime_000.mp4",
+              "anime": True, "methode": "modele"}
+
+    repris = animation.PlanAnime(
+        ancien["index"], Path(ancien["fichier"]), ancien["anime"],
+        ancien["methode"], ancien.get("cout", 0.0),
+        diagnostic=ancien.get("diagnostic", ""),
+    )
+
+    assert repris.cout == 0.0
+    assert repris.diagnostic == ""
+    assert repris.methode == "modele"
+
+
+def test_un_plan_jamais_tente_ne_coute_rien(monkeypatch, tmp_path):
+    """Symétrie du test précédent : le report de coût ne doit pas inventer
+    de dépense là où aucun appel payant n'a eu lieu."""
+    def _jamais_appele(*a, **k):
+        raise AssertionError("aucun appel payant ne doit partir ici")
+
+    monkeypatch.setattr(animation.fal, "animer_image", _jamais_appele)
+
+    u = Univers.charger(FRUITS)
+    p = tmp_path / "p0.jpg"
+    Image.new("RGB", (64, 64), (10, 60, 90)).save(p)
+    # Plus long que ce que le modèle rend réellement → repli avant tout appel.
+    plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
+             "emotion": "colere", "duree_s": animation.DUREE_REELLE_MAX_S + 2}]
+
+    resultats = animation.animer(
+        plans, [p], u, tmp_path / "anim", budget_restant=100.0,
+        profil="equilibre", vie_pour_le_reste=True,
+    )
+
+    assert resultats[0].diagnostic == "hors_portee"
+    assert resultats[0].cout == 0.0
+
+
 def test_un_plan_plus_long_que_le_clip_saute_lappel_paye(monkeypatch, tmp_path):
     """Bug réel (production épisode #57, puis #65 à un plafond plus large) :
     un plan qui a besoin de plus que `DUREE_CLIP_S` était quand même envoyé
@@ -883,14 +962,74 @@ def test_lepisode_annonce_combien_de_plans_sont_animes():
     assert "2 plan(s) animé(s)" in anime.resume()
 
 
+SEUIL_MOTS_PROMPT_MOUVEMENT = 45
+
+# Un `action` réaliste : ce que `ShotPromptWriter.fusionner()` produit
+# vraiment sur un plan riche, une fois `elements_obligatoires`, `relations`,
+# `geometrie` et la clause de priorité compilés dedans. ~65 mots.
+_ACTION_REALISTE = (
+    "a futuristic passenger airliner climbing into the sky just after takeoff, "
+    "featuring runway, airport, flight path originates at the aircraft, curves "
+    "upward to the right, glowing blue holographic line, airliner, centered in "
+    "the frame, in the foreground, runway, near the bottom of the frame, in the "
+    "foreground, airport, centered in the frame, in the background, airliner as "
+    "the visual focus, fog secondary in the frame"
+)
+
+
 def test_le_prompt_de_mouvement_reste_court_et_protege_le_personnage():
     """Un prompt long fait refabriquer la scène au lieu de l'animer."""
     u = Univers.charger(FRUITS)
     prompt = animation._prompt_mouvement(
         {"emotion": "colere", "action": "elle jette un verre"}, u
     )
-    assert len(prompt.split()) < 45
+    assert len(prompt.split()) < SEUIL_MOTS_PROMPT_MOUVEMENT
     assert "identical" in prompt
+
+
+# Pire cas MESURÉ (les quatre champs de mouvement remplis au maximum, plus
+# registre et ambiance) : 52 mots. Au-dessus des 45 visés, et c'est assumé —
+# retirer `action` était le correctif demandé, et il fait tomber ce cas de
+# 119 à 52. Le reste vient de `registre_visuel` et `univers.style.ambiance`,
+# tous deux volontaires et hors du périmètre de ce correctif. Ce plafond
+# garde la vraie régression : que `action` revienne.
+PLAFOND_MOTS_PIRE_CAS = 55
+
+
+def test_un_plan_riche_reste_sous_le_seuil_et_ne_redecrit_pas_la_scene():
+    """Le vrai cas de production, pas un plan minimal.
+
+    Le test précédent n'exerçait qu'un plan à deux champs : il passait au
+    vert pendant que la production réelle atteignait 119 mots (2,6× le
+    seuil), parce que `action` — le prompt d'IMAGE, ~65 mots — était
+    réinjecté ici. En image→vidéo, l'image d'entrée porte déjà la scène ;
+    la redécrire fait refabriquer au lieu d'animer."""
+    u = Univers.charger(FRUITS)
+    prompt = animation._prompt_mouvement(
+        {"emotion": "calme",
+         "action": _ACTION_REALISTE,
+         "mouvement_sujet": "the airliner climbs steadily, engines glow brighter, "
+                            "condensation trails expand behind the wings",
+         "mouvement_camera": "push_in_lent",
+         "mouvement_environnement": "ground fog drifts laterally, holographic "
+                                    "particles rise slowly",
+         "intensite_mouvement": "fort",
+         "registre_visuel": "abstract wireframe hologram, not a photorealistic render"},
+        u,
+    )
+
+    # Moins de la moitié des 119 mots d'avant le correctif : c'est le retrait
+    # de `action` qui fait la différence, et c'est ça que ce plafond garde.
+    assert len(prompt.split()) <= PLAFOND_MOTS_PIRE_CAS
+    # Aucun fragment de la description de scène ne doit se retrouver ici.
+    assert "centered in the frame" not in prompt
+    assert "visual focus" not in prompt
+    assert _ACTION_REALISTE not in prompt
+    # Mais les décisions de MOUVEMENT, elles, doivent toutes être présentes.
+    assert "the airliner climbs steadily" in prompt
+    assert "camera performs a slow forward push-in" in prompt
+    assert "ground fog drifts laterally" in prompt
+    assert "clearly visible, unmistakable motion throughout" in prompt
 
 
 def test_le_prompt_de_mouvement_porte_le_registre_visuel_du_plan():
@@ -907,12 +1046,12 @@ def test_le_prompt_de_mouvement_porte_le_registre_visuel_du_plan():
 
 
 def test_le_prompt_de_mouvement_ne_double_pas_un_registre_deja_couvert():
-    """Non-remplissage : si `action` mentionne déjà le registre en toutes
-    lettres, `registre_visuel` n'est pas rajouté une seconde fois."""
+    """Non-remplissage : si `mouvement_sujet` mentionne déjà le registre en
+    toutes lettres, `registre_visuel` n'est pas rajouté une seconde fois."""
     u = Univers.charger(FRUITS)
     prompt = animation._prompt_mouvement(
         {"emotion": "calme",
-         "action": "a wireframe mechanism, abstract wireframe rendering",
+         "mouvement_sujet": "the mechanism unfolds, abstract wireframe rendering",
          "registre_visuel": "abstract wireframe rendering"},
         u,
     )
@@ -967,9 +1106,23 @@ def test_mouvement_camera_remplace_camera_holds_steady():
     assert "camera holds steady" not in prompt
 
 
-def test_sans_mouvement_camera_le_defaut_reste_camera_fixe():
+def test_sans_mouvement_camera_aucune_phrase_de_camera_nest_ajoutee():
+    """Le schéma demande au modèle de laisser `mouvement_camera` vide quand
+    aucun mouvement de caméra n'apporte rien à ce plan. Traduire ce vide en
+    « camera holds steady » revenait à instruire l'immobilité sur la
+    majorité des plans — l'inverse de ce que le champ vide veut dire."""
     u = Univers.charger(FRUITS)
     prompt = animation._prompt_mouvement({"emotion": "calme", "action": "x"}, u)
+    assert "camera" not in prompt
+
+
+def test_mouvement_camera_fixe_explicite_fige_bien_la_camera():
+    """« fixe » est un CHOIX, pas une absence de choix : là, la consigne
+    d'immobilité est légitime et doit bien partir."""
+    u = Univers.charger(FRUITS)
+    prompt = animation._prompt_mouvement(
+        {"emotion": "calme", "action": "x", "mouvement_camera": "fixe"}, u
+    )
     assert "camera holds steady" in prompt
 
 

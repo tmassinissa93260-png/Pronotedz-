@@ -527,17 +527,26 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
             budget_restant=max(0.0, plafond - cout_total), profil=profil,
             job_id=job_id,
         )
+        # `cout` et `diagnostic` par plan : sans eux, un `pdz reprendre`
+        # repartait avec un coût nul et un diagnostic vide — l'argent déjà
+        # engagé sur un clip écarté disparaissait du total, et la trace de
+        # POURQUOI un plan n'a pas de clip modèle était perdue.
         cout_anim = sum(a.cout for a in animes)
         _noter(job_id, "animation", "animation", {
             "plans": [{"index": a.index, "fichier": str(a.fichier),
-                       "anime": a.anime, "methode": a.methode} for a in animes],
+                       "anime": a.anime, "methode": a.methode,
+                       "cout": a.cout, "diagnostic": a.diagnostic}
+                      for a in animes],
         }, cout_anim, int((time.perf_counter() - debut) * 1000))
         cout_total += cout_anim
     elif fait_anim is not None:
         repris.append("animation")
+        # `.get()` : une production notée avant l'ajout de ces champs se
+        # reprend sans eux plutôt que d'échouer.
         animes = [
             animation.PlanAnime(a["index"], Path(a["fichier"]), a["anime"],
-                                a["methode"])
+                                a["methode"], a.get("cout", 0.0),
+                                diagnostic=a.get("diagnostic", ""))
             for a in fait_anim["plans"]
         ]
     else:
@@ -584,11 +593,21 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     # Déterministe, zéro appel IA, ne bloque jamais la livraison — un souci
     # ici ne doit pas faire échouer un épisode par ailleurs valide.
     plans_avec_mouvement_confirme = -1
+    debut = time.perf_counter()
     try:
         verdicts = qa_video_finale.verifier(sortie, plans)
         plans_avec_mouvement_confirme = sum(1 for v in verdicts if v["mouvement_confirme"])
         log.info("QA finale : %d/%d plan(s) avec mouvement confirmé dans la vidéo montée",
                  plans_avec_mouvement_confirme, len(plans))
+        # Persisté : ce verdict est la seule mesure de ce que le spectateur
+        # voit VRAIMENT bouger. Sans trace en base, il ne vivait que dans le
+        # journal d'un run et disparaissait — impossible de comparer deux
+        # épisodes ou de constater qu'une correction a servi à quelque chose.
+        # Coût 0 € : c'est une mesure, pas un appel.
+        _noter(job_id, "qa_video_finale", "qa_video_finale",
+               {"verdicts": verdicts,
+                "plans_avec_mouvement_confirme": plans_avec_mouvement_confirme},
+               0.0, int((time.perf_counter() - debut) * 1000))
     except ErreurPdz as e:
         log.warning("QA finale du mouvement impossible (%s) : %s", e.categorie, e)
 
