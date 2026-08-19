@@ -401,10 +401,16 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
     # encore son prix. Il est bien compté dans `depense` ET dans le total
     # de l'épisode (voir `_repli(cout=...)`), jamais silencieux.
     perdu = sum(r.cout for r in resultats if r.methode != "modele")
+    # « %d sur %d » avec (len(resultats), combien) s'affichait à l'envers —
+    # « 6 plan(s) sur 4 » en production (run #77), les deux nombres ne
+    # décrivant pas le même ensemble : `combien` compte les plans ÉLUS pour
+    # l'appel payant, `resultats` TOUS les plans. Nommés séparément plutôt
+    # que remis dans l'ordre : le lecteur ne peut pas deviner lequel des deux
+    # est lequel.
     log.info(
-        "Animation terminée : %d plan(s) sur %d — mouvement modèle confirmé : %d · "
-        "parallaxe locale : %d · image fixe : %d · %.3f € dépensés (dont %.3f € "
-        "sur des clips écartés)",
+        "Animation terminée : %d plan(s) traités, %d tenté(s) au modèle — "
+        "mouvement modèle confirmé : %d · parallaxe locale : %d · "
+        "image fixe : %d · %.3f € dépensés (dont %.3f € sur des clips écartés)",
         len(resultats), combien, mouvement_confirme, parallaxe, image_fixe,
         depense, perdu,
     )
