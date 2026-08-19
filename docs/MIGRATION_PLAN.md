@@ -241,252 +241,399 @@ pour une chaîne qui n'existe pas ne testerait que la référence elle-même.
 
 ---
 
-## Phase 3 — Director *(bloquée par la décision §1 de GAP_ANALYSIS)*
+## Phase 3 — Deux profils, une convergence ✅ **FAIT**
 
-> ⚠️ **Ne commence pas avant l'arbitrage `fiction` / `explicatif`.**
+> La décision de docs/GAP_ANALYSIS.md § 1 est prise : **option A**.
 
-Sous l'option A recommandée :
+### Livré
 
-- `pdz/director/` : contrat `DirectorState` (`thesis, claims, causal_chain,
-  viewer_knowledge_state, emotional_curve, visual_language, visual_evidence,
-  shot_intentions, continuity_anchors`), produit par les agents existants
-  (`BriefWriter`, `ScriptWriter`) enrichis.
-- `pdz/research/` : `ResearchBackend` (Protocol) + `MockResearchAdapter` +
-  `PerplexityResearchAdapter` ; `FactGraph`, `Claim`, `Source`, statuts
-  `FACT/HEURISTIC/UNKNOWN/HUMAN_VERIFIED`, détection de conflits et
-  d'obsolescence.
-- `pdz/evidence/` : `CLAIM → EVIDENCE → VISUAL → SHOT`. `fidelite_visuelle.py`
-  y devient le vérificateur du dernier maillon.
-- Le profil `fiction` fournit un `NarrativeState` issu de l'`Univers` — les deux
-  profils convergent sur le **même** `DirectorState`.
+| Paquet | Rôle | IA ? |
+|---|---|---|
+| `pdz/narrative/` | `Univers` + script → `NarrativeState` | ✗ |
+| `pdz/research/` | `RechercheBackend` (Protocol) → `ResearchState` | ✗ |
+| `pdz/director/` | l'un OU l'autre → **`DirectorState`** | ✗ |
 
-**Critère** : `pdz creer --sujet "Comment fonctionne un moteur électrique ?"`
-produit un `factgraph.json` où chaque claim porte au moins une source, ou le
-statut `UNKNOWN` — et **aucun claim inventé ne porte le statut `FACT`**.
-**Risque** : élevé (couche neuve, format neuf). **Effort** : élevé.
+**Aucun appel IA dans les trois.** Tout vient de matière déjà écrite :
+l'univers (YAML versionné), le brief et le script (`BriefWriter`,
+`ScriptWriter`), le graphe de connaissance. Redemander à un modèle ce que
+deux structures portent déjà serait payer pour dégrader une information
+qu'on avait exacte.
 
----
+### La convergence
 
-## Phase 4 — Timeline *(consolidation)*
+`compiler(topic, source)` route sur le **type** de la source, jamais sur un
+drapeau : un `ResearchState` ne peut pas être compilé en fiction, et laisser
+un booléen décider ouvrirait cette possibilité pour rien.
 
-La phase la plus courte : la chaîne `SCRIPT → TTS → VoiceTimeline` est déjà
-juste. Il s'agit de la **nommer**.
+Les deux profils produisent le même `DirectorState@1.0.0`. Tout ce qui suit —
+plans, perception, mouvement, rendu, observation, réparation — s'écrit **une
+seule fois**.
 
-- `pdz/audio/` : `BandeVoix` → contrat `VoiceTimeline`.
-- Un `AudioPlan` (pistes voix / musique / ambiance / SFX) — pour l'instant avec
-  la seule piste voix remplie. L'interface existe, l'implémentation suit.
+### Ce qui reste propre à chacun
 
-**Critère** : le contrat `VoiceTimeline` porte les timings mot à mot, et
-`storyboard.decouper()` ne lit plus que lui.
-**Risque** : faible. **Effort** : faible.
+|  | FICTION | EXPLICATIF |
+|---|---|---|
+| matière | personnages, conflit, événements, règles du monde | claims, sources, confiance, conflits |
+| thèse | la promesse du script | le claim le plus solide |
+| points portés | les événements | **seulement les claims sourcés** |
+| paliers | découvre → enjeu → parti pris → tension → retournement → conséquence | ignore → question → explication → mécanisme → causalité → payoff |
 
----
+Les paliers diffèrent parce qu'**on ne « comprend » pas une trahison** : en
+fiction, l'acquisition n'est pas un savoir mais une tension. Les six paliers
+explicatifs y seraient un contresens.
 
-## Phase 5 — Shot Compiler
+### L'honnêteté, appliquée
 
-- `PlanScript` → contrat `ShotSpec` avec les champs manquants : `purpose`,
-  `state_before`, `event`, `state_after`, `success_criteria`.
-- `ShotGraph` : une **structure**, pas une liste — les continuités entre plans
-  deviennent des arêtes.
-- `pdz/perception/` : `PerceptualContract` extrait de `ContratVisuel` +
-  `MotionProgram.cible_perceptuelle`, complété par `attention` ordonnée et
-  `ne_doit_pas_etre_confondu_avec`.
+`qualifier()` centralise la règle en un seul endroit testable :
 
-**Critère** : chaque plan répond aux questions 1 et 2 des cinq.
-**Risque** : moyen. **Effort** : moyen.
+- aucune source → `HEURISTIQUE` (un énoncé non sourcé peut être vrai ; il
+  n'est pas *vérifié*) ;
+- une contradiction → `HEURISTIQUE`, quoi qu'il arrive par ailleurs — le
+  système ne tranche pas un désaccord tout seul ;
+- information périmée → `HEURISTIQUE` ;
+- la confiance **plafonne sous 1,0** : aucune recherche automatique ne mérite
+  la certitude absolue, et laisser le nombre atteindre 1 inviterait à
+  confondre confiance et statut.
 
----
+**Seuls les claims affirmables entrent dans `points_a_porter`.** Un
+heuristique peut apparaître dans la vidéo, nuancé — il ne fait pas partie de
+ce qu'elle *promet*. Les lacunes de recherche remontent en continuité non
+résolue : une lacune énoncée est utilisable, une lacune silencieuse produit
+une vidéo assurée sur du vide.
 
-## Phase 6 — World / Causality
+`SansRecherche` est le backend par défaut. Ce n'est pas un mode dégradé :
+c'est la réponse honnête quand rien n'est configuré. Il produit un état vide
+dont la lacune est nommée — infiniment préférable à un graphe de claims
+inventés par un modèle à qui l'on aurait demandé « ce que tu sais ».
 
-- `pdz/world/` : `Entity, State, Relation, Position, Geometry, Identity,
-  Material, Constraints`, avec `expected_state` / `observed_state` /
-  `confidence`. `continuite.py` et `geometrie.py` y sont absorbés.
-- `pdz/causality/` : chaîne causale, et la décision « quelles conséquences
-  montrer ».
+> **Backend réel** : non fourni ici. `RechercheBackend` est un `Protocol`, et
+> l'adaptateur réseau appartient à la PHASE 6 avec les autres backends.
+> L'écrire maintenant dupliquerait ce travail.
 
-**Critère** : après chaque plan validé, le `WorldState` est mis à jour et le
-`STATE DELTA` est journalisé — même si, à ce stade, rien ne le consomme encore.
-**Risque** : moyen. **Effort** : moyen.
+### Corpus golden étendu
 
----
+`explicatif_moteur.json` gèle la compilation explicative, avec un énoncé
+volontairement non sourcé : la référence **prouve** qu'il est exclu des
+promesses et remonté en lacune.
 
-## Phase 7 — Motion & Camera
+### Résultat
 
-- `pdz/motion/` : le Motion DSL s'étend — `static_regions`, trajectoires,
-  `temporal_curve`, rigide / non-rigide, `motion_priority`.
-- `pdz/camera/` : `CameraProgram` **séparé**, avec repère spatial partagé.
-  `montage.Mouvement` (Ken Burns) devient une compilation possible du
-  `CameraProgram`, et non plus une seconde notion de caméra sans rapport.
-- `ControleCamera` s'étend : `TEXTE_SEULEMENT` reste la valeur honnête pour
-  fal.ai, et une valeur `PARAMETRIQUE` apparaîtra le jour où un backend
-  l'accepte **et qu'on l'a mesuré**.
-
-**Critère** : un même `CameraProgram` compile vers un texte pour un backend i2v
-**et** vers un filtre FFmpeg pour la stratégie procédurale.
-**Risque** : moyen. **Effort** : moyen.
+```
+profils   →  30 tests · golden → 12 tests
+pytest    →  1039 passed, 0 échec
+```
 
 ---
 
-## Phase 8 — Rendering
+## Phase 4 — `ExperienceMemory` ✅ **FAIT**
 
-C'est la phase qui corrige la violation d'architecture repérée en Phase 1.
+**Le composant dont le retard coûte le plus cher.** Sans ces lignes, aucun
+routage empirique n'est possible — pas faute d'algorithme, faute de *donnée*.
+Chaque production faite sans enregistrer son expérience est une observation
+perdue pour toujours.
 
-- `pdz/backends/` : interfaces `ImageBackend / VideoBackend / TTSBackend /
-  DepthBackend / SegmentationBackend / AudioBackend / EditBackend`
-  (`capabilities / validate / estimate / execute`), plus un `Mock*` pour
-  chacune. Les 6 adaptateurs existants sont enveloppés, pas réécrits.
-- **`production/animation.py` cesse d'appeler `ia/fal.py` en direct.** Le test
-  d'architecture de la Phase 1 passe au vert.
-- `pdz/capabilities/` : `modeles.yaml` gagne le statut par capacité —
-  `ANNONCE / MESURE / INCONNU`, avec la date de mesure. Les mesures qui vivent
-  aujourd'hui en commentaires (« ltx-video rend ~4,84 s ») deviennent des
-  données.
-- `pdz/renderability/` : score `HIGH/MEDIUM/LOW` + validation statique
-  (`risque_prompt.py` y est absorbé) + **décomposition automatique** d'un plan
-  `LOW`.
-- `pdz/strategies/` : `RenderStrategyGraph`. La cascade en dur devient un choix
-  arbitré. `vie.py` est nommé `2.5D`, `montage.Mouvement` est nommé
-  `PROCEDURAL`, l'appel Kling est `DIRECT_I2V`. `animation.noter()` +
-  `combien_animer()` deviennent le Compute Governor.
+### Livré
 
-**Critère** : ajouter un septième fournisseur ne touche que `backends/` et
-`modeles.yaml`. Zéro ligne dans `production/`.
-**Risque** : élevé (c'est le chemin qui dépense l'argent). **Effort** : élevé.
+Table `experiences` **dans la base existante** — jamais une seconde base,
+jamais un second cache. `pdz/memory/experience.py` fait quatre choses :
+collecter, stocker, requêter, analyser. **Il ne route rien.**
+
+### Une ligne par TENTATIVE
+
+Pas par plan. Un plan réparé trois fois produit trois enregistrements —
+c'est précisément ce qui permettra de mesurer si une réparation marche.
+Agréger par plan effacerait l'information cherchée.
+
+L'unicité porte sur `(job, plan, tentative)` : reprendre un job ne duplique
+pas ses expériences, ce qui gonflerait les échantillons — et la confiance
+accordée aux chiffres — sans qu'aucune tentative de plus n'ait eu lieu.
+
+### `None` n'est pas `0.0`
+
+`taux_de_reussite` rend `None` quand rien n'a été observé. « On n'a jamais
+essayé » et « ça échoue toujours » sont deux informations opposées : les
+confondre éliminerait pour toujours une stratégie jamais tentée.
+
+`echantillon` accompagne chaque statistique : une réussite sur une tentative
+et quarante sur quarante donnent le même taux, et l'une ne vaut rien.
+`significative` le dit sans rien bloquer.
+
+Stratégie et modèle sont agrégés **séparément** — `2.5D` peut être rendu par
+plusieurs moteurs, un modèle peut servir plusieurs stratégies ; les mélanger
+masquerait lequel est en cause.
+
+### Pas encore de routeur
+
+L'ordre imposé, à ne pas inverser :
+`collecter → stocker → requêter → analyser → (un jour) router`.
+
+Construire un routeur avant d'avoir les données produirait un modèle entraîné
+sur rien, avec l'assurance d'un modèle entraîné sur beaucoup. **La PHASE 19
+n'a pas le droit de commencer avant que cette table soit remplie par de
+vraies productions.**
+
+### Résultat
+
+```
+mémoire   →  17 tests
+```
 
 ---
 
-## Phase 9 — Execution
+## Phase 5 — Un seul orchestrateur
 
-- `pdz/execution/` : `ExecutionPlan` en DAG, nœuds portant `input, output,
-  dependencies, estimated_cost, estimated_duration, retry_policy, cache_key`.
-- Ordonnanceur `asyncio` maison (~200 lignes), avec la table `etapes` comme
-  journal de reprise — elle joue déjà ce rôle.
-- **Un seul orchestrateur** : `episode.py` devient `orchestration/`, qui
-  assemble un DAG et le confie au kernel. La reprise dupliquée (`_fait()` /
-  `_noter()`) disparaît, mais sa **revérification des fichiers cités** monte
-  dans le kernel — c'est un acquis né d'un échec réel, il ne se perd pas.
+**Le GAP structurel le plus important.** `moteur/pipeline.py` et
+`production/episode.py` réimplémentent chacun reprise et journalisation ; le
+second produit les vidéos, donc le chemin de production **ne bénéficie pas
+du cache du moteur**.
 
-**Critère** : les images d'un plan et sa carte de profondeur se calculent en
-parallèle ; un `Ctrl-C` au milieu, puis `pdz reprendre`, ne repaie rien.
-**Risque** : élevé. **Effort** : élevé.
+Une seule autorité, propriétaire du cache, de la reprise, de l'état, de la
+validation, de l'exécution, des artefacts et du journal. `episode.py`
+devient un adaptateur, ou disparaît si son rôle est absorbable proprement.
+
+La **revérification des fichiers cités** de `_fait()` monte dans le noyau —
+c'est un acquis né d'un échec réel, il ne se perd pas.
+
+**Critère** : `pdz episode` passe par l'orchestrateur unique, et une reprise
+ne repaie rien. **Risque** : élevé. **Effort** : élevé.
 
 ---
 
-## Phase 10 — Observation
+## Phase 6 — Interfaces backend
 
-- `pdz/observation/` : `ObservationReport` unifié sur les six axes. Les cinq
-  vérificateurs existants deviennent des **sondes** de ce rapport ; leurs seuils
-  calibrés sur données réelles sont conservés tels quels.
-- Axes à compléter : temporel (gels, scintillement, coupes inattendues),
-  sémantique (identité, événement accompli), continuité (couleur, géométrie),
-  audio (loudness, crêtes).
-- **`UNKNOWN` partout où la sonde n'existe pas.** Aucun axe ne reçoit une valeur
-  par défaut qui ressemblerait à une mesure.
+Élimine les quatre dépendances métier → fournisseur déclarées en PHASE 1.
 
-**Critère** : chaque plan rendu produit un `ObservationReport`, et un axe non
-mesuré s'affiche `UNKNOWN` — jamais `OK`.
+`ImageBackend / VideoBackend / TTSBackend / AudioBackend / EditBackend /
+RechercheBackend` (`capabilities / validate / estimate / execute`), plus un
+`Mock*` par interface. Les 6 adaptateurs existants sont **enveloppés, pas
+réécrits**.
+
+C'est ici qu'arrive l'adaptateur de recherche réel, laissé de côté en
+PHASE 3.
+
+**Critère** : les quatre entrées d'`ECARTS_CONNUS` disparaissent, et
+`test_un_ecart_connu_reste_present_ou_sa_derogation_est_retiree` force leur
+retrait. **Risque** : élevé (chemin qui dépense). **Effort** : élevé.
+
+---
+
+## Phase 7 — Capacités : `ANNONCE` / `MESURE` / `INCONNU`
+
+`CapabilityGraph` existe déjà (PHASE 2) et applique la règle. Reste à le
+remplir depuis `modeles.yaml` — et surtout à **faire remonter en données les
+mesures qui vivent aujourd'hui en commentaires** (« ltx-video rend ~4,84 s
+qu'on lui demande 5 ou 10 », « 5 images par requête au maximum »).
+
+Un commentaire ne se requête pas, ne s'agrège pas, et ne peut pas empêcher
+une décision.
+
+**Critère** : aucune dépense n'est engagée sur une capacité non mesurée.
 **Risque** : faible. **Effort** : moyen.
 
 ---
 
-## Phase 11 — Diagnostics & Repair
+## Phase 8 — Stratégies
 
-- `pdz/diagnostics/` : `expected vs observed` généralisé, taxonomie des 18 modes
-  d'échec, chaque diagnostic portant `severite / confiance / preuve /
-  candidats_reparation`.
-- `pdz/repair/` : arbre `PROMPT_FIX · MOTION_FIX · CAMERA_FIX · ANCHOR_FIX ·
-  STRATEGY_FIX · MODEL_FIX · DECOMPOSITION · LOCAL_REPAIR`, chaque branche
-  évaluée `succès_attendu / coût / latence / risque`.
-- Réparation locale par masque, plutôt que régénération du plan entier.
-- **Chaque tentative est enregistrée** — c'est aussi l'alimentation de la
-  Phase 13.
+`vie.py` **est déjà** du 2.5D, `montage.Mouvement` **est déjà** du
+procédural, l'appel Kling **est déjà** du `DIRECT_I2V`. Aucun des trois n'est
+nommé, et la sélection est une cascade `if/else`.
 
-**Critère** : un `CAMERA_DOMINANT` et un `STATIC_RENDER` ne reçoivent plus le
-même traitement, et le journal dit pourquoi cette branche a été choisie.
+`pdz/strategies/` les nomme et les isole. Une stratégie décrit **comment**
+fabriquer le plan ; un backend décrit **avec quel moteur** l'exécuter — la
+confusion des deux est la cause de la cascade en dur.
+
+`animation.noter()` + `combien_animer()` deviennent le Compute Governor.
+
+**Critère** : ajouter une stratégie ne touche pas `production/`.
 **Risque** : moyen. **Effort** : élevé.
 
 ---
 
-## Phase 12 — Editor
+## Phase 9 — `CameraProgram` branché
 
-- `Montage` → contrat `EditTimeline` (pistes vidéo / voix / musique / SFX /
-  sous-titres / graphiques / overlays / transitions).
-- `FFmpegCompiler` devient un `EditBackend` formel.
+Le contrat existe (PHASE 2), l'adaptateur aussi. Reste à le faire produire
+par la chaîne au lieu d'un champ de `MotionProgram`, et à faire de
+`montage.Mouvement` une **compilation** du `CameraProgram` plutôt qu'une
+seconde notion de caméra sans rapport.
 
-**Critère** : aucune commande FFmpeg n'est construite hors de
-`backends/ffmpeg.py`.
-**Risque** : faible. **Effort** : faible.
+`ControleCamera.PARAMETRIQUE` n'apparaîtra que le jour où un backend
+l'accepte **et** qu'on l'a mesuré.
 
----
-
-## Phase 13 — Memory
-
-- `pdz/memory/` : les quatre mémoires séparées + `MemoryPack` (ne jamais envoyer
-  tout l'historique).
-- **`ExperienceMemory`** : table `experiences` — `modele, strategie, prompt,
-  cout, latence, echec, diagnostic, reparation, resultat`. C'est ce qui rend le
-  routage empirique possible **un jour** ; sans collecte, jamais.
-- Provenance complète sur chaque artefact : `final.mp4 → shot_03 →
-  RenderSpec@1.2 → strategy=2.5D → depth_backend=vX → compiler_version=0.8.0`.
-
-**Critère** : `pdz production <job>` répond « pourquoi cette vidéo est comme
-ça » pour n'importe quel plan.
-**Risque** : faible. **Effort** : moyen.
-
-> **Note d'ordonnancement.** La collecte d'expérience est le composant dont le
-> coût de retard est le plus élevé (GAP §4). Si une seule chose peut être
-> avancée hors de son ordre, c'est l'**écriture** dans `experiences` — dès la
-> Phase 8, même si `memory/` n'existe pas encore. Une table qui se remplit tôt
-> vaut mieux qu'un paquet bien rangé qui se remplit tard.
+**Critère** : un même `CameraProgram` compile vers un texte pour un backend
+i2v **et** vers un filtre FFmpeg pour la stratégie procédurale.
+**Risque** : moyen. **Effort** : moyen.
 
 ---
 
-## Phase 14 — Evaluation
+## Phase 10 — `SceneState` + événements + transitions
 
-- `tests/golden/` : corpus de productions de référence — `electric_motor`,
-  `airplane_takeoff`, `smartphone_mechanism`, `electric_car`,
-  `industrial_machine`, plus **un cas fiction** issu des univers existants.
-- Pour chacun : script attendu, shot graph attendu, états attendus, mouvement
-  attendu, timeline attendue, comportement QA attendu.
-- Backends mock partout : le corpus tourne en CI, gratuitement et de façon
-  déterministe.
+`WorldState` et `CausalState` existent (PHASE 2). Reste à les **produire et
+mettre à jour** : `continuite.py` et `geometrie.py` y sont absorbés, et
+chaque plan validé écrit son delta.
 
-**Critère** : un changement de code se juge contre le corpus, pas contre une
-impression.
+Le mouvement devient exprimable comme `ÉTAT A → ÉVÉNEMENT → ÉTAT B` — la
+base sur laquelle le Motion Program s'appuiera vraiment.
+
+**Critère** : après chaque plan validé, le delta d'état est journalisé.
+**Risque** : moyen. **Effort** : moyen.
+
+---
+
+## Phase 11 — `PerceptualContract` branché
+
+Contrat et adaptateur faits (PHASE 2). Reste à le faire produire par la
+chaîne, et surtout à ce que **la QA le lise** — c'est lui qui transforme
+« mouvement faible » en `CAMERA_DOMINANT`.
+
+**Critère** : chaque plan répond aux questions 1 et 2 des cinq.
 **Risque** : faible. **Effort** : moyen.
+
+---
+
+## Phase 12 — `RenderabilityAnalyzer`
+
+Avant de dépenser : nombre d'entités, complexité de mouvement et de caméra,
+contraintes d'identité, rigide/non-rigide, profondeur, durée, capacités
+requises → `HIGH | MEDIUM | LOW`.
+
+**Ce n'est pas une note esthétique.** « Difficile à fabriquer » et « sera
+moche » sont deux jugements sans rapport ; `Faisabilite` le dit déjà dans son
+énumération. `risque_prompt.py` y est absorbé comme validation statique.
+
+**Critère** : un plan `LOW` ne part jamais chez un backend sans décomposition
+ni changement de stratégie. **Risque** : moyen. **Effort** : moyen.
+
+---
+
+## Phase 13 — `ShotDecomposer`
+
+`renderability = LOW` → un plan devient plusieurs plans exécutables.
+
+**Jamais sans conserver la fonction narrative** : chaque plan issu d'une
+décomposition hérite du `but`, du `porte`, de la continuité et de la relation
+causale de son parent. Une décomposition qui perd le pourquoi produit trois
+plans corrects qui ne racontent plus rien.
+
+**Critère** : un plan décomposé porte les mêmes engagements que l'original.
+**Risque** : moyen. **Effort** : moyen.
+
+---
+
+## Phase 14 — `ExecutionDAG`
+
+`ExecutionPlan.ordonnancer()` existe et est testé (PHASE 2). Reste
+l'ordonnanceur `asyncio` (~200 l.) et le branchement sur le noyau, avec la
+table `etapes` comme journal de reprise.
+
+**Un plan simple reste un seul nœud** — forcer tous les plans à ressembler à
+un graphe complexe n'apporterait rien.
+
+**Critère** : image et carte de profondeur se calculent en parallèle ; un
+`Ctrl-C` puis `pdz reprendre` ne repaie rien. **Risque** : élevé.
+**Effort** : élevé.
+
+---
+
+## Phase 15 — Diagnostics
+
+Taxonomie et contrat faits (PHASE 2). Reste à **brancher les sondes
+existantes** : `verification_mouvement`, `qa_video_finale`,
+`coherence_duree`, `cadrage`, `qa_image` deviennent des `Mesure` d'un
+`ObservationReport`, et l'écart attendu/observé produit un `FailureDiagnosis`.
+
+Les seuils calibrés sur données réelles sont **conservés tels quels**.
+
+**Critère** : chaque plan rendu produit un rapport, et un axe non mesuré
+s'affiche `UNKNOWN` — jamais `PASS`. **Risque** : faible. **Effort** : moyen.
+
+---
+
+## Phase 16 — `RepairCompiler`
+
+L'arbre de réparation, chaque branche évaluée `succès attendu / coût /
+latence / risque`. Réparation locale par masque plutôt que régénération du
+plan entier.
+
+**Une nouvelle tentative sans changement de cause probable n'est pas une
+réparation.** Chaque tentative alimente `ExperienceMemory`.
+
+**Critère** : `CAMERA_DOMINANT` et `STATIC_RENDER` ne reçoivent plus le même
+traitement, et le journal dit pourquoi cette branche. **Risque** : moyen.
+**Effort** : élevé.
+
+---
+
+## Phase 17 — Expected vs Observed, généralisé
+
+Le couple `attendu`/`observe` de `WorldState` et le
+`PerceptualContract` deviennent la référence de toute vérification. Le delta
+pilote le diagnostic, qui pilote la réparation, qui alimente la mémoire.
+
+C'est la fermeture de la boucle : à partir d'ici, un échec devient une
+information exploitable au lieu d'un repli silencieux.
+
+**Critère** : le système répond aux **cinq questions** pour chaque plan.
+**Risque** : moyen. **Effort** : moyen.
+
+---
+
+## Phase 18 — Golden tests ✅ **FAIT** *(avancée en PHASE 2b)*
+
+Avancée parce que les phases 5 à 14 réécrivent la chaîne qui produit ces
+structures. Le corpus s'étoffe à chaque phase qui ajoute un producteur.
+
+---
+
+## Phase 19 — Routage empirique — **verrouillée**
+
+Ne commence **que** lorsque `experiences` contient de vraies productions en
+quantité suffisante (`ECHANTILLON_MINIMAL` par stratégie, au minimum).
+
+Avant cela, il n'y a rien à apprendre, et un routeur entraîné sur rien aurait
+l'assurance d'un routeur entraîné sur beaucoup.
 
 ---
 
 ## Ordonnancement et dépendances
 
 ```
-Phase 0 (fait)
-   ↓
-Phase 1  filet de sécurité ─────────────────┐  (aucune dépendance)
-   ↓                                        │
-Phase 2  contracts ─────────────────────────┤  (bloque tout le reste)
-   ↓                                        │
-   ├─ Phase 3  director/research  ⚠ bloquée par la décision §1
-   ├─ Phase 4  timeline ──→ Phase 5  shot ──→ Phase 6  world/causality
-   │                             ↓
-   │                        Phase 7  motion/camera
-   │                             ↓
-   └────────────────────→   Phase 8  rendering ──→ Phase 9  execution
-                                 ↓                      ↓
-                            Phase 10 observation        │
-                                 ↓                      │
-                            Phase 11 diagnostics/repair │
-                                 ↓                      │
-                            Phase 12 editor ←───────────┘
-                                 ↓
-                            Phase 13 memory
-                                 ↓
-                            Phase 14 evaluation
+0 architecture ✅ ──→ 1 filet ✅ ──→ 2 contracts ✅ ──→ 2b golden ✅
+                                          │
+              ┌───────────────────────────┼───────────────────────┐
+              ↓                           ↓                       ↓
+        3 profils ✅              4 ExperienceMemory ✅     5 orchestrateur unique
+                                          │                       │
+                                          │                       ↓
+                                          │                6 backends ──→ 7 capacités
+                                          │                       │
+                                          │                       ↓
+                                          │                8 stratégies
+                                          │                       │
+                                          │     ┌─────────────────┼──────────────┐
+                                          │     ↓                 ↓              ↓
+                                          │  9 caméra      10 scene state   12 renderability
+                                          │     │                 │              │
+                                          │     └────→ 11 perception ←───────────┤
+                                          │                       │              ↓
+                                          │                       │       13 décomposition
+                                          │                       ↓              │
+                                          │                14 execution DAG ←─────┘
+                                          │                       ↓
+                                          │                15 diagnostics
+                                          │                       ↓
+                                          │                16 repair
+                                          │                       ↓
+                                          └──────────────→ 17 expected vs observed
+                                                                  ↓
+                                                          19 routage empirique 🔒
 ```
 
-Les phases 3 et 4→7 sont **indépendantes** l'une de l'autre : si la décision §1
-tarde, la branche 4→7 avance sans elle.
+**Six phases sur dix-neuf sont faites.** La 19 est verrouillée par la donnée,
+pas par le code : elle attend que `experiences` se remplisse.
+
+Les phases 9 à 13 sont largement **indépendantes entre elles** — leurs
+contrats existent déjà depuis la PHASE 2, il ne reste qu'à les brancher. Elles
+peuvent avancer dans n'importe quel ordre selon ce qui bloque le plus.
 
 ---
 

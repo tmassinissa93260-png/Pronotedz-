@@ -30,7 +30,7 @@ import pytest
 import yaml
 
 from pdz.adaptateurs import audio_timeline, shot_graph
-from pdz.contracts import AudioTimeline, ShotGraph
+from pdz.contracts import AudioTimeline, DirectorState, ShotGraph
 from pdz.production.storyboard import decouper
 from pdz.univers import Univers
 from pdz.video.soustitres import Mot
@@ -41,10 +41,10 @@ RACINE = Path(__file__).resolve().parent.parent
 
 # ── Le corpus ────────────────────────────────────────────────────────────
 #
-# Un cas FICTION, tiré d'un univers réellement livré dans le dépôt. Le cas
-# EXPLICATIF viendra quand le profil aura un producteur (PHASE 3) : écrire
-# aujourd'hui une référence pour une chaîne qui n'existe pas ne testerait
-# que la référence elle-même.
+# Un cas FICTION et un cas EXPLICATIF, tous deux compilés jusqu'au
+# `DirectorState`. Le second est arrivé avec la PHASE 3 : il vérifie que
+# l'explicatif n'affirme QUE ce qui est sourcé, et que la même chaîne sert
+# les deux profils sans en forcer aucun dans le moule de l'autre.
 
 TRAHISON = {
     "nom": "fiction_trahison",
@@ -207,3 +207,76 @@ def test_une_timeline_reconstruite_conserve_les_frontieres():
     assert sorted(timeline.debuts_de_replique_ms) == [0, 3600]
     assert timeline.durees_repliques_s == (3.4, 1.2)
     assert AudioTimeline.depuis_json(timeline.en_json()) == timeline
+
+
+# ── Le corpus des profils : la convergence, gelée ───────────────────────
+#
+# Ce que ces références protègent n'est pas une sortie créative — c'est la
+# STRUCTURE de la décision de mise en scène : quels points la vidéo promet,
+# quels paliers de compréhension, quelles lacunes assumées. Exactement ce
+# que les phases suivantes vont réécrire.
+
+MOTEUR = {
+    "nom": "explicatif_moteur",
+    "sujet": "Comment fonctionne un moteur électrique ?",
+    # Résultats de recherche FIGÉS : le corpus doit tourner sans réseau, et
+    # de façon identique d'une exécution à l'autre.
+    "recherche": [
+        {"enonce": "Le courant dans la bobine crée un champ magnétique",
+         "sources": [{"url": "ex://physique", "titre": "Électromagnétisme"},
+                     {"url": "ex://manuel", "titre": "Machines électriques"}]},
+        {"enonce": "Le champ fait tourner le rotor",
+         "sources": [{"url": "ex://physique"}]},
+        # Volontairement non sourcé : la référence doit prouver qu'il est
+        # EXCLU de ce que la vidéo promet, et remonté en lacune.
+        {"enonce": "Le rendement dépasse toujours 95 %", "sources": []},
+    ],
+}
+
+
+def _director_explicatif() -> DirectorState:
+    from pdz.contracts import Profil, TopicRequest
+    from pdz.director import compiler
+    from pdz.research import RechercheMock, construire
+
+
+    topic = TopicRequest(sujet=MOTEUR["sujet"], profil=Profil.EXPLICATIF,
+                         duree_cible_s=45)
+    recherche = construire(topic.sujet, RechercheMock(MOTEUR["recherche"]))
+    return compiler(topic, recherche, brief=_BRIEF)
+
+
+_BRIEF = {
+    "strategie": {"mecanisme_hook": "un objet du quotidien, jamais regardé de près"},
+    "beats": [
+        {"position_pct": 0, "role": "hook", "quoi": "le moteur qu'on ne voit jamais"},
+        {"position_pct": 45, "role": "mécanisme", "quoi": "le champ tourne"},
+        {"position_pct": 85, "role": "payoff", "quoi": "pourquoi ça marche"},
+    ],
+}
+
+
+def test_le_director_explicatif_reste_identique_a_la_reference():
+    obtenu = json.loads(_director_explicatif().en_json())
+    attendu = _lire(MOTEUR["nom"])
+    assert obtenu == attendu, (
+        "La compilation explicative a changé. Si c'est voulu : régénère et "
+        "relis le diff. Sinon, c'est une régression."
+    )
+
+
+def test_l_explicatif_ne_promet_que_ce_qui_est_source():
+    """L'invariant du profil, indépendant de la référence gelée.
+
+    Trois énoncés cherchés, deux sourcés : la vidéo ne s'engage que sur
+    ceux-là. Le troisième reste disponible, nuancé — il n'est pas promis.
+    """
+    etat = _director_explicatif()
+    assert etat.intention.points_a_porter == ("claim_001", "claim_002")
+    assert any("sans source" in x for x in etat.continuite.non_resolues)
+
+
+def test_les_deux_profils_du_corpus_produisent_le_meme_contrat():
+    """La convergence, vérifiée sur le corpus réel et pas sur des jouets."""
+    assert isinstance(_director_explicatif(), DirectorState)
+    assert _director_explicatif().reference() == "DirectorState@1.0.0"

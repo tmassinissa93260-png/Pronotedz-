@@ -1,0 +1,81 @@
+{
+  "continuite": {
+    "ancres": [],
+    "decor_courant": "",
+    "non_resolues": [
+      "sans source : claim_003"
+    ]
+  },
+  "contraintes": {
+    "budget_max_eur": 0.0,
+    "duree_cible_s": 45.0,
+    "langue": "fr",
+    "plateformes": [
+      "tiktok",
+      "shorts"
+    ]
+  },
+  "contrat": "DirectorState",
+  "cree_le": 0.0,
+  "dependances": [
+    "research_state"
+  ],
+  "emotion": {
+    "courbe": [
+      "hook",
+      "mécanisme",
+      "payoff"
+    ],
+    "relances": []
+  },
+  "id": "director_state",
+  "intention": {
+    "accroche": "un objet du quotidien, jamais regardé de près",
+    "beats": [
+      "0% hook : le moteur qu'on ne voit jamais",
+      "45% mécanisme : le champ tourne",
+      "85% payoff : pourquoi ça marche"
+    ],
+    "payoff": "pourquoi ça marche",
+    "points_a_porter": [
+      "claim_001",
+      "claim_002"
+    ],
+    "these": "Le courant dans la bobine crée un champ magnétique"
+  },
+  "maj_le": 0.0,
+  "profil": "explanatory",
+  "provenance": {
+    "cout_eur": 0.0,
+    "duree_ms": 0,
+    "entrees": [
+      "research_state"
+    ],
+    "fournisseur": "",
+    "modele": "",
+    "producteur": "director.depuis_recherche",
+    "prompt_ref": "",
+    "strategie": "",
+    "version_compilateur": ""
+  },
+  "schema_version": "1.0.0",
+  "spectateur": {
+    "audience": "grand_public",
+    "connaissances_supposees": [],
+    "paliers": [
+      "T0 le spectateur ignore le sujet",
+      "T1 il se pose la question",
+      "T2 il reçoit une première explication",
+      "T3 il voit le mécanisme",
+      "T4 il comprend la chaîne causale",
+      "T5 il repart avec la thèse"
+    ]
+  },
+  "visuel": {
+    "ambiance": "",
+    "grammaire_camera": [],
+    "interdits": [],
+    "palette": [],
+    "registre": ""
+  }
+}

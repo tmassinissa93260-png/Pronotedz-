@@ -16,21 +16,31 @@ from __future__ import annotations
 
 import json
 
-from tests.test_golden import TRAHISON, _compiler, _reference
+from tests.test_golden import (
+    MOTEUR,
+    TRAHISON,
+    _compiler,
+    _director_explicatif,
+    _reference,
+)
 
-CORPUS = [TRAHISON]
+# (nom, producteur) — chaque entrée sait se recalculer seule.
+CORPUS = [
+    (TRAHISON["nom"], lambda: _compiler(TRAHISON)),
+    (MOTEUR["nom"], _director_explicatif),
+]
 
 
 def main() -> None:
-    for cas in CORPUS:
-        chemin = _reference(cas["nom"])
+    for nom, produire in CORPUS:
+        chemin = _reference(nom)
         chemin.parent.mkdir(parents=True, exist_ok=True)
-        contenu = json.loads(_compiler(cas).en_json())
+        contenu = json.loads(produire().en_json())
         chemin.write_text(
             json.dumps(contenu, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
         )
-        print(f"✓ {chemin.name} — {len(contenu.get('plans', []))} plans")
+        print(f"✓ {chemin.name} — {contenu.get('contrat', '?')}")
 
 
 if __name__ == "__main__":

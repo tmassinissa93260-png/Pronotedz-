@@ -3,9 +3,11 @@
 Choix assumé : sqlite3 de la bibliothèque standard, sans ORM. À un seul
 utilisateur, un ORM n'apporterait que des dépendances et de l'indirection.
 
-Les deux tables qui portent tout le système :
-  - `etapes`  : une ligne par étape terminée → c'est ce qui rend la reprise possible
-  - `appels_ia` : une ligne par appel payant → c'est ce qui rend le coût visible
+Les trois tables qui portent tout le système :
+  - `etapes`      : une ligne par étape terminée → c'est ce qui rend la reprise possible
+  - `appels_ia`   : une ligne par appel payant → c'est ce qui rend le coût visible
+  - `experiences` : une ligne par TENTATIVE de fabrication → c'est ce qui
+                    rendra un jour le routage empirique possible
 """
 
 from __future__ import annotations
@@ -131,6 +133,41 @@ CREATE TABLE IF NOT EXISTS artefacts (
     refs     INTEGER NOT NULL DEFAULT 1,
     cree_le  REAL NOT NULL
 );
+
+-- ── Ce qu'une tentative de fabrication a réellement donné ───────────────
+-- UNE LIGNE PAR TENTATIVE, pas par plan : un plan réparé trois fois en
+-- produit trois. C'est précisément ce qui permettra de mesurer si une
+-- réparation marche — agréger par plan effacerait l'information.
+--
+-- Tant que cette table reste vide, aucun routage empirique n'est possible :
+-- pas parce que l'algorithme manque, mais parce que la DONNÉE n'existe pas.
+-- Chaque production faite sans l'écrire est une observation perdue.
+CREATE TABLE IF NOT EXISTS experiences (
+    id                TEXT PRIMARY KEY,
+    job_id            TEXT,
+    shot_id           TEXT,
+    tentative         INTEGER NOT NULL DEFAULT 1,
+    strategie         TEXT,
+    backend           TEXT,
+    modele            TEXT,
+    fournisseur       TEXT,
+    signature_entrees TEXT,               -- même signature, résultats différents
+                                          -- = fournisseur non déterministe
+    cout_estime       REAL NOT NULL DEFAULT 0,
+    cout_reel         REAL NOT NULL DEFAULT 0,
+    latence_ms        INTEGER NOT NULL DEFAULT 0,
+    diagnostic        TEXT,               -- ModeEchec, ou NULL si aucun échec
+    reparation        TEXT,               -- TypeReparation appliquée, si réparé
+    resultat          TEXT,               -- PASS | FAIL | UNCERTAIN
+    qualite           REAL NOT NULL DEFAULT 0,
+    certitude         TEXT,               -- FACT | HEURISTIC | UNKNOWN | HUMAN_VERIFIED
+    verifie_humain    INTEGER NOT NULL DEFAULT 0,
+    contrat           TEXT NOT NULL,      -- l'ExperienceRecord complet, en JSON
+    cree_le           REAL NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_exp_strategie ON experiences(strategie, resultat);
+CREATE INDEX IF NOT EXISTS idx_exp_modele ON experiences(modele, resultat);
+CREATE INDEX IF NOT EXISTS idx_exp_job ON experiences(job_id, shot_id);
 
 -- ── Cache : ne jamais repayer deux fois la même chose ───────────────────
 CREATE TABLE IF NOT EXISTS cache (

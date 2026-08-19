@@ -52,7 +52,10 @@ ADAPTATEURS_FOURNISSEUR = {
 }
 
 # Le domaine : ce qui décide QUOI produire, jamais AVEC QUOI.
-DOMAINE = ("production", "univers", "agents", "analyse")
+# `director`, `narrative` et `research` s'y ajoutent dès leur création : une
+# couche neuve qui échapperait à la règle la rendrait décorative.
+DOMAINE = ("production", "univers", "agents", "analyse",
+           "director", "narrative", "research")
 
 # ── Écarts connus, datés, et destinés à disparaître ──────────────────────
 #
@@ -185,6 +188,30 @@ def test_le_noyau_ignore_le_metier():
                 f"{_relatif(fichier)} importe {', '.join(sorted(fautifs))} : "
                 "le noyau ne connaît pas le métier."
             )
+
+
+# ── Les couches neuves ne dépendent que des contrats ────────────────────
+
+def test_les_couches_de_decision_ne_dependent_que_des_contrats():
+    """`director/`, `narrative/` et `research/` décident QUOI raconter.
+
+    Elles ont le droit de connaître les contrats et l'univers (la matière
+    d'entrée), jamais le moteur, la production ou le montage : une couche de
+    décision qui connaîtrait l'exécution ne serait plus remplaçable, et le
+    sens de la dépendance s'inverserait.
+    """
+    autorises = {"pdz", "pdz.contracts", "pdz.univers"}
+    for couche in ("director", "narrative", "research"):
+        dossier = PAQUET / couche
+        if not dossier.is_dir():
+            continue
+        for fichier in sorted(dossier.rglob("*.py")):
+            for importe in _imports(fichier):
+                racine = ".".join(importe.split(".")[:2])
+                assert racine in autorises, (
+                    f"{_relatif(fichier)} importe {importe} : une couche de "
+                    f"décision ne connaît ni le moteur, ni la production."
+                )
 
 
 # ── Aucun module ne lit l'environnement hors de config.py ───────────────
