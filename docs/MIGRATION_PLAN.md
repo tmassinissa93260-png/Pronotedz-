@@ -14,7 +14,7 @@
 2. **Jamais un déplacement de fichiers et un changement de comportement dans le
    même commit.** Un renommage se relit ; un renommage mêlé à une refonte ne se
    relit pas.
-3. **Les 739 tests passent à chaque phase.** C'est la condition de passage, pas
+3. **Toute la suite passe à chaque phase.** C'est la condition de passage, pas
    un objectif.
 4. **Une phase = un lot livrable**, mesurable par un critère écrit à l'avance.
 5. **Aucune couche n'est construite « pour plus tard ».** Une interface sans
@@ -47,21 +47,74 @@ Ce document, plus les trois autres. Rien d'autre n'a été modifié dans le dép
 
 ---
 
-## Phase 1 — Filet de sécurité *(la seule phase qui ne construit rien)*
+## Phase 1 — Filet de sécurité ✅ **FAIT**
 
-Rien de ce qui suit n'a de valeur si une régression peut passer inaperçue.
+*La seule phase qui ne construit rien.* Rien de ce qui suit n'aurait de valeur
+si une régression pouvait passer inaperçue.
 
-- Workflow `.github/workflows/tester.yml` : `ruff check` + `pytest` sur push et
-  pull request. C'est le manque le plus grave de l'audit : **739 tests que
-  personne ne lance automatiquement.**
-- `pytest-cov`, avec un rapport de couverture — mesurer, pas deviner.
-- Un test d'architecture (`tests/test_architecture.py`) qui vérifie les
-  frontières d'import de TARGET_ARCHITECTURE §2. Il **échouera** au départ sur
-  `production/animation.py → ia/fal.py` : c'est le premier écart à corriger,
-  en Phase 8.
-- Corriger les liens morts du `README.md` (`docs/03-…`, `docs/07-…`).
+### Livré
 
-**Critère** : un push qui casse un test est rouge sur GitHub.
+| Fichier | Rôle |
+|---|---|
+| `.github/workflows/tester.yml` | ruff + pytest + couverture, sur push et PR. Installe ffmpeg — 110 tests en dépendent réellement. Aucune clé d'API, aucun coût. |
+| `tests/test_architecture.py` | les frontières d'import, vérifiées mécaniquement |
+| `tests/test_documentation.py` | aucun lien relatif mort dans la doc vivante |
+| `pyproject.toml` | `pytest-cov`, section `[tool.pytest.ini_options]`, couverture sans seuil imposé |
+
+### Ce que la phase a trouvé
+
+**Cinq tests étaient rouges sur `main`**, laissés par le commit qui a basculé
+l'écriture de `claude-sonnet-5` vers `openai/gpt-oss-120b` (retrait de
+`llama-3.3-70b-versatile` par Groq). Personne ne pouvait le savoir : rien ne
+les lançait. Ils affirmaient tous l'identité du modèle par défaut du moment.
+Réparés en testant le **mécanisme** plutôt que l'identité — le dépôt a déjà
+vécu deux retraits de modèle en 2026, ces tests ne rouilleront plus au
+troisième.
+
+**Quatre modules du domaine importent un fournisseur en direct**, et non un
+seul comme l'audit manuel l'avait conclu :
+
+| Module | Fournisseur | Réparé en |
+|---|---|---|
+| `production/animation.py` | `ia.fal` | PHASE 6 — `VideoBackend` |
+| `production/voix.py` | `ia.elevenlabs` | PHASE 6 — `TTSBackend` |
+| `production/appariement_voix.py` | `ia.elevenlabs` | PHASE 6 — `TTSBackend` |
+| `analyse/musique.py` | `ia.audd` | PHASE 6 — `AudioBackend` |
+
+**`pdz/analyse/references.py` lit `os.environ` directement** — alors que
+`config.py` promet en toutes lettres être le seul à le faire. La variable
+`PDZ_DOSSIER_REFERENCES` n'existe dans aucun champ de `Config`, donc ni
+`pdz cles`, ni `.env.exemple` ne la connaissent.
+
+Ces cinq écarts sont **déclarés, datés et verrouillés à double sens** dans
+`test_architecture.py` : le test échoue si un sixième apparaît, **et** il
+échoue si l'un est réparé sans que sa dérogation soit retirée. Une dette
+déclarée ne peut donc ni grossir, ni survivre en silence à sa réparation.
+
+**Six liens morts** dans `docs/`, corrigés : renumérotations
+(`06-plan.md` → `10-plan.md`, `07-volume.md` → `08-volume.md`), document
+archivé (`03-n8n.md` → `archive/saas-v2/`), et deux cibles qui n'ont jamais
+existé — remplacées par la réponse réelle, pas par un autre lien.
+
+### Ce que la phase n'a PAS fait
+
+Aucune logique métier. Les quatre violations de fournisseur et le lecteur
+d'environnement sont **déclarés, pas réparés** : les corriger appartient aux
+phases 2 et 6. Une phase de filet qui se met à changer le comportement n'est
+plus un filet.
+
+### Résultat
+
+```
+ruff check .   →  All checks passed!
+pytest --cov   →  841 passed, 1 skipped   (0 échec)
+couverture     →  80 % sur pdz/
+```
+
+Le test ignoré est `test_les_contrats_ne_dependent_de_rien` : il s'active tout
+seul le jour où `pdz/contracts/` existera — c'est-à-dire en PHASE 2.
+
+**Critère atteint** : un push qui casse un test est désormais rouge sur GitHub.
 **Risque** : nul. **Effort** : faible.
 
 ---

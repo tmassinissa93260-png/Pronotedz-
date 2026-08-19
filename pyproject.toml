@@ -31,6 +31,7 @@ analyse = [
 dev = [
     "pytest>=8.2",
     "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",          # mesurer la couverture, pas la deviner
     "ruff>=0.5",
 ]
 
@@ -62,3 +63,32 @@ ignore = [
 # Typer déclare les options en appelant typer.Option() dans les valeurs par
 # défaut : c'est son API, pas un oubli.
 "pdz/cli.py" = ["B008"]
+# Une fixture pytest est déclarée une fois, puis reçue par son NOM en
+# paramètre de chaque test qui s'en sert. Ruff lit ce paramètre comme une
+# redéfinition de la fixture, ce qu'il n'est pas : c'est l'injection de
+# dépendances de pytest, pas un doublon. Restreint à `tests/` — dans
+# `pdz/`, un F811 reste un vrai doublon et doit continuer d'échouer.
+"tests/*" = ["F811"]
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# `-ra` : la raison de chaque test non passé, pas seulement son nom. En CI,
+# c'est la différence entre un rapport lisible et un aller-retour de plus.
+addopts = "-ra"
+
+[tool.coverage.run]
+source = ["pdz"]
+# Les démonstrations (`tools/`) ne sont pas du code de production et leur
+# absence de couverture n'apprend rien.
+omit = ["*/__pycache__/*"]
+
+[tool.coverage.report]
+# Aucun seuil imposé : un `fail_under` choisi au doigt mouillé pousse à
+# écrire des tests qui exécutent du code sans rien vérifier. La couverture
+# est ici un instrument de MESURE, pas une note à atteindre.
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]

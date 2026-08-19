@@ -17,3 +17,8 @@ build/
 
 # OS
 .DS_Store
+
+# Rapports de couverture (produits par pytest --cov)
+.coverage
+coverage.xml
+htmlcov/

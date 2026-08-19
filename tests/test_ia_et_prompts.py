@@ -58,10 +58,24 @@ def test_le_profil_change_le_modele_dimages():
 
 
 def test_un_budget_bas_bascule_sur_le_modele_moins_cher():
+    """Sous le seuil, la règle de budget s'applique et le dit.
+
+    Comparait les identifiants : `serre.modele.id != normal.modele.id`. Depuis
+    que l'alias `qualite` pointe lui-même sur le modèle gratuit, la règle
+    `<20 %` désigne le MÊME modèle et l'égalité des identifiants n'est plus un
+    échec — c'est le cas nominal. Ce qui reste vrai, et qui est ce que la règle
+    promet vraiment : elle se déclenche, elle est tracée dans `raison`, et le
+    modèle retenu ne coûte jamais plus cher que le modèle normal.
+    """
     normal = registre().resoudre("qualite", budget_restant_pct=100)
     serre = registre().resoudre("qualite", budget_restant_pct=10)
-    assert serre.modele.id != normal.modele.id
+
     assert "budget" in serre.raison
+    assert normal.raison != serre.raison
+    def cout(r):
+        return r.modele.cout_texte(entree=10_000, sortie=2_000)
+
+    assert cout(serre) <= cout(normal)
 
 
 def test_alias_inconnu_donne_un_message_utile():
@@ -98,10 +112,20 @@ def _sans_anthropic(monkeypatch):
 
 
 def test_une_cle_absente_ne_bloque_pas_si_un_equivalent_existe(monkeypatch):
-    _sans_anthropic(monkeypatch)
+    """Clé du fournisseur résolu absente → équivalent chez un fournisseur utilisable.
+
+    Le sens du repli s'est INVERSÉ avec le passage de l'alias `qualite` à Groq :
+    l'exercer demande maintenant une configuration sans clé Groq et avec une clé
+    Anthropic. Le mécanisme testé est le même, dans l'autre sens — et c'est bien
+    ce qui compte, le repli ne connaît aucun fournisseur privilégié.
+    """
+    _config_avec(monkeypatch, anthropic_api_key="sk-ant-x", fal_key="k")
+    resolu_sans_repli = registre().resoudre("qualite", profil="equilibre")
+    assert resolu_sans_repli.modele.fournisseur == "groq", "prémisse du test"
+
     res = registre().resoudre("qualite", profil="equilibre",
                               repli_si_cle_absente=True)
-    assert res.modele.fournisseur == "groq"
+    assert res.modele.fournisseur == "anthropic"
     assert "absente" in res.raison
 
 
@@ -116,10 +140,21 @@ def test_le_repli_garde_la_meme_capacite(monkeypatch):
 def test_la_resolution_reste_pure_sans_le_drapeau(monkeypatch):
     """Interroger le registre pour savoir ce qu'un profil *désigne* ne doit
     pas dépendre des clés présentes — sinon `pdz modeles` mentirait sur la
-    configuration réelle."""
-    _sans_anthropic(monkeypatch)
-    res = registre().resoudre("qualite", profil="equilibre")
-    assert res.modele.fournisseur == "anthropic"
+    configuration réelle.
+
+    Affirmait `fournisseur == "anthropic"`, ce qui liait la pureté de la
+    résolution à l'identité du modèle par défaut du moment. On compare
+    désormais DEUX configurations de clés opposées : si la résolution est
+    pure, elles donnent le même modèle, quel qu'il soit.
+    """
+    _config_avec(monkeypatch, groq_api_key="gsk_test", fal_key="k")
+    avec_groq = registre().resoudre("qualite", profil="equilibre")
+
+    _config_avec(monkeypatch, anthropic_api_key="sk-ant-x")
+    avec_anthropic = registre().resoudre("qualite", profil="equilibre")
+
+    assert avec_groq.modele.id == avec_anthropic.modele.id
+    assert avec_groq.raison == avec_anthropic.raison == "alias par défaut"
 
 
 def test_sans_equivalent_disponible_la_cle_manquante_reste_une_erreur(monkeypatch):
@@ -180,11 +215,21 @@ def test_sans_aucun_modele_capable_le_message_est_explicite(monkeypatch):
 
 
 def test_une_capacite_deja_presente_ne_change_rien():
-    """`claude-sonnet-5` fait déjà de la vision : aucune substitution."""
-    sans = registre().resoudre("qualite", profil="equilibre")
-    avec = registre().resoudre("qualite", profil="equilibre",
+    """Un modèle qui sait déjà faire ce qu'on exige n'est jamais substitué.
+
+    Passait par l'alias `qualite` du temps où il désignait `claude-sonnet-5`,
+    qui fait de la vision. L'alias désigne maintenant un modèle SANS vision, et
+    la substitution se déclenche — à raison. Le test passe donc par l'alias
+    `vision`, dont le modèle porte la capacité exigée : c'est la seule façon
+    d'observer la NON-substitution sans dépendre du modèle du jour.
+    """
+    resolu = registre().resoudre("vision", profil="equilibre")
+    assert "vision" in resolu.modele.fait, "prémisse du test"
+
+    avec = registre().resoudre("vision", profil="equilibre",
                                capacite_requise="vision")
-    assert sans.modele.id == avec.modele.id
+    assert resolu.modele.id == avec.modele.id
+    assert avec.raison == resolu.raison
 
 
 def test_le_cache_reduit_le_cout():
@@ -230,7 +275,7 @@ def test_les_positions_de_relance_respectent_lintervalle_de_15_a_20s():
     duree, repliques = 90, nb_repliques_pour(90)
     duree_par_replique = duree / repliques
     positions = positions_relance_par_defaut(duree, repliques)
-    ecarts = [b - a for a, b in zip(positions, positions[1:])]
+    ecarts = [b - a for a, b in zip(positions, positions[1:], strict=False)]
     for ecart in ecarts:
         assert 15 <= ecart * duree_par_replique <= 20
 
@@ -594,8 +639,10 @@ def test_les_variables_du_prompt_sont_calculees_depuis_lunivers():
 # ── Empreinte créative : direction, jamais une contrainte chiffrée ───────
 
 def _empreinte():
-    champ = lambda v, c=0.8: ChampInterprete(valeur=v, confiance=c,
-                                             observation="vu dans la référence")
+    def champ(v, c=0.8):
+        return ChampInterprete(valeur=v, confiance=c,
+                               observation="vu dans la référence")
+
     return EmpreinteCreative(
         hook=EmpreinteHook(type=champ("question impossible"),
                            mecanisme=champ("hypothèse personnelle"),

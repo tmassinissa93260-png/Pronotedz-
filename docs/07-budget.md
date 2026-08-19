@@ -159,4 +159,4 @@ tourne la nuit, les vidéos sont prêtes au réveil. C'est prévu dans le plan.
 
 Le taux de reprise est le chiffre le plus important. À 120 vidéos/mois, chaque point
 de reprise en trop coûte de l'argent **et** du temps de validation — et le temps sera
-ta vraie limite, pas l'argent. Voir [07 — Tenir le rythme](./07-volume.md).
+ta vraie limite, pas l'argent. Voir [08 — Tenir le rythme](./08-volume.md).

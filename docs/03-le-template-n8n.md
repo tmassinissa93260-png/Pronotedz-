@@ -166,13 +166,13 @@ répond pas ? Si le rendu échoue ?
 Aujourd'hui, la chaîne s'arrête sans que personne ne le sache. Il faut, au minimum :
 - une validation de la sortie de chaque étape (compter les parties, vérifier les champs) ;
 - un **Error Workflow global** branché sur tous les workflows ;
-- la table `dead_letters` et le workflow de reprise de la [section 3](./03-n8n.md#34-les-7-workflows-et-pas-17).
+- la table `dead_letters` et le workflow de reprise de la [section 3](./archive/saas-v2/03-n8n.md#34-les-7-workflows-et-pas-17).
 
 ### 5. Aucun suivi du coût
 
 Aucune trace de ce que coûte une vidéo. À 50 utilisateurs, c'est le premier chiffre dont
 tu auras besoin pour fixer ton prix. La table `usage_events` de la
-[section 3.7](./03-n8n.md#37-appeler-claude-depuis-n8n--3-points-concrets) se branche en
+[section 3.7](./archive/saas-v2/03-n8n.md#37-appeler-claude-depuis-n8n--3-points-concrets) se branche en
 20 minutes et se remplit toute seule.
 
 ---
@@ -217,4 +217,10 @@ l'extraction d'ADN produit une donnée que rien ne sait exécuter.
 > une composition JSON à N scènes via son API, avec durées et transitions par scène ?
 > - **Oui** → le chemin est ouvert, c'est une évolution de workflow.
 > - **Non** → il faut changer d'outil de rendu, et ça se décide maintenant, pas dans
->   deux mois. C'est traité en [section 6](./06-rendu.md).
+>   deux mois.
+>
+> **Tranché depuis** : aucun outil de rendu tiers. Le montage est fait par FFmpeg,
+> sur la machine, avec autant de plans que voulu et à coût nul — voir
+> [09 — Les fichiers](./09-les-fichiers.md) et `pdz/video/montage.py`. La
+> « section 6 » que citait ce paragraphe n'a jamais été écrite : la question
+> qu'elle devait traiter n'a plus lieu d'être.

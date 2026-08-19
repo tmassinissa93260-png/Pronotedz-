@@ -16,7 +16,7 @@ Légende : ✅ acquis · 🟨 partiel · ⛔ absent
 `FactGraph`, `claims`, `evidence`, `causal_chain`, et un exemple qui est
 « Comment fonctionne un moteur électrique ? ». Le système existant est bâti pour
 de la **fiction sérielle** : `Univers`, `Personnage`, `Decor`, dialogue,
-émotions, relances, constance des personnages d'un épisode à l'autre. Les 739
+émotions, relances, constance des personnages d'un épisode à l'autre. Les 807
 tests, les 4 univers livrés et l'intégralité de `production/` reposent sur ce
 second modèle.
 
@@ -34,7 +34,7 @@ modèle de langage.
 | | Option | Conséquence |
 |---|---|---|
 | A | **Deux profils de production** — `fiction` (Univers/Personnages, chemin actuel) et `explicatif` (FactGraph/Evidence, chemin neuf), partageant tout à partir du Script Compiler | Le chemin qui marche continue de marcher. Le Director Core devient une interface à deux implémentations. Coût : une abstraction de plus au bon endroit. |
-| B | **Tout passer par le FactGraph**, la fiction produisant des claims de statut `FICTION` non sourcés | Une seule chaîne, mais un `FactGraph` vide de sens sur 100 % des productions actuelles, et 739 tests à réécrire pour une valeur nulle. |
+| B | **Tout passer par le FactGraph**, la fiction produisant des claims de statut `FICTION` non sourcés | Une seule chaîne, mais un `FactGraph` vide de sens sur 100 % des productions actuelles, et 807 tests à réécrire pour une valeur nulle. |
 | C | **Abandonner la fiction**, ne garder que l'explicatif | Jette 4 univers, `images.py` (stabilité des personnages), `appariement_voix.py`, `charte.py` — le travail le plus dur du dépôt. |
 
 **Recommandation : A.** `FactGraph` et `EvidenceState` deviennent des contrats
@@ -70,17 +70,17 @@ proprement dit.
 | 15 | **Capabilities** | 🟨 | `modeles.yaml` + `registre.resoudre()` : capacités (`fait:`), prix, `durees_s` réellement livrés, substitution de capacité, `a_verifier: true` | la distinction **ANNONCÉ / MESURÉ / INCONNU** en données. Aujourd'hui les mesures vivent en commentaires, et `fait:` mélange les deux statuts |
 | 16 | **Strategies** | ⛔ | `animation.animer()` : modèle i2v → `vie` (parallaxe) → `camera` (Ken Burns), en **if/else** ; `PlanAnime.methode` nomme les trois | `RenderStrategyGraph` : 10 stratégies, choix `stratégie + backend + paramètres` arbitré sur coût / risque / latence |
 | 17 | **Execution** | ⛔ | `Etape.depend_de` déclaré ; `etapes` sert de journal de reprise ; cache par empreinte dans `Moteur` | `ExecutionPlan` en DAG, ordonnanceur, exécution parallèle, `cache_key` et `retry_policy` **par nœud** |
-| 18 | **Backends** | 🟨 | 6 adaptateurs ; `ia/texte.py` et `ia/images.py` dispatchent par fournisseur **résolu** ; les agents ignorent les fournisseurs | interface `capabilities/validate/estimate/execute` ; backends mock ; ⚠️ `production/animation.py` appelle `ia/fal.py` **en direct** — la seule violation de la règle « le métier ne connaît pas le fournisseur » |
+| 18 | **Backends** | 🟨 | 6 adaptateurs ; `ia/texte.py` et `ia/images.py` dispatchent par fournisseur **résolu** ; les agents ignorent les fournisseurs | interface `capabilities/validate/estimate/execute` ; backends mock ; ⚠️ **quatre** modules du domaine appellent un fournisseur **en direct** (`animation.py`→fal, `voix.py` et `appariement_voix.py`→elevenlabs, `musique.py`→audd) — mesuré par `tests/test_architecture.py`, là où la lecture manuelle n'en avait vu qu'un |
 | 19 | **Observation** | 🟨 | **le point fort du dépôt.** `verification_mouvement.verifier()` (diff inter-frames, seuil calibré sur données réelles : 0,509 statique vs 1,723 en mouvement → seuil 1,0) · `qa_video_finale.verifier()` (mouvement par plan sur le master **monté**) · `coherence_duree` (vidéo vs voix) · `cadrage` (variété) · `qa_image` (PASS/FAIL/**UNCERTAIN**) | `ObservationReport` unifié ; axes temporel (gels, scintillement, coupes inattendues), sémantique (identité, événement accompli), continuité (couleur, géométrie), audio (loudness, crêtes) |
 | 20 | **Diagnostics** | 🟨 | `PlanAnime.diagnostic` : `mouvement_confirme, rejete_duree, rejete_mouvement, timeout, erreur_appel, hors_portee, non_elu`. `erreurs.py` : 8 catégories avec politique | la taxonomie des 18 modes d'échec, `expected vs observed` généralisé, `severite/confiance/preuve/candidats_reparation` |
 | 21 | **Repair** | ⛔ | relance N fois (avec réinjection du motif au modèle sur `ErreurValidation` — bon), puis repli `vie`/`camera` | compilateur de réparation, arbre de recherche coût/risque, **réparation locale par masque**, historisation des tentatives |
 | 22 | **Editor** | 🟨 | `montage.Montage` (objet structuré `Plan[]` + pistes) → FFmpeg ; `soustitres.py` (karaoké ASS mot à mot) ; `vie.py` (parallaxe locale gratuite) | `EditTimeline` comme contrat versionné, avec pistes graphiques / overlays / transitions ; FFmpeg formellement backend |
 | 23 | **Memory** | 🟨 | `structures` (formes mesurées) · `univers/*.yaml` (Visual Bible) · `appels_ia` (coût) · `cache` · `artefacts` · `pdz resultats` (stats TikTok) | les **4 mémoires** séparées, `MemoryPack` (ne jamais tout envoyer), et surtout **`ExperienceMemory`** : `PlanAnime.diagnostic` existe mais n'est **pas persisté** comme série stratégie → résultat |
-| 24 | **Evaluation** | ⛔ | 739 tests, dont des non-régressions sur incidents datés | corpus de golden tests (`electric_motor`, `airplane_takeoff`…), benchmarks, ⚠️ **et un CI qui lance les tests** |
+| 24 | **Evaluation** | ⛔ | 841 tests, dont des non-régressions sur incidents datés | corpus de golden tests (`electric_motor`, `airplane_takeoff`…), benchmarks, ⚠️ **et un CI qui lance les tests** |
 | 25 | **Orchestration** | 🟨 | `episode.py` (666 l.) enchaîne, journalise et reprend | ne doit plus **décider** : la décision descend dans les couches, l'orchestration assemble |
 | 26 | **API** | ✅ | `web.py` : validation humaine locale (FastAPI) | — |
 | 27 | **CLI** | ✅ | 20 commandes Typer, `pdz reprendre` sans repayer | `pdz creer --sujet` (profil explicatif) |
-| 28 | **Tests** | 🟨 | 739 tests, ~11 000 lignes, fixtures réelles | tests de contrat, tests d'adaptateur, tests de DAG, tests de réparation, golden tests, **CI** |
+| 28 | **Tests** | 🟨 | 841 tests, ~11 000 lignes, fixtures réelles | tests de contrat, tests d'adaptateur, tests de DAG, tests de réparation, golden tests, **CI** |
 | 29 | **Infra** | ✅ | Dockerfile, compose, `produire.yml` (production depuis un téléphone), garde-fou anti-fuite | workflow de tests + lint |
 
 **Compte** : ✅ 6 · 🟨 14 · ⛔ 9.
@@ -172,5 +172,5 @@ son README ne le laisse penser — il lui manque surtout le **typage** et la
 | Rupture silencieuse de cache | les objets pivots n'ont pas de version ; le code contient déjà des rustines « compatibilité avec les jobs en cache d'avant `plans@1.13.0` » | un job repris produit un mélange de deux générations de décisions, sans erreur |
 | Retrait de modèle chez un fournisseur | arrivé **deux fois** en 2026 (Groq, 17/06 et 13/08), détecté **en production** | une production échoue en 2 s, ou pire, part sur un repli non voulu |
 | Échec non diagnostiqué | un clip peut être valide, de la bonne durée, et statique (run #66) | on paie un modèle vidéo pour un résultat que le repli gratuit aurait égalé |
-| Aucune régression détectée | 739 tests, aucun CI | la seule barrière dépend d'un lancement manuel |
+| Aucune régression détectée | 807 tests, aucun CI — ✅ comblé en PHASE 1 | la seule barrière dépend d'un lancement manuel |
 | Impossible d'améliorer le routage | l'expérience n'est pas persistée | on choisit les modèles à l'intuition, indéfiniment |

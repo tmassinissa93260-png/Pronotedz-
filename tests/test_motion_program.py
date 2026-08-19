@@ -9,6 +9,7 @@ rendait impossible de répondre à « qu'est-ce que ce plan VOULAIT faire ? »
 autrement qu'en relisant un prompt.
 """
 
+import dataclasses
 from pathlib import Path
 
 import pytest
@@ -186,7 +187,11 @@ def test_le_programme_est_immuable(fruits):
     """Un programme est un constat, pas un brouillon : le muter en aval
     ferait mentir le diagnostic sur ce qui avait été demandé."""
     p = motion_program.depuis_plan(PLAN_COMPLET, fruits)
-    with pytest.raises(Exception):
+    # `FrozenInstanceError` plutôt qu'`Exception` : muter un dataclass gelé
+    # lève CETTE erreur précise, et un `Exception` nu passerait aussi bien
+    # sur un AttributeError dû à un champ renommé — le test ne prouverait
+    # alors plus l'immuabilité, seulement que quelque chose a échoué.
+    with pytest.raises(dataclasses.FrozenInstanceError):
         p.action = "autre chose"        # type: ignore[misc]
 
 

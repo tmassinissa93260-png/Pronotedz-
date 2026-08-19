@@ -1,0 +1,72 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  Le filet de sécurité.
+#
+#  Le dépôt comptait 807 tests que RIEN ne lançait automatiquement. Cinq
+#  d'entre eux étaient rouges depuis le passage de l'écriture sur Groq, sans
+#  que personne ne puisse le savoir. C'est ce trou que ce workflow ferme.
+#
+#  Il ne produit aucune vidéo et n'appelle aucun fournisseur : aucune clé
+#  d'API n'est nécessaire, et il ne coûte rien. Voir produire.yml pour la
+#  production réelle.
+# ═══════════════════════════════════════════════════════════════════════
+
+name: Tester
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+# Une nouvelle poussée sur la même branche annule la vérification en cours :
+# le résultat de l'avant-dernier commit n'intéresse personne.
+concurrency:
+  group: tester-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # ffmpeg et ffprobe ne sont pas des dépendances Python mais des
+      # dépendances RÉELLES : 110 tests les appellent (analyse du son, des
+      # coupes, vérification du mouvement, montage). Sans eux, la moitié de
+      # la suite échoue sur « No such file or directory: 'ffmpeg' » — un
+      # message qui ressemble à une régression du code alors que c'est
+      # l'environnement qui manque.
+      - name: Installer ffmpeg
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Installer le projet
+        run: python -m pip install -q -e ".[dev]"
+
+      # Le lint d'abord : il répond en deux secondes, et une erreur de style
+      # n'a pas besoin d'attendre dix minutes de tests pour être signalée.
+      - name: Lint
+        run: python -m ruff check .
+
+      - name: Tests
+        run: python -m pytest --cov --cov-report=term-missing --cov-report=xml
+
+      # Gardé même quand tout est vert : c'est la trace qui permet de voir la
+      # couverture BOUGER d'une phase de migration à l'autre, ce qu'un
+      # pourcentage affiché puis perdu ne permet pas.
+      - name: Garder le rapport de couverture
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: couverture
+          path: coverage.xml
+          if-no-files-found: warn
+          retention-days: 14

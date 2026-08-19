@@ -1,9 +1,11 @@
 # 01 — Comment ça marche
 
-> ⚠️ **Ce document décrivait une version Python en ligne de commande.**
-> Le projet part en réalité de mon workflow n8n existant.
-> **Le document à jour est [04 — Ce qu'il faut changer](./04-ce-quil-faut-changer.md).**
-> Celui-ci reste utile pour comprendre les 3 parcours du produit.
+> ⚠️ **Bandeau d'époque, conservé pour mémoire.** Ce document a été écrit
+> quand le projet devait partir d'un workflow n8n existant. Ce n'est plus le
+> cas : le système est un projet Python autonome, sans n8n — voir le
+> [README](../README.md) et [09 — Les fichiers](./09-les-fichiers.md).
+> Il renvoyait vers un « 04 — Ce qu'il faut changer » qui n'a jamais existé
+> dans ce dépôt. Ce qui reste juste ici : les 3 parcours du produit.
 
 ## Le principe en une phrase
 

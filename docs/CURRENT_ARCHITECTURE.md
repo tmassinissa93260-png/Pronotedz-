@@ -26,7 +26,7 @@ Pronotedz-/
 │   ├── video/                montage FFmpeg, sous-titres, parallaxe locale
 │   └── univers/              le modèle « monde réutilisable » (Pydantic)
 ├── univers/                  4 mondes livrés en YAML
-├── tests/                    41 fichiers, 739 tests
+├── tests/                    43 fichiers, 841 tests
 ├── tools/                    7 scripts de démonstration
 ├── scripts/                  garde-fou anti-fuite de vidéos privées
 ├── docs/                     15 documents + archive/
@@ -245,7 +245,7 @@ TTL 7 j, `cout_evite`).
 
 ## F. Tests existants
 
-**739 tests, 41 fichiers, ~11 000 lignes.** Couverture par module réelle et
+**807 tests, 41 fichiers, ~11 000 lignes** (le chiffre de « 739 » circulait dans le projet ; la collecte réelle en donne 807). Couverture par module réelle et
 sérieuse : `test_production_images_voix.py` (1 416 l.), `test_shot_prompts.py`
 (788 l.), `test_ia_et_prompts.py` (721 l.), `test_chaine_complete.py` (431 l.).
 
@@ -312,15 +312,16 @@ statut.
 | 1 | **Deux orchestrateurs.** `episode.py` réimplémente reprise et journalisation sans `Moteur`, donc sans cache par empreinte ni validation humaine. | Le chemin de production principal **ne bénéficie pas** du cache du moteur. Deux mécanismes de reprise à maintenir, qui divergeront. |
 | 2 | **Pas de paquet `contracts/`.** Les objets pivots sont des dataclasses nues sans version ni provenance ; entre les étapes, ce sont des `dict` JSON. | Une évolution de champ casse silencieusement les jobs en cache. Le code contient déjà des rustines explicites (« compatibilité avec les jobs en cache d'avant `plans@1.13.0` »). |
 | 3 | **`Etape.depend_de` déclaré, jamais ordonnancé.** `Moteur` itère linéairement. | Aucune parallélisation. Un plan = une suite d'appels séquentiels alors que image/profondeur/masque sont indépendants. |
-| 4 | **Pas d'interface fournisseur.** Dispatch par `if`, animation en accès direct à `ia/fal.py`. | Ajouter un backend vidéo touche `animation.py`, pas seulement `ia/`. Le Director connaît indirectement fal. |
+| 4 | **Pas d'interface fournisseur.** Dispatch par `if` ; **quatre** modules du domaine importent un fournisseur en direct : `production/animation.py` → `ia.fal`, `production/voix.py` et `production/appariement_voix.py` → `ia.elevenlabs`, `analyse/musique.py` → `ia.audd`. | Ajouter un backend touche le métier, pas seulement `ia/`. Écart mesuré par `tests/test_architecture.py`, pas estimé à l'œil — la première lecture manuelle n'en avait vu qu'un sur quatre. |
 | 5 | **Capacités non qualifiées.** `fait:` mélange annoncé et mesuré ; les mesures vivent en commentaires. | Le code ne peut pas raisonner sur « je ne sais pas ». Les retraits de modèles Groq (17/06 et 13/08/2026) ont été détectés **en production**, pas en amont. |
 | 6 | **Pas de stratégie de rendu, une cascade en dur.** `animation.animer()` : modèle → `vie` → `camera`, en if/else. | Impossible d'arbitrer coût/risque/latence, ni d'ajouter `START_END_FRAME` ou `MASKED_EDIT` sans toucher le cœur. |
 | 7 | **Réparation = relance.** Après échec de mouvement, on retombe sur `vie`. Aucun diagnostic ne pilote une réparation ciblée. | Un `CAMERA_DOMINANT` et un `STATIC_RENDER` reçoivent le même traitement. |
 | 8 | **Aucune mémoire d'expérience.** `PlanAnime.diagnostic` existe mais n'est pas persisté comme série exploitable stratégie → résultat. | Impossible de passer un jour d'un routage par règles à un routage empirique : la donnée n'est pas collectée. |
-| 9 | **Les tests ne tournent pas en CI.** 739 tests, aucun workflow. | La seule barrière de régression dépend d'un lancement manuel local. |
+| 9 | **Les tests ne tournaient pas en CI.** 807 tests, aucun workflow. ✅ Corrigé en PHASE 1. | La seule barrière de régression dépend d'un lancement manuel local. |
 | 10 | **Provenance partielle.** `appels_ia` connaît modèle et prompt ; `artefacts` connaît le sha256. Rien ne relie un `.mp4` à sa stratégie, sa version de compilateur, son `RenderSpec`. | On ne peut pas répondre « pourquoi cette vidéo est comme ça ». |
 | 11 | **Aucune couche recherche.** `perplexity_api_key` est déclarée dans `config.py` et **lue nulle part**. Ni claim, ni source, ni preuve, ni confiance sur le contenu factuel. | Le format « expliquer un mécanisme » n'a aucun socle de véracité. |
-| 12 | Doc obsolète : le `README.md` renvoie à `docs/03-le-template-n8n.md` et `docs/07-budget.md`, **absents** du dépôt (`03` n'existe qu'en archive). | Petite, mais visible dès la première lecture. |
+| 12 | **Six liens morts** dans `docs/` : documents renumérotés (`06-plan.md` → `10-plan.md`, `07-volume.md` → `08-volume.md`), archivés (`03-n8n.md` → `archive/saas-v2/`) ou jamais écrits (`04-ce-quil-faut-changer.md`, `06-rendu.md`). | Corrigés en PHASE 1 et verrouillés par `tests/test_documentation.py`. |
+| 13 | **`pdz/analyse/references.py` lit `os.environ` directement** (`PDZ_DOSSIER_REFERENCES`), alors que `config.py` promet en toutes lettres être le seul lecteur — et ce réglage n'existe dans aucun champ de `Config`, donc ni `pdz cles`, ni `.env.exemple` ne le connaissent. | Un réglage invisible pour l'outillage. Trouvé par le test d'architecture, pas par la lecture. |
 
 ---
 

@@ -172,6 +172,6 @@ En échange, ceux-ci passent en « plus tard » :
 | Édition fine des sous-titres dans l'interface | le contrôle auto suffit dans 95 % des cas |
 | Choix manuel de la musique | tirage automatique selon l'émotion de la recette |
 
-Le plan ([06](./06-plan.md)) est mis à jour en conséquence : le Script Critic arrive
+Le plan ([10](./10-plan.md)) est mis à jour en conséquence : le Script Critic arrive
 dès l'étape 1, le Hook Optimizer et le Quality Control à l'étape 2, le Psychology Agent
 à l'étape 3, le mode lot et le Trend Hunter à l'étape 4.

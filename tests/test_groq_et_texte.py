@@ -368,7 +368,17 @@ def test_pas_plus_de_cinq_images(tmp_path):
 
 # ── Le dispatcher : chaque alias va au bon fournisseur ───────────────────
 
-def test_le_profil_par_defaut_va_chez_anthropic(monkeypatch):
+def test_le_dispatcher_suit_le_fournisseur_resolu(monkeypatch):
+    """L'adaptateur appelé est celui du fournisseur que le registre a RÉSOLU.
+
+    Ce test affirmait « le profil par défaut va chez Anthropic », ce qui était
+    vrai tant que l'alias `qualite` pointait sur `claude-sonnet-5`. Groq ayant
+    retiré `llama-3.3-70b-versatile`, l'alias est passé à `openai/gpt-oss-120b`
+    et le test est resté rouge sans que personne ne le voie — il n'y avait
+    aucun CI pour le dire. Il vérifie désormais le MÉCANISME (le dispatcher
+    suit la résolution) plutôt que l'IDENTITÉ du modèle du jour, qui a déjà
+    changé deux fois en 2026 et rechangera.
+    """
     appele = {}
 
     async def faux_claude(**kwargs):
@@ -379,14 +389,16 @@ def test_le_profil_par_defaut_va_chez_anthropic(monkeypatch):
         appele["fournisseur"] = "groq"
         return "reponse-groq"
 
+    from pdz.ia.registre import registre
+
     monkeypatch.setattr(texte, "ADAPTATEURS", {"anthropic": faux_claude, "groq": faux_groq})
+    attendu = registre().resoudre("qualite").modele.fournisseur
 
     import asyncio
-    resultat = asyncio.run(texte.appeler(
+    asyncio.run(texte.appeler(
         alias="qualite", systeme_stable="x", message="y", schema_sortie={},
     ))
-    assert appele["fournisseur"] == "anthropic"
-    assert resultat == "reponse-claude"
+    assert appele["fournisseur"] == attendu
 
 
 def test_le_profil_gratuit_va_chez_groq(monkeypatch):

@@ -5,7 +5,11 @@ bloque api.elevenlabs.io), mais la partie qui compte — transformer
 l'alignement caractère par caractère en mots datés — l'est entièrement.
 """
 
-from pdz.ia.elevenlabs import mots_depuis_alignement
+import httpx
+import pytest
+
+from pdz.ia.elevenlabs import _lever, mots_depuis_alignement
+from pdz.moteur.erreurs import ErreurConfig, ErreurQuota
 
 
 def _align(texte: str, pas: float = 0.1) -> dict:
@@ -89,11 +93,6 @@ def test_les_pauses_font_deriver_lestimation():
 # problème inexistant, et jetait la seule explication disponible, celle
 # qu'ElevenLabs renvoie dans le corps de sa réponse.
 
-import httpx
-import pytest
-
-from pdz.ia.elevenlabs import _lever
-from pdz.moteur.erreurs import ErreurConfig, ErreurQuota
 
 
 def _401(statut: str | None, message: str = "") -> httpx.Response:

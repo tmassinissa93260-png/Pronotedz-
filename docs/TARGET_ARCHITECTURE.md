@@ -78,8 +78,8 @@ Raisons, tirées de l'audit :
    croisées et un outil de build de monorepo — pour zéro frontière de
    déploiement réelle. C'est la règle « chaque dépendance doit avoir une
    justification », appliquée à l'outillage.
-2. Le dépôt a déjà **739 tests qui importent `pdz.*`**. Un déplacement massif
-   de fichiers réécrirait ces 739 tests dans le même commit que le changement
+2. Le dépôt a déjà **807 tests qui importent `pdz.*`**. Un déplacement massif
+   de fichiers réécrirait ces 807 tests dans le même commit que le changement
    d'architecture — exactement la situation où une régression devient
    invisible.
 3. La séparation qui compte n'est pas physique, elle est **directionnelle** :
