@@ -754,6 +754,69 @@ def test_la_narration_ne_produit_aucune_fiche(tmp_path):
     assert images.fiches(u, tmp_path) == {}
 
 
+# ── Substitution du backend vidéo ───────────────────────────────────────
+#
+# Ces tests remplaçaient `animation.fal.animer_image` — ils atteignaient le
+# FOURNISSEUR à travers le module de production, exactement le couplage que
+# la PHASE 6 a supprimé. `animation` passe désormais par `backend_video()`.
+#
+# Plutôt que de réécrire les onze faux `animer_image` déjà écrits (chacun
+# reproduit un mode d'échec précis : clip trop court, clip statique, appel
+# interdit…), on les enveloppe. Ce qu'ils vérifient est inchangé ; seul le
+# JOINT par lequel ils s'installent a bougé, et c'est bien le sujet.
+
+class _BackendDepuisFonction:
+    """Enveloppe un ancien `animer_image(image, prompt, destination, ...)`."""
+
+    nom = "fal"
+
+    def __init__(self, fonction):
+        self.fonction = fonction
+
+    def capabilities(self, profil="equilibre"):
+        from pdz.contracts.capabilities import ModeleCapacites
+        return ModeleCapacites(modele="test", fournisseur=self.nom, durees_s=(5, 10))
+
+    def valider(self, spec):
+        from pdz.backends.base import Validation
+        return Validation()
+
+    def estimer(self, spec):
+        from pdz.backends.base import EstimationCout
+        return EstimationCout(eur=0.0)
+
+    def executer(self, spec):
+        from pathlib import Path as _Path
+
+        from pdz.backends.base import ArtefactRendu
+        fichier, cout = self.fonction(
+            _Path(spec.image_depart), spec.prompt,
+            _Path(spec.parametres["destination"]),
+            duree_s=int(spec.duree_s),
+            profil=spec.parametres.get("profil", "equilibre"),
+            budget_restant_pct=float(spec.parametres.get("budget_restant_pct", 100.0)),
+            job_id=spec.parametres.get("job_id") or None,
+            agent=spec.parametres.get("agent") or None,
+        )
+        return ArtefactRendu(fichier=fichier, cout_eur=cout, fournisseur=self.nom)
+
+
+def _installer_backend(monkeypatch, fonction):
+    """Enregistre le faux backend par le REGISTRE PUBLIC des backends.
+
+    `monkeypatch.setitem` sur `BACKENDS` : le registre est le point
+    d'extension prévu, et l'emprunter prouve qu'un fournisseur est
+    substituable sans toucher au code.
+    """
+    from pdz.backends import video as _backends_video
+    from pdz.ia.registre import registre as _registre
+
+    fournisseur = _registre().resoudre(
+        "animation", repli_si_cle_absente=True).modele.fournisseur
+    monkeypatch.setitem(_backends_video.BACKENDS, fournisseur,
+                        _BackendDepuisFonction(fonction))
+
+
 def test_un_echec_total_danimation_est_crie_pas_chuchote(monkeypatch, caplog,
                                                          tmp_path):
     """Une animation ratée est rattrapée en image fixe pour ne pas perdre
@@ -765,7 +828,7 @@ def test_un_echec_total_danimation_est_crie_pas_chuchote(monkeypatch, caplog,
     def _toujours_en_echec(*a, **k):
         raise ErreurValidation("endpoint introuvable")
 
-    monkeypatch.setattr(animation.fal, "animer_image", _toujours_en_echec)
+    _installer_backend(monkeypatch, _toujours_en_echec)
 
     u = Univers.charger(FRUITS)
     images = []
@@ -806,7 +869,7 @@ def test_un_clip_plus_court_que_prevu_retombe_sur_une_image_fixe(monkeypatch, tm
         ], check=True, capture_output=True)
         return destination, 0.23
 
-    monkeypatch.setattr(animation.fal, "animer_image", _clip_trop_court)
+    _installer_backend(monkeypatch, _clip_trop_court)
 
     u = Univers.charger(FRUITS)
     p = tmp_path / "p0.jpg"
@@ -841,7 +904,7 @@ def test_un_clip_assez_long_avec_mouvement_est_garde(monkeypatch, tmp_path):
         ], check=True, capture_output=True)
         return destination, 0.23
 
-    monkeypatch.setattr(animation.fal, "animer_image", _clip_ok)
+    _installer_backend(monkeypatch, _clip_ok)
 
     u = Univers.charger(FRUITS)
     p = tmp_path / "p0.jpg"
@@ -875,7 +938,7 @@ def test_un_clip_de_bonne_duree_mais_statique_est_rejete(monkeypatch, tmp_path):
         ], check=True, capture_output=True)
         return destination, 0.23
 
-    monkeypatch.setattr(animation.fal, "animer_image", _clip_statique)
+    _installer_backend(monkeypatch, _clip_statique)
 
     u = Univers.charger(FRUITS)
     p = tmp_path / "p0.jpg"
@@ -909,7 +972,7 @@ def test_un_clip_paye_puis_rejete_garde_son_cout(monkeypatch, tmp_path):
         ], check=True, capture_output=True)
         return destination, 0.18
 
-    monkeypatch.setattr(animation.fal, "animer_image", _clip_statique)
+    _installer_backend(monkeypatch, _clip_statique)
 
     u = Univers.charger(FRUITS)
     p = tmp_path / "p0.jpg"
@@ -953,7 +1016,7 @@ def test_un_plan_jamais_tente_ne_coute_rien(monkeypatch, tmp_path):
     def _jamais_appele(*a, **k):
         raise AssertionError("aucun appel payant ne doit partir ici")
 
-    monkeypatch.setattr(animation.fal, "animer_image", _jamais_appele)
+    _installer_backend(monkeypatch, _jamais_appele)
 
     u = Univers.charger(FRUITS)
     p = tmp_path / "p0.jpg"
@@ -989,7 +1052,7 @@ def test_un_plan_plus_long_que_le_clip_saute_lappel_paye(monkeypatch, tmp_path):
         appele["n"] += 1
         raise AssertionError("le modèle ne doit pas être appelé pour ce plan")
 
-    monkeypatch.setattr(animation.fal, "animer_image", _jamais_appele)
+    _installer_backend(monkeypatch, _jamais_appele)
 
     u = Univers.charger(FRUITS)
     p = tmp_path / "p0.jpg"

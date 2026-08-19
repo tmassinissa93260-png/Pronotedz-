@@ -49,6 +49,7 @@ import numpy as np
 
 from pdz.analyse.son import pcm
 from pdz.analyse.voix import TAILLE_TRAME, _trames
+from pdz.backends import backend_musique
 from pdz.moteur.erreurs import ErreurPdz
 
 log = logging.getLogger(__name__)
@@ -561,7 +562,9 @@ class Resultat:
     """Ce que rend la commande : les mesures, et le titre si on l'a."""
 
     analyse: AnalyseMusique
-    morceau: object | None = None        # pdz.ia.audd.Morceau
+    # Le type concret appartient au backend — le métier n'a pas à le
+    # nommer, et c'est précisément ce qui permet d'en changer.
+    morceau: object | None = None
     extrait: Path | None = None
     raison_extrait: str = ""
     echec_identification: str = ""
@@ -604,11 +607,10 @@ def reconnaitre(chemin: Path, *, dossier: Path | None = None,
     )
     resultat.extrait, resultat.raison_extrait = extrait, raison
 
-    from pdz.ia import audd
     from pdz.moteur.erreurs import ErreurPdz as _Erreur
 
     try:
-        resultat.morceau = audd.identifier(extrait, job_id=job_id)
+        resultat.morceau = backend_musique().identifier(extrait, job_id=job_id)
         if resultat.morceau is None:
             resultat.echec_identification = (
                 "Morceau absent de la base AudD. C'est le cas le plus courant "

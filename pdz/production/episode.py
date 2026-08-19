@@ -54,7 +54,6 @@ import logging
 import time
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
-from typing import Any
 
 from pdz import db
 from pdz.agents.ecriture.brief import BriefWriter
@@ -64,6 +63,7 @@ from pdz.agents.ecriture.script import ScriptWriter
 from pdz.analyse.adn import Adn
 from pdz.analyse.sonde import sonder
 from pdz.config import config
+from pdz.moteur import journal
 from pdz.moteur.erreurs import ErreurConfig, ErreurPdz, ErreurValidation
 from pdz.moteur.pipeline import Contexte, executer_avec_relance
 from pdz.production import (
@@ -123,69 +123,29 @@ class Episode:
                 f"   {self.video}")
 
 
-# ── Reprise : une étape faite est une étape qu'on ne refait pas ──────────
+# ── Reprise : une seule autorité, dans le noyau ─────────────────────────
+#
+# Ces trois fonctions vivaient ICI, en double de `moteur/pipeline.py`. Deux
+# mécanismes de reprise écrivant dans la même table `etapes`, qui devaient
+# rester d'accord pour toujours — et le chemin réel de production, celui-ci,
+# n'avait aucun accès au cache du moteur.
+#
+# Elles sont maintenant dans `pdz/moteur/journal.py`, appelé par les DEUX.
+# Les alias sont conservés parce que ce module les utilise neuf fois : les
+# renommer dans le même commit qu'un déplacement rendrait le diff illisible.
+#
+# Ce qu'`episode.py` savait faire de mieux — revérifier que les fichiers
+# cités existent encore — est monté au noyau avec le reste. C'est désormais
+# la règle commune, pas la particularité de l'un des deux.
 
-def _fait(job_id: str, cle: str) -> dict | None:
-    """Relit une étape terminée. `None` si elle reste à faire.
-
-    Les fichiers sont revérifiés : une étape marquée terminée dont les
-    fichiers ont été supprimés doit être refaite, sinon le montage échoue
-    trente secondes plus tard sur une erreur incompréhensible.
-    """
-    with db.connexion() as conn:
-        ligne = conn.execute(
-            "SELECT resultat FROM etapes WHERE job_id = ? AND cle = ? "
-            "AND statut = 'termine'", (job_id, cle),
-        ).fetchone()
-
-    if ligne is None:
-        return None
-
-    resultat = db.charger(ligne["resultat"], None)
-    if resultat is None:
-        return None
-
-    for chemin in _fichiers_cites(resultat):
-        if not Path(chemin).exists():
-            log.info("Étape « %s » à refaire : %s a disparu", cle, chemin)
-            return None
-    return resultat
-
-
-def _fichiers_cites(valeur: Any) -> list[str]:
-    """Tous les chemins de fichiers mentionnés dans un résultat d'étape."""
-    trouves: list[str] = []
-    if isinstance(valeur, str):
-        if "/" in valeur and Path(valeur).suffix in (
-            ".mp3", ".mp4", ".jpg", ".png", ".ass", ".wav"
-        ):
-            trouves.append(valeur)
-    elif isinstance(valeur, dict):
-        for v in valeur.values():
-            trouves += _fichiers_cites(v)
-    elif isinstance(valeur, list):
-        for v in valeur:
-            trouves += _fichiers_cites(v)
-    return trouves
+_fait = journal.etape_faite
+_fichiers_cites = journal.fichiers_cites
 
 
 def _noter(job_id: str, cle: str, agent: str, resultat: dict,
            cout: float, duree_ms: int) -> None:
-    with db.connexion() as conn:
-        conn.execute(
-            "INSERT INTO etapes (id, job_id, cle, agent, statut, resultat, cout,"
-            " duree_ms, cree_le, fini_le) VALUES (?,?,?,?,?,?,?,?,?,?) "
-            "ON CONFLICT(job_id, cle) DO UPDATE SET "
-            "  statut = 'termine', resultat = excluded.resultat, "
-            "  cout = excluded.cout, duree_ms = excluded.duree_ms, "
-            "  fini_le = excluded.fini_le, tentative = etapes.tentative + 1",
-            (db.nouvel_id("etp"), job_id, cle, agent, "termine",
-             db.vider(resultat), cout, duree_ms, db.maintenant(), db.maintenant()),
-        )
-        conn.execute(
-            "UPDATE jobs SET cout_total = cout_total + ?, maj_le = ? WHERE id = ?",
-            (cout, db.maintenant(), job_id),
-        )
+    """Signature positionnelle historique, conservée pour les neuf appels."""
+    journal.noter_etape(job_id, cle, agent, resultat, cout=cout, duree_ms=duree_ms)
 
 
 def creer_job(univers: Univers, situation: str, *, profil: str,

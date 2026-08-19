@@ -28,7 +28,8 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
-from pdz.ia import fal
+from pdz.backends import backend_video
+from pdz.contracts import RenderSpecExecutable, Strategie
 from pdz.ia.registre import registre
 from pdz.moteur.erreurs import ErreurPdz
 from pdz.production import motion_program, verification_mouvement
@@ -302,13 +303,25 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
             # payer le double pour rien. Un modèle à palier unique (ltx-video)
             # retombe sur sa seule valeur, donc rien ne change pour lui.
             duree_demandee = _duree_a_demander(duree_requise, profil, duree_clip_s)
+            # Le métier décrit CE QU'IL VEUT ; le backend décide comment
+            # l'obtenir et chez qui. Aucun nom de fournisseur n'apparaît plus
+            # ici — c'est la réparation de l'écart relevé en PHASE 1.
+            spec = RenderSpecExecutable(
+                shot_id=str(i),
+                strategie=Strategie.DIRECT_I2V,
+                duree_s=duree_demandee,
+                prompt=_prompt_mouvement(plan, univers),
+                image_depart=str(image),
+                parametres={
+                    "destination": str(destination),
+                    "profil": profil,
+                    "budget_restant_pct": str(100.0 if reste > 0 else 0.0),
+                    "job_id": job_id or "",
+                    "agent": "animation",
+                },
+            )
             try:
-                _, cout = fal.animer_image(
-                    image, _prompt_mouvement(plan, univers), destination,
-                    duree_s=duree_demandee, profil=profil,
-                    budget_restant_pct=100.0 if reste > 0 else 0.0,
-                    job_id=job_id, agent="animation",
-                )
+                cout = backend_video(profil).executer(spec).cout_eur
             except ErreurPdz as e:
                 # Une animation ratée n'annule pas l'épisode : le plan reste
                 # une image fixe, que le montage saura faire bouger.
@@ -449,24 +462,30 @@ def _repli(index: int, image: Path, dossier: Path, plan: dict,
     vérification finale de durée (`coherence_duree`), qui a fait exactement
     son travail en refusant de livrer une vidéo silencieuse sur la fin.
     """
-    if not avec_vie:
-        return PlanAnime(index, image, False, "camera", cout, diagnostic=diagnostic)
+    # « vie » et « camera » ne sont pas deux bricolages : ce sont deux
+    # STRATÉGIES, et elles portent enfin leur nom (PHASE 8). `TWO_POINT_FIVE_D`
+    # et `PROCEDURAL` exécutent exactement ce que ce code faisait — le repli
+    # de l'une vers l'autre en cas d'échec compris. Le comportement est
+    # inchangé ; ce qui change, c'est qu'il est désormais nommé, comparable
+    # et remplaçable.
+    from pdz.strategies import ContexteRendu, StrategieProcedurale, StrategieTwoPointFiveD
 
-    from pdz.video.vie import Effets
-    from pdz.video.vie import animer as animer_localement
-
-    destination = dossier / f"vie_{index:03d}.mp4"
     duree = float(plan.get("duree_s") or 0) or float(duree_clip_s)
-    try:
-        animer_localement(
-            image, duree, destination,
-            effets=Effets(sens=1 if index % 2 == 0 else -1, graine=index),
-        )
-    except Exception as e:                        # PIL, ffmpeg, disque plein…
-        log.warning("Effet « vie » impossible sur le plan %d : %s", index, e)
+    contexte = ContexteRendu(
+        shot_id=str(index), image=image,
+        destination=dossier / f"vie_{index:03d}.mp4",
+        duree_s=duree, index=index,
+    )
+
+    strategie = StrategieTwoPointFiveD() if avec_vie else StrategieProcedurale()
+    resultat = strategie.executer(contexte)
+
+    if not resultat.clip_produit:
+        # `PROCEDURAL` : rien n'est fabriqué ici, c'est le montage qui
+        # appliquera le recadrage glissant.
         return PlanAnime(index, image, False, "camera", cout, diagnostic=diagnostic)
 
-    return PlanAnime(index, destination, True, "vie", cout, diagnostic=diagnostic)
+    return PlanAnime(index, resultat.fichier, True, "vie", cout, diagnostic=diagnostic)
 
 
 def _prompt_mouvement(plan: dict, univers: Univers) -> str:

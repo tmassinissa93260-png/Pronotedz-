@@ -36,8 +36,9 @@ import numpy as np
 
 from pdz.analyse import voix as mesure_voix
 from pdz.analyse.voix import ProfilVoix
+from pdz.backends import backend_voix
+from pdz.backends.base import VoixDisponible
 from pdz.config import config
-from pdz.ia import elevenlabs
 from pdz.moteur.erreurs import ErreurConfig, ErreurPdz
 from pdz.univers import Univers
 
@@ -67,7 +68,7 @@ SONDE_VITESSE = 1.0
 
 @dataclass
 class Candidat:
-    voix: elevenlabs.Voix
+    voix: VoixDisponible
     profil: ProfilVoix        # ce que la voix candidate fait naturellement
     cible: ProfilVoix         # ce qu'on cherche à obtenir
     distance: float
@@ -121,13 +122,13 @@ def profil_cible(source: Path, *, debut_s: float = 0.0,
     return profil
 
 
-def _sonde(voix: elevenlabs.Voix, dossier: Path) -> Path:
+def _sonde(voix: VoixDisponible, dossier: Path) -> Path:
     """Fait dire la phrase sonde à une voix. Une seule fois dans la vie."""
     fichier = dossier / f"{voix.id}.mp3"
     if fichier.exists() and fichier.stat().st_size > 1000:
         return fichier
 
-    elevenlabs.synthetiser(
+    backend_voix().synthetiser(
         PHRASE_SONDE, fichier, voice_id=voix.id,
         stabilite=SONDE_STABILITE, style=SONDE_STYLE, vitesse=SONDE_VITESSE,
     )
@@ -143,7 +144,7 @@ def apparier(cible: ProfilVoix, *, langue: str = "fr", maximum: int = 12,
     candidates sont pré-triées sur ce qu'on peut savoir gratuitement (langue
     et genre annoncés par le catalogue), puis mesurées pour de vrai.
     """
-    disponibles = elevenlabs.lister_voix()
+    disponibles = backend_voix().voix_disponibles()
     if not disponibles:
         raise ErreurConfig(
             "Aucune voix dans ton compte ElevenLabs. Ajoute-en depuis "
@@ -158,7 +159,7 @@ def apparier(cible: ProfilVoix, *, langue: str = "fr", maximum: int = 12,
     # cette base, elles sont seulement essayées plus tard.
     genre_probable = "male" if cible.hauteur_hz < 165 else "female"
 
-    def priorite(v: elevenlabs.Voix) -> tuple[int, int]:
+    def priorite(v: VoixDisponible) -> tuple[int, int]:
         bonne_langue = 0 if (not v.langue or langue in v.langue.lower()) else 1
         bon_genre = 0 if (not v.genre or genre_probable in v.genre.lower()) else 1
         return (bonne_langue, bon_genre)

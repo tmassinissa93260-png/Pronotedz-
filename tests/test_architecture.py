@@ -63,14 +63,14 @@ DOMAINE = ("production", "univers", "agents", "analyse",
 # est la dernière étape de sa réparation — le test échouera si la violation
 # persiste, et échouera AUSSI si elle disparaît sans qu'on retire la ligne.
 ECARTS_CONNUS: dict[str, str] = {
-    "pdz/production/animation.py":
-        "importe pdz.ia.fal — animation. PHASE 6 (VideoBackend).",
-    "pdz/production/voix.py":
-        "importe pdz.ia.elevenlabs — synthèse. PHASE 6 (TTSBackend).",
-    "pdz/production/appariement_voix.py":
-        "importe pdz.ia.elevenlabs — catalogue de voix. PHASE 6 (TTSBackend).",
-    "pdz/analyse/musique.py":
-        "importe pdz.ia.audd — identification musicale. PHASE 6 (AudioBackend).",
+    # Vide, et c'est un résultat : les quatre écarts relevés en PHASE 1
+    # (animation→fal, voix→elevenlabs, appariement_voix→elevenlabs,
+    # musique→audd) ont été réparés en PHASE 6. Le métier passe désormais
+    # par `pdz/backends/`, qui enveloppe les clients HTTP sans les réécrire.
+    #
+    # Laisser le dictionnaire en place plutôt que le supprimer : la prochaine
+    # dette de ce type aura un endroit évident où être DÉCLARÉE, datée et
+    # verrouillée, au lieu d'être découverte six mois plus tard.
 }
 
 # ── Lecture directe de l'environnement, hors pdz/config.py ──────────────
@@ -172,6 +172,41 @@ def test_les_contrats_ne_dependent_de_rien():
                 f"{_relatif(fichier)} importe {importe} : un contrat ne "
                 f"dépend d'aucune autre couche."
             )
+
+
+# ── Une seule autorité sur la reprise ───────────────────────────────────
+
+def test_seul_le_journal_ecrit_les_points_de_reprise():
+    """Le GAP structurel principal du dépôt, verrouillé.
+
+    `moteur/pipeline.py` et `production/episode.py` écrivaient chacun dans la
+    table `etapes` sans se connaître. Deux mécanismes de reprise devant
+    rester d'accord pour toujours — ce qui n'arrive jamais — et le chemin
+    réel de production, `episode.py`, n'avait aucun accès au cache du moteur.
+
+    `pdz/moteur/journal.py` est désormais le seul module autorisé à écrire
+    dans `etapes` et `cache`. Un troisième mécanisme ne peut plus naître en
+    silence : il faudrait ajouter son fichier ici, ce qui se voit en revue.
+    """
+    autorises = {"pdz/moteur/journal.py"}
+    coupables = []
+
+    for fichier in _modules():
+        chemin = _relatif(fichier)
+        if chemin in autorises:
+            continue
+        source = fichier.read_text(encoding="utf-8")
+        for motif in ("INSERT INTO etapes", "UPDATE etapes",
+                      "INSERT INTO cache", "INSERT OR REPLACE INTO cache"):
+            if motif in source:
+                coupables.append(f"{chemin} — « {motif} »")
+
+    assert not coupables, (
+        "Ces modules écrivent un point de reprise hors du journal :\n  "
+        + "\n  ".join(coupables)
+        + "\n\nUne seule autorité écrit dans `etapes` et `cache` : "
+          "pdz/moteur/journal.py. Voir docs/MIGRATION_PLAN.md PHASE 5."
+    )
 
 
 # ── Le noyau ne remonte jamais vers le métier ───────────────────────────

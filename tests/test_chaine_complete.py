@@ -133,7 +133,30 @@ def atelier(tmp_path, monkeypatch):
             curseur += pas
         return sortie, mots
 
-    monkeypatch.setattr("pdz.production.voix.elevenlabs.synthetiser", fausse_voix)
+    # Substitution par le REGISTRE PUBLIC des backends, et non plus par
+    # `pdz.production.voix.elevenlabs` : la production ne connaît plus le
+    # fournisseur depuis la PHASE 6. Le joint prévu est le registre.
+    class _BackendVoixTest:
+        nom = "test"
+
+        def capabilities(self):
+            from pdz.contracts.capabilities import ModeleCapacites
+            return ModeleCapacites(modele="test", fournisseur=self.nom)
+
+        def voix_disponibles(self):
+            return []
+
+        def synthetiser(self, texte, sortie, **kwargs):
+            return fausse_voix(texte, sortie, **kwargs)
+
+    from pdz.backends import voix as _backends_voix
+    from pdz.ia.registre import registre as _registre
+
+    monkeypatch.setitem(
+        _backends_voix.BACKENDS,
+        _registre().resoudre("voix", repli_si_cle_absente=True).modele.fournisseur,
+        _BackendVoixTest(),
+    )
 
     # ── Les images ───────────────────────────────────────────────────────
     appels = {"images": 0}

@@ -20,6 +20,7 @@ from enum import Enum
 from typing import Any, Protocol
 
 from pdz import db
+from pdz.moteur import journal
 from pdz.moteur.erreurs import ErreurBudget, ErreurPdz, ErreurValidation, delai_backoff
 
 log = logging.getLogger(__name__)
@@ -280,28 +281,27 @@ class Moteur:
         emp = empreinte(entrees, agent.signature())
 
         # Cache : même entrée + même version d'agent + même modèle → gratuit.
-        if (cachee := _lire_cache(emp)) is not None:
+        if (cachee := journal.lire_cache(emp)) is not None:
             log.info("↩︎  %s : réutilisé depuis le cache", etape.cle)
-            _ecrire_etape(ctx.job_id, etape, emp, cachee, cout=0.0,
-                          duree_ms=0, statut="ignore_cache")
+            journal.noter_etape(ctx.job_id, etape.cle, etape.agent, cachee,
+                                cout=0.0, duree_ms=0, empreinte=emp,
+                                statut="ignore_cache")
             return cachee, 0.0
 
         debut = time.perf_counter()
         sortie = await executer_avec_relance(agent, entrees, ctx)
         duree_ms = int((time.perf_counter() - debut) * 1000)
-        _ecrire_etape(ctx.job_id, etape, emp, sortie, ctx.cout_engage, duree_ms)
-        _ecrire_cache(emp, sortie, ctx.cout_engage)
-        _ajouter_cout(ctx.job_id, ctx.cout_engage)
+        journal.noter_etape(ctx.job_id, etape.cle, etape.agent, sortie,
+                            cout=ctx.cout_engage, duree_ms=duree_ms, empreinte=emp)
+        journal.ecrire_cache(emp, sortie, ctx.cout_engage)
         log.info("✓  %s (%d ms, %.4f €)", etape.cle, duree_ms, ctx.cout_engage)
         return sortie, ctx.cout_engage
 
     def _etapes_terminees(self, conn, job_id: str) -> dict[str, Any]:
-        lignes = conn.execute(
-            "SELECT cle, resultat FROM etapes "
-            "WHERE job_id = ? AND statut IN ('termine', 'ignore_cache')",
-            (job_id,),
-        ).fetchall()
-        return {ligne["cle"]: db.charger(ligne["resultat"], {}) for ligne in lignes}
+        """Délègue au journal — qui revérifie aussi que les fichiers cités
+        existent encore. Le moteur ne le faisait pas ; c'est l'acquis
+        d'`episode.py`, désormais commun aux deux."""
+        return journal.etapes_faites(job_id)
 
     def _verifier_validation(self, job_id: str, etape: Etape, contenu: dict):
         """Crée la validation si elle n'existe pas, sinon lit la décision."""
@@ -330,11 +330,7 @@ class Moteur:
             return "approuve"
 
     def _reecrire_etape(self, job_id: str, cle: str, resultat: dict) -> None:
-        with db.connexion() as conn:
-            conn.execute(
-                "UPDATE etapes SET resultat = ?, empreinte = NULL WHERE job_id = ? AND cle = ?",
-                (db.vider(resultat), job_id, cle),
-            )
+        journal.reecrire_etape(job_id, cle, resultat)
 
     def _arreter(self, res: Resultat, job_id: str, statut: Statut, message: str) -> Resultat:
         log.error("✗  %s : %s", job_id, message)
@@ -348,7 +344,12 @@ class Moteur:
         return res
 
 
-# ── Accès base, isolés pour rester lisibles ───────────────────────────────
+# ── Accès base ───────────────────────────────────────────────────────────
+#
+# La lecture, l'écriture et le cache des étapes vivent dans
+# `pdz/moteur/journal.py` — la SEULE autorité, partagée avec
+# `production/episode.py`. Ce qui reste ici est propre au moteur : le statut
+# du job et la lecture de son entrée.
 
 def _maj_statut(conn, job_id: str, statut: Statut) -> None:
     conn.execute(
@@ -361,53 +362,3 @@ def _entree_job(job_id: str) -> dict:
     with db.connexion() as conn:
         ligne = conn.execute("SELECT entree FROM jobs WHERE id = ?", (job_id,)).fetchone()
     return db.charger(ligne["entree"], {}) if ligne else {}
-
-
-def _ecrire_etape(job_id: str, etape: Etape, emp: str, resultat: dict,
-                  cout: float, duree_ms: int, statut: str = "termine") -> None:
-    """Écrit le point de reprise. C'est l'opération la plus importante du moteur."""
-    with db.connexion() as conn:
-        conn.execute(
-            "INSERT INTO etapes "
-            "(id, job_id, cle, agent, statut, empreinte, resultat, cout, duree_ms, cree_le, fini_le) "
-            "VALUES (?,?,?,?,?,?,?,?,?,?,?) "
-            "ON CONFLICT(job_id, cle) DO UPDATE SET "
-            "  statut = excluded.statut, empreinte = excluded.empreinte, "
-            "  resultat = excluded.resultat, cout = excluded.cout, "
-            "  duree_ms = excluded.duree_ms, fini_le = excluded.fini_le, "
-            "  tentative = etapes.tentative + 1",
-            (db.nouvel_id("etp"), job_id, etape.cle, etape.agent, statut, emp,
-             db.vider(resultat), cout, duree_ms, db.maintenant(), db.maintenant()),
-        )
-
-
-def _ajouter_cout(job_id: str, cout: float) -> None:
-    if cout <= 0:
-        return
-    with db.connexion() as conn:
-        conn.execute(
-            "UPDATE jobs SET cout_total = cout_total + ?, maj_le = ? WHERE id = ?",
-            (cout, db.maintenant(), job_id),
-        )
-
-
-def _lire_cache(emp: str) -> dict | None:
-    with db.connexion() as conn:
-        ligne = conn.execute(
-            "SELECT valeur, expire_le FROM cache WHERE empreinte = ?", (emp,)
-        ).fetchone()
-        if ligne is None:
-            return None
-        if ligne["expire_le"] and ligne["expire_le"] < db.maintenant():
-            conn.execute("DELETE FROM cache WHERE empreinte = ?", (emp,))
-            return None
-        return db.charger(ligne["valeur"])
-
-
-def _ecrire_cache(emp: str, valeur: dict, cout_evite: float, ttl_s: int = 7 * 86400) -> None:
-    with db.connexion() as conn:
-        conn.execute(
-            "INSERT OR REPLACE INTO cache (empreinte, valeur, cout_evite, cree_le, expire_le) "
-            "VALUES (?,?,?,?,?)",
-            (emp, db.vider(valeur), cout_evite, db.maintenant(), db.maintenant() + ttl_s),
-        )

@@ -21,6 +21,7 @@ from pathlib import Path
 
 import httpx
 
+from pdz.backends.base import VoixDisponible
 from pdz.ia.registre import registre
 from pdz.moteur.erreurs import (
     ErreurConfig,
@@ -40,16 +41,24 @@ BASE = "https://api.elevenlabs.io/v1"
 MODELE_DEFAUT = "eleven_multilingual_v2"
 
 
-class Voix:
-    def __init__(self, donnees: dict):
-        self.id = donnees["voice_id"]
-        self.nom = donnees.get("name", "")
-        self.langue = (donnees.get("labels") or {}).get("language", "")
-        self.genre = (donnees.get("labels") or {}).get("gender", "")
-        self.usage = (donnees.get("labels") or {}).get("use_case", "")
+class Voix(VoixDisponible):
+    """La réponse d'ElevenLabs, traduite dans la forme commune.
 
-    def __repr__(self) -> str:
-        return f"Voix({self.nom!r}, {self.genre}, {self.usage})"
+    Hérite plutôt que de dupliquer : le métier annote ses variables avec
+    `VoixDisponible` et n'a plus à importer ce module pour un nom de type.
+    Ce qui reste ici est le seul travail propre au fournisseur — savoir que
+    l'identifiant s'appelle `voice_id` et que le reste vit sous `labels`.
+    """
+
+    def __init__(self, donnees: dict):
+        labels = donnees.get("labels") or {}
+        super().__init__(
+            id=donnees["voice_id"],
+            nom=donnees.get("name", ""),
+            langue=labels.get("language", ""),
+            genre=labels.get("gender", ""),
+            usage=labels.get("use_case", ""),
+        )
 
 
 def _cle() -> str:

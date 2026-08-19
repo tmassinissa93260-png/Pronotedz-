@@ -1,8 +1,15 @@
-"""Assemblage de la bande voix — testé sans appeler ElevenLabs.
+"""Assemblage de la bande voix — testé sans appeler aucun fournisseur.
 
 La synthèse est remplacée par de vrais fichiers audio fabriqués avec ffmpeg :
 les durées, le recalage des timings et l'assemblage sont donc réellement
 vérifiés, seul l'appel réseau est simulé.
+
+Le remplacement passe par le JOINT BACKEND (`pdz.backends.voix`) et non plus
+par `mod.elevenlabs`. Ces tests atteignaient le fournisseur à travers le
+module de production — le couplage même que la PHASE 6 a supprimé. Substituer
+un backend est désormais la façon prévue de le faire, et c'est aussi une
+preuve : si un mock ne peut pas remplacer un vrai backend, c'est que le métier
+connaît encore le fournisseur.
 """
 
 import subprocess
@@ -10,6 +17,8 @@ from pathlib import Path
 
 import pytest
 
+from pdz.backends import voix as backends_voix
+from pdz.ia.registre import registre
 from pdz.moteur.erreurs import ErreurConfig
 from pdz.production import voix as mod
 from pdz.production.voix import (
@@ -30,9 +39,47 @@ def univers(tmp_path):
     return u
 
 
+class _BackendBip:
+    """Un backend de voix complet, qui rend de vrais fichiers audio.
+
+    Écrit à la main plutôt qu'en réutilisant `BackendVoixMock` : celui-ci
+    écrit des octets factices, alors qu'on veut ici de VRAIS fichiers dont
+    ffprobe puisse mesurer la durée. C'est ce qui fait que le recalage des
+    timings est réellement vérifié, et pas seulement simulé.
+    """
+
+    nom = "bip"
+
+    def __init__(self, synthetiser):
+        self.synthetiser = synthetiser
+
+    def capabilities(self):
+        from pdz.contracts.capabilities import ModeleCapacites
+        return ModeleCapacites(modele="bip", fournisseur=self.nom)
+
+    def voix_disponibles(self):
+        return []
+
+
+def _installer(monkeypatch, synthetiser):
+    """Substitue le backend de voix par le REGISTRE PUBLIC.
+
+    `monkeypatch.setitem` sur `BACKENDS` plutôt qu'un `setattr` sur un
+    attribut de module : le registre est le point d'extension prévu, et
+    l'emprunter prouve qu'un fournisseur est réellement substituable sans
+    toucher au code. Si ce test devait forcer une porte privée, ce serait
+    le signe que l'architecture ne tient pas sa promesse.
+
+    La restauration est celle de `monkeypatch` — automatique, y compris si
+    le test échoue.
+    """
+    fournisseur = registre().resoudre("voix", repli_si_cle_absente=True).modele.fournisseur
+    monkeypatch.setitem(backends_voix.BACKENDS, fournisseur, _BackendBip(synthetiser))
+
+
 @pytest.fixture
 def fausse_synthese(monkeypatch):
-    """Remplace ElevenLabs par un bip de durée proportionnelle au texte."""
+    """Remplace le fournisseur par un bip de durée proportionnelle au texte."""
     appels = []
 
     def _faux(texte, sortie, *, voice_id, stabilite, style, vitesse):
@@ -50,7 +97,7 @@ def fausse_synthese(monkeypatch):
             t += part
         return sortie, mots
 
-    monkeypatch.setattr(mod.elevenlabs, "synthetiser", _faux)
+    _installer(monkeypatch, _faux)
     return appels
 
 
@@ -190,7 +237,7 @@ def test_dire_transmet_les_reglages_ajustes_a_la_synthese(tmp_path, univers, mon
                str(sortie)], check=True)
         return sortie, []
 
-    monkeypatch.setattr(mod.elevenlabs, "synthetiser", _espion)
+    _installer(monkeypatch, _espion)
 
     perso_id = univers.personnages[0].id
     reps = [
@@ -216,7 +263,7 @@ def _sans_reseau(monkeypatch):
     """Garantit qu'aucune synthèse ne peut partir, même par accident."""
     def _interdit(*a, **k):
         raise AssertionError("aucune synthèse ne doit partir en mode muet")
-    monkeypatch.setattr(mod.elevenlabs, "synthetiser", _interdit)
+    _installer(monkeypatch, _interdit)
 
 
 def test_le_mode_muet_nappelle_aucun_fournisseur(tmp_path, univers, monkeypatch):

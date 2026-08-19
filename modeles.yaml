@@ -4,6 +4,24 @@
 #  Ajouter un modèle = ajouter une entrée. Zéro ligne de Python.
 # ═══════════════════════════════════════════════════════════════════════
 
+# ── `fait:` et `capacites:` ne disent PAS la même chose ────────────────
+#
+#   `fait:`      ce que ce modèle est CENSÉ savoir faire. Une déclaration de
+#                configuration : elle sert à ROUTER, jamais à garantir. Tout
+#                ce qui s'y trouve vaut ANNONCE, rien de plus.
+#
+#   `capacites:` ce qu'on SAIT de ce modèle, capacité par capacité :
+#                  MESURE  — constaté ici, à une date, par une méthode
+#                  ANNONCE — la documentation du fournisseur le dit
+#                  INCONNU — personne n'a vérifié
+#
+# Une capacité ANNONCÉE n'engage jamais une dépense : deux modèles ont été
+# retirés en 2026 (llama-3.3-70b-versatile, llama-4-maverick) alors que leurs
+# capacités annoncées étaient exactes jusqu'au dernier jour.
+#
+# `valeur: false` sous `statut: MESURE` veut dire « on a vérifié que NON » —
+# tout autre chose qu'un INCONNU. Voir `duree_10s` sur ltx-video.
+
 # ⚠️ Les prix bougent tous les 2-3 mois. À revérifier avant de s'y fier.
 #    Ils servent au calcul du coût et aux garde-fous de budget.
 #    Unité : euros par million de jetons (texte), par image, par 1000 caractères.
@@ -163,6 +181,14 @@ modeles:
     # vérification de durée dans `animation.animer()` rejette le clip et le
     # plan repart en repli local, comme aujourd'hui.
     durees_s: [5, 10]
+    capacites:
+      image_to_video: { statut: MESURE, valeur: true, le: "2026-08-18",
+                        methode: "corps de requête envoyé par pdz/ia/fal.py" }
+      # Le clip de 10 s n'a jamais été vérifié : la durée reste ANNONCÉE.
+      duree_10s:      { statut: ANNONCE, valeur: true }
+      camera_control: { statut: INCONNU }
+      last_frame:     { statut: INCONNU }
+      masks:          { statut: INCONNU }
 
   # Repli d'animation : ~61 % moins cher, mais plafonné à 5 s.
   - id: fal-ai/ltx-video-v097/image-to-video
@@ -174,6 +200,15 @@ modeles:
     # lui demande 5 ou 10 — le paramètre `duration` n'a aucun effet au-delà.
     # Un seul palier réel, donc, et c'est bien 5 et pas 10.
     durees_s: [5]
+    capacites:
+      image_to_video: { statut: MESURE, valeur: true, le: "2026-08-18" }
+      # La seule capacité du dépôt dont on ait mesuré qu'elle est FAUSSE.
+      # `valeur: false` sous `statut: MESURE` dit « on a vérifié que non » —
+      # tout autre chose qu'un INCONNU, et c'est bien pour ça que les deux
+      # existent séparément.
+      duree_10s:      { statut: MESURE, valeur: false, le: "2026-08-18",
+                        methode: "runs #57/#65/#66 : rend ~4,84 s quoi qu'on demande" }
+      camera_control: { statut: INCONNU }
 
   # ── Voix ─────────────────────────────────────────────────────────────
   - id: eleven_turbo_v2_5
@@ -181,12 +216,22 @@ modeles:
     fait: [voix]
     prix: { par_1000_caracteres: 0.0 }   # inclus dans l'abonnement mensuel
     options: [voice_id, stabilite, style]
+    capacites:
+      text_to_speech:  { statut: MESURE, valeur: true }
+      # LA capacité dont dépend toute la chronologie de la production.
+      word_timestamps: { statut: MESURE, valeur: true,
+                         methode: "endpoint /with-timestamps, alignement caractère par caractère" }
+      clonage_de_voix: { statut: INCONNU }
 
   # ── Reconnaissance de musique ────────────────────────────────────────
   - id: audd/recognize
     fournisseur: audd
     fait: [reconnaissance_musique]
     prix: { par_image: 0.0046 }        # facturé à la requête, pas au temps
+    capacites:
+      identification_musicale: { statut: MESURE, valeur: true }
+      extrait_10Mo_max:        { statut: MESURE, valeur: true,
+                                 methode: "TAILLE_MAX_OCTETS, vérifié avant envoi" }
 
   # ── Transcription (analyse de vidéos) ────────────────────────────────
   - id: whisper-large-v3-turbo

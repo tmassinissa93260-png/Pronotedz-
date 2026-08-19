@@ -28,8 +28,8 @@ import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from pdz.backends import backend_voix
 from pdz.config import config
-from pdz.ia import elevenlabs
 from pdz.moteur.erreurs import ErreurConfig, ErreurPdz
 from pdz.univers import Univers, Voix
 from pdz.video.soustitres import Mot
@@ -320,7 +320,7 @@ def dire(repliques: list[dict], univers: Univers, sortie: Path, *,
             evites += len(texte)
             depuis_cache = True
         else:
-            fichier, mots_bruts = elevenlabs.synthetiser(
+            fichier, mots_bruts = backend_voix().synthetiser(
                 texte, dossier / f"{r['numero']:03d}.mp3",
                 voice_id=perso.voix.voice_id,
                 stabilite=stabilite,

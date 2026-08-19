@@ -380,72 +380,172 @@ mémoire   →  17 tests
 
 ---
 
-## Phase 5 — Un seul orchestrateur
+## Phase 5 — Un seul orchestrateur ✅ **FAIT**
 
-**Le GAP structurel le plus important.** `moteur/pipeline.py` et
-`production/episode.py` réimplémentent chacun reprise et journalisation ; le
-second produit les vidéos, donc le chemin de production **ne bénéficie pas
-du cache du moteur**.
+**Le GAP structurel principal du dépôt.**
 
-Une seule autorité, propriétaire du cache, de la reprise, de l'état, de la
-validation, de l'exécution, des artefacts et du journal. `episode.py`
-devient un adaptateur, ou disparaît si son rôle est absorbable proprement.
+`moteur/pipeline.py` et `production/episode.py` écrivaient chacun dans la
+table `etapes` sans se connaître — `episode.py` neuf fois, via ses propres
+`_fait()`/`_noter()`. Deux mécanismes de reprise devant rester d'accord pour
+toujours, ce qui n'arrive jamais. Et le chemin réel de production, le second,
+n'avait **aucun accès au cache du moteur**.
 
-La **revérification des fichiers cités** de `_fait()` monte dans le noyau —
-c'est un acquis né d'un échec réel, il ne se perd pas.
+### `pdz/moteur/journal.py` — la seule autorité
 
-**Critère** : `pdz episode` passe par l'orchestrateur unique, et une reprise
-ne repaie rien. **Risque** : élevé. **Effort** : élevé.
+Lecture, écriture, cache : un seul module, appelé par les deux. Ce
+qu'`episode.py` savait faire de mieux — **revérifier que les fichiers cités
+existent encore** — monte au noyau et devient la règle commune, y compris
+pour le cache : une entrée dont le `.mp4` a disparu est rejetée *et purgée*,
+au lieu de faire échouer le montage trente secondes plus tard sur une erreur
+méconnaissable.
 
----
+Reprise et cache restent **distincts**, et c'est essentiel : la reprise est
+par *job*, le cache par *empreinte*. Les confondre ferait resservir à un job
+les fichiers d'un autre.
 
-## Phase 6 — Interfaces backend
+### Verrouillé
 
-Élimine les quatre dépendances métier → fournisseur déclarées en PHASE 1.
+`test_seul_le_journal_ecrit_les_points_de_reprise` interdit tout `INSERT INTO
+etapes` / `INSERT INTO cache` hors du journal. Un troisième mécanisme ne peut
+plus naître en silence.
 
-`ImageBackend / VideoBackend / TTSBackend / AudioBackend / EditBackend /
-RechercheBackend` (`capabilities / validate / estimate / execute`), plus un
-`Mock*` par interface. Les 6 adaptateurs existants sont **enveloppés, pas
-réécrits**.
-
-C'est ici qu'arrive l'adaptateur de recherche réel, laissé de côté en
-PHASE 3.
-
-**Critère** : les quatre entrées d'`ECARTS_CONNUS` disparaissent, et
-`test_un_ecart_connu_reste_present_ou_sa_derogation_est_retiree` force leur
-retrait. **Risque** : élevé (chemin qui dépense). **Effort** : élevé.
+**Résultat** : 16 tests de journal, 0 changement de comportement.
 
 ---
 
-## Phase 7 — Capacités : `ANNONCE` / `MESURE` / `INCONNU`
+## Phase 6 — Interfaces backend ✅ **FAIT**
 
-`CapabilityGraph` existe déjà (PHASE 2) et applique la règle. Reste à le
-remplir depuis `modeles.yaml` — et surtout à **faire remonter en données les
-mesures qui vivent aujourd'hui en commentaires** (« ltx-video rend ~4,84 s
-qu'on lui demande 5 ou 10 », « 5 images par requête au maximum »).
+Les **quatre** dépendances métier → fournisseur déclarées en PHASE 1 ont
+disparu. `ECARTS_CONNUS` est vide, et le test à double sens a *forcé* le
+retrait des dérogations.
+
+### `pdz/backends/` enveloppe, ne réécrit pas
+
+```
+métier  →  backends  →  pdz/ia/<fournisseur>  →  HTTP
+```
+
+`pdz/ia/*` est inchangé : ce sont les clients HTTP, écrits et éprouvés.
+
+| Interface | Méthodes | Réel | Mock |
+|---|---|---|---|
+| `VideoBackend` | `capabilities` · `valider` · `estimer` · `executer` | fal | ✅ |
+| `TTSBackend` | `capabilities` · `voix_disponibles` · `synthetiser` | elevenlabs | ✅ |
+| `ReconnaissanceAudioBackend` | `capabilities` · `identifier` | audd | ✅ |
+
+Séparer `valider`/`estimer` d'`executer` est ce qui permet de **refuser un
+plan infaisable sans payer pour l'apprendre**. `executer()` revalide toujours :
+un appelant qui oublie ne doit pas pouvoir engager un euro.
+
+### `VoixDisponible` remonte dans l'interface
+
+`elevenlabs.Voix` en hérite. Le métier annote ses variables sans importer un
+fournisseur pour un nom de type.
+
+### Le registre est public
+
+`BACKENDS` est un point d'extension, pas un détail privé. Les tests
+substituent un fournisseur par `monkeypatch.setitem` — **si un test devait
+forcer une porte privée, ce serait le signe que l'architecture ne tient pas
+sa promesse.**
+
+Onze faux `animer_image` déjà écrits ont été *enveloppés*, pas réécrits :
+chacun reproduit un mode d'échec précis, et ce qu'ils vérifient est inchangé.
+
+**Résultat** : 28 tests de backend, 0 écart d'architecture.
+
+---
+
+## Phase 7 — `ANNONCE` / `MESURE` / `INCONNU` ✅ **FAIT**
+
+Le dépôt savait ces choses — **en commentaires** :
+
+> « MESURÉ (runs #57, #65, #66) : ce endpoint rend ~4,84 s qu'on lui demande
+> 5 ou 10 » · « ANNONCÉES par fal, pas encore mesurées ici »
 
 Un commentaire ne se requête pas, ne s'agrège pas, et ne peut pas empêcher
-une décision.
+une décision. `modeles.yaml` porte désormais un bloc `capacites:`.
 
-**Critère** : aucune dépense n'est engagée sur une capacité non mesurée.
-**Risque** : faible. **Effort** : moyen.
+### La règle de conversion
+
+- `fait:` → **ANNONCE**. C'est une déclaration de configuration : elle sert à
+  *router*, jamais à garantir. Choisir n'est pas promettre.
+- `capacites:` → le statut écrit. Seul endroit où `MESURE` peut apparaître.
+
+**Conséquence assumée : 25 capacités sur 32 sont non mesurées.** Ce n'est pas
+un défaut du module, c'est l'état réel de la connaissance du dépôt.
+`mesures_manquantes()` en fait la liste de travail.
+
+### `MESURÉ-FAUX` ≠ `INCONNU`
+
+`duree_10s` sur ltx-video : `statut: MESURE, valeur: false` — « on a vérifié
+que non ». Sur Kling : `statut: ANNONCE, valeur: true` — « fal le dit ».
+Même capacité, deux statuts. C'est précisément ce que l'ancienne structure ne
+savait pas exprimer.
+
+**Résultat** : 15 tests de capacités.
 
 ---
 
-## Phase 8 — Stratégies
+## Phase 8 — Stratégies ✅ **FAIT**
 
-`vie.py` **est déjà** du 2.5D, `montage.Mouvement` **est déjà** du
-procédural, l'appel Kling **est déjà** du `DIRECT_I2V`. Aucun des trois n'est
-nommé, et la sélection est une cascade `if/else`.
+`vie.py` **était** du 2.5D, le Ken Burns **était** du procédural, l'appel
+Kling **était** du `DIRECT_I2V`. Aucun des trois n'était nommé, et la
+sélection était un `if/else` : modèle payant → `vie` → `camera`.
 
-`pdz/strategies/` les nomme et les isole. Une stratégie décrit **comment**
-fabriquer le plan ; un backend décrit **avec quel moteur** l'exécuter — la
-confusion des deux est la cause de la cascade en dur.
+### Ce que le nommage a révélé
 
-`animation.noter()` + `combien_animer()` deviennent le Compute Governor.
+**Deux stratégies garantissent le mouvement, une l'espère.** Le run #66 a
+mesuré un clip payé, valide, de la bonne durée et parfaitement statique. La
+parallaxe locale, elle, est du calcul.
 
-**Critère** : ajouter une stratégie ne touche pas `production/`.
-**Risque** : moyen. **Effort** : élevé.
+Et l'inverse est vrai aussi : **la parallaxe ne sait pas inventer un
+mouvement de sujet.** Un personnage qui tourne la tête demande des pixels
+absents de l'image de départ. Chaque stratégie déclare donc ce qu'elle sait
+rendre (`sujet` / `ambiance` / `camera`), et sa confiance en dépend.
+
+### L'erreur de conception, corrigée et gardée en test
+
+La première version classait sur « confiance par euro ». Mathématiquement
+cohérent, et **faux** : diviser par un coût quasi nul rend toute stratégie
+gratuite mille fois meilleure que n'importe quelle payante — le modèle
+génératif n'aurait *jamais* été choisi, y compris sur un plan qu'il est seul
+à savoir rendre.
+
+Remplacé par une **utilité espérée** :
+
+```
+utilité = confiance × valeur_du_plan − coût
+```
+
+`test_un_ratio_confiance_par_euro_ferait_toujours_gagner_le_gratuit` garde
+le défaut comme test de non-régression.
+
+### Le comportement obtenu
+
+| mouvement attendu | plan critique | plan secondaire |
+|---|---|---|
+| **sujet** | `DIRECT_I2V` — seul à savoir le rendre | `2.5D` — n'en vaut pas le prix |
+| **ambiance** | `2.5D` — gratuit **et** garanti | `2.5D` |
+| **caméra** | `2.5D` | `2.5D` |
+| budget épuisé | `2.5D`, avec la raison écrite | idem |
+
+C'est **meilleur** que la cascade en dur, qui tentait toujours le payant
+d'abord — y compris pour une ambiance que la parallaxe rendait gratuitement
+et à coup sûr.
+
+`VALEUR_PLAN_MAXIMALE_EUR = 1,00 €` est calibré sur ce que le dépôt **paie
+déjà** (1,56 €/épisode animé, 0,23 € le clip de 5 s), pas sur une intuition.
+C'est le paramètre le plus discutable du module, et c'est voulu qu'il soit
+le plus visible.
+
+### Branché
+
+`animation._repli()` exécute désormais `TWO_POINT_FIVE_D` et `PROCEDURAL`
+nommément. Comportement identique — vérifié par les 91 tests d'animation
+existants. Une implémentation sans usage n'aurait pas été acceptable.
+
+**Résultat** : 21 tests de stratégie.
 
 ---
 
@@ -597,42 +697,40 @@ l'assurance d'un routeur entraîné sur beaucoup.
 ## Ordonnancement et dépendances
 
 ```
-0 architecture ✅ ──→ 1 filet ✅ ──→ 2 contracts ✅ ──→ 2b golden ✅
-                                          │
-              ┌───────────────────────────┼───────────────────────┐
-              ↓                           ↓                       ↓
-        3 profils ✅              4 ExperienceMemory ✅     5 orchestrateur unique
-                                          │                       │
-                                          │                       ↓
-                                          │                6 backends ──→ 7 capacités
-                                          │                       │
-                                          │                       ↓
-                                          │                8 stratégies
-                                          │                       │
-                                          │     ┌─────────────────┼──────────────┐
-                                          │     ↓                 ↓              ↓
-                                          │  9 caméra      10 scene state   12 renderability
-                                          │     │                 │              │
-                                          │     └────→ 11 perception ←───────────┤
-                                          │                       │              ↓
-                                          │                       │       13 décomposition
-                                          │                       ↓              │
-                                          │                14 execution DAG ←─────┘
-                                          │                       ↓
-                                          │                15 diagnostics
-                                          │                       ↓
-                                          │                16 repair
-                                          │                       ↓
-                                          └──────────────→ 17 expected vs observed
-                                                                  ↓
-                                                          19 routage empirique 🔒
+0 architecture ✅ → 1 filet ✅ → 2 contracts ✅ → 2b golden ✅
+                                      │
+        ┌─────────────────────────────┼──────────────────────────┐
+        ↓                             ↓                          ↓
+  3 profils ✅              4 ExperienceMemory ✅      5 orchestrateur unique ✅
+                                      │                          ↓
+                                      │                 6 backends ✅ → 7 capacités ✅
+                                      │                          ↓
+                                      │                   8 stratégies ✅
+                                      │                          │
+                                      │      ┌───────────────────┼────────────────┐
+                                      │      ↓                   ↓                ↓
+                                      │  9 caméra        10 scene state    12 renderability
+                                      │      │                   │                │
+                                      │      └──→ 11 perception ←─┤                ↓
+                                      │                          │        13 décomposition
+                                      │                          ↓                │
+                                      │                 14 execution DAG ←─────────┘
+                                      │                          ↓
+                                      │                   15 diagnostics
+                                      │                          ↓
+                                      │                     16 repair
+                                      │                          ↓
+                                      └────────────→ 17 expected vs observed
+                                                                 ↓
+                                                     19 routage empirique 🔒
 ```
 
-**Six phases sur dix-neuf sont faites.** La 19 est verrouillée par la donnée,
-pas par le code : elle attend que `experiences` se remplisse.
+**Neuf phases sur dix-neuf sont faites** (0, 1, 2, 2b, 3, 4, 5, 6, 7, 8 —
+plus la 18 avancée). La 19 est verrouillée par la donnée, pas par le code :
+elle attend que `experiences` se remplisse de vraies productions.
 
 Les phases 9 à 13 sont largement **indépendantes entre elles** — leurs
-contrats existent déjà depuis la PHASE 2, il ne reste qu'à les brancher. Elles
+contrats existent depuis la PHASE 2, il ne reste qu'à les brancher. Elles
 peuvent avancer dans n'importe quel ordre selon ce qui bloque le plus.
 
 ---
