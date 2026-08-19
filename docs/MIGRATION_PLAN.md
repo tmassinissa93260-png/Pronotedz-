@@ -119,32 +119,125 @@ seul le jour où `pdz/contracts/` existera — c'est-à-dire en PHASE 2.
 
 ---
 
-## Phase 2 — `contracts/`
+## Phase 2 — `contracts/` ✅ **FAIT**
 
 Le paquet dont tout le reste dépend.
 
-- `pdz/contracts/base.py` : enveloppe `Contrat` (`schema_version, id, cree_le,
-  maj_le, producteur, provenance, dependances, payload`), sérialisation JSON à
-  clés triées, registre de migrations.
-- Migration des objets pivots **existants**, dans cet ordre — du plus stable au
-  plus mouvant : `Univers` (déjà Pydantic) → `MotionProgram` → `ContratVisuel`
-  → `PlanScript` → `VoiceTimeline` (aujourd'hui `BandeVoix`) → `EditTimeline`
-  (aujourd'hui `Montage`).
-- La **version de contrat entre dans `empreinte()`**, exactement comme la
-  version de prompt aujourd'hui.
-- `tests/test_contrats.py` : un contrat `@1.0` sérialisé aujourd'hui doit se
-  relire par le code `@1.1` de demain. C'est le test qui rend le versionnement
-  réel.
-- Fixtures : une production complète sérialisée, gelée, qui sert de référence de
-  compatibilité.
+### Livré — 21 contrats, 0 dépendance
 
-**Ce qui ne change pas** : le comportement. Un `PlanScript` typé produit
-exactement le même prompt qu'avant. Les tests existants le prouvent.
+`pdz/contracts/` n'importe **rien** d'autre de `pdz` : vérifié par
+`tests/test_architecture.py`, qui n'est plus ignoré.
 
-**Critère** : `pdz episode` produit une vidéo **bit-à-bit identique** à celle
-d'avant la phase, pour la même graine et le même cache.
-**Risque** : moyen — c'est la phase qui touche le plus de fichiers.
-**Effort** : élevé.
+| Fichier | Contrats |
+|---|---|
+| `base.py` | `Contrat`, `Provenance`, migrations, empreinte |
+| `communs.py` | `Certitude`, `StatutCapacite`, `Verdict`, `Severite`, `Profil` |
+| `topic.py` | `TopicRequest` |
+| `research.py` · `narrative.py` | `ResearchState`/`Claim`/`Source` · `NarrativeState` |
+| `director.py` | `DirectorState` + 6 sous-états |
+| `world.py` · `causality.py` | `WorldState`/`Entite`/`Etat` · `CausalState` |
+| `audio.py` | `AudioTimeline`/`Replique`/`Mot` |
+| `shot.py` · `perception.py` | `ShotGraph`/`ShotSpec` · `PerceptualContract` |
+| `motion.py` · `camera.py` | `MotionProgram` · `CameraProgram` |
+| `render.py` · `capabilities.py` | `RenderSpec…`/`Strategie` · `CapabilityGraph` |
+| `execution.py` | `ExecutionPlan` + ordonnancement en vagues |
+| `observation.py` · `diagnosis.py` · `repair.py` | la boucle de retour |
+| `experience.py` | `ExperienceRecord` |
+
+### Les règles rendues exécutables
+
+Ce que le dépôt appliquait par culture devient vérifiable :
+
+| Règle | Où | Test |
+|---|---|---|
+| Un `FAIT` sans source n'est pas affirmable | `Claim.utilisable_comme_fait` | ✅ |
+| Une confiance de 0,99 ne promeut pas un heuristique | idem | ✅ |
+| Un axe non mesuré vaut `INCERTAIN`, jamais `REUSSI` | `ObservationReport.verdict_axe` | ✅ |
+| Une capacité `ANNONCE` n'engage pas | `Capacite.utilisable` | ✅ |
+| `valeur=None` ≠ `valeur=False` | `Capacite` | ✅ |
+| Une entité non observée n'est pas « conforme » | `Entite.ecart_connu` | ✅ |
+| Un diagnostic peu sûr n'est pas actionnable | `FailureDiagnosis.actionnable` | ✅ |
+| Une expérience sans conclusion n'est pas exploitable | `ExperienceRecord.exploitable` | ✅ |
+
+`ObservationReport` sait aussi dire ses propres angles morts
+(`axes_non_mesures`) — la carte de ce que le système ne sait pas encore
+regarder, utile telle quelle.
+
+### Le cache : opt-in, volontairement
+
+`versions(*contrats)` produit le dictionnaire à ajouter à `Agent.signature()`.
+Une étape qui manipule un contrat voit son cache s'invalider quand ce schéma
+change — exactement le mécanisme des versions de prompt.
+
+**Rien n'a été branché sur les étapes existantes.** Aucun producteur ne
+consomme encore de contrat : ajouter leurs versions à l'empreinte aujourd'hui
+invaliderait tout le cache du dépôt et ferait repayer des vidéos déjà
+produites, sans rien garantir de plus. Le branchement se fait phase par
+phase, avec le producteur qui l'utilise.
+
+### Les adaptateurs — `pdz/adaptateurs.py`
+
+Règle 39 appliquée : `ANCIEN → ADAPTATEUR → NOUVEAU`. Rien n'a été supprimé.
+
+`PlanScript → ShotSpec` · `PlanScript[] → ShotGraph` ·
+`MotionProgram(legacy) → MotionProgram + CameraProgram` ·
+`ContratVisuel → PerceptualContract` · `BandeVoix → AudioTimeline`
+
+**Ce module est fait pour mourir** : chaque fonction existe parce qu'un
+producteur écrit encore l'ancienne forme. C'est l'endroit où lire ce qu'il
+reste à migrer.
+
+Un adaptateur n'invente **jamais**. `ShotSpec.but` reste vide sur toute la
+production existante — parce qu'aucun `PlanScript` ne l'a jamais déclaré, et
+que le remplir ferait répondre `est_specifie == True` partout, rendant la
+mesure inutile le jour de son introduction. C'est testé explicitement.
+
+### La séparation caméra / mouvement
+
+`motion_program()` et `camera_program()` produisent deux contrats depuis un
+seul objet legacy. C'est la fonctionnalité, pas un rangement : tant que les
+deux vivent dans le même champ, aucun diagnostic ne peut dire « ça bouge,
+mais c'est la caméra ». `ControleCamera.TEXTE_SEULEMENT` est conservé — et
+`est_garantie` répond `False`, ce qui est la vérité sur fal.ai.
+
+### Résultat
+
+```
+ruff check .   →  All checks passed!
+contrats       →  122 tests
+adaptateurs    →   32 tests
+golden         →    9 tests
+```
+
+**Critère atteint** : la compilation d'un épisode est inchangée — le golden
+test le prouve, et échoue bien quand on la modifie (vérifié en simulant une
+régression sur `PART_REACTION`).
+
+---
+
+## Phase 2b — Golden tests ✅ **FAIT** *(avancée)*
+
+Prévue en PHASE 18, avancée ici : les phases 5 à 9 vont réécrire la chaîne
+qui produit ces structures. Sans référence gelée, un changement de
+comportement passerait pour un changement voulu.
+
+`tests/test_golden.py` + `tests/golden/fiction_trahison.json`, régénérable
+par `python -m tests.golden_regenerer` — un script séparé, jamais une option
+`--update` : une mise à jour de référence doit être un geste délibéré.
+
+**Ce qui est gelé** : combien de plans, quelles durées, quel ordre, quelles
+arêtes, quelles sondes. **Ce qui ne l'est jamais** : une sortie générative.
+Pas de pixels, pas de prompt figé — les figer produirait un test qui échoue
+sans régression, le plus sûr moyen de faire ignorer une suite.
+
+Deux niveaux distincts, et le second est le plus précieux :
+- la **référence** dit « c'était comme ça » ;
+- les **invariants** disent « ça doit être comme ça » — la durée des plans
+  couvre exactement la parole, aucun trou de numérotation, chaque plan dure
+  assez pour être vu. Ils survivent à une régénération volontaire.
+
+Le cas explicatif viendra avec la PHASE 3 : écrire aujourd'hui une référence
+pour une chaîne qui n'existe pas ne testerait que la référence elle-même.
 
 ---
 
