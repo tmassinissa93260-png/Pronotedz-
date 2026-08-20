@@ -85,6 +85,7 @@ fait. Plus une petite page web locale pour valider les scripts et revoir les vid
 | Doc | Contenu |
 |---|---|
 | 👉 [MIGRATION_PLAN](./docs/MIGRATION_PLAN.md) | **Ce qui a été construit, phase par phase, et pourquoi** |
+| [SOURCE_OF_TRUTH](./docs/SOURCE_OF_TRUTH.md) | Qui fait autorité sur quoi — avant et après |
 | [TARGET_ARCHITECTURE](./docs/TARGET_ARCHITECTURE.md) | Le compilateur audiovisuel — la cible |
 | [CURRENT_ARCHITECTURE](./docs/CURRENT_ARCHITECTURE.md) | La photographie de départ *(document d'époque)* |
 | [GAP_ANALYSIS](./docs/GAP_ANALYSIS.md) | L'écart mesuré, et son solde *(document d'époque)* |
