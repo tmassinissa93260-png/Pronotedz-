@@ -56,7 +56,8 @@ ADAPTATEURS_FOURNISSEUR = {
 # couche neuve qui échapperait à la règle la rendrait décorative.
 DOMAINE = ("production", "univers", "agents", "analyse",
            "director", "narrative", "research",
-           "observation", "diagnostics", "repair", "strategies")
+           "observation", "diagnostics", "repair", "strategies",
+           "renderability", "execution", "memory")
 
 # ── Écarts connus, datés, et destinés à disparaître ──────────────────────
 #
@@ -241,9 +242,11 @@ def test_les_couches_de_decision_ne_dependent_que_des_contrats():
     `MotionProgram` depuis la production vivrait dans la couche de décision,
     et l'écart attendu/observé deviendrait invérifiable de l'extérieur.
 
-    `observation/` en est exclue volontairement : elle APPELLE les sondes de
-    `production/`, ce qui est son rôle — traduire ce qui existe, sans le
-    réimplémenter.
+    `observation/` et `renderability/` en sont exclues volontairement : elles
+    APPELLENT les sondes et les filtres de `production/`, ce qui est leur
+    rôle — traduire ce qui existe, sans le réimplémenter. `execution/` aussi :
+    elle appelle le journal, et c'est précisément ce qu'on veut (une seule
+    autorité sur la reprise, pas une troisième).
     """
     for couche in ("director", "narrative", "research", "diagnostics", "repair"):
         dossier = PAQUET / couche

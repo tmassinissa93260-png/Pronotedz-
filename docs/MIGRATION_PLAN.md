@@ -590,47 +590,92 @@ chaîne, et surtout à ce que **la QA le lise** — c'est lui qui transforme
 
 ---
 
-## Phase 12 — `RenderabilityAnalyzer`
+## Phases 12 à 14 — Faisabilité, décomposition, exécution ✅ **FAIT**
 
-Avant de dépenser : nombre d'entités, complexité de mouvement et de caméra,
-contraintes d'identité, rigide/non-rigide, profondeur, durée, capacités
-requises → `HIGH | MEDIUM | LOW`.
+### 12 — `pdz/renderability/` : ne pas payer pour apprendre qu'un plan est infabricable
 
-**Ce n'est pas une note esthétique.** « Difficile à fabriquer » et « sera
-moche » sont deux jugements sans rapport ; `Faisabilite` le dit déjà dans son
-énumération. `risque_prompt.py` y est absorbé comme validation statique.
+`HIGH` / `MEDIUM` / `LOW` est une estimation de **faisabilité technique**.
+Ce n'est pas une note esthétique : « difficile à fabriquer » et « sera moche »
+sont deux jugements sans rapport, et aucun champ de `Complexite` ne parle de
+qualité — c'est testé.
 
-**Critère** : un plan `LOW` ne part jamais chez un backend sans décomposition
-ni changement de stratégie. **Risque** : moyen. **Effort** : moyen.
+Le score **part de 1,0 et retire** : un plan sans contrainte vaut 1, ce qui
+est le cas de la majorité des plans du dépôt. Les difficultés se **cumulent**
+(produit, pas moyenne) — six entités *et* une identité à tenir *et* un
+mouvement de sujet est bien plus dur que chacun séparément, ce qu'une moyenne
+lisserait.
 
----
+Les poids sont assumés et en table lisible, tirés de ce que le dépôt a déjà
+mesuré ou documenté : au-delà de trois éléments un modèle d'image en oublie
+(`fidelite_visuelle.py` existe pour ça), l'identité est « le problème n°1 des
+séries générées » (`images.py`), un mouvement de sujet est plus dur qu'une
+ambiance (même limite que côté stratégies).
 
-## Phase 13 — `ShotDecomposer`
+`facteur_dominant` dit **quoi simplifier** : « ce plan est LOW » ne sert à
+rien, « LOW à cause de sept éléments » si.
 
-`renderability = LOW` → un plan devient plusieurs plans exécutables.
+La validation statique **réutilise `risque_prompt.py` tel quel** — filtre
+déterministe, zéro appel IA, qui sait déjà repérer texte lisible, logos et
+visages interdits. `visage_interdit` est *passé*, pas déduit : la contrainte
+vient de l'univers, et ce module ne connaît pas l'univers.
 
-**Jamais sans conserver la fonction narrative** : chaque plan issu d'une
-décomposition hérite du `but`, du `porte`, de la continuité et de la relation
-causale de son parent. Une décomposition qui perd le pourquoi produit trois
-plans corrects qui ne racontent plus rien.
+### 13 — `pdz/renderability/decomposition.py` : découper plutôt qu'échouer
 
-**Critère** : un plan décomposé porte les mêmes engagements que l'original.
-**Risque** : moyen. **Effort** : moyen.
+**Jamais sans conserver la fonction narrative.** Chaque plan issu d'un
+découpage hérite du `but`, du `porte`, de la `fonction`, des ancres et de
+l'émotion. Une décomposition qui perd le pourquoi produit trois plans
+corrects qui ne racontent plus rien — et ça ne se voit qu'au montage.
 
----
+Le découpage attaque le **facteur dominant** : trop d'entités → *établir*
+puis *révéler* ; mouvement trop chargé → *poser* puis *jouer* ; durée hors
+capacité → deux moitiés. Simplifier ce qui n'était pas le problème ne rendrait
+le plan ni plus faisable, ni plus lisible.
 
-## Phase 14 — `ExecutionDAG`
+Deux garde-fous : la somme des durées est conservée (la voix reste la
+chronologie officielle), et un plan sous ~2,4 s n'est **jamais** découpé —
+sous 1,2 s une coupe n'est plus lue comme un changement, on fabriquerait du
+clignotement.
 
-`ExecutionPlan.ordonnancer()` existe et est testé (PHASE 2). Reste
-l'ordonnanceur `asyncio` (~200 l.) et le branchement sur le noyau, avec la
-table `etapes` comme journal de reprise.
+`decomposer()` rend **toujours au moins un plan** : un appelant ne doit
+jamais avoir à distinguer « décomposé » de « pas décomposé ».
 
-**Un plan simple reste un seul nœud** — forcer tous les plans à ressembler à
-un graphe complexe n'apporterait rien.
+### 14 — `pdz/execution/` : le DAG, exécuté
 
-**Critère** : image et carte de profondeur se calculent en parallèle ; un
-`Ctrl-C` puis `pdz reprendre` ne repaie rien. **Risque** : élevé.
-**Effort** : élevé.
+`ExecutionPlan.ordonnancer()` existait depuis la PHASE 2. L'ordonnanceur
+`asyncio` l'exécute, vague par vague.
+
+L'ordre des vérifications avant chaque nœud :
+
+```
+1. déjà fait dans CE job ?   → reprise, gratuite
+2. déjà calculé AILLEURS ?   → cache par empreinte, gratuit
+3. sinon                     → exécution, payante
+```
+
+Les inverser ferait préférer le résultat d'un autre job à celui de celui-ci :
+la reprise est plus *spécifique* que le cache. Les deux viennent du journal —
+**aucun troisième mécanisme**, c'est ce que la PHASE 5 a supprimé.
+
+Ce que l'ordonnanceur garantit :
+
+- **profondeur et masque partent ensemble** — les exécuter en série
+  doublerait l'attente pour rien ;
+- **la reprise est par NŒUD** — un composite raté ne refait pas la carte de
+  profondeur, et ne la repaie pas ;
+- **un échec n'arrête pas le DAG** — les branches indépendantes continuent ;
+  seules celles qui en dépendent sont ignorées. Tout arrêter perdrait le
+  travail déjà payé de la même vague ;
+- **la politique de relance vit sur le nœud** — une carte de profondeur
+  locale et un appel vidéo en file d'attente n'appellent pas la même ;
+- **le parallélisme est plafonné** — dix appels simultanés chez le même
+  fournisseur se font limiter, et dix ffmpeg d'un coup ne vont pas plus vite.
+
+> **Pourquoi maison plutôt que Temporal / Prefect / Airflow** : 20 à 40 nœuds
+> par job, sur une machine, avec `etapes` comme journal déjà en place. Ces
+> outils apporteraient un serveur, une base et un modèle de déploiement pour
+> un gain nul. Voir docs/TARGET_ARCHITECTURE.md § 6.
+
+**Résultat** : 24 tests de faisabilité, 16 tests de DAG.
 
 ---
 
