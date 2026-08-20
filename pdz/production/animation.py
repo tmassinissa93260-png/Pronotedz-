@@ -29,8 +29,15 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from pdz.backends import backend_video
-from pdz.contracts import RenderSpecExecutable, Strategie
+from pdz.contracts import (
+    Certitude,
+    ExperienceRecord,
+    ModeEchec,
+    RenderSpecExecutable,
+    Strategie,
+)
 from pdz.ia.registre import registre
+from pdz.memory import ExperienceMemory
 from pdz.moteur.erreurs import ErreurPdz
 from pdz.production import motion_program, verification_mouvement
 from pdz.univers import Univers
@@ -427,7 +434,99 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
         len(resultats), combien, mouvement_confirme, parallaxe, image_fixe,
         depense, perdu,
     )
+    _enregistrer_experience(resultats, plans, job_id=job_id, profil=profil)
     return resultats
+
+
+# ── Ce que chaque tentative a réellement donné ──────────────────────────
+
+# `PlanAnime.diagnostic` porte déjà le POURQUOI de chaque plan. Cette table
+# le traduit en (stratégie réellement employée, mode d'échec, verdict) — les
+# trois choses dont `ExperienceMemory` a besoin pour qu'un routage empirique
+# soit possible un jour.
+#
+# Le piège à éviter, et c'est tout l'enjeu : un plan qui n'a JAMAIS été tenté
+# au modèle (`non_elu`, `hors_portee`) ne doit pas être enregistré comme un
+# échec de `DIRECT_I2V`. Ce serait inventer des échecs à une stratégie qui
+# n'a rien tenté, et le taux de réussite qu'on en tirerait serait faux — dans
+# le sens qui coûte le plus cher, celui qui fait renoncer à ce qui marche.
+_LECTURE_DIAGNOSTIC: dict[str, tuple[str, ModeEchec | None, str]] = {
+    "mouvement_confirme": ("modele", None, "PASS"),
+    "rejete_mouvement": ("modele", ModeEchec.RENDU_STATIQUE, "FAIL"),
+    "rejete_duree": ("modele", ModeEchec.DUREE_INCORRECTE, "FAIL"),
+    # Une erreur de fournisseur n'est pas un mode d'échec du RENDU : le
+    # modèle n'a rien produit qu'on puisse juger. `UNKNOWN` est exact, et le
+    # confondre avec un rendu statique fausserait la taxonomie.
+    "timeout": ("modele", ModeEchec.INCONNU, "FAIL"),
+    "erreur_appel": ("modele", ModeEchec.INCONNU, "FAIL"),
+    # Jamais tenté au modèle : c'est le REPLI qui a produit le plan, et c'est
+    # lui qu'on enregistre.
+    "hors_portee": ("repli", None, "PASS"),
+    "non_elu": ("repli", None, "PASS"),
+}
+
+_STRATEGIE_PAR_METHODE = {
+    "modele": Strategie.DIRECT_I2V,
+    "vie": Strategie.DEUX_ET_DEMI_D,
+    "camera": Strategie.PROCEDURAL,
+}
+
+_MODELE_LOCAL = {
+    "vie": "local/parallaxe",
+    "camera": "local/montage",
+}
+
+
+def _enregistrer_experience(resultats: list[PlanAnime], plans: list[dict],
+                            *, job_id: str | None, profil: str) -> None:
+    """Consigne une ligne par TENTATIVE — la donnée du routage empirique.
+
+    Sans `job_id`, rien n'est écrit : les démonstrations et les outils
+    n'ont pas de job, et leurs résultats ne décrivent pas une production
+    réelle. Les compter fausserait les statistiques avec des cas de test.
+
+    N'interrompt JAMAIS la production : une mémoire d'expérience est un
+    instrument de mesure, pas une étape du rendu. Perdre une ligne coûte
+    une observation ; perdre l'épisode coûte la vidéo.
+    """
+    if not job_id:
+        return
+
+    try:
+        modele_video = registre().resoudre(
+            "animation", profil=profil, repli_si_cle_absente=True).modele.id
+    except ErreurPdz:
+        modele_video = ""
+
+    memoire = ExperienceMemory()
+    for resultat in resultats:
+        _, mode, verdict = _LECTURE_DIAGNOSTIC.get(
+            resultat.diagnostic, ("repli", None, ""))
+
+        try:
+            memoire.enregistrer(ExperienceRecord(
+                job_id=job_id,
+                shot_id=f"shot_{resultat.index:03d}",
+                strategie=_STRATEGIE_PAR_METHODE.get(resultat.methode),
+                backend="fal" if resultat.methode == "modele" else "local",
+                modele=(modele_video if resultat.methode == "modele"
+                        else _MODELE_LOCAL.get(resultat.methode, "")),
+                fournisseur="fal" if resultat.methode == "modele" else "local",
+                capacites_requises=("image_to_video",) if resultat.methode == "modele" else (),
+                cout_reel_eur=resultat.cout,
+                duree_demandee_s=float(plans[resultat.index].get("duree_s") or 0)
+                if resultat.index < len(plans) else 0.0,
+                diagnostic=mode,
+                resultat=verdict,
+                # `certitude` reste INCONNU par défaut : le verdict vient
+                # d'une sonde de mouvement, qui mesure des pixels et non la
+                # réussite narrative du plan. Le déclarer FAIT reviendrait à
+                # confondre « ça bouge » et « ça montre ce qu'il fallait ».
+                certitude=Certitude.HEURISTIQUE if verdict else Certitude.INCONNU,
+            ))
+        except Exception as e:  # noqa: BLE001 - voir la docstring
+            log.warning("Expérience du plan %d non enregistrée : %s",
+                        resultat.index, e)
 
 
 def _repli(index: int, image: Path, dossier: Path, plan: dict,
