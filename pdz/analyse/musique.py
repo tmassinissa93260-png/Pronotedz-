@@ -8,7 +8,7 @@ même coût ni la même fiabilité :
     obscure ou faite maison.
   · **l'identifier** — « c'est *Sunset Drive* de Machinedrum ». Ça demande
     une base d'empreintes de dizaines de millions de titres, donc un service
-    extérieur (`pdz.ia.audd`). Ça coûte un demi-centime et ça échoue parfois.
+    extérieur, via un backend. Ça coûte un demi-centime et ça échoue parfois.
 
 Le module rend toujours les mesures. L'identification vient en plus quand
 elle marche. Une commande qui ne dit rien parce que le titre est introuvable

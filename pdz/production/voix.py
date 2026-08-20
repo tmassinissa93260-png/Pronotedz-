@@ -1,6 +1,6 @@
 """Fabrique la bande voix complète d'un épisode, automatiquement.
 
-Ce module est le chaînon qui manquait. `pdz.ia.elevenlabs` sait dire UNE
+Ce module est le chaînon qui manquait. Un backend de voix sait dire UNE
 phrase ; ici on part d'un script dialogué et d'un univers, et on obtient :
 
   · un fichier audio unique, prêt pour le montage ;
@@ -213,7 +213,7 @@ def dire_muet(repliques: list[dict], univers: Univers, sortie: Path, *,
     À quoi ça sert : la voix est le PREMIER poste de l'épisode, et c'est elle
     qui fixe la durée de chaque plan. Quand ElevenLabs refuse de répondre
     (crédits épuisés, palier gratuit coupé sur une IP de runner — voir
-    `pdz.ia.elevenlabs`), l'épisode s'arrête avant les images, avant
+    le backend de voix), l'épisode s'arrête avant les images, avant
     l'animation, avant le montage : impossible de voir le résultat visuel
     d'un travail qui n'a rien à voir avec le son.
 
