@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
+from pdz.contracts.communs import utilite_esperee
 from pdz.contracts.render import Strategie
 
 
@@ -77,29 +78,23 @@ class Candidate:
     raison: str = ""
 
     def utilite(self, valeur_du_plan_eur: float) -> float:
-        """Le gain espéré, en euros — pas un ratio.
+        """Le gain espéré, en euros — voir `utilite_esperee`.
 
-        La première version de cette fonction calculait « confiance par
-        euro ». Mathématiquement cohérent, et FAUX : diviser par un coût
-        quasi nul rend toute stratégie gratuite mille fois meilleure que
-        n'importe quelle stratégie payante, quelle que soit sa confiance.
-        Le modèle génératif n'aurait jamais été choisi — y compris sur un
-        plan qu'il est seul à savoir rendre.
-
-        La bonne question n'est pas « qu'est-ce qui rapporte le plus par
-        euro ? » mais « le surcroît de confiance justifie-t-il le surcoût,
-        pour ce que ce plan vaut ? ». D'où :
-
-            utilité = confiance × valeur_du_plan − coût
+        La première version calculait « confiance par euro ». Le modèle
+        génératif n'aurait jamais été choisi, y compris sur un plan qu'il est
+        seul à savoir rendre. Le compilateur de réparation a commis la MÊME
+        erreur de son côté : d'où une formule unique, partagée, dans le
+        vocabulaire commun — un seul endroit à relire, un seul à remplacer.
 
         `valeur_du_plan_eur` est ce qu'on accepterait de payer pour que CE
-        plan soit réussi. Elle vient de l'importance narrative : un plan
-        critique en vaut la peine, un plan secondaire non. C'est le même
-        arbitrage que `animation.combien_animer()` faisait déjà pour
-        décider COMBIEN de plans animer — appliqué ici au CHOIX de la
-        stratégie.
+        plan soit réussi. C'est le même arbitrage que
+        `animation.combien_animer()` faisait déjà pour décider COMBIEN de
+        plans animer — appliqué ici au CHOIX de la stratégie.
         """
-        return self.confiance * valeur_du_plan_eur - self.cout_eur
+        # Une stratégie n'aggrave rien : elle produit ou non ce qu'on
+        # attend. Le risque d'aggravation appartient aux réparations, qui
+        # remplacent un résultat DÉJÀ obtenu.
+        return utilite_esperee(self.confiance, self.cout_eur, valeur_du_plan_eur)
 
 
 @runtime_checkable

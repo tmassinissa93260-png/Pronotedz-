@@ -19,6 +19,7 @@ from enum import Enum
 from pydantic import BaseModel, ConfigDict, Field
 
 from pdz.contracts.base import Contrat
+from pdz.contracts.communs import utilite_esperee
 
 
 class TypeReparation(str, Enum):
@@ -60,17 +61,15 @@ class Branche(BaseModel):
     risque: float = 0.0
     parametres: dict[str, str] = Field(default_factory=dict)
 
-    @property
-    def valeur(self) -> float:
-        """Succès attendu par euro, pondéré par le risque.
+    def utilite(self, valeur_du_plan_eur: float) -> float:
+        """Le gain espéré de cette réparation, en euros.
 
-        Une heuristique ASSUMÉE, pas une mesure — et c'est pourquoi elle
-        vit dans une propriété lisible plutôt que dans le code du routeur :
-        elle est faite pour être remplacée quand `ExperienceMemory` aura de
-        quoi la contredire. Le coût nul (réparations locales, procédural)
-        ne divise pas par zéro : il rend la branche simplement très bonne.
+        Voir `utilite_esperee` : un ratio « succès par euro » ferait gagner
+        `ACCEPTER` contre toute réparation, y compris gratuite — l'erreur
+        exacte commise puis corrigée ici.
         """
-        return self.succes_attendu * (1.0 - self.risque) / max(self.cout_eur, 0.001)
+        return utilite_esperee(self.succes_attendu, self.cout_eur,
+                               valeur_du_plan_eur, self.risque)
 
 
 class RepairPlan(Contrat):
@@ -87,9 +86,15 @@ class RepairPlan(Contrat):
     tentative: int = 1
     tentatives_max: int = 3
 
-    @property
-    def meilleure(self) -> Branche | None:
-        return max(self.branches, key=lambda b: b.valeur, default=None)
+    def meilleure(self, valeur_du_plan_eur: float = 1.0) -> Branche | None:
+        """La branche au meilleur gain espéré pour ce que ce plan vaut.
+
+        Une méthode et non une propriété : le classement DÉPEND de la valeur
+        du plan. Une propriété sans argument obligerait à figer cette valeur,
+        et c'est précisément ce qui a produit le bug d'`ACCEPTER`.
+        """
+        return max(self.branches,
+                   key=lambda b: b.utilite(valeur_du_plan_eur), default=None)
 
     @property
     def epuise(self) -> bool:

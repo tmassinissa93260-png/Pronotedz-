@@ -634,46 +634,95 @@ un graphe complexe n'apporterait rien.
 
 ---
 
-## Phase 15 — Diagnostics
+## Phases 15 à 17 — La boucle de retour ✅ **FAIT**
 
-Taxonomie et contrat faits (PHASE 2). Reste à **brancher les sondes
-existantes** : `verification_mouvement`, `qa_video_finale`,
-`coherence_duree`, `cadrage`, `qa_image` deviennent des `Mesure` d'un
-`ObservationReport`, et l'écart attendu/observé produit un `FailureDiagnosis`.
+Observation → diagnostic → réparation. C'est ce qui transforme un échec en
+information exploitable, au lieu d'un repli silencieux.
 
-Les seuils calibrés sur données réelles sont **conservés tels quels**.
+### 15 — `pdz/observation/` : les sondes parlent une langue commune
 
-**Critère** : chaque plan rendu produit un rapport, et un axe non mesuré
-s'affiche `UNKNOWN` — jamais `PASS`. **Risque** : faible. **Effort** : moyen.
+Les cinq sondes du dépôt sont **traduites, pas réécrites**. Leurs seuils
+calibrés sur données réelles sont conservés tels quels — les rejouer
+autrement reviendrait à jeter le travail de mesure qui les a produits. Le
+seuil est reporté dans chaque `Mesure` : sans lui, un ancien rapport devient
+ininterprétable après un recalibrage.
 
----
+**Un axe non mesuré vaut `INCERTAIN`, jamais `REUSSI`.** Un rapport ne
+portant qu'une mesure de mouvement est globalement `INCERTAIN`, et
+`axes_non_mesures` dit lesquels manquent — la carte des angles morts, utile
+telle quelle.
 
-## Phase 16 — `RepairCompiler`
+Deux distinctions que le module refuse de gommer :
+- un **fichier illisible** rend le mouvement `INCERTAIN`, pas `ECHOUE` :
+  accuser le modèle d'un problème de fichier ferait chercher au mauvais
+  endroit ;
+- une **répétition de cadrage** reste `INCERTAIN` — le module d'origine
+  refuse explicitement d'en faire une faute, et ce n'est pas à la traduction
+  de durcir ce choix.
 
-L'arbre de réparation, chaque branche évaluée `succès attendu / coût /
-latence / risque`. Réparation locale par masque plutôt que régénération du
-plan entier.
+### 16-17 — `pdz/diagnostics/` : l'écart, pas le verdict
 
-**Une nouvelle tentative sans changement de cause probable n'est pas une
-réparation.** Chaque tentative alimente `ExperienceMemory`.
+Un diagnostic est une **hypothèse de cause**, avec sa confiance. `None` est
+un résultat (« l'observation ne contredit pas l'intention »), distinct
+d'`INCONNU` (« on n'a pas pu savoir »).
 
-**Critère** : `CAMERA_DOMINANT` et `STATIC_RENDER` ne reçoivent plus le même
-traitement, et le journal dit pourquoi cette branche. **Risque** : moyen.
-**Effort** : élevé.
+L'`Attendu` est passé explicitement, réduit à ce qui est **vérifiable** —
+trois questions, pas trente. Le diagnostic ne relit pas le `MotionProgram` :
+il vivrait alors dans la couche de décision.
 
----
+| observation | attendu | diagnostic |
+|---|---|---|
+| aucun mouvement | le sujet devait agir | `STATIC_RENDER` (0,9) |
+| aucun mouvement | + confusion caméra déclarée | `CAMERA_DOMINANT` (**0,6**) |
+| aucun mouvement | rien ne devait bouger | *aucun* |
+| mouvement non mesurable | le sujet devait agir | `UNKNOWN` (0,3) → humain |
+| fichier illisible | — | diagnostiqué **avant** le mouvement |
 
-## Phase 17 — Expected vs Observed, généralisé
+`CAMERA_DOMINANT` porte volontairement une confiance plus basse : sans sonde
+qui *sépare* le mouvement de caméra de celui du sujet, c'est une hypothèse
+fondée sur l'intention. Le dire est plus utile que d'affirmer.
 
-Le couple `attendu`/`observe` de `WorldState` et le
-`PerceptualContract` deviennent la référence de toute vérification. Le delta
-pilote le diagnostic, qui pilote la réparation, qui alimente la mémoire.
+### 16 — `pdz/repair/` : changer la cause, pas relancer
 
-C'est la fermeture de la boucle : à partir d'ici, un échec devient une
-information exploitable au lieu d'un repli silencieux.
+Le catalogue est indexé **par cause**, et l'escalade va du ciblé au lourd :
 
-**Critère** : le système répond aux **cinq questions** pour chaque plan.
-**Risque** : moyen. **Effort** : moyen.
+| cause | réparation | puis |
+|---|---|---|
+| `CAMERA_DOMINANT` | `CAMERA_FIX` | `MOTION_FIX` → `STRATEGY_FIX` |
+| `STATIC_RENDER` | `MOTION_FIX` | `STRATEGY_FIX` → `PROMPT_FIX` |
+| `IDENTITY_DRIFT` | `LOCAL_REPAIR` | jamais tout refaire si le masque suffit |
+| `UNKNOWN` | `ASK_HUMAN` | — |
+
+Une branche déjà tentée n'est **pas** reproposée : sans cette règle, l'arbre
+choisirait éternellement la même — c'est-à-dire exactement
+`retry 1 / retry 2 / retry 3`.
+
+### L'erreur commise deux fois, corrigée à la racine
+
+Le choix de stratégie **et** le choix de réparation ont d'abord classé leurs
+options sur « confiance par euro ». Conséquences observées :
+
+- le modèle génératif n'était **jamais** retenu, y compris sur un plan qu'il
+  est seul à savoir rendre ;
+- `ACCEPTER` gagnait contre **toutes** les réparations, y compris gratuites —
+  le défaut n'était jamais corrigé, et le journal affichait pourtant
+  « réparation choisie : accepter ».
+
+`utilite_esperee()` vit désormais dans le vocabulaire commun :
+
+```
+utilité = confiance × (1 − risque) × valeur_du_plan − coût
+```
+
+Un seul endroit à relire, un seul à remplacer quand `ExperienceMemory` aura
+de quoi le contredire. Deux corrections de fond en ont découlé :
+`ACCEPTER.succes_attendu = 0` (accepter ne *répare* rien, elle *termine*), et
+`CHANGER_STRATEGIE` ramené de 0,85 à 0,60 — retomber sur la parallaxe
+garantit *un* mouvement, pas *celui qui était demandé*, exactement la limite
+déjà énoncée côté stratégies.
+
+**Résultat** : 32 tests de boucle, et le défaut du ratio gardé comme test de
+non-régression.
 
 ---
 

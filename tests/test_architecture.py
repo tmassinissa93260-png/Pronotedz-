@@ -55,7 +55,8 @@ ADAPTATEURS_FOURNISSEUR = {
 # `director`, `narrative` et `research` s'y ajoutent dès leur création : une
 # couche neuve qui échapperait à la règle la rendrait décorative.
 DOMAINE = ("production", "univers", "agents", "analyse",
-           "director", "narrative", "research")
+           "director", "narrative", "research",
+           "observation", "diagnostics", "repair", "strategies")
 
 # ── Écarts connus, datés, et destinés à disparaître ──────────────────────
 #
@@ -234,12 +235,23 @@ def test_les_couches_de_decision_ne_dependent_que_des_contrats():
     d'entrée), jamais le moteur, la production ou le montage : une couche de
     décision qui connaîtrait l'exécution ne serait plus remplaçable, et le
     sens de la dépendance s'inverserait.
+
+    `diagnostics/` et `repair/` en font partie, et c'est ce qui garantit
+    qu'ils raisonnent sur des CONTRATS : un diagnostic qui relirait le
+    `MotionProgram` depuis la production vivrait dans la couche de décision,
+    et l'écart attendu/observé deviendrait invérifiable de l'extérieur.
+
+    `observation/` en est exclue volontairement : elle APPELLE les sondes de
+    `production/`, ce qui est son rôle — traduire ce qui existe, sans le
+    réimplémenter.
     """
-    autorises = {"pdz", "pdz.contracts", "pdz.univers"}
-    for couche in ("director", "narrative", "research"):
+    for couche in ("director", "narrative", "research", "diagnostics", "repair"):
         dossier = PAQUET / couche
         if not dossier.is_dir():
             continue
+        # Une couche a évidemment le droit de s'importer elle-même : c'est
+        # une organisation interne, pas une dépendance sortante.
+        autorises = {"pdz", "pdz.contracts", "pdz.univers", f"pdz.{couche}"}
         for fichier in sorted(dossier.rglob("*.py")):
             for importe in _imports(fichier):
                 racine = ".".join(importe.split(".")[:2])

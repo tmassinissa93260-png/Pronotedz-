@@ -100,3 +100,36 @@ class Profil(str, Enum):
 
     EXPLICATIF = "explanatory"
     FICTION = "fictional"
+
+
+def utilite_esperee(confiance: float, cout_eur: float, valeur_eur: float,
+                    risque: float = 0.0) -> float:
+    """Le gain espéré d'une option, en euros.
+
+    **La formule qui remplace un ratio, et pourquoi.** Deux modules du dépôt
+    ont d'abord classé leurs options sur « confiance par euro » — le choix de
+    stratégie de rendu, puis le choix de réparation. C'est mathématiquement
+    cohérent, et faux dans les deux cas : diviser par un coût quasi nul rend
+    toute option gratuite mille fois meilleure que n'importe quelle option
+    payante, quelle que soit sa confiance.
+
+    Conséquences observées avant correction : le modèle génératif n'était
+    JAMAIS retenu, y compris sur un plan qu'il est seul à savoir rendre ; et
+    « accepter le plan tel quel » gagnait contre toutes les réparations, y
+    compris gratuites.
+
+    La bonne question n'est pas « qu'est-ce qui rapporte le plus par euro ? »
+    mais « le surcroît de confiance justifie-t-il le surcoût, pour ce que ça
+    vaut ici ? » :
+
+        utilité = confiance × (1 − risque) × valeur − coût
+
+    `risque` est la probabilité d'AGGRAVER — une réparation peut casser ce
+    qui marchait. Il réduit le gain espéré, jamais le coût : le coût est payé
+    que la réparation réussisse ou non.
+
+    Elle vit ici, dans le vocabulaire commun, précisément parce que la même
+    erreur a été commise deux fois. Un seul endroit à relire, un seul à
+    remplacer quand `ExperienceMemory` aura de quoi la contredire.
+    """
+    return confiance * (1.0 - risque) * valeur_eur - cout_eur
