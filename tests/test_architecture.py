@@ -57,7 +57,7 @@ ADAPTATEURS_FOURNISSEUR = {
 DOMAINE = ("production", "univers", "agents", "analyse",
            "director", "narrative", "research",
            "observation", "diagnostics", "repair", "strategies",
-           "renderability", "execution", "memory")
+           "renderability", "execution", "memory", "world", "scenes")
 
 # ── Écarts connus, datés, et destinés à disparaître ──────────────────────
 #
@@ -248,7 +248,8 @@ def test_les_couches_de_decision_ne_dependent_que_des_contrats():
     elle appelle le journal, et c'est précisément ce qu'on veut (une seule
     autorité sur la reprise, pas une troisième).
     """
-    for couche in ("director", "narrative", "research", "diagnostics", "repair"):
+    for couche in ("director", "narrative", "research", "diagnostics",
+                   "repair", "world"):
         dossier = PAQUET / couche
         if not dossier.is_dir():
             continue

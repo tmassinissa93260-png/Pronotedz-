@@ -549,44 +549,83 @@ existants. Une implémentation sans usage n'aurait pas été acceptable.
 
 ---
 
-## Phase 9 — `CameraProgram` branché
+## Phases 9 à 11 — Le branchement ✅ **FAIT**
 
-Le contrat existe (PHASE 2), l'adaptateur aussi. Reste à le faire produire
-par la chaîne au lieu d'un champ de `MotionProgram`, et à faire de
-`montage.Mouvement` une **compilation** du `CameraProgram` plutôt qu'une
-seconde notion de caméra sans rapport.
+Les contrats et leurs adaptateurs existaient depuis la PHASE 2. Ces trois
+phases sont ce qui les **branche** : sans elles, chaque appelant devrait
+savoir dans quel ordre appeler cinq fonctions et lesquelles dépendent des
+autres — c'est-à-dire reconstruire ce compilateur à chaque fois, un peu
+différemment.
 
-`ControleCamera.PARAMETRIQUE` n'apparaîtra que le jour où un backend
-l'accepte **et** qu'on l'a mesuré.
+### 10 — `pdz/world/` : ce que la vidéo prétend faire changer
 
-**Critère** : un même `CameraProgram` compile vers un texte pour un backend
-i2v **et** vers un filtre FFmpeg pour la stratégie procédurale.
-**Risque** : moyen. **Effort** : moyen.
+```
+ÉTAT A  →  ÉVÉNEMENT  →  ÉTAT B
+              ↓
+            RENDU
+              ↓
+        ÉTAT OBSERVÉ  →  DELTA
+```
 
----
+Le dépôt en portait déjà deux morceaux, séparés et sans nom commun :
+`continuite.porter_le_decor()` fait suivre le décor d'une réplique à l'autre,
+`geometrie.py` place les objets en qualitatif. Les deux se retrouvent ici sous
+une forme qui permet en plus de **confronter** l'attendu à l'observé.
 
-## Phase 10 — `SceneState` + événements + transitions
+Trois règles, toutes testées :
 
-`WorldState` et `CausalState` existent (PHASE 2). Reste à les **produire et
-mettre à jour** : `continuite.py` et `geometrie.py` y sont absorbés, et
-chaque plan validé écrit son delta.
+- **`observe = None` veut dire « pas encore regardé »**, jamais
+  « conforme ». La confusion des deux est ce qui fait passer un clip statique ;
+- **un plan qui ne dit rien laisse le monde intact.** Il n'y a pas d'« état
+  par défaut » : ne rien savoir et savoir que rien ne change sont deux choses
+  différentes ;
+- **une observation ne survit pas au plan suivant.** L'observation d'un plan
+  précédent ne dit rien de celui-ci ; la conserver serait un mensonge.
 
-Le mouvement devient exprimable comme `ÉTAT A → ÉVÉNEMENT → ÉTAT B` — la
-base sur laquelle le Motion Program s'appuiera vraiment.
+Volontairement léger, et il doit le rester : ce n'est pas un simulateur
+physique. La position reste **qualitative** — donner des coordonnées à un
+modèle d'image ne les fait pas respecter, et en stocker ferait croire à une
+précision que rien ne tient.
 
-**Critère** : après chaque plan validé, le delta d'état est journalisé.
-**Risque** : moyen. **Effort** : moyen.
+### 9 + 11 — `pdz/scenes/` : un plan, tous ses contrats, en un appel
 
----
+```
+PlanScript + Univers
+        ↓
+ShotSpec · PerceptualContract · MotionProgram · CameraProgram · WorldState
+```
 
-## Phase 11 — `PerceptualContract` branché
+**Zéro appel IA.** Tout vient de décisions déjà prises : `ShotPromptWriter` a
+écrit `mouvement_*`, `geometrie` et `elements_*` dans le seul appel de
+l'épisode ; l'univers porte le style et les interdits.
 
-Contrat et adaptateur faits (PHASE 2). Reste à le faire produire par la
-chaîne, et surtout à ce que **la QA le lise** — c'est lui qui transforme
-« mouvement faible » en `CAMERA_DOMINANT`.
+Ce que ce paquet produit et qu'aucun adaptateur ne pouvait produire seul :
 
-**Critère** : chaque plan répond aux questions 1 et 2 des cinq.
-**Risque** : faible. **Effort** : moyen.
+| Propriété | Sert à | Pourquoi elle n'existait pas avant |
+|---|---|---|
+| `mouvement_attendu` | choisir la stratégie | demande le mouvement **et** la caméra |
+| `attendu` | le diagnostic | demande en plus le contrat perceptuel |
+| `importance` | stratégie **et** sévérité | `animation.noter()` ne servait qu'à élire les plans à animer |
+
+`mouvement_attendu` répond `sujet` / `ambiance` / `camera` / `""`. L'ordre des
+tests n'est pas arbitraire : un plan qui demande un mouvement de sujet **et**
+un pan de caméra reste avant tout un plan de sujet — c'est ce que la parallaxe
+locale ne saura pas rendre, donc ce qui décide.
+
+`importance` reprend les critères de `animation.noter()` dans le même ordre de
+force (le premier plan décide de tout, une fonction narrative compte, une
+émotion forte se voit). Ce qui change : le score sert désormais aussi à
+choisir la stratégie et à graduer la sévérité d'un diagnostic.
+
+`compiler_plans()` fait **propager l'état du monde** d'un plan au suivant.
+C'est cette propagation qui rend la continuité vérifiable : sans elle, chaque
+plan repartirait d'un monde vide et aucune dérive ne serait détectable.
+
+Un personnage absent de l'univers ne bloque rien : le plan existe, il a un
+mouvement et une caméra ; seule la perception reste vide, et
+`est_verifiable` le dit.
+
+**Résultat** : 25 tests.
 
 ---
 
@@ -788,14 +827,14 @@ l'assurance d'un routeur entraîné sur beaucoup.
 
 ---
 
-## Ordonnancement et dépendances
+## Où en est la migration
 
 ```
 0 architecture ✅ → 1 filet ✅ → 2 contracts ✅ → 2b golden ✅
                                       │
         ┌─────────────────────────────┼──────────────────────────┐
         ↓                             ↓                          ↓
-  3 profils ✅              4 ExperienceMemory ✅      5 orchestrateur unique ✅
+  3 profils ✅              4 ExperienceMemory ✅      5 orchestrateur ✅
                                       │                          ↓
                                       │                 6 backends ✅ → 7 capacités ✅
                                       │                          ↓
@@ -803,29 +842,50 @@ l'assurance d'un routeur entraîné sur beaucoup.
                                       │                          │
                                       │      ┌───────────────────┼────────────────┐
                                       │      ↓                   ↓                ↓
-                                      │  9 caméra        10 scene state    12 renderability
+                                      │  9 caméra ✅     10 world state ✅  12 renderability ✅
                                       │      │                   │                │
-                                      │      └──→ 11 perception ←─┤                ↓
-                                      │                          │        13 décomposition
+                                      │      └─→ 11 perception ✅ ┤                ↓
+                                      │                          │        13 décomposition ✅
                                       │                          ↓                │
-                                      │                 14 execution DAG ←─────────┘
+                                      │                 14 execution DAG ✅ ←──────┘
                                       │                          ↓
-                                      │                   15 diagnostics
+                                      │                  15 observation ✅
                                       │                          ↓
-                                      │                     16 repair
+                                      │                  16 diagnostics ✅
                                       │                          ↓
-                                      └────────────→ 17 expected vs observed
+                                      │                    17 repair ✅
+                                      │                          ↓
+                                      └───────────→ expected vs observed ✅
                                                                  ↓
-                                                     19 routage empirique 🔒
+                                                    19 routage empirique 🔒
 ```
 
-**Neuf phases sur dix-neuf sont faites** (0, 1, 2, 2b, 3, 4, 5, 6, 7, 8 —
-plus la 18 avancée). La 19 est verrouillée par la donnée, pas par le code :
-elle attend que `experiences` se remplisse de vraies productions.
+**Dix-huit phases sur dix-neuf sont faites.** La dix-neuvième est verrouillée
+par la **donnée**, pas par le code : elle attend que la table `experiences` se
+remplisse de vraies productions.
 
-Les phases 9 à 13 sont largement **indépendantes entre elles** — leurs
-contrats existent depuis la PHASE 2, il ne reste qu'à les brancher. Elles
-peuvent avancer dans n'importe quel ordre selon ce qui bloque le plus.
+### Le paquet, après migration
+
+```
+pdz/
+├── contracts/       ★ 21 contrats versionnés — n'importe RIEN d'autre
+├── moteur/          noyau + journal (SEULE autorité sur reprise et cache)
+├── backends/        ★ interfaces + mocks — le métier ignore les fournisseurs
+├── capabilities/    ★ ANNONCE / MESURE / INCONNU
+├── research/  ★     narrative/ ★     director/ ★     ← les deux profils
+├── world/     ★     scenes/    ★                     ← état et compilation
+├── strategies/ ★    renderability/ ★  execution/ ★   ← comment, si, et avec quoi
+├── observation/ ★   diagnostics/ ★    repair/  ★     ← la boucle de retour
+├── memory/     ★                                     ← l'expérience
+├── production/      la chaîne existante, inchangée dans son comportement
+├── analyse/         mesure locale de références, zéro IA
+├── video/  ia/  agents/  prompts/  univers/
+└── adaptateurs.py   le pont ancien → contrat, fait pour mourir
+```
+
+★ = créé par la migration. Aucun module existant n'a été supprimé, et le
+comportement de production est inchangé — c'est ce que le corpus golden et les
+1200+ tests vérifient à chaque phase.
 
 ---
 
