@@ -284,11 +284,16 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
     combien, raison = combien_animer(len(plans), budget_restant, profil=profil,
                                      duree_clip_s=duree_clip_s)
     classement = noter(plans, duree_max_s=duree_max_s)
-    elus = {c.index for c in classement[:combien]}
+    elus, ecartes = _filtrer_par_strategie(
+        [c.index for c in classement[:combien]], plans, images,
+        budget_restant=budget_restant, profil=profil)
 
     log.info("Animation : %d plan(s) sur %d — %s", combien, len(plans), raison)
     for c in classement[:combien]:
-        log.info("  · plan %d (note %.1f) : %s", c.index, c.note, c.raison)
+        if c.index in elus:
+            log.info("  · plan %d (note %.1f) : %s", c.index, c.note, c.raison)
+    for index, pourquoi in ecartes.items():
+        log.info("  · plan %d élu mais NON payé — %s", index, pourquoi)
 
     resultats: list[PlanAnime] = []
     depense = 0.0
@@ -415,8 +420,18 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
             resultats.append(PlanAnime(i, destination, True, "modele", cout,
                                        diagnostic="mouvement_confirme"))
         else:
-            resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
-                                    duree_clip_s, diagnostic="non_elu"))
+            # Deux raisons TRÈS différentes de ne pas avoir payé, et les
+            # confondre effacerait l'information la plus utile :
+            #   · `non_elu`          — le plan n'était pas assez important,
+            #                          ou le budget ne suivait pas ;
+            #   · `strategie_locale` — le plan était élu, mais rien de ce
+            #                          qu'il demande n'exige un modèle
+            #                          génératif. La parallaxe le rend
+            #                          gratuitement ET à coup sûr.
+            # Le second est un SUCCÈS d'arbitrage, pas un renoncement.
+            resultats.append(_repli(
+                i, image, dossier, plan, vie_pour_le_reste, duree_clip_s,
+                diagnostic="strategie_locale" if i in ecartes else "non_elu"))
 
     reussis = sum(1 for r in resultats if r.anime)
     if combien and not reussis:
@@ -487,6 +502,10 @@ _LECTURE_DIAGNOSTIC: dict[str, tuple[str, ModeEchec | None, str]] = {
     # lui qu'on enregistre.
     "hors_portee": ("repli", None, "PASS"),
     "non_elu": ("repli", None, "PASS"),
+    # Élu, mais le graphe a jugé qu'aucun modèle génératif n'était nécessaire.
+    # Une réussite d'arbitrage : le plan a été rendu, gratuitement, par la
+    # stratégie qui savait le faire.
+    "strategie_locale": ("repli", None, "PASS"),
 }
 
 _STRATEGIE_PAR_METHODE = {
@@ -559,6 +578,106 @@ def _enregistrer_experience(resultats: list[PlanAnime], plans: list[dict],
         except Exception as e:  # noqa: BLE001 - voir la docstring
             log.warning("Expérience du plan %d non enregistrée : %s",
                         resultat.index, e)
+
+
+def _filtrer_par_strategie(elus: list[int], plans: list[dict], images: list[Path],
+                           *, budget_restant: float,
+                           profil: str) -> tuple[set[int], dict[int, str]]:
+    """Parmi les plans ÉLUS, lesquels méritent vraiment le modèle payant ?
+
+    `noter()` classe les plans par ce que l'animation leur apporterait — c'est
+    une question narrative, et il y répond bien. Le graphe de stratégies
+    répond à une autre question, technique : **ce que ce plan demande, le
+    modèle payant est-il seul à savoir le rendre ?**
+
+    Les deux sont nécessaires, et leur ordre compte. Un plan peut porter
+    l'épisode (note élevée) et n'attendre qu'un mouvement d'ambiance — que la
+    parallaxe locale rend GRATUITEMENT et à coup sûr, là où le modèle rend
+    0,23 € d'espérance. Le run #66 a mesuré exactement ce cas : un clip payé,
+    valide, de la bonne durée, et parfaitement statique.
+
+    Ce filtre ne remplace donc pas l'élection, il l'affine — et il ne peut
+    qu'écarter, jamais ajouter : un plan non élu reste non élu.
+    """
+    from pdz.strategies import ContexteRendu, choisir
+
+    retenus: set[int] = set()
+    ecartes: dict[int, str] = {}
+
+    for index in elus:
+        plan = plans[index]
+        # Sans mouvement décidé par ShotPromptWriter, il n'y a rien qu'un
+        # modèle génératif soit seul à savoir rendre. `""` mène au gratuit,
+        # ce qui est le comportement voulu — payer pour un mouvement que
+        # personne n'a demandé serait le pire des deux mondes.
+        attendu = _mouvement_attendu(plan)
+
+        try:
+            retenue, pourquoi = choisir(ContexteRendu(
+                shot_id=f"shot_{index:03d}",
+                image=images[index],
+                destination=images[index].with_suffix(".mp4"),
+                duree_s=float(plan.get("duree_s") or 0),
+                profil=profil,
+                budget_restant_eur=budget_restant,
+                importance=_importance(plan, index),
+                mouvement_attendu=attendu,
+                index=index,
+            ))
+        except Exception as e:  # noqa: BLE001
+            # Le graphe est un arbitre, pas un passage obligé : s'il échoue,
+            # on retombe sur le comportement historique (tenter le modèle)
+            # plutôt que de priver l'épisode d'animation.
+            log.warning("Stratégie indécidable pour le plan %d (%s) : "
+                        "le modèle est tenté comme avant", index, e)
+            retenus.add(index)
+            continue
+
+        if retenue.strategie is Strategie.DIRECT_I2V:
+            retenus.add(index)
+        else:
+            ecartes[index] = pourquoi
+
+    return retenus, ecartes
+
+
+def _mouvement_attendu(plan: dict) -> str:
+    """`"sujet"` | `"ambiance"` | `"camera"` | `""` — ce que le plan EXIGE.
+
+    Même règle que `pdz.scenes.PlanCompile.mouvement_attendu`, appliquée au
+    `dict` que reçoit `animer()`. L'ordre n'est pas arbitraire : un plan qui
+    demande un mouvement de sujet ET un pan de caméra reste avant tout un
+    plan de sujet — c'est ce que la parallaxe ne saura pas rendre, donc ce
+    qui décide.
+    """
+    if (plan.get("mouvement_sujet") or "").strip():
+        return "sujet"
+    if (plan.get("mouvement_environnement") or "").strip():
+        return "ambiance"
+    if (plan.get("mouvement_camera") or "") not in ("", "fixe"):
+        return "camera"
+    return ""
+
+
+def _importance(plan: dict, index: int) -> float:
+    """Ce que ce plan pèse dans le récit, entre 0 et 1.
+
+    Reprend les critères de `noter()` — mêmes signaux, même ordre de force —
+    mais normalisés, parce que le graphe de stratégies raisonne en euros et
+    a besoin d'une valeur comparable d'un épisode à l'autre. Les garder
+    séparés est délibéré : `noter()` classe DANS un épisode, `_importance`
+    situe un plan dans l'absolu.
+    """
+    score = 0.45 if index == 0 else 0.0
+    if plan.get("relance"):
+        score += 0.25
+    if plan.get("fonction"):
+        score += 0.15
+    if plan.get("emotion") in ("colere", "surprise", "peur"):
+        score += 0.20
+    if (plan.get("intensite_mouvement") or "") == "fort":
+        score += 0.15
+    return min(1.0, score)
 
 
 def _diagnostiquer(verdict, plan: dict, index: int, *, duree_requise: float):

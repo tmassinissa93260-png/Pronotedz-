@@ -909,8 +909,13 @@ def test_un_clip_assez_long_avec_mouvement_est_garde(monkeypatch, tmp_path):
     u = Univers.charger(FRUITS)
     p = tmp_path / "p0.jpg"
     Image.new("RGB", (64, 64), (10, 60, 90)).save(p)
+    # `mouvement_sujet` : sans lui, le graphe de stratégies écarte le modèle
+    # payant — à raison, rien n'exigerait un générateur. Ce test vérifiant ce
+    # qui arrive à un clip PAYÉ, le plan doit réellement demander un
+    # mouvement que seul un modèle sait rendre.
     plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
-             "emotion": "colere", "duree_s": 4.7}]
+             "emotion": "colere", "duree_s": 4.7,
+             "mouvement_sujet": "the character shouts, shoulders heaving"}]
 
     resultats = animation.animer(
         plans, [p], u, tmp_path / "anim", budget_restant=100.0,
@@ -943,8 +948,13 @@ def test_un_clip_de_bonne_duree_mais_statique_est_rejete(monkeypatch, tmp_path):
     u = Univers.charger(FRUITS)
     p = tmp_path / "p0.jpg"
     Image.new("RGB", (64, 64), (10, 60, 90)).save(p)
+    # `mouvement_sujet` : sans lui, le graphe de stratégies écarte le modèle
+    # payant — à raison, rien n'exigerait un générateur. Ce test vérifiant ce
+    # qui arrive à un clip PAYÉ, le plan doit réellement demander un
+    # mouvement que seul un modèle sait rendre.
     plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
-             "emotion": "colere", "duree_s": 4.7}]
+             "emotion": "colere", "duree_s": 4.7,
+             "mouvement_sujet": "the character shouts, shoulders heaving"}]
 
     resultats = animation.animer(
         plans, [p], u, tmp_path / "anim", budget_restant=100.0,
@@ -977,8 +987,13 @@ def test_un_clip_paye_puis_rejete_garde_son_cout(monkeypatch, tmp_path):
     u = Univers.charger(FRUITS)
     p = tmp_path / "p0.jpg"
     Image.new("RGB", (64, 64), (10, 60, 90)).save(p)
+    # `mouvement_sujet` : sans lui, le graphe de stratégies écarte le modèle
+    # payant — à raison, rien n'exigerait un générateur. Ce test vérifiant ce
+    # qui arrive à un clip PAYÉ, le plan doit réellement demander un
+    # mouvement que seul un modèle sait rendre.
     plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
-             "emotion": "colere", "duree_s": 4.7}]
+             "emotion": "colere", "duree_s": 4.7,
+             "mouvement_sujet": "the character shouts, shoulders heaving"}]
 
     resultats = animation.animer(
         plans, [p], u, tmp_path / "anim", budget_restant=100.0,
@@ -1027,6 +1042,7 @@ def test_un_plan_jamais_tente_ne_coute_rien(monkeypatch, tmp_path):
     # que soit celui que `modeles.yaml` désigne.
     plans = [{"numero": 0, "personnage": u.personnages[0].id, "action": "parle",
              "emotion": "colere",
+             "mouvement_sujet": "the character shouts, shoulders heaving",
              "duree_s": animation.duree_max_du_modele("equilibre") + 2}]
 
     resultats = animation.animer(
