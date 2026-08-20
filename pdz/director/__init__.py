@@ -37,8 +37,10 @@ from pdz.contracts.director import (
 from pdz.contracts.narrative import NarrativeState
 from pdz.contracts.research import ResearchState
 from pdz.contracts.topic import TopicRequest
+from pdz.director.projection import projeter_en_situation
 
-__all__ = ["compiler", "depuis_narration", "depuis_recherche"]
+__all__ = ["compiler", "depuis_narration", "depuis_recherche",
+           "projeter_en_situation"]
 
 # Les paliers de compréhension, dans l'ordre. Le Director doit savoir ce que
 # le spectateur est censé avoir acquis à chaque étape — sans quoi un plan ne

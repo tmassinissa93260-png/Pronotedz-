@@ -185,6 +185,12 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
                    # silencieuse : l'aval ne voit aucune différence.
                    avec_voix: bool = False,
                    chemin_univers: Path | None = None,
+                   # Les contrats produits AVANT la production (recherche,
+                   # mise en scène). Journalisés tels quels : sans eux, on ne
+                   # saurait plus, six mois après, quelles sources ont
+                   # autorisé quelle affirmation dans la vidéo livrée.
+                   # `None` pour une fiction, qui n'en a pas.
+                   contrats_amont: dict | None = None,
                    style_soustitres: soustitres.StyleSousTitres | None = None,
                    ) -> Episode:
     """Fabrique un épisode complet. Reprend une production interrompue."""
@@ -204,6 +210,11 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     # mécanique de rétention à chaque appel, sans garde-fou sur le nombre de
     # temps forts ni leur répartition dans le temps, et redécide
     # implicitement sa propre stratégie réplique par réplique.
+    if contrats_amont:
+        # Avant la première dépense : si la production échoue, la trace de ce
+        # qui l'a autorisée survit quand même.
+        _noter(job_id, "contrats_amont", "director", contrats_amont, 0.0, 0)
+
     strategie = None
     if beats is None:
         fait_brief = _fait(job_id, "brief")

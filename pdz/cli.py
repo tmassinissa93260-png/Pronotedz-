@@ -18,6 +18,7 @@ le retrouver.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import sys
 from pathlib import Path
@@ -796,6 +797,109 @@ def episode(
             musique=musique, avec_animation=not sans_animation,
             avec_voix=avec_voix,
             job_id=reprendre, chemin_univers=chemin,
+        ))
+    except ErreurPdz as e:
+        _echouer(e)
+
+    console.print(f"\n[green]✓[/green] {resultat.resume()}")
+    console.print(f"[dim]job {resultat.job_id} — pour relancer : "
+                  f"pdz reprendre {resultat.job_id}[/dim]")
+
+
+@app.command()
+def creer(
+    sujet: str = typer.Option(..., "--sujet", help="la question à expliquer"),
+    univers_nom: str = typer.Option(
+        "techno-holo", "--univers",
+        help="univers de narration qui portera l'explication",
+    ),
+    sources: Path = typer.Option(
+        None, "--sources",
+        help="JSON d'énoncés sourcés : [{\"enonce\": ..., \"sources\": [{\"url\": ...}]}]",
+    ),
+    duree: float = typer.Option(45.0, "--duree", help="durée visée, en secondes"),
+    langue: str = typer.Option("fr", "--langue"),
+    profil: str = typer.Option(None, "--profil"),
+    sortie: Path = typer.Option(None, "--sortie"),
+    avec_voix: bool = typer.Option(False, "--avec-voix"),
+    sans_animation: bool = typer.Option(False, "--sans-animation"),
+    verbeux: bool = typer.Option(False, "--verbeux", "-v"),
+) -> None:
+    """Expliquer un sujet réel — profil EXPLICATIF, sourcé.
+
+    Différence avec `pdz episode` : la vidéo n'affirme que ce qui est SOURCÉ.
+    Un énoncé sans source peut être évoqué, jamais affirmé — et ce qui n'a
+    pas été établi est dit comme tel plutôt que comblé par une invention.
+    """
+    _journal(verbeux)
+    from pdz.contracts import Profil, TopicRequest
+    from pdz.director import compiler as compiler_director
+    from pdz.director import projeter_en_situation
+    from pdz.production import episode as production
+    from pdz.research import RechercheMock, construire
+
+    univers, chemin = _charger_univers(univers_nom)
+    cfg = config()
+
+    # Un univers à dialogue produirait une conversation entre personnages là
+    # où l'explicatif attend une voix off. Un avertissement, pas un blocage :
+    # c'est un choix légitime si c'est voulu.
+    if univers.format.value == "serie_animee":
+        console.print(
+            f"[yellow]« {univers.id} » est une série à personnages : "
+            f"l'explication sera jouée en dialogue, pas en voix off.[/yellow]\n"
+            f"[dim]→ un univers `narration_generee` conviendrait mieux.[/dim]"
+        )
+
+    # ── Recherche ────────────────────────────────────────────────────────
+    backend = None
+    if sources is not None:
+        try:
+            backend = RechercheMock(json.loads(sources.read_text(encoding="utf-8")))
+        except (OSError, json.JSONDecodeError) as e:
+            console.print(f"[red]Sources illisibles : {e}[/red]")
+            raise typer.Exit(1) from e
+
+    topic = TopicRequest(sujet=sujet, profil=Profil.EXPLICATIF, langue=langue,
+                         duree_cible_s=duree)
+    recherche = construire(topic.sujet, backend, langue=langue)
+    etat = compiler_director(topic, recherche,
+                             budget_max_eur=cfg.budget_max_par_video_eur)
+
+    # ── Ce que la vidéo aura le droit d'affirmer ────────────────────────
+    affirmables = etat.intention.points_a_porter
+    console.print(f"\n[bold]{sujet}[/bold]")
+    if affirmables:
+        console.print(f"[green]✓[/green] {len(affirmables)} énoncé(s) sourcé(s), "
+                      f"affirmables sans réserve")
+    for lacune in etat.continuite.non_resolues:
+        console.print(f"[yellow]⚠[/yellow]  {lacune}")
+
+    if not affirmables:
+        # Pas un blocage : produire une vidéo sur un sujet non vérifié est
+        # possible, et parfois voulu. Mais le SAVOIR est la moitié du
+        # travail — une vidéo assurée sur du vide est le défaut exact que ce
+        # profil existe pour éviter.
+        console.print(
+            "[yellow]Aucun énoncé n'est affirmable sans réserve.[/yellow] "
+            "La vidéo sera produite, mais rien n'y sera présenté comme établi.\n"
+            "[dim]→ passe des sources avec --sources pour changer ça.[/dim]"
+        )
+
+    destination = sortie or (cfg.dossier_sorties /
+                             f"{univers.id}_{int(db.maintenant())}.mp4")
+
+    try:
+        resultat = asyncio.run(production.produire(
+            univers, projeter_en_situation(etat, recherche), destination,
+            duree_s=duree, profil=profil or cfg.profil,
+            avec_animation=not sans_animation, avec_voix=avec_voix,
+            chemin_univers=chemin,
+            # Les contrats voyagent AVEC la production : ils sont journalisés
+            # dans `etapes`, donc relisibles bien après coup. Sans eux, on ne
+            # saurait plus quelles sources ont autorisé quelle affirmation.
+            contrats_amont={"recherche": recherche.en_dict(),
+                            "director": etat.en_dict()},
         ))
     except ErreurPdz as e:
         _echouer(e)
