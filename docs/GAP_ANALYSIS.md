@@ -4,6 +4,30 @@
 > l'existant, [TARGET_ARCHITECTURE.md](./TARGET_ARCHITECTURE.md) la cible.
 > Ce document mesure la distance entre les deux, et rien d'autre.
 
+> ## ⚠️ Document d'ÉPOQUE — conservé tel quel
+>
+> **Cet écart a été comblé.** Les tableaux ci-dessous décrivent le dépôt
+> *avant* la migration, et ils sont laissés intacts : effacer la mesure de
+> départ rendrait impossible de juger ce qui a été fait.
+>
+> Où en est le dépôt aujourd'hui : voir
+> [MIGRATION_PLAN.md](./MIGRATION_PLAN.md) — **18 phases sur 19 faites**, la
+> dernière verrouillée par la donnée et non par le code.
+>
+> | Compte | Avant | Après |
+> |---|---|---|
+> | ✅ acquis | 6 | **28** |
+> | 🟨 partiel | 14 | 1 *(routage empirique)* |
+> | ⛔ absent | 9 | 0 |
+> | Tests | 807 *(dont 5 rouges)* | **1230, 0 échec** |
+> | CI | aucune | ruff + pytest + couverture |
+>
+> Deux constats de ce document se sont révélés **faux à la mesure**, et le
+> test d'architecture les a corrigés dès la PHASE 1 : la violation
+> métier→fournisseur était **quadruple**, pas unique ; et un module lisait
+> `os.environ` hors de `config.py`, ce que la docstring de ce dernier
+> promettait impossible.
+
 Légende : ✅ acquis · 🟨 partiel · ⛔ absent
 
 ---
@@ -44,8 +68,17 @@ issu de l'`Univers`. Les deux convergent sur le **même** `DirectorState` et le
 même `ShotGraph` — c'est-à-dire que la divergence s'arrête avant le compilateur
 proprement dit.
 
-**Aucune ligne de la Phase 3 ne sera écrite avant ta décision.** Les Phases
-0, 1 et 2 n'en dépendent pas et peuvent démarrer immédiatement.
+**Décision prise : option A** (PHASE 3, commit `6bcded7`).
+
+`ResearchState` (explicatif) et `NarrativeState` (fiction) convergent sur le
+même `DirectorState@1.0.0`. Le routage se fait sur le **type** de la source,
+jamais sur un drapeau : un `ResearchState` ne peut pas être compilé en
+fiction, et laisser un booléen décider ouvrirait cette possibilité pour rien.
+
+Les paliers de compréhension **diffèrent** entre profils, et c'est le point :
+on ne « comprend » pas une trahison. En fiction, l'acquisition n'est pas un
+savoir mais une tension — les six paliers explicatifs y seraient un
+contresens.
 
 ---
 

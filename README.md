@@ -80,6 +80,15 @@ fait. Plus une petite page web locale pour valider les scripts et revoir les vid
 | ⭐⭐ [14 — Reproduire un style](./docs/14-reproduire-un-style.md) | **Mesurer le visuel, les personnages et les voix d'une vidéo pour en refaire du même genre** |
 | ⭐ [15 — Musique et résultats](./docs/15-musique-et-resultats.md) | **Reconnaître la musique de fond ; et pourquoi les outils qui « expliquent » une vidéo virale n'en expliquent aucune** |
 
+### Architecture
+
+| Doc | Contenu |
+|---|---|
+| 👉 [MIGRATION_PLAN](./docs/MIGRATION_PLAN.md) | **Ce qui a été construit, phase par phase, et pourquoi** |
+| [TARGET_ARCHITECTURE](./docs/TARGET_ARCHITECTURE.md) | Le compilateur audiovisuel — la cible |
+| [CURRENT_ARCHITECTURE](./docs/CURRENT_ARCHITECTURE.md) | La photographie de départ *(document d'époque)* |
+| [GAP_ANALYSIS](./docs/GAP_ANALYSIS.md) | L'écart mesuré, et son solde *(document d'époque)* |
+
 📦 [`docs/archive/`](./docs/archive/) — versions écartées (SaaS multi-clients, SaaS
 Lovable/Supabase, outil Python en ligne de commande). **À ignorer.**
 

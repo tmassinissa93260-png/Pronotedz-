@@ -1,8 +1,30 @@
 # Architecture actuelle — audit du dépôt
 
-> État au 19/08/2026, commit `a5e6319`, branche `claude/audiovisual-compiler-design-my7lva`.
-> Ce document **décrit ce qui existe**, sans jugement et sans projection.
-> La comparaison avec la cible est dans [GAP_ANALYSIS.md](./GAP_ANALYSIS.md).
+> **État au 19/08/2026, commit `a5e6319`** — c'est-à-dire *avant* la
+> migration. Ce document décrit ce qui existait, sans jugement et sans
+> projection.
+
+> ## ⚠️ Document d'ÉPOQUE — conservé tel quel
+>
+> Le dépôt a changé depuis. Ce document est la **photographie de départ**, et
+> il est laissé intact : c'est ce qui permet de juger ce qui a été fait, et
+> de vérifier qu'aucun acquis n'a été perdu en route.
+>
+> Pour l'état actuel :
+> - [MIGRATION_PLAN.md](./MIGRATION_PLAN.md) — ce qui a été fait, phase par
+>   phase, et pourquoi ;
+> - [TARGET_ARCHITECTURE.md](./TARGET_ARCHITECTURE.md) — la cible ;
+> - [GAP_ANALYSIS.md](./GAP_ANALYSIS.md) — l'écart mesuré, et son solde.
+>
+> **Les douze dettes techniques listées en § I ont été traitées**, à une
+> exception près : `perplexity_api_key` reste lue nulle part — le
+> `RechercheBackend` existe et son adaptateur réseau attend d'être écrit
+> (`SansRecherche` est le défaut, et il dit honnêtement qu'il ne cherche rien).
+>
+> Ce que la migration **n'a pas touché**, volontairement : la voix comme
+> chronologie officielle, les prompts versionnés, la reprise sans repayer, la
+> résolution par alias, les seuils calibrés sur données réelles, et la
+> validation humaine. Ce sont les acquis listés en fin de document.
 
 ---
 
