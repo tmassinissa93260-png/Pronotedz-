@@ -179,3 +179,100 @@ def test_un_resultat_hors_bornes_des_plans_ne_leve_pas(memoire):
     _ecrire([PlanAnime(7, "x.mp4", True, "vie", 0.0, diagnostic="non_elu")],
             plans=_plans(2))
     assert memoire.toutes()[0].duree_demandee_s == 0.0
+
+
+# ── Le diagnostic précis l'emporte sur l'étiquette ──────────────────────
+
+def test_la_cause_precise_remplace_l_etiquette(memoire):
+    """`rejete_mouvement` ne dit que le symptôme. `CAMERA_DOMINANT` dit la
+    cause — et deux causes opposées sous une même étiquette rendraient la
+    statistique inexploitable pour le routage empirique."""
+    from pdz.contracts import FailureDiagnosis, Severite
+
+    cause = FailureDiagnosis(shot_id="shot_000", mode=ModeEchec.CAMERA_DOMINANTE,
+                             severite=Severite.CRITIQUE, confiance=0.6)
+    _ecrire([PlanAnime(0, "x.mp4", False, "modele", 0.23,
+                       diagnostic="rejete_mouvement", cause=cause)])
+    assert memoire.toutes()[0].diagnostic is ModeEchec.CAMERA_DOMINANTE
+
+
+def test_sans_cause_l_etiquette_fait_foi(memoire):
+    """Le repli reste correct : une étiquette vaut mieux que rien."""
+    _ecrire([PlanAnime(0, "x.mp4", False, "modele", 0.23,
+                       diagnostic="rejete_mouvement")])
+    assert memoire.toutes()[0].diagnostic is ModeEchec.RENDU_STATIQUE
+
+
+def test_un_plan_jamais_tente_n_a_aucune_cause(memoire):
+    """Il n'y a rien à diagnostiquer d'une génération qui n'a pas eu lieu."""
+    _ecrire([PlanAnime(0, "x.mp4", True, "vie", 0.0, diagnostic="non_elu")])
+    assert memoire.toutes()[0].diagnostic is None
+
+
+# ── Le diagnostic produit par l'animation ──────────────────────────────
+
+def _verdict(**extra):
+    from pdz.production.verification_mouvement import VerdictMouvement
+    base = dict(fichier_valide=True, duree_s=4.8, fps=25.0,
+                frames_echantillonnees=24, diff_moyenne=0.509,
+                mouvement_detecte=False, raison="static_clip")
+    return VerdictMouvement(**{**base, **extra})
+
+
+@pytest.mark.parametrize("plan,attendu", [
+    ({"mouvement_sujet": "turns her head", "mouvement_camera": "fixe"},
+     ModeEchec.CAMERA_DOMINANTE),
+    ({"mouvement_sujet": "turns her head", "mouvement_camera": "pan_lent"},
+     ModeEchec.MOUVEMENT_SUJET_ABSENT),
+])
+def test_l_animation_distingue_des_causes_que_les_etiquettes_confondaient(plan, attendu):
+    """Même symptôme mesuré — un clip statique — deux causes opposées, qui
+    appellent des corrections inverses."""
+    from pdz.production.animation import _diagnostiquer
+
+    diagnostic = _diagnostiquer(_verdict(), plan, 0, duree_requise=4.5)
+    assert diagnostic.mode is attendu
+
+
+def test_un_plan_sans_mouvement_demande_n_est_pas_diagnostique():
+    """L'erreur symétrique : un plan qui ne devait pas bouger n'échoue pas
+    en ne bougeant pas."""
+    from pdz.production.animation import _diagnostiquer
+
+    assert _diagnostiquer(_verdict(), {}, 0, duree_requise=4.5) is None
+
+
+def test_un_clip_trop_court_est_diagnostique_avant_le_mouvement():
+    """Le montage ne peut pas RALLONGER un clip trop court : la vidéo
+    s'arrêterait avant la voix."""
+    from pdz.production.animation import _diagnostiquer
+
+    diagnostic = _diagnostiquer(_verdict(duree_s=2.0, mouvement_detecte=True),
+                                {"mouvement_sujet": "x"}, 1, duree_requise=4.5)
+    assert diagnostic.mode is ModeEchec.DUREE_INCORRECTE
+
+
+def test_le_premier_plan_est_juge_plus_severement():
+    """Trois secondes décident de tout."""
+    from pdz.contracts import Severite
+    from pdz.production.animation import _diagnostiquer
+
+    premier = _diagnostiquer(_verdict(), {"mouvement_sujet": "x"}, 0, duree_requise=4.5)
+    suivant = _diagnostiquer(_verdict(), {"mouvement_sujet": "x"}, 5, duree_requise=4.5)
+    assert premier.severite is Severite.CRITIQUE
+    assert suivant.severite is not Severite.CRITIQUE
+
+
+def test_le_diagnostic_ne_relance_aucun_echantillonnage(monkeypatch):
+    """`depuis_verdict()` et non `observer_clip()` : rappeler la sonde
+    relancerait un échantillonnage ffmpeg complet pour recalculer un nombre
+    qu'on tient déjà."""
+    from pdz.production import verification_mouvement
+    from pdz.production.animation import _diagnostiquer
+
+    def _interdit(*a, **k):
+        raise AssertionError("la sonde ne doit pas être rappelée")
+
+    monkeypatch.setattr(verification_mouvement, "verifier", _interdit)
+    assert _diagnostiquer(_verdict(), {"mouvement_sujet": "x"}, 0,
+                          duree_requise=4.5) is not None

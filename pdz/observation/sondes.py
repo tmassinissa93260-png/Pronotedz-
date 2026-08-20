@@ -20,14 +20,64 @@ from pdz.contracts.observation import Axe, Mesure, ObservationReport
 log = logging.getLogger(__name__)
 
 
+def depuis_verdict(verdict, *, attendu: str = "",
+                   duree_requise: float = 0.0,
+                   tolerance_s: float = 0.0) -> tuple[Mesure, ...]:
+    """Traduit un `VerdictMouvement` DÉJÀ CALCULÉ en mesures.
+
+    Séparé de `sonde_mouvement()` pour une raison concrète : la production
+    calcule ce verdict au moment où elle décide d'accepter ou rejeter un
+    clip. Rappeler la sonde ici relancerait un échantillonnage ffmpeg
+    complet — quelques secondes de CPU par plan, pour recalculer un nombre
+    qu'on tient déjà.
+
+    Deux mesures et non une : « le fichier est valide » et « l'image
+    change » sont deux constats indépendants, et le run #66 a montré qu'un
+    clip peut parfaitement tenir le premier en ratant le second.
+    """
+    from pdz.production import verification_mouvement
+
+    # La durée fait partie de l'axe TECHNIQUE : un clip plus court que la
+    # durée allouée est aussi inexploitable qu'un fichier illisible — le
+    # montage ne peut pas RALLONGER un clip trop court, et la vidéo
+    # s'arrêterait avant la voix.
+    duree_ok = verdict.fichier_valide and (
+        not duree_requise or verdict.duree_s >= duree_requise - tolerance_s)
+
+    technique = Mesure(
+        axe=Axe.TECHNIQUE, nom="fichier_valide",
+        verdict=Verdict.REUSSI if duree_ok else Verdict.ECHOUE,
+        sonde="verification_mouvement",
+        valeur=f"{verdict.duree_s:.2f} s à {verdict.fps:.1f} fps",
+        attendu=f"{duree_requise:.2f} s" if duree_requise else "",
+        detail=verdict.raison,
+    )
+
+    if not verdict.fichier_valide:
+        # Sans fichier lisible, le mouvement n'est pas « absent » : il est
+        # INCONNU. Le déclarer échoué accuserait le modèle d'un problème de
+        # fichier, et ferait chercher au mauvais endroit.
+        return (technique, Mesure(
+            axe=Axe.MOUVEMENT, nom="mouvement_percu", verdict=Verdict.INCERTAIN,
+            sonde="verification_mouvement", attendu=attendu,
+            detail="fichier illisible : le mouvement n'a pas pu être mesuré",
+        ))
+
+    return (technique, Mesure(
+        axe=Axe.MOUVEMENT, nom="mouvement_percu",
+        verdict=Verdict.REUSSI if verdict.mouvement_detecte else Verdict.ECHOUE,
+        sonde="verification_mouvement",
+        valeur=f"{verdict.diff_moyenne:.3f}/255 sur {verdict.frames_echantillonnees} frames",
+        attendu=attendu,
+        seuil=f"{verification_mouvement.SEUIL_MOUVEMENT}/255",
+        detail=verdict.raison,
+    ))
+
+
 def sonde_mouvement(clip: Path, *, fenetre_s: float | None = None,
                     attendu: str = "") -> tuple[Mesure, ...]:
-    """Ce clip bouge-t-il vraiment ? — et le fichier est-il seulement lisible ?
-
-    Deux mesures et non une : « le fichier est valide » et « l'image change »
-    sont deux constats indépendants, et le run #66 a montré qu'un clip peut
-    parfaitement tenir le premier en ratant le second.
-    """
+    """Mesure un clip depuis le disque. Voir `depuis_verdict()` quand le
+    verdict est déjà calculé — ce qui est le cas dans la production."""
     from pdz.production import verification_mouvement
 
     verdict = verification_mouvement.verifier(clip, fenetre_s=fenetre_s)

@@ -26,6 +26,7 @@ est grande aujourd'hui, et c'est une information, pas une faiblesse du module.
 """
 
 from pdz.observation.sondes import (
+    depuis_verdict,
     observer_clip,
     observer_master,
     sonde_cadrage,
@@ -34,6 +35,6 @@ from pdz.observation.sondes import (
 )
 
 __all__ = [
-    "observer_clip", "observer_master",
+    "observer_clip", "observer_master", "depuis_verdict",
     "sonde_mouvement", "sonde_coherence_duree", "sonde_cadrage",
 ]

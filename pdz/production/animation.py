@@ -97,6 +97,16 @@ class PlanAnime:
     # (méthode="vie"/"camera" — pourquoi le modèle n'a pas été retenu),
     # "non_elu" (jamais tenté, budget/note).
     diagnostic: str = ""
+    # Le `FailureDiagnosis` complet quand il y en a un — la CAUSE, avec sa
+    # confiance et ses preuves, là où `diagnostic` ci-dessus ne porte qu'une
+    # étiquette. Deux étiquettes distinctes ne pouvaient pas exprimer qu'un
+    # même symptôme (« ça ne bouge pas assez ») a des causes opposées :
+    # un rendu statique et une caméra qui mange le plan appellent des
+    # corrections inverses.
+    #
+    # `None` sur les plans jamais tentés : il n'y a rien à diagnostiquer
+    # d'une génération qui n'a pas eu lieu.
+    cause: object | None = None
 
 
 def duree_max_du_modele(profil: str = "equilibre") -> float:
@@ -348,6 +358,20 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
                 destination, fenetre_s=duree_requise)
             duree_ok = verdict.fichier_valide and verdict.duree_s >= duree_requise - TOLERANCE_DUREE_S
 
+            # Le verdict, traduit en rapport d'observation puis confronté à
+            # ce que le plan ATTENDAIT. `diagnostics` nomme la cause là où
+            # les étiquettes historiques (`rejete_mouvement`) ne disaient
+            # que le symptôme : il distingue un rendu statique d'une caméra
+            # qui mange le plan, ce qu'aucune chaîne de caractères ne
+            # pouvait faire.
+            #
+            # `depuis_verdict()` et non `observer_clip()` : le verdict est
+            # déjà calculé, et rappeler la sonde relancerait un
+            # échantillonnage ffmpeg complet pour recalculer un nombre qu'on
+            # tient.
+            diagnostic_precis = _diagnostiquer(
+                verdict, plan, i, duree_requise=duree_requise)
+
             if not duree_ok:
                 # Le fournisseur a rendu un clip invalide ou plus court que
                 # la durée allouée. `trim=duration=...` au montage ne peut
@@ -364,7 +388,7 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
                 )
                 resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
                                         duree_clip_s, diagnostic="rejete_duree",
-                                        cout=cout))
+                                        cout=cout, cause=diagnostic_precis))
                 continue
 
             if not verdict.mouvement_detecte:
@@ -380,7 +404,7 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
                 )
                 resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
                                         duree_clip_s, diagnostic="rejete_mouvement",
-                                        cout=cout))
+                                        cout=cout, cause=diagnostic_precis))
                 continue
 
             log.info(
@@ -503,6 +527,14 @@ def _enregistrer_experience(resultats: list[PlanAnime], plans: list[dict],
         _, mode, verdict = _LECTURE_DIAGNOSTIC.get(
             resultat.diagnostic, ("repli", None, ""))
 
+        # Le diagnostic PRÉCIS l'emporte sur l'étiquette quand il existe :
+        # `rejete_mouvement` ne dit que le symptôme, `CAMERA_DOMINANT` dit
+        # la cause. C'est cette distinction que le routage empirique lira
+        # un jour — deux causes opposées sous une même étiquette rendraient
+        # la statistique inexploitable.
+        if resultat.cause is not None:
+            mode = resultat.cause.mode
+
         try:
             memoire.enregistrer(ExperienceRecord(
                 job_id=job_id,
@@ -529,9 +561,52 @@ def _enregistrer_experience(resultats: list[PlanAnime], plans: list[dict],
                         resultat.index, e)
 
 
+def _diagnostiquer(verdict, plan: dict, index: int, *, duree_requise: float):
+    """Le rapport d'observation, confronté à ce que le plan attendait.
+
+    Rend `None` quand rien ne cloche — un résultat, pas une absence.
+
+    L'attendu est reconstruit ici à partir du plan plutôt que reçu tout
+    fait : `animer()` reçoit des `dict`, pas des contrats, et remonter
+    jusqu'au `PlanCompile` demanderait de changer sa signature — ce qui
+    touche `episode.py`. Le branchement complet viendra avec l'orchestration ;
+    en attendant, ceci nomme déjà correctement les causes.
+    """
+    from pdz.contracts import ObservationReport
+    from pdz.diagnostics import Attendu, diagnostiquer
+    from pdz.observation import depuis_verdict
+
+    camera_verrouillee = (plan.get("mouvement_camera") or "") in ("", "fixe")
+    attend_un_sujet = bool((plan.get("mouvement_sujet") or "").strip()
+                           or plan.get("intensite_mouvement"))
+
+    rapport = ObservationReport(
+        id=f"observation_shot_{index:03d}", shot_id=f"shot_{index:03d}",
+        artefact="",
+        mesures=depuis_verdict(
+            verdict,
+            attendu="mouvement perceptible" if attend_un_sujet else "",
+            duree_requise=duree_requise, tolerance_s=TOLERANCE_DUREE_S),
+    )
+    return diagnostiquer(
+        Attendu(
+            shot_id=f"shot_{index:03d}",
+            sujet_doit_bouger=attend_un_sujet,
+            camera_doit_bouger=not camera_verrouillee,
+            duree_s=duree_requise,
+            # La confusion que le contrat perceptuel sait déjà nommer : sur
+            # un plan à caméra verrouillée, prendre un mouvement de caméra
+            # pour celui du sujet est la fausse lecture à écarter.
+            confusions_interdites=("camera_only_motion",) if camera_verrouillee else (),
+            importance=0.9 if index == 0 else 0.5,
+        ),
+        rapport,
+    )
+
+
 def _repli(index: int, image: Path, dossier: Path, plan: dict,
            avec_vie: bool, duree_clip_s: int, *, diagnostic: str = "",
-           cout: float = 0.0) -> PlanAnime:
+           cout: float = 0.0, cause=None) -> PlanAnime:
     """Le plan n'est pas animé par un modèle : que fait-on à la place ?
 
     Deux niveaux, tous les deux gratuits. « vie » ajoute parallaxe et
@@ -582,9 +657,11 @@ def _repli(index: int, image: Path, dossier: Path, plan: dict,
     if not resultat.clip_produit:
         # `PROCEDURAL` : rien n'est fabriqué ici, c'est le montage qui
         # appliquera le recadrage glissant.
-        return PlanAnime(index, image, False, "camera", cout, diagnostic=diagnostic)
+        return PlanAnime(index, image, False, "camera", cout,
+                         diagnostic=diagnostic, cause=cause)
 
-    return PlanAnime(index, resultat.fichier, True, "vie", cout, diagnostic=diagnostic)
+    return PlanAnime(index, resultat.fichier, True, "vie", cout,
+                     diagnostic=diagnostic, cause=cause)
 
 
 def _prompt_mouvement(plan: dict, univers: Univers) -> str:
