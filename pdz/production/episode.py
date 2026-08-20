@@ -413,6 +413,29 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
             corrections = fait_realisme
         plans = RealismWriter().fusionner(plans, corrections)
 
+    # ── 3d. Compilation en contrats ──────────────────────────────────────
+    # Les plans sont désormais complets : découpés, promptés, corrigés. C'est
+    # ici, et pas avant, qu'ils peuvent être compilés en contrats — chaque
+    # étape précédente en enrichit encore les champs.
+    #
+    # Ce que cette étape rend possible et qui n'existait nulle part : pour
+    # CHAQUE plan, répondre aux cinq questions (pourquoi il existe, ce qu'il
+    # doit montrer, comment il évolue, comment le fabriquer, comment on
+    # saura). Elle ne change RIEN au rendu — elle le rend explicable.
+    #
+    # Déterministe et gratuite : `scenes` n'appelle aucun modèle, tout vient
+    # de décisions déjà prises par ShotPromptWriter et par l'univers.
+    #
+    # La valeur de retour n'est PAS consommée ici, et c'est délibéré : cette
+    # étape TRACE, elle ne décide pas encore. Elle écrit l'artefact
+    # `contrats` dans `etapes` — requêtable, versionné — et fait remonter ce
+    # que personne ne savait. Faire décider le rendu par ces contrats
+    # demanderait de changer la signature de `images.fabriquer()` et
+    # `animation.animer()`, donc de toucher au chemin qui dépense, dans le
+    # même commit qu'un branchement. C'est exactement ce que la règle de
+    # migration interdit.
+    _compiler_contrats(plans, univers, job_id)
+
     # ── 4. Images ────────────────────────────────────────────────────────
     fait_images = _fait(job_id, "images")
     if fait_images is None:
@@ -599,6 +622,80 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
         plans_animes=sum(1 for a in animes if a.anime),
         plans_avec_mouvement_confirme=plans_avec_mouvement_confirme,
     )
+
+
+def _compiler_contrats(plans: list[PlanScript], univers: Univers,
+                       job_id: str) -> tuple:
+    # noqa: D401 - la valeur de retour existe pour les tests et pour le jour
+    # où le rendu la consommera ; l'appelant n'en fait rien aujourd'hui.
+    """Compile les plans en contrats, et journalise ce qui mérite d'être su.
+
+    **Ne bloque jamais la production.** Une compilation de contrats est un
+    instrument de lecture, pas une étape du rendu : perdre la trace coûte de
+    la lisibilité, perdre l'épisode coûte la vidéo. C'est la même règle que
+    pour `ExperienceMemory`.
+
+    Ce qu'elle fait remonter, et que rien ne disait avant :
+
+      · **les plans sous-spécifiés** — ceux qui ne peuvent pas répondre aux
+        cinq questions. Aujourd'hui c'est la totalité d'entre eux, parce
+        qu'aucun `PlanScript` ne porte de `but` explicite. Le dire est le
+        premier pas pour le corriger ; l'inventer le rendrait invisible ;
+      · **les plans techniquement fragiles** — trop d'éléments à faire
+        coexister, identité à tenir, mouvement de sujet. C'est
+        `renderability`, appliqué AVANT la moindre dépense d'image ou
+        d'animation ;
+      · **ce qui est refusable sans payer** — un plan qui exige et interdit
+        la même chose échouera quoi qu'il arrive.
+    """
+    from pdz.renderability import analyser, valider_statiquement
+    from pdz.scenes import compiler_plans
+
+    try:
+        compiles = compiler_plans(plans, univers)
+    except Exception as e:  # noqa: BLE001 - voir la docstring
+        log.warning("Contrats non compilés (%s) : la production continue", e)
+        return ()
+
+    fragiles, refusables = [], []
+    for compile in compiles:
+        complexite = analyser(compile.spec,
+                              mouvement_attendu=compile.mouvement_attendu)
+        if complexite.faisabilite.value == "LOW":
+            fragiles.append(f"plan {compile.spec.numero} "
+                            f"({complexite.facteur_dominant})")
+        if (problemes := valider_statiquement(compile.spec)):
+            refusables.append(f"plan {compile.spec.numero} : {problemes[0]}")
+
+    if fragiles:
+        log.info("Faisabilité basse sur %d plan(s) : %s",
+                 len(fragiles), " · ".join(fragiles))
+    if refusables:
+        # `warning` et non `error` : ces plans partiront quand même. Le
+        # système sait les nommer avant de payer, il ne sait pas encore les
+        # réparer sans intervention.
+        log.warning("Plans techniquement contradictoires : %s",
+                    " · ".join(refusables))
+
+    non_specifies = [c.spec.numero for c in compiles if not c.spec.est_specifie]
+    if non_specifies:
+        log.info(
+            "%d plan(s) sur %d ne répondent pas aux cinq questions "
+            "(but, perception, évolution, fabrication, réussite) — "
+            "aucun PlanScript ne porte encore de `but` explicite.",
+            len(non_specifies), len(compiles),
+        )
+
+    _noter(job_id, "contrats", "scenes", {
+        "plans": [{
+            "id": c.spec.id,
+            "mouvement_attendu": c.mouvement_attendu,
+            "importance": round(c.importance, 3),
+            "specifie": c.spec.est_specifie,
+            "decor": c.monde.decor,
+        } for c in compiles],
+    }, 0.0, 0)
+    return compiles
 
 
 def _preparer_montage(plans: list[PlanScript], animes: list[animation.PlanAnime],
