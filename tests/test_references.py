@@ -8,7 +8,10 @@ contenu vidéo.
 
 from __future__ import annotations
 
+import pytest
+
 from pdz.analyse.references import dossier_references, lister_references
+from pdz.config import config
 
 
 def test_un_dossier_absent_ne_leve_pas_derreur(tmp_path):
@@ -59,11 +62,30 @@ def test_plusieurs_videos_sont_triees_par_id(tmp_path):
     assert [r.id for r in refs] == ["abeille", "moutarde", "zebre"]
 
 
-def test_dossier_references_lit_la_variable_denvironnement(monkeypatch):
-    monkeypatch.setenv("PDZ_DOSSIER_REFERENCES", "/tmp/mes-references-privees")
+# `config()` est mis en cache — comme pour TOUS les réglages du projet. Depuis
+# que `PDZ_DOSSIER_REFERENCES` est un champ de `Config` et non un
+# `os.environ.get()` par appel, changer la variable en cours de processus
+# demande de vider ce cache. Ce n'est pas une contrainte de test : c'est le
+# comportement de `BUDGET_MAX_PAR_VIDEO_EUR` et de tous les autres réglages,
+# et l'exception d'avant était justement ce qui rendait celui-ci invisible
+# pour `pdz cles` et `.env.exemple`.
+@pytest.fixture
+def env_references(monkeypatch):
+    def regler(valeur: str | None):
+        if valeur is None:
+            monkeypatch.delenv("PDZ_DOSSIER_REFERENCES", raising=False)
+        else:
+            monkeypatch.setenv("PDZ_DOSSIER_REFERENCES", valeur)
+        config.cache_clear()
+    yield regler
+    config.cache_clear()
+
+
+def test_dossier_references_lit_la_variable_denvironnement(env_references):
+    env_references("/tmp/mes-references-privees")
     assert str(dossier_references()) == "/tmp/mes-references-privees"
 
 
-def test_dossier_references_par_defaut(monkeypatch):
-    monkeypatch.delenv("PDZ_DOSSIER_REFERENCES", raising=False)
+def test_dossier_references_par_defaut(env_references):
+    env_references(None)
     assert str(dossier_references()) == "donnees/references"
