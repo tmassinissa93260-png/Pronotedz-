@@ -220,14 +220,31 @@ def _verdict(**extra):
 
 
 @pytest.mark.parametrize("plan,attendu", [
+    # Caméra VERROUILLÉE : rien ne peut avoir « mangé » le mouvement du
+    # sujet, puisqu'aucun mouvement de caméra n'a été demandé. Ce qui
+    # manque est le rendu lui-même.
     ({"mouvement_sujet": "turns her head", "mouvement_camera": "fixe"},
-     ModeEchec.CAMERA_DOMINANTE),
+     ModeEchec.RENDU_STATIQUE),
+    # Caméra qui DOIT bouger, sujet qui devait bouger, et rien ne bouge :
+    # c'est là — et seulement là — que la caméra peut être la cause.
     ({"mouvement_sujet": "turns her head", "mouvement_camera": "pan_lent"},
-     ModeEchec.MOUVEMENT_SUJET_ABSENT),
+     ModeEchec.CAMERA_DOMINANTE),
 ])
 def test_l_animation_distingue_des_causes_que_les_etiquettes_confondaient(plan, attendu):
     """Même symptôme mesuré — un clip statique — deux causes opposées, qui
-    appellent des corrections inverses."""
+    appellent des corrections inverses.
+
+    Les deux attentes ont été ÉCHANGÉES avec la correction de
+    CAMERA_DOMINANT : le diagnostic exige désormais que la caméra ait eu
+    le droit de bouger. Diagnostiquer « la caméra domine » sur un plan
+    dont la caméra est déjà fixe menait à la réparation CAMERA_FIX, qui
+    verrouille une caméra déjà verrouillée — une correction sans effet,
+    donc une relance à l'identique, donc une dépense pour un résultat
+    déjà mesuré.
+
+    Ce que le test protège n'a pas changé : un même symptôme mesuré porte
+    deux causes distinctes. Seule la façon de les distinguer est devenue
+    juste."""
     from pdz.production.animation import _diagnostiquer
 
     diagnostic = _diagnostiquer(_verdict(), plan, 0, duree_requise=4.5)
