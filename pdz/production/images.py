@@ -20,13 +20,18 @@ identique n'est jamais repayée, même dans un autre épisode.
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import logging
+import os
 import shutil
+import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 
 from pdz.config import config
+from pdz.contracts.execution import ExecutionPlan, NoeudExecution
+from pdz.execution import executer
 from pdz.ia import images as ia_images
 from pdz.moteur.erreurs import ErreurBudget, ErreurConfig
 from pdz.production import contrat_visuel, decision_visuelle, risque_prompt
@@ -278,7 +283,18 @@ def _produire(prompt: str, destination: Path, *, univers: Univers,
         agent="directeur_image",
     )
     if cache:
-        shutil.copyfile(destination, garde)
+        # Écriture puis renommage, et non une copie directe vers `garde` :
+        # depuis que les plans sont produits en parallèle, deux plans au
+        # prompt identique visent la MÊME entrée de cache. Une copie
+        # concurrente y laisserait un fichier tronqué — assez gros pour
+        # passer le seuil de 1000 octets plus haut, donc réutilisé comme
+        # une image valide. `os.replace` est atomique sur le même système
+        # de fichiers : le lecteur voit l'ancienne entrée ou la nouvelle,
+        # jamais une moitié.
+        provisoire = garde.with_name(f"{garde.stem}.{os.getpid()}-"
+                                     f"{threading.get_ident()}.tmp")
+        shutil.copyfile(destination, provisoire)
+        os.replace(provisoire, garde)
     return cout, False
 
 
@@ -404,6 +420,156 @@ def _preparer(plans: list[PlanScript], univers: Univers, dossier: Path, *,
             contrat=contrat,
         ))
     return travaux
+
+
+# Un plan d'images est une VAGUE : vingt-six appels réseau qui ne dépendent
+# que des fiches de personnages, déjà produites. Les enchaîner un par un
+# faisait attendre la somme des latences là où la somme n'a aucune raison
+# d'être payée. Quatre à la fois est le plafond de l'ordonnanceur, choisi
+# parce qu'au-delà les fournisseurs limitent — pas parce que 4 serait joli.
+PARALLELISME_IMAGES = 4
+
+
+async def fabriquer_dag(plans: list[PlanScript], univers: Univers, dossier: Path, *,
+                        consignes: list[str] | None = None,
+                        profil: str = "equilibre",
+                        budget_max: float | None = None,
+                        cache: bool = True,
+                        job_id: str | None = None,
+                        chemin_univers: Path | None = None,
+                        parallelisme: int = PARALLELISME_IMAGES) -> Planche:
+    """`fabriquer()`, mais les plans passent par l'ordonnanceur.
+
+    Deux gains, et un seul est la vitesse.
+
+    · **La reprise devient plan par plan.** `episode.py` journalisait les
+      images comme UNE étape : un job interrompu au plan 20 sur 26
+      repayait les vingt premières. Chaque plan est maintenant un nœud, et
+      le journal — la même et seule autorité, `pdz/moteur/journal.py` —
+      sait lequel est fait.
+    · **Les appels se recouvrent**, jusqu'à `parallelisme`.
+
+    Ce que cette fonction n'introduit PAS, délibérément : un second cache.
+    `_produire()` a déjà le sien, keyé sur (prompt, graine, référence), et
+    il est partagé entre épisodes. Les nœuds sont donc créés sans
+    `cle_cache` : leur réutilisation passe par le journal pour la reprise,
+    et par le cache image existant pour le reste. Empiler un troisième
+    niveau reviendrait à cacher un cache.
+
+    Le budget, honnêtement : le plafond est vérifié avant de LANCER chaque
+    nœud, pas pendant. Avec `parallelisme` appels en vol, le dépassement
+    maximal est de `parallelisme - 1` images — quelques centimes, contre
+    des minutes d'attente gagnées. La version séquentielle reste
+    disponible pour qui veut la garantie stricte.
+    """
+    if not plans:
+        raise ErreurConfig("Aucun plan : rien à illustrer.")
+
+    plafond = budget_max if budget_max is not None else config().budget_max_par_video_eur
+    dossier.mkdir(parents=True, exist_ok=True)
+
+    planche = Planche()
+    planche.fiches = fiches(
+        univers, dossier, profil=profil, cache=cache, job_id=job_id,
+        chemin_univers=chemin_univers,
+    )
+
+    marque_interdite = risque_prompt.marque_est_interdite(univers.interdits)
+    vocabulaire = frozenset()
+    if marque_interdite:
+        noms_connus = [x for p in univers.personnages for x in (p.id, p.nom, p.espece)] \
+                     + [x for d in univers.decors for x in (d.id, d.nom)]
+        vocabulaire = risque_prompt.vocabulaire_connu(noms_connus)
+
+    travaux = _preparer(plans, univers, dossier, consignes=consignes,
+                        marque_interdite=marque_interdite,
+                        vocabulaire=vocabulaire)
+    par_noeud = {f"image_{t.plan.numero:03d}": t for t in travaux}
+
+    # Un compteur partagé plutôt qu'une somme finale : c'est lui qui permet
+    # d'ARRÊTER de dépenser, ce qu'un total calculé après coup ne peut plus
+    # faire. asyncio est mono-thread, donc le lire et l'écrire hors de tout
+    # `await` suffit — aucun verrou n'est nécessaire ici, et en ajouter un
+    # laisserait croire à une protection contre des threads qui n'existent pas.
+    depense = 0.0
+
+    async def produire_une_image(noeud, _entrees):
+        nonlocal depense
+        travail = par_noeud[noeud.noeud_id]
+        if depense >= plafond:
+            raise ErreurBudget(
+                f"Plafond de {plafond:.2f} € atteint. Relancer la commande "
+                "reprendra ici — les plans déjà produits sont journalisés "
+                "et ne seront pas repayés."
+            )
+        reste_pct = max(0.0, (plafond - depense) / max(1e-6, plafond) * 100)
+        # `to_thread` : `_produire` est un appel réseau bloquant. Le laisser
+        # sur la boucle événementielle sérialiserait tout et rendrait le DAG
+        # décoratif.
+        cout, du_cache = await asyncio.to_thread(
+            _produire, travail.prompt, travail.destination, univers=univers,
+            reference=planche.fiches.get(travail.personnage), profil=profil,
+            budget_restant_pct=reste_pct, cache=cache, job_id=job_id,
+        )
+        depense += cout
+        return {"fichier": str(travail.destination), "cout_eur": cout,
+                "depuis_cache": du_cache, "prompt": travail.prompt}
+
+    plan_execution = ExecutionPlan(
+        shot_id=job_id or "",
+        noeuds=tuple(
+            NoeudExecution(noeud_id=noeud_id, operation="image",
+                           cout_estime_eur=plafond / max(1, len(travaux)))
+            for noeud_id in par_noeud
+        ),
+    )
+    resultat = await executer(
+        plan_execution, {"image": produire_une_image},
+        job_id=job_id or "sans-job", parallelisme_max=parallelisme,
+    )
+
+    # Un échec d'image n'est PAS rattrapable ici : le montage exige une image
+    # par plan (`zip(..., strict=True)`). L'ordonnanceur laisse les branches
+    # indépendantes finir — c'est ce qu'on veut, le travail déjà payé est
+    # gardé — mais l'appelant doit apprendre l'échec, comme le faisait la
+    # version séquentielle en laissant remonter l'exception.
+    if resultat.echoues:
+        premier = resultat.plan.par_id(resultat.echoues[0])
+        detail = (premier.erreur if premier else "") or "cause inconnue"
+        message = (f"{len(resultat.echoues)} plan(s) sans image sur "
+                   f"{len(travaux)} — premier échec : {detail}")
+        # Le budget garde son type d'erreur : `episode.py` et la CLI le
+        # distinguent d'une panne, et l'aplatir en ErreurConfig ferait
+        # passer « tu as atteint ton plafond » pour « ta configuration est
+        # cassée » — deux situations qui n'appellent pas la même réaction.
+        raise (ErreurBudget(message) if "Plafond" in detail
+               else ErreurConfig(message))
+
+    # L'ordre des plans est celui du storyboard, jamais celui d'arrivée des
+    # réponses : le montage zippe plans et images position par position, et
+    # une planche triée par latence produirait un épisode dont les images
+    # sont mélangées — sans qu'aucun test de comptage ne le remarque.
+    for noeud_id, travail in par_noeud.items():
+        sortie = resultat.sorties[noeud_id]
+        planche.plans.append(travail.en_image(
+            float(sortie.get("cout_eur", 0.0) or 0.0),
+            bool(sortie.get("depuis_cache", False)),
+        ))
+    # `resultat.cout_eur` et non la somme des plans : ce que l'appelant doit
+    # connaître, c'est ce que CETTE exécution a dépensé, parce que c'est ça
+    # qui se compare au plafond. Un plan repris du journal porte son coût
+    # d'origine — utile comme provenance sur `PlanImage.cout`, faux comme
+    # dépense du jour. Les additionner ferait recompter, à chaque reprise,
+    # de l'argent déjà dépensé la fois d'avant, et rapprocherait le plafond
+    # à chaque relance jusqu'à interdire une reprise qui ne coûte rien.
+    planche.cout = resultat.cout_eur
+    planche.images_evitees = (
+        len(resultat.reutilises)
+        + sum(1 for p in planche.plans if p.depuis_cache)
+    )
+
+    log.info("Images (DAG) : %s", planche.resume())
+    return planche
 
 
 def fabriquer(plans: list[PlanScript], univers: Univers, dossier: Path, *,

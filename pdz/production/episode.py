@@ -451,7 +451,12 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
     fait_images = _fait(job_id, "images")
     if fait_images is None:
         debut = time.perf_counter()
-        planche = images.fabriquer(
+        # `fabriquer_dag` et non `fabriquer` : chaque plan devient un nœud
+        # journalisé, donc un job interrompu au plan 20 sur 26 ne repaie
+        # plus les vingt premiers, et les appels se recouvrent. L'étape
+        # « images » ci-dessous reste journalisée telle quelle — elle
+        # résume, elle ne remplace pas la reprise fine.
+        planche = await images.fabriquer_dag(
             plans, univers, travail / "images",
             consignes=(adn.consignes_image if adn else None),
             profil=profil, budget_max=plafond - cout_total,
@@ -472,7 +477,13 @@ async def produire(univers: Univers, situation: str, sortie: Path, *,
                      "contrat_visuel": asdict(p.contrat) if p.contrat else None}
                     for p in planche.plans
                 ]},
-               planche.cout, int((time.perf_counter() - debut) * 1000))
+               # Coût NUL sur l'étape de résumé, et ce n'est pas une
+               # omission : depuis que chaque plan est un nœud du DAG, la
+               # dépense est journalisée nœud par nœud. La reporter aussi
+               # ici la compterait deux fois dans `jobs.cout_total`, qui
+               # additionne la table `etapes` — un épisode paraîtrait avoir
+               # coûté une fois et demie son prix. Un euro, une ligne.
+               0.0, int((time.perf_counter() - debut) * 1000))
         cout_total += planche.cout
         fichiers = planche.fichiers
     else:

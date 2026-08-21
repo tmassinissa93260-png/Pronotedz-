@@ -18,6 +18,7 @@ from __future__ import annotations
 import asyncio
 import json
 import subprocess
+import threading
 from pathlib import Path
 
 import pytest
@@ -160,13 +161,20 @@ def atelier(tmp_path, monkeypatch):
 
     # ── Les images ───────────────────────────────────────────────────────
     appels = {"images": 0}
+    # Les plans passent par l'ordonnanceur, donc ce faux générateur est
+    # appelé depuis plusieurs threads. `appels["images"] += 1` se décompose
+    # en lecture/addition/écriture : sans verrou, deux incréments simultanés
+    # en perdent un, et l'assertion de comptage plus bas devient
+    # intermittente — le pire état possible pour un test d'intégration.
+    verrou_appels = threading.Lock()
 
     def fausses_images(prompt, destination, **kwargs):
         from PIL import Image, ImageDraw
 
-        appels["images"] += 1
-        img = Image.new("RGB", (608, 1080),
-                        (30 + appels["images"] * 17 % 200, 60, 90))
+        with verrou_appels:
+            appels["images"] += 1
+            teinte = 30 + appels["images"] * 17 % 200
+        img = Image.new("RGB", (608, 1080), (teinte, 60, 90))
         ImageDraw.Draw(img).rectangle([100, 300, 500, 700], fill=(220, 180, 60))
         destination.parent.mkdir(parents=True, exist_ok=True)
         img.save(destination, quality=90)
