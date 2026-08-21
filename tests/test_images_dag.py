@@ -25,7 +25,7 @@ from pathlib import Path
 import pytest
 
 from pdz import db
-from pdz.moteur.erreurs import ErreurBudget
+from pdz.moteur.erreurs import ErreurBudget, ErreurConfig
 from pdz.production import images
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Univers
@@ -209,3 +209,23 @@ def test_un_plan_sans_image_ne_passe_jamais_pour_un_succes(atelier, monkeypatch)
     with pytest.raises((ErreurBudget, Exception)) as e:
         _fabriquer(u, plans, tmp / "img")
     assert "plan(s) sans image" in str(e.value)
+
+
+def test_deux_plans_au_meme_numero_sont_refuses_tout_de_suite(atelier):
+    """Un doublon de numéro écraserait une image, et se verrait très loin.
+
+    Les nœuds sont indexés par numéro de plan : deux plans au même numéro
+    donneraient un seul nœud, une planche plus courte que le storyboard, et
+    une erreur au montage sur un `zip(..., strict=True)` dont le message ne
+    nommerait pas la cause. La boucle séquentielle ne pouvait pas produire
+    ce défaut — elle empilait une entrée par itération —, donc le
+    branchement du DAG doit le refuser explicitement.
+    """
+    u, appels, tmp = atelier
+    plans = _plans(u, 2)
+    plans[1].numero = plans[0].numero
+
+    with pytest.raises(ErreurConfig) as e:
+        _fabriquer(u, plans, tmp / "img")
+    assert "double" in str(e.value)
+    assert appels == [], "une image a été payée avant le refus"

@@ -485,6 +485,22 @@ async def fabriquer_dag(plans: list[PlanScript], univers: Univers, dossier: Path
                         marque_interdite=marque_interdite,
                         vocabulaire=vocabulaire)
     par_noeud = {f"image_{t.plan.numero:03d}": t for t in travaux}
+    # Un dictionnaire indexé par numéro de plan écraserait silencieusement
+    # un doublon, et la planche reviendrait plus courte que le storyboard.
+    # La boucle séquentielle ne pouvait pas faire ça — elle empilait une
+    # entrée par itération. L'erreur ne réapparaîtrait qu'au montage, sur un
+    # `zip(..., strict=True)` très loin d'ici, avec un message qui ne
+    # nommerait pas la cause.
+    if len(par_noeud) != len(travaux):
+        vus, doublons = set(), []
+        for t in travaux:
+            (doublons.append(t.plan.numero) if t.plan.numero in vus
+             else vus.add(t.plan.numero))
+        raise ErreurConfig(
+            f"Numéros de plan en double dans le storyboard : {sorted(set(doublons))}. "
+            "Chaque plan doit avoir un numéro unique — sinon une image en "
+            "écrase une autre."
+        )
 
     # Un compteur partagé plutôt qu'une somme finale : c'est lui qui permet
     # d'ARRÊTER de dépenser, ce qu'un total calculé après coup ne peut plus
