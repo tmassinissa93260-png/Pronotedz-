@@ -170,9 +170,13 @@ def test_la_boucle_sarrete_apres_deux_tentatives(atelier_anime, monkeypatch):
 
     resultats = _animer([_plan()], image, tmp)
 
-    assert len(espion.specs) <= 3, (
+    # Trois exactement : l'original, puis les deux corrections applicables
+    # (amplifier le mouvement, verrouiller la caméra), que `deja_tentees`
+    # empêche de répéter. Un quatrième appel voudrait dire que la boucle
+    # retente une correction déjà essayée.
+    assert len(espion.specs) == 3, (
         f"{len(espion.specs)} appels payants pour un seul plan : la boucle "
-        "de réparation n'est pas bornée"
+        "de réparation n'est pas bornée comme documenté"
     )
     assert not resultats[0].anime or resultats[0].methode != "modele"
     assert resultats[0].diagnostic == "rejete_mouvement"

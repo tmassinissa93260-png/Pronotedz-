@@ -792,9 +792,18 @@ def _reparer(diagnostic, plan: dict, *, tentative: int,
       · budget insuffisant         — un second rendu se paie comme le premier ;
       · **correction sans effet**  — voir plus bas.
 
-    `tentatives_max = 2` : un seul essai de réparation. Le modèle coûte
-    0,23 € le clip de 5 s pour un plafond de 0,60 € par vidéo — deux
-    réparations sur un même plan mangeraient l'épisode entier.
+    `tentatives_max = 2` : **deux** réparations au plus, et c'est voulu.
+    Les deux corrections applicables sont différentes — amplifier le
+    mouvement, verrouiller la caméra — et `deja_tentees` garantit que la
+    seconde n'est pas la première. Un plan peut réellement avoir besoin des
+    deux, et s'arrêter à une seule reviendrait à abandonner sur la seule
+    correction qu'on n'a pas essayée.
+
+    Ce compte n'est pourtant presque jamais la contrainte qui mord : à
+    ~0,46 € le plan pour un plafond de 0,60 € par vidéo, `budget_restant`
+    arrête la réparation bien avant la deuxième tentative. C'est
+    l'ordre voulu — le budget est une mesure, le compte de tentatives n'est
+    qu'un garde-fou pour le jour où le prix baisse.
     """
     if diagnostic is None or not diagnostic.actionnable:
         return None, None, ""
