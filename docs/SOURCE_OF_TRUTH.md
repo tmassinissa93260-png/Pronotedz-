@@ -25,13 +25,13 @@ Légende : ✅ comblé · 🟨 partiel · 🔒 verrouillé par la donnée
 | **Perception** | `production/contrat_visuel.py` | les « 8 questions », sans ordre d'attention | + `PerceptualContract` | idem | ✅ attention ordonnée, confusions |
 | **Capacités** | `modeles.yaml` · `capabilities/` | `fait: [...]`, sans statut ; mesures **en commentaires** | `capacites:` avec `ANNONCE`/`MESURE`/`INCONNU` | `CapabilityGraph` | ✅ 25/32 déclarées non mesurées |
 | **Fournisseurs** | `backends/` | 4 modules métier importaient fal/elevenlabs/audd | `backends/`, registre public | interfaces backend | ✅ vérifié par AST |
-| **Stratégie de rendu** | `strategies/` | cascade `if/else` dans `animation.py`, sans nom | `RenderStrategyGraph` | idem | 🟨 le repli passe par elle, pas la décision de dépenser |
+| **Stratégie de rendu** | `strategies/` | cascade `if/else` dans `animation.py`, sans nom | `RenderStrategyGraph` | idem | ✅ le repli **et** la décision de dépenser |
 | **Observation** | `observation/` | 5 sondes séparées, verdicts journalisés puis oubliés | `ObservationReport` unifié | idem | ✅ + axes non mesurés |
 | **Diagnostic** | `diagnostics/` | étiquettes (`rejete_mouvement`) — un symptôme | `FailureDiagnosis` — une **cause** | taxonomie 18 modes | ✅ branché sur l'animation |
-| **Réparation** | `repair/` | relance, puis repli local | `RepairPlan`, arbitré par cause | arbre de réparation | 🟨 seul `STRATEGY_FIX` est exécutable |
+| **Réparation** | `repair/` | relance, puis repli local | `RepairPlan`, arbitré par cause | arbre de réparation | ✅ `MOTION_FIX` et `CAMERA_FIX` exécutés dans `animer()` |
 | **État du monde** | `world/` | décor porté par `continuite.py`, rien d'autre | `WorldState` + attendu/observé | idem | ✅ delta mesurable |
 | **Expérience** | `memory/` | **aucune** — rien n'était collecté | table `experiences`, une ligne/tentative | `ExperienceMemory` | ✅ alimentée en production |
-| **Exécution** | `execution/` | séquence linéaire dans `episode.py` | `ExecutionPlan` (DAG) + ordonnanceur | DAG | 🟨 écrit et testé, pas appelé par `episode.py` |
+| **Exécution** | `execution/` | séquence linéaire dans `episode.py` | `ExecutionPlan` (DAG) + ordonnanceur | DAG | ✅ les images y passent — reprise **par plan** |
 | **Recherche** | `research/` | **aucune** — `perplexity_api_key` lue nulle part | `RechercheBackend` + `SansRecherche` | `FactGraph` | 🟨 adaptateur réseau non écrit |
 | **Mise en scène** | `director/` | `BriefWriter` + `ScriptWriter`, sans état commun | `DirectorState`, deux profils convergents | idem | ✅ |
 | **Montage** | `video/montage.py` | objet `Montage` → FFmpeg | *inchangée* | `EditTimeline` | 🟨 contrat défini, `Montage` pas encore migré |
@@ -56,16 +56,32 @@ délibéré : la chronologie audio, le découpage, les prompts versionnés, le
 mouvement et le montage étaient déjà justes. Les contrats les *nomment* sans
 les remplacer.
 
-## Les quatre écarts qui restent
+## Les quatre écarts qui restaient
 
-| Écart | Pourquoi il tient encore |
-|---|---|
-| Stratégie : la décision de dépenser | change ce que `pdz episode` fabrique |
-| Réparation exécutée | demande une boucle de régénération dans `animation.py` |
-| DAG en production | `episode.py` reste linéaire |
-| Recherche réseau | l'adaptateur n'existe pas ; `SansRecherche` dit honnêtement qu'il ne cherche rien |
+| Écart | Pourquoi il tenait | État |
+|---|---|---|
+| Stratégie : la décision de dépenser | change ce que `pdz episode` fabrique | ✅ le graphe peut refuser le modèle payant |
+| Réparation exécutée | demande une boucle de régénération dans `animation.py` | ✅ la boucle est branchée |
+| DAG en production | `episode.py` reste linéaire | ✅ les images passent par l'ordonnanceur |
+| Recherche réseau | l'adaptateur n'existe pas ; `SansRecherche` dit honnêtement qu'il ne cherche rien | ⬜ **ouvert** |
 
-Les trois premiers modifient le chemin qui dépense de l'argent. La règle § 39
-(`ANCIEN → ADAPTATEUR → NOUVEAU`, jamais un déplacement et un changement de
-comportement dans le même commit) les a volontairement laissés en dehors de
-la migration : les franchir est une décision de produit, pas de technique.
+Les trois premiers modifiaient le chemin qui dépense de l'argent. La règle
+§ 39 (`ANCIEN → ADAPTATEUR → NOUVEAU`, jamais un déplacement et un changement
+de comportement dans le même commit) les avait volontairement laissés en
+dehors de la migration : les franchir était une décision de produit, pas de
+technique. Elle a été prise, et chaque franchissement s'est fait en deux
+commits — l'extraction sans changement de comportement, puis le branchement.
+
+Les franchir a fait sortir quatre défauts qu'aucun test d'étage isolé ne
+pouvait montrer : une réparation qui pouvait devenir une relance à
+l'identique, chaque euro compté deux fois entre les nœuds et l'étape de
+résumé, un coût de reprise qui rapprochait le plafond à chaque relance, et
+deux courses ouvertes par le parallélisme. C'est l'argument pour brancher
+plutôt que d'empiler — une couche qui ne gouverne rien est une couche que
+rien ne contredit. Détail dans `MIGRATION_PLAN.md`, section « Le branchement
+en production ».
+
+**Le quatrième reste ouvert**, et pour une raison différente des trois
+autres : rien ne manque dans le domaine, il manque un adaptateur réseau.
+`SansRecherche` ne prétend pas chercher — c'est une absence déclarée, pas
+une dette cachée.
