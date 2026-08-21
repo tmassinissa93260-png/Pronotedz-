@@ -86,10 +86,31 @@ seul comme l'audit manuel l'avait conclu :
 `PDZ_DOSSIER_REFERENCES` n'existe dans aucun champ de `Config`, donc ni
 `pdz cles`, ni `.env.exemple` ne la connaissent.
 
+> ✅ **Réparé depuis.** `Config.dossier_references` porte le réglage, avec un
+> `validation_alias` qui garde le nom historique de la variable —
+> pydantic-settings aurait dérivé `DOSSIER_REFERENCES`, et renommer aurait
+> cassé les installations existantes pour une simple cohérence de préfixe.
+> `LECTEURS_ENV_CONNUS` est désormais **vide**, et reste en place : c'est ce
+> qui rendra visible le jour où quelqu'un rouvre une exception.
+>
+> Documenter le réglage a fait apparaître un piège que personne n'avait vu :
+> `PDZ_DOSSIER_REFERENCES=` donne la chaîne vide, que `Path` transforme en
+> `Path(".")` — le dépôt entier. Un `.env.exemple` copié tel quel aurait fait
+> parcourir tout le projet à `pdz references`, sans un mot. La ligne d'exemple
+> reste commentée, **et** un validateur ramène une valeur vide au défaut :
+> vide veut dire « je n'ai rien choisi », pas « la racine ».
+
 Ces cinq écarts sont **déclarés, datés et verrouillés à double sens** dans
 `test_architecture.py` : le test échoue si un sixième apparaît, **et** il
 échoue si l'un est réparé sans que sa dérogation soit retirée. Une dette
 déclarée ne peut donc ni grossir, ni survivre en silence à sa réparation.
+
+Le détecteur d'écart, lui, a dû changer de méthode : il cherchait
+`os.environ` dans le **texte** du fichier, donc un module qui documentait
+« passe par `config()` et non par `os.environ` » se faisait accuser de la
+faute qu'il déclarait avoir corrigée. Il travaille désormais sur l'AST, et
+huit cas fixent ses deux bords. Une règle qui sanctionne le fait de parler
+d'elle apprend surtout à ne pas en parler.
 
 **Six liens morts** dans `docs/`, corrigés : renumérotations
 (`06-plan.md` → `10-plan.md`, `07-volume.md` → `08-volume.md`), document
@@ -827,6 +848,60 @@ l'assurance d'un routeur entraîné sur beaucoup.
 
 ---
 
+## Le branchement en production
+
+Pas une vingtième phase : aucune architecture nouvelle n'est introduite ici.
+Les dix-huit phases avaient produit des étages **corrects et testés**, mais
+dont la production ne se servait pas encore. Une couche qui ne gouverne rien
+est une couche que rien ne contredit — elle reste juste parce qu'elle n'est
+jamais mise à l'épreuve. Quatre fils manquaient.
+
+| Fil | Ce qui existait | Ce qui manquait |
+|---|---|---|
+| `pdz creer` | les deux profils, `projeter_en_situation()` | aucune commande n'atteignait le profil explicatif |
+| Décider de dépenser | `strategies/`, l'utilité espérée | le graphe ne pouvait pas refuser le modèle payant |
+| Réparer | `diagnostics/`, `repair/` | le diagnostic était calculé, nommé, puis **jeté** |
+| DAG | `execution/`, testé | `episode.py` restait linéaire |
+
+### Ce que le branchement a révélé
+
+Chacun des quatre a fait sortir un défaut que l'étage seul ne pouvait pas
+montrer — ce qui est exactement l'argument pour brancher plutôt que
+d'empiler :
+
+- **La réparation pouvait devenir une relance.** `CAMERA_FIX` sur un plan
+  dont la caméra est déjà fixe ne change rien : on repayait un rendu pour
+  un résultat déjà mesuré. Deux garde-fous, à deux niveaux — le diagnostic
+  `CAMERA_DOMINANT` exige désormais que la caméra ait eu le **droit** de
+  bouger, et `_reparer()` abandonne quand le plan corrigé est identique à
+  l'original.
+- **Chaque euro était compté deux fois.** Les nœuds du DAG journalisent leur
+  dépense, et l'étape de résumé « images » la reportait aussi ; comme
+  `jobs.cout_total` additionne la table `etapes`, un épisode paraissait avoir
+  coûté une fois et demie son prix. Un euro, une ligne.
+- **`planche.cout` mentait sur les reprises.** Un plan repris porte son coût
+  d'origine — juste comme provenance, faux comme dépense du jour. Les
+  additionner rapprochait le plafond à chaque relance, jusqu'à interdire une
+  reprise qui ne coûte rien.
+- **Le parallélisme a ouvert deux courses.** Deux plans au prompt identique
+  visent la même entrée de cache : la copie passe maintenant par un fichier
+  provisoire puis `os.replace`, sinon un fichier tronqué y restait, assez
+  gros pour passer le seuil de validité et être relu comme une image valide.
+
+### Ce que la production fait de plus
+
+La reprise des images est passée de l'**étape** au **plan**. Un job
+interrompu au plan 20 sur 26 refaisait les vingt premiers ; il n'en refait
+plus aucun. Et les appels se recouvrent, quatre à la fois — plafond de
+l'ordonnanceur, choisi parce qu'au-delà les fournisseurs limitent.
+
+Ce que le branchement n'a **pas** introduit, délibérément : les nœuds sont
+créés sans `cle_cache`. `_produire()` a déjà son cache, keyé sur (prompt,
+graine, référence) et partagé entre épisodes ; le journal apporte la reprise.
+Un troisième niveau reviendrait à cacher un cache.
+
+---
+
 ## Où en est la migration
 
 ```
@@ -860,9 +935,12 @@ l'assurance d'un routeur entraîné sur beaucoup.
                                                     19 routage empirique 🔒
 ```
 
-**Dix-huit phases sur dix-neuf sont faites.** La dix-neuvième est verrouillée
-par la **donnée**, pas par le code : elle attend que la table `experiences` se
-remplisse de vraies productions.
+**Dix-huit phases sur dix-neuf sont faites, et les quatre fils qui les
+reliaient à la production sont branchés** (voir « Le branchement en
+production » ci-dessus). La dix-neuvième phase est verrouillée par la
+**donnée**, pas par le code : elle attend que la table `experiences` se
+remplisse de vraies productions — ce que le branchement, précisément, rend
+possible.
 
 ### Le paquet, après migration
 
