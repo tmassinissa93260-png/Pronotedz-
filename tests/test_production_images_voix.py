@@ -973,7 +973,10 @@ def test_un_clip_paye_puis_rejete_garde_son_cout(monkeypatch, tmp_path):
     Un clip payé puis écarté a coûté malgré tout."""
     import subprocess
 
+    appels = []
+
     def _clip_statique(image, prompt, destination, *, duree_s, **k):
+        appels.append(prompt)
         subprocess.run([
             "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
             "-f", "lavfi", "-t", "5", "-i", "color=c=blue:s=320x240:r=25",
@@ -1002,8 +1005,14 @@ def test_un_clip_paye_puis_rejete_garde_son_cout(monkeypatch, tmp_path):
 
     assert resultats[0].diagnostic == "rejete_mouvement"
     assert resultats[0].methode != "modele"
-    # C'est CE total que `episode.py` additionne.
-    assert sum(r.cout for r in resultats) == pytest.approx(0.18)
+    # C'est CE total que `episode.py` additionne, et l'invariant est
+    # « tout ce qui a été facturé est compté », pas « exactement un rendu ».
+    # Depuis la boucle de réparation, un plan statique peut être retenté avec
+    # une consigne corrigée : chaque tentative est un appel payant de plus.
+    # Figer 0,18 ici rouvrirait la fuite du run #66 par l'autre bout — le
+    # total mesuré serait juste et le test le déclarerait faux.
+    assert len(appels) >= 1
+    assert sum(r.cout for r in resultats) == pytest.approx(len(appels) * 0.18)
 
 
 def test_un_enregistrement_danimation_davant_ce_lot_se_reprend_sans_planter():

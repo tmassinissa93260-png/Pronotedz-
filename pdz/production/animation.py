@@ -321,106 +321,148 @@ def animer(plans: list[dict], images: list[Path], univers: Univers,
                 resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
                                         duree_clip_s, diagnostic="hors_portee"))
                 continue
-            reste = max(0.0, budget_restant - depense)
-            # Le plus petit palier qui couvre le plan, pas une constante :
-            # facturé à la seconde, demander 10 s pour un plan de 4 s serait
-            # payer le double pour rien. Un modèle à palier unique (ltx-video)
-            # retombe sur sa seule valeur, donc rien ne change pour lui.
-            duree_demandee = _duree_a_demander(duree_requise, profil, duree_clip_s)
-            # Le métier décrit CE QU'IL VEUT ; le backend décide comment
-            # l'obtenir et chez qui. Aucun nom de fournisseur n'apparaît plus
-            # ici — c'est la réparation de l'écart relevé en PHASE 1.
-            spec = RenderSpecExecutable(
-                shot_id=str(i),
-                strategie=Strategie.DIRECT_I2V,
-                duree_s=duree_demandee,
-                prompt=_prompt_mouvement(plan, univers),
-                image_depart=str(image),
-                parametres={
-                    "destination": str(destination),
-                    "profil": profil,
-                    "budget_restant_pct": str(100.0 if reste > 0 else 0.0),
-                    "job_id": job_id or "",
-                    "agent": "animation",
-                },
-            )
-            try:
-                cout = backend_video(profil).executer(spec).cout_eur
-            except ErreurPdz as e:
-                # Une animation ratée n'annule pas l'épisode : le plan reste
-                # une image fixe, que le montage saura faire bouger.
-                log.warning("Plan %d non animé (%s) : %s", i, e.categorie, e)
-                diag = "timeout" if e.categorie == "ErreurReseau" else "erreur_appel"
-                resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
-                                        duree_clip_s, diagnostic=diag))
-                continue
+            # Une tentative peut désormais en appeler une seconde : le plan
+            # envoyé au modèle n'est plus forcément le plan d'origine, mais
+            # `plan_courant`, éventuellement corrigé par `_reparer`.
+            plan_courant = plan
+            tentative = 0
+            deja_tentees: tuple[TypeReparation, ...] = ()
+            cout_plan = 0.0
+            issue: PlanAnime | None = None
 
-            depense += cout
-            # Le mouvement est jugé sur la fenêtre que le montage gardera
-            # VRAIMENT (`trim=duration=plan.duree_s`), pas sur le clip
-            # entier — sinon un sursaut de mouvement dans la portion coupée
-            # ferait accepter un plan que le spectateur verra immobile. La
-            # durée, elle, reste mesurée sur le clip complet.
-            verdict = verification_mouvement.verifier(
-                destination, fenetre_s=duree_requise)
-            duree_ok = verdict.fichier_valide and verdict.duree_s >= duree_requise - TOLERANCE_DUREE_S
-
-            # Le verdict, traduit en rapport d'observation puis confronté à
-            # ce que le plan ATTENDAIT. `diagnostics` nomme la cause là où
-            # les étiquettes historiques (`rejete_mouvement`) ne disaient
-            # que le symptôme : il distingue un rendu statique d'une caméra
-            # qui mange le plan, ce qu'aucune chaîne de caractères ne
-            # pouvait faire.
-            #
-            # `depuis_verdict()` et non `observer_clip()` : le verdict est
-            # déjà calculé, et rappeler la sonde relancerait un
-            # échantillonnage ffmpeg complet pour recalculer un nombre qu'on
-            # tient.
-            diagnostic_precis = _diagnostiquer(
-                verdict, plan, i, duree_requise=duree_requise)
-
-            if not duree_ok:
-                # Le fournisseur a rendu un clip invalide ou plus court que
-                # la durée allouée. `trim=duration=...` au montage ne peut
-                # pas RALLONGER un clip trop court — laisser passer ça
-                # produit une vidéo dont la piste vidéo s'arrête avant la
-                # voix. Mesuré en production : 4,5 s de narration sans
-                # image, sur exactement ce plan. L'argent est déjà dépensé
-                # (`depense` le garde) ; on ne perd que le clip, pas l'épisode.
-                log.info(
-                    "Plan %d : API=SUCCESS FICHIER=%s DURÉE=%s ANIMATION=REJECTED "
-                    "RAISON=%s", i, "VALID" if verdict.fichier_valide else "INVALID",
-                    "TOO_SHORT" if verdict.fichier_valide else "N/A",
-                    "clip_invalide" if not verdict.fichier_valide else "clip_too_short",
+            while issue is None:
+                reste = max(0.0, budget_restant - depense)
+                # Le plus petit palier qui couvre le plan, pas une constante :
+                # facturé à la seconde, demander 10 s pour un plan de 4 s serait
+                # payer le double pour rien. Un modèle à palier unique (ltx-video)
+                # retombe sur sa seule valeur, donc rien ne change pour lui.
+                duree_demandee = _duree_a_demander(duree_requise, profil, duree_clip_s)
+                # Le métier décrit CE QU'IL VEUT ; le backend décide comment
+                # l'obtenir et chez qui. Aucun nom de fournisseur n'apparaît plus
+                # ici — c'est la réparation de l'écart relevé en PHASE 1.
+                spec = RenderSpecExecutable(
+                    shot_id=str(i),
+                    strategie=Strategie.DIRECT_I2V,
+                    duree_s=duree_demandee,
+                    prompt=_prompt_mouvement(plan_courant, univers),
+                    image_depart=str(image),
+                    parametres={
+                        "destination": str(destination),
+                        "profil": profil,
+                        "budget_restant_pct": str(100.0 if reste > 0 else 0.0),
+                        "job_id": job_id or "",
+                        "agent": "animation",
+                        "tentative": str(tentative),
+                    },
                 )
-                resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
-                                        duree_clip_s, diagnostic="rejete_duree",
-                                        cout=cout, cause=diagnostic_precis))
-                continue
+                try:
+                    cout = backend_video(profil).executer(spec).cout_eur
+                except ErreurPdz as e:
+                    # Une animation ratée n'annule pas l'épisode : le plan reste
+                    # une image fixe, que le montage saura faire bouger.
+                    log.warning("Plan %d non animé (%s) : %s", i, e.categorie, e)
+                    diag = "timeout" if e.categorie == "ErreurReseau" else "erreur_appel"
+                    issue = _repli(i, image, dossier, plan_courant, vie_pour_le_reste,
+                                   duree_clip_s, diagnostic=diag, cout=cout_plan)
+                    break
 
-            if not verdict.mouvement_detecte:
-                # Point critique de l'enquête run #66 : un clip peut être un
-                # fichier vidéo valide, de la bonne durée, et pourtant
-                # visuellement statique. « API 200 » et « fichier livré » ne
-                # prouvent jamais qu'une image a réellement changé d'une
-                # frame à l'autre — voir `verification_mouvement.py`.
+                depense += cout
+                cout_plan += cout
+                # Le mouvement est jugé sur la fenêtre que le montage gardera
+                # VRAIMENT (`trim=duration=plan.duree_s`), pas sur le clip
+                # entier — sinon un sursaut de mouvement dans la portion coupée
+                # ferait accepter un plan que le spectateur verra immobile. La
+                # durée, elle, reste mesurée sur le clip complet.
+                verdict = verification_mouvement.verifier(
+                    destination, fenetre_s=duree_requise)
+                duree_ok = verdict.fichier_valide and verdict.duree_s >= duree_requise - TOLERANCE_DUREE_S
+
+                # Le verdict, traduit en rapport d'observation puis confronté à
+                # ce que le plan ATTENDAIT. `diagnostics` nomme la cause là où
+                # les étiquettes historiques (`rejete_mouvement`) ne disaient
+                # que le symptôme : il distingue un rendu statique d'une caméra
+                # qui mange le plan, ce qu'aucune chaîne de caractères ne
+                # pouvait faire.
+                #
+                # `depuis_verdict()` et non `observer_clip()` : le verdict est
+                # déjà calculé, et rappeler la sonde relancerait un
+                # échantillonnage ffmpeg complet pour recalculer un nombre qu'on
+                # tient.
+                #
+                # Sur `plan_courant` et non `plan` : après un verrouillage de
+                # caméra, le plan n'attend plus de mouvement caméra, donc
+                # `CAMERA_DOMINANT` ne peut plus être re-diagnostiqué. C'est ce
+                # qui garantit que la boucle converge au lieu de retenter
+                # éternellement la même correction.
+                diagnostic_precis = _diagnostiquer(
+                    verdict, plan_courant, i, duree_requise=duree_requise)
+
+                if not duree_ok:
+                    # Le fournisseur a rendu un clip invalide ou plus court que
+                    # la durée allouée. `trim=duration=...` au montage ne peut
+                    # pas RALLONGER un clip trop court — laisser passer ça
+                    # produit une vidéo dont la piste vidéo s'arrête avant la
+                    # voix. Mesuré en production : 4,5 s de narration sans
+                    # image, sur exactement ce plan. L'argent est déjà dépensé
+                    # (`depense` le garde) ; on ne perd que le clip, pas l'épisode.
+                    #
+                    # Pas de réparation ici : ni amplifier le mouvement ni
+                    # verrouiller la caméra ne fait produire un clip PLUS LONG.
+                    # Retenter serait repayer pour la même limite.
+                    log.info(
+                        "Plan %d : API=SUCCESS FICHIER=%s DURÉE=%s ANIMATION=REJECTED "
+                        "RAISON=%s", i, "VALID" if verdict.fichier_valide else "INVALID",
+                        "TOO_SHORT" if verdict.fichier_valide else "N/A",
+                        "clip_invalide" if not verdict.fichier_valide else "clip_too_short",
+                    )
+                    issue = _repli(i, image, dossier, plan_courant, vie_pour_le_reste,
+                                   duree_clip_s, diagnostic="rejete_duree",
+                                   cout=cout_plan, cause=diagnostic_precis)
+                    break
+
+                if not verdict.mouvement_detecte:
+                    # Point critique de l'enquête run #66 : un clip peut être un
+                    # fichier vidéo valide, de la bonne durée, et pourtant
+                    # visuellement statique. « API 200 » et « fichier livré » ne
+                    # prouvent jamais qu'une image a réellement changé d'une
+                    # frame à l'autre — voir `verification_mouvement.py`.
+                    log.info(
+                        "Plan %d : API=SUCCESS FICHIER=VALID DURÉE=VALID "
+                        "MOUVEMENT=ABSENT ANIMATION=REJECTED RAISON=STATIC_CLIP "
+                        "(diff. moyenne %.3f/255)", i, verdict.diff_moyenne,
+                    )
+                    # Ici, et seulement ici, le diagnostic peut mener à une
+                    # correction : le clip est valide et de la bonne durée, il
+                    # ne lui manque QUE du mouvement — c'est exactement ce que
+                    # `AJUSTER_MOUVEMENT` et `AJUSTER_CAMERA` savent changer.
+                    corrige, reparation, raison = _reparer(
+                        diagnostic_precis, plan_courant, tentative=tentative,
+                        deja_tentees=deja_tentees,
+                        budget_restant=max(0.0, budget_restant - depense),
+                    )
+                    if corrige is not None:
+                        log.info(
+                            "Plan %d : réparation %s (tentative %d) — %s",
+                            i, reparation.value, tentative + 1, raison,
+                        )
+                        plan_courant = corrige
+                        deja_tentees = (*deja_tentees, reparation)
+                        tentative += 1
+                        continue
+                    issue = _repli(i, image, dossier, plan_courant, vie_pour_le_reste,
+                                   duree_clip_s, diagnostic="rejete_mouvement",
+                                   cout=cout_plan, cause=diagnostic_precis)
+                    break
+
                 log.info(
                     "Plan %d : API=SUCCESS FICHIER=VALID DURÉE=VALID "
-                    "MOUVEMENT=ABSENT ANIMATION=REJECTED RAISON=STATIC_CLIP "
-                    "(diff. moyenne %.3f/255)", i, verdict.diff_moyenne,
+                    "MOUVEMENT=DETECTED ANIMATION=ACCEPTED (diff. moyenne %.3f/255)",
+                    i, verdict.diff_moyenne,
                 )
-                resultats.append(_repli(i, image, dossier, plan, vie_pour_le_reste,
-                                        duree_clip_s, diagnostic="rejete_mouvement",
-                                        cout=cout, cause=diagnostic_precis))
-                continue
+                issue = PlanAnime(i, destination, True, "modele", cout_plan,
+                                  diagnostic="mouvement_confirme")
 
-            log.info(
-                "Plan %d : API=SUCCESS FICHIER=VALID DURÉE=VALID "
-                "MOUVEMENT=DETECTED ANIMATION=ACCEPTED (diff. moyenne %.3f/255)",
-                i, verdict.diff_moyenne,
-            )
-            resultats.append(PlanAnime(i, destination, True, "modele", cout,
-                                       diagnostic="mouvement_confirme"))
+            resultats.append(issue)
         else:
             # Deux raisons TRÈS différentes de ne pas avoir payé, et les
             # confondre effacerait l'information la plus utile :
