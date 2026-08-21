@@ -95,14 +95,32 @@ def test_un_rendu_statique_est_nomme_comme_tel():
     assert d.confiance > 0.8
 
 
-def test_une_confusion_declaree_produit_camera_dominante():
+def test_camera_dominante_exige_que_la_camera_ait_pu_bouger():
     """C'est ce qui transforme « mouvement faible » — qui ne dit rien — en
-    un diagnostic qui dit quoi corriger."""
+    un diagnostic qui dit quoi corriger.
+
+    Mais il faut que la caméra ait eu le DROIT de bouger. Une première
+    version se contentait de la confusion déclarée, et c'était faux : sur un
+    plan à caméra verrouillée, ce diagnostic menait à « verrouiller la
+    caméra », c'est-à-dire à ne rien changer — une réparation sans effet est
+    une relance déguisée.
+    """
     d = diagnostiquer(
-        Attendu(shot_id="s", sujet_doit_bouger=True, importance=0.9,
-                confusions_interdites=("camera_only_motion",)),
+        Attendu(shot_id="s", sujet_doit_bouger=True, camera_doit_bouger=True,
+                importance=0.9, confusions_interdites=("camera_only_motion",)),
         _rapport(FICHIER_OK, STATIQUE))
     assert d.mode is ModeEchec.CAMERA_DOMINANTE
+
+
+def test_une_camera_verrouillee_donne_un_rendu_statique():
+    """Si la caméra avait bougé, la sonde aurait MESURÉ du mouvement. Un clip
+    statique dont la caméra était verrouillée n'a pas « une caméra
+    dominante » — il n'a rien du tout."""
+    d = diagnostiquer(
+        Attendu(shot_id="s", sujet_doit_bouger=True, camera_doit_bouger=False,
+                importance=0.9, confusions_interdites=("camera_only_motion",)),
+        _rapport(FICHIER_OK, STATIQUE))
+    assert d.mode is ModeEchec.RENDU_STATIQUE
 
 
 def test_camera_dominante_porte_une_confiance_plus_basse():
@@ -112,7 +130,7 @@ def test_camera_dominante_porte_une_confiance_plus_basse():
     statique = diagnostiquer(Attendu(shot_id="s", sujet_doit_bouger=True),
                              _rapport(FICHIER_OK, STATIQUE))
     camera = diagnostiquer(
-        Attendu(shot_id="s", sujet_doit_bouger=True,
+        Attendu(shot_id="s", sujet_doit_bouger=True, camera_doit_bouger=True,
                 confusions_interdites=("camera_only_motion",)),
         _rapport(FICHIER_OK, STATIQUE))
     assert camera.confiance < statique.confiance
@@ -288,6 +306,7 @@ def test_le_risque_reduit_le_gain_jamais_le_cout():
 def test_de_l_observation_a_la_reparation_sans_intervention():
     """Le trajet complet : un clip statique devient une correction ciblée."""
     attendu = Attendu(shot_id="shot_001", sujet_doit_bouger=True, importance=0.9,
+                      camera_doit_bouger=True,
                       confusions_interdites=("camera_only_motion",))
     rapport = _rapport(FICHIER_OK, STATIQUE)
 

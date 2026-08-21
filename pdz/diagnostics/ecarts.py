@@ -106,10 +106,19 @@ def diagnostiquer(attendu: Attendu, rapport: ObservationReport) -> FailureDiagno
     mouvement = rapport.verdict_axe(Axe.MOUVEMENT)
 
     if attendu.sujet_doit_bouger and mouvement is Verdict.ECHOUE:
-        # `CAMERA_DOMINANT` d'abord : le contrat perceptuel a explicitement
-        # nommé cette confusion, donc elle est plausible ici — et elle dit
-        # quoi corriger, là où un diagnostic générique ne dit rien.
-        if "camera_only_motion" in attendu.confusions_interdites:
+        # `CAMERA_DOMINANT` d'abord, MAIS seulement si la caméra avait le
+        # droit de bouger.
+        #
+        # Une première version se contentait de la confusion déclarée. C'était
+        # faux, et un test l'a montré : sur un plan à caméra VERROUILLÉE, ce
+        # diagnostic menait à « verrouiller la caméra », c'est-à-dire à ne
+        # rien changer — une réparation sans effet est une relance déguisée.
+        #
+        # Le raisonnement le confirme : si la caméra avait bougé, la sonde
+        # aurait MESURÉ du mouvement. Un clip statique dont la caméra était
+        # verrouillée n'a pas « une caméra dominante », il n'a rien du tout.
+        if (attendu.camera_doit_bouger
+                and "camera_only_motion" in attendu.confusions_interdites):
             return _diagnostic(
                 attendu, ModeEchec.CAMERA_DOMINANTE, preuves,
                 # Plus basse que les autres, volontairement : sans sonde qui

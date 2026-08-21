@@ -713,10 +713,12 @@ def _diagnostiquer(verdict, plan: dict, index: int, *, duree_requise: float):
             sujet_doit_bouger=attend_un_sujet,
             camera_doit_bouger=not camera_verrouillee,
             duree_s=duree_requise,
-            # La confusion que le contrat perceptuel sait déjà nommer : sur
-            # un plan à caméra verrouillée, prendre un mouvement de caméra
-            # pour celui du sujet est la fausse lecture à écarter.
-            confusions_interdites=("camera_only_motion",) if camera_verrouillee else (),
+            # La méprise n'est possible que si la caméra a le DROIT de
+            # bouger : c'est alors qu'un mouvement de caméra peut être pris
+            # pour celui du sujet. Sur une caméra verrouillée, il n'y a rien
+            # à confondre — et déclarer la confusion y menait à « verrouiller
+            # la caméra », une réparation sans aucun effet.
+            confusions_interdites=() if camera_verrouillee else ("camera_only_motion",),
             importance=0.9 if index == 0 else 0.5,
         ),
         rapport,
