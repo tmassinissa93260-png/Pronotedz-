@@ -33,18 +33,25 @@ mécanisme.
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
 
+from pdz.config import config
+
 EXTENSIONS_VIDEO = {".mp4", ".mov", ".webm", ".mkv", ".m4v"}
 
 
 def dossier_references() -> Path:
-    brut = os.environ.get("PDZ_DOSSIER_REFERENCES")
-    return Path(brut) if brut else Path("donnees/references")
+    """Où vivent les vidéos de référence privées.
+
+    Passe par `config()` et non par `os.environ` : un seul endroit lit
+    l'environnement, sinon la configuration devient imprévisible depuis
+    l'extérieur. La variable `PDZ_DOSSIER_REFERENCES` fonctionne toujours
+    — c'est `Config.dossier_references` qui la lit maintenant.
+    """
+    return config().dossier_references
 
 
 @dataclass

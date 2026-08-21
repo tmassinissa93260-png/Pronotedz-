@@ -79,16 +79,21 @@ ECARTS_CONNUS: dict[str, str] = {
 #
 # `config.py` promet en toutes lettres : « Rien d'autre dans le projet ne lit
 # os.environ. » C'était faux, et personne ne pouvait le savoir — rien ne le
-# vérifiait. `PDZ_DOSSIER_REFERENCES` n'existe dans aucun champ de `Config`,
-# donc ni `pdz cles`, ni `.env.exemple`, ni la documentation ne le mentionnent.
-# Non corrigé ici : la PHASE 1 n'a pas le droit de toucher au comportement, et
-# déplacer ce réglage suppose de choisir comment préserver le nom de la
-# variable (pydantic-settings dériverait `DOSSIER_REFERENCES`, pas
-# `PDZ_DOSSIER_REFERENCES`). Déclaré, daté, à traiter avec les contrats.
-LECTEURS_ENV_CONNUS: dict[str, str] = {
-    "pdz/analyse/references.py":
-        "lit PDZ_DOSSIER_REFERENCES, absent de Config. À rapatrier en PHASE 2.",
-}
+# vérifiait. Le seul contrevenant, `pdz/analyse/references.py`, lisait
+# `PDZ_DOSSIER_REFERENCES` sans qu'aucun champ de `Config` ne le déclare :
+# ni `pdz cles`, ni `.env.exemple`, ni la documentation ne pouvaient donc le
+# mentionner.
+#
+# Rapatrié depuis : `Config.dossier_references` porte le réglage, avec un
+# `validation_alias` qui garde le nom historique de la variable —
+# pydantic-settings aurait dérivé `DOSSIER_REFERENCES`, et renommer aurait
+# cassé les installations qui l'utilisent pour une simple cohérence de
+# préfixe.
+#
+# Ce dictionnaire reste, vide : c'est ce qui rend visible le jour où
+# quelqu'un rouvre une exception. Le supprimer rendrait la règle muette sur
+# sa propre histoire.
+LECTEURS_ENV_CONNUS: dict[str, str] = {}
 
 
 def _modules() -> list[pathlib.Path]:
@@ -265,19 +270,40 @@ def test_les_couches_de_decision_ne_dependent_que_des_contrats():
                 )
 
 
+def _lit_l_environnement(fichier: pathlib.Path) -> bool:
+    """Vrai si ce module lit VRAIMENT l'environnement.
+
+    Par l'AST et non par recherche de sous-chaîne : la version précédente
+    cherchait « os.environ » dans le texte du fichier, donc un commentaire
+    ou une docstring qui EXPLIQUE la règle la déclenchait. Un module
+    déclarait « passe par config() et non par os.environ », et se faisait
+    accuser de la faute qu'il documentait avoir corrigée.
+
+    Une règle qui sanctionne le fait de parler d'elle apprend surtout à ne
+    pas en parler.
+    """
+    arbre = ast.parse(fichier.read_text(encoding="utf-8"), filename=str(fichier))
+    for noeud in ast.walk(arbre):
+        # os.environ / os.environb — un accès d'attribut.
+        if isinstance(noeud, ast.Attribute) and noeud.attr in {"environ", "environb"}:
+            return True
+        # os.getenv(...) / getenv(...) — un appel.
+        cible = noeud.func if isinstance(noeud, ast.Call) else None
+        nom = (cible.attr if isinstance(cible, ast.Attribute)
+               else cible.id if isinstance(cible, ast.Name) else "")
+        if nom in {"getenv", "putenv"}:
+            return True
+    return False
+
+
 # ── Aucun module ne lit l'environnement hors de config.py ───────────────
 
 def test_seul_config_lit_l_environnement():
     """`pdz/config.py` le promet en toutes lettres : « Rien d'autre dans le
     projet ne lit os.environ. » Une promesse en docstring est une intention ;
     ici elle devient une garantie."""
-    coupables = []
-    for fichier in _modules():
-        if fichier.name == "config.py":
-            continue
-        source = fichier.read_text(encoding="utf-8")
-        if "os.environ" in source or "os.getenv" in source:
-            coupables.append(_relatif(fichier))
+    coupables = [_relatif(f) for f in _modules()
+                 if f.name != "config.py" and _lit_l_environnement(f)]
 
     nouveaux = [c for c in coupables if c not in LECTEURS_ENV_CONNUS]
     assert not nouveaux, (
@@ -287,13 +313,35 @@ def test_seul_config_lit_l_environnement():
     )
 
 
+@pytest.mark.parametrize("source,attendu", [
+    ("import os\nx = os.environ.get('A')\n", True),
+    ("import os\nx = os.environ['A']\n", True),
+    ("import os\nx = os.getenv('A')\n", True),
+    ("from os import getenv\nx = getenv('A')\n", True),
+    ("import os\nos.putenv('A', 'b')\n", True),
+    # Et surtout : parler de la règle ne la déclenche pas.
+    ('"""passe par config() et non par os.environ"""\nx = 1\n', False),
+    ("# jamais os.getenv ici\nx = 1\n", False),
+    ("x = 1\n", False),
+])
+def test_la_detection_de_lecture_d_environnement_est_juste(source, attendu, tmp_path):
+    """Le détecteur lui-même, vérifié — sinon la règle pourrait cesser
+    d'attraper quoi que ce soit sans que personne s'en aperçoive.
+
+    Une règle d'architecture qui ne détecte plus rien est pire qu'absente :
+    elle produit une assurance fausse. Ces huit cas fixent les deux bords —
+    ce qui doit être attrapé, et ce qui ne doit pas l'être."""
+    fichier = tmp_path / "module.py"
+    fichier.write_text(source, encoding="utf-8")
+    assert _lit_l_environnement(fichier) is attendu
+
+
 @pytest.mark.parametrize("chemin", sorted(LECTEURS_ENV_CONNUS))
 def test_un_lecteur_env_connu_reste_present_ou_sa_derogation_est_retiree(chemin):
     """Même verrou à double sens que pour les fournisseurs."""
     fichier = RACINE / chemin
     assert fichier.exists(), f"{chemin} a disparu : retire son entrée."
-    source = fichier.read_text(encoding="utf-8")
-    assert "os.environ" in source or "os.getenv" in source, (
+    assert _lit_l_environnement(fichier), (
         f"{chemin} ne lit plus l'environnement — retire son entrée de "
         f"LECTEURS_ENV_CONNUS pour que la règle le protège vraiment."
     )

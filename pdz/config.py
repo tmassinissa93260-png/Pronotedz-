@@ -9,6 +9,7 @@ from __future__ import annotations
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 RACINE = Path(__file__).resolve().parent.parent
@@ -32,6 +33,36 @@ class Config(BaseSettings):
 
     # ── Chemins ───────────────────────────────────────────────────────────
     donnees: Path = RACINE / "donnees"
+
+    # Les vidéos de référence privées. Lu ici et non dans
+    # `pdz/analyse/references.py`, qui appelait `os.environ` en direct : la
+    # docstring de ce module promet depuis toujours que rien d'autre ne lit
+    # l'environnement, et c'était la dernière exception. Une configuration
+    # lue à deux endroits est une configuration dont personne ne sait, de
+    # l'extérieur, ce qui la détermine.
+    #
+    # `validation_alias` garde le nom historique de la variable : la
+    # renommer casserait les installations qui l'utilisent, pour le seul
+    # bénéfice d'une cohérence de préfixe.
+    dossier_references: Path = Field(
+        default=Path("donnees/references"),
+        validation_alias="PDZ_DOSSIER_REFERENCES",
+    )
+
+    @field_validator("dossier_references", mode="before")
+    @classmethod
+    def _vide_vaut_defaut(cls, v):
+        """Une variable vide veut dire « je n'ai rien choisi », pas « la
+        racine ».
+
+        `PDZ_DOSSIER_REFERENCES=` dans un `.env` donne la chaîne vide, que
+        `Path` transforme en `Path(".")` — le dépôt entier. Quelqu'un qui
+        copie `.env.exemple` verrait alors `pdz references` parcourir tout
+        le projet au lieu du dossier prévu, sans un mot d'avertissement.
+        """
+        if v is None or (isinstance(v, str) and not v.strip()):
+            return Path("donnees/references")
+        return v
 
     # ── Garde-fous de budget ──────────────────────────────────────────────
     # Voir docs/07-budget.md. Ce sont les seules protections contre une
