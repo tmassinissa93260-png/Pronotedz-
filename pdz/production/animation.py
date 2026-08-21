@@ -28,6 +28,7 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 
+from pdz import repair
 from pdz.backends import backend_video
 from pdz.contracts import (
     Certitude,
@@ -35,6 +36,7 @@ from pdz.contracts import (
     ModeEchec,
     RenderSpecExecutable,
     Strategie,
+    TypeReparation,
 )
 from pdz.ia.registre import registre
 from pdz.memory import ExperienceMemory
@@ -678,6 +680,109 @@ def _importance(plan: dict, index: int) -> float:
     if (plan.get("intensite_mouvement") or "") == "fort":
         score += 0.15
     return min(1.0, score)
+
+
+# ── Réparer : changer la cause probable, pas relancer ───────────────────
+
+# Ce que ce module sait appliquer DÉTERMINISTEMENT, sans rappeler un modèle
+# d'écriture. Deux corrections, portant sur des champs que
+# `_prompt_mouvement()` lit déjà — c'est ce qui les rend exécutables ici.
+#
+# Les autres branches du compilateur de réparation (`LOCAL_REPAIR`,
+# `MODEL_FIX`, `DECOMPOSITION`, `ANCHOR_FIX`) sont VRAIES mais pas encore
+# exécutables : elles demandent un masque, un second fournisseur, un
+# redécoupage. Les déclarer applicables les ferait choisir puis échouer en
+# silence, ce qui est pire que de ne pas les proposer.
+_REPARATIONS_APPLICABLES = (
+    TypeReparation.AJUSTER_MOUVEMENT,
+    TypeReparation.AJUSTER_CAMERA,
+)
+
+
+def _amplifier_le_mouvement(plan: dict) -> dict:
+    """`MOTION_FIX` — demander explicitement plus de mouvement.
+
+    `intensite_mouvement = "fort"` ajoute « clearly visible, unmistakable
+    motion throughout » au prompt compilé (voir `PHRASES_INTENSITE`). C'est
+    la seule correction de mouvement applicable sans rappeler un modèle
+    d'écriture — et elle vise exactement la cause d'un rendu resté statique.
+    """
+    plan["intensite_mouvement"] = "fort"
+    return plan
+
+
+def _verrouiller_la_camera(plan: dict) -> dict:
+    """`CAMERA_FIX` — rendre le sujet lisible en immobilisant le cadre.
+
+    Sur un `CAMERA_DOMINANT`, du mouvement existe mais ce n'est pas celui du
+    sujet. Verrouiller la caméra retire au modèle la façon la plus facile de
+    « bouger » sans rien montrer.
+
+    Reste une INTENTION, pas une garantie : l'adaptateur n'envoie aucun
+    paramètre de caméra, seulement du texte — voir
+    `ControleCamera.TEXTE_SEULEMENT`. Un second échec sur le même plan sera
+    un désaccord intention/résultat, pas un bug de paramétrage.
+    """
+    plan["mouvement_camera"] = "fixe"
+    return plan
+
+
+_CORRECTIONS = {
+    TypeReparation.AJUSTER_MOUVEMENT: _amplifier_le_mouvement,
+    TypeReparation.AJUSTER_CAMERA: _verrouiller_la_camera,
+}
+
+
+def _reparer(diagnostic, plan: dict, *, tentative: int,
+             deja_tentees: tuple, budget_restant: float,
+             tentatives_max: int = 2):
+    """(plan corrigé, type appliqué, raison) — ou `(None, None, "")`.
+
+    Rend `None` dans tous les cas où réparer serait déraisonnable, et chacun
+    pour une raison distincte :
+
+      · aucun diagnostic           — rien n'a échoué, il n'y a rien à réparer ;
+      · diagnostic non actionnable — réparer sur une hypothèse à pile ou face
+                                     coûte plus que le défaut lui-même ;
+      · tentatives épuisées        — le plafond existe pour que la réparation
+                                     ne coûte jamais plus que le plan ne vaut ;
+      · branche non applicable     — voir `_REPARATIONS_APPLICABLES` ;
+      · budget insuffisant         — un second rendu se paie comme le premier ;
+      · **correction sans effet**  — voir plus bas.
+
+    `tentatives_max = 2` : un seul essai de réparation. Le modèle coûte
+    0,23 € le clip de 5 s pour un plafond de 0,60 € par vidéo — deux
+    réparations sur un même plan mangeraient l'épisode entier.
+    """
+    if diagnostic is None or not diagnostic.actionnable:
+        return None, None, ""
+    if tentative >= tentatives_max:
+        return None, None, ""
+    # Un appel refusé pour budget est un appel qu'on n'aurait pas dû tenter :
+    # le vérifier ici plutôt que de le découvrir chez le fournisseur.
+    if budget_restant <= 0:
+        return None, None, ""
+
+    plan_repare = repair.compiler(
+        diagnostic, tentative=tentative, tentatives_max=tentatives_max,
+        deja_tentees=deja_tentees, budget_restant_eur=budget_restant,
+    )
+    if plan_repare.choisie not in _REPARATIONS_APPLICABLES:
+        return None, None, ""
+
+    corrige = _CORRECTIONS[plan_repare.choisie](dict(plan))
+
+    # LE garde-fou. Une correction qui laisse le plan identique est une
+    # relance déguisée : un second rendu, au même prix, avec la même cause
+    # probable. C'est précisément ce que cette architecture interdit, et
+    # aucune vérification en amont ne peut le garantir — seul le résultat
+    # de la correction le dit.
+    if corrige == plan:
+        log.info("Réparation %s sans effet sur ce plan : abandon plutôt "
+                 "qu'une relance à l'identique", plan_repare.choisie.value)
+        return None, None, ""
+
+    return corrige, plan_repare.choisie, plan_repare.raison
 
 
 def _diagnostiquer(verdict, plan: dict, index: int, *, duree_requise: float):
