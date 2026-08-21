@@ -344,6 +344,68 @@ def fiches(univers: Univers, dossier: Path, *, profil: str = "equilibre",
     return resultat
 
 
+@dataclass
+class _Travail:
+    """Tout ce qu'un plan demande AVANT que le premier euro soit engagé.
+
+    Séparer la préparation de la dépense n'est pas cosmétique : la
+    préparation est pure, déterministe et gratuite (compilation du contrat
+    visuel, assemblage du prompt), alors que la production est un appel
+    réseau payant. Tant que les deux étaient tressés dans une même boucle,
+    on ne pouvait ni les paralléliser, ni reprendre plan par plan, ni
+    montrer ce qui allait être envoyé sans le payer.
+    """
+
+    plan: PlanScript
+    personnage: str
+    prompt: str
+    destination: Path
+    contrat: ContratVisuel
+
+    def en_image(self, cout: float, depuis_cache: bool) -> PlanImage:
+        return PlanImage(
+            numero=self.plan.numero, personnage=self.personnage,
+            prompt=self.prompt, fichier=self.destination, cout=cout,
+            depuis_cache=depuis_cache, contrat=self.contrat,
+        )
+
+
+def _preparer(plans: list[PlanScript], univers: Univers, dossier: Path, *,
+              consignes: list[str] | None, marque_interdite: bool,
+              vocabulaire) -> list[_Travail]:
+    """Le travail de chaque plan, calculé d'avance et sans rien dépenser.
+
+    Lève sur un personnage inconnu AVANT toute production : découvrir au
+    plan 19 qu'un identifiant est absent de l'univers, après dix-huit
+    images payées, est une façon coûteuse d'apprendre une faute de frappe.
+    """
+    travaux = []
+    for plan in plans:
+        perso = univers.personnage(plan.personnage)
+        if perso is None:
+            raise ErreurConfig(
+                f"Plan {plan.numero} : personnage « {plan.personnage} » "
+                f"absent de l'univers « {univers.nom} »."
+            )
+        risques_marque = (
+            risque_prompt.mots_hors_vocabulaire(
+                plan.action, plan.elements_obligatoires, vocabulaire)
+            if marque_interdite else []
+        )
+        contrat = contrat_visuel.compiler(plan, perso, univers,
+                                          risques_marque=risques_marque)
+        for fait in decision_visuelle.verifier(contrat):
+            log.info("Plan %d : décision visuelle — %s", plan.numero, fait)
+        travaux.append(_Travail(
+            plan=plan, personnage=perso.id,
+            prompt=prompt_plan_depuis_contrat(contrat, univers,
+                                              consignes=consignes),
+            destination=dossier / f"plan_{plan.numero:03d}.jpg",
+            contrat=contrat,
+        ))
+    return travaux
+
+
 def fabriquer(plans: list[PlanScript], univers: Univers, dossier: Path, *,
               consignes: list[str] | None = None,
               profil: str = "equilibre",
@@ -383,14 +445,9 @@ def fabriquer(plans: list[PlanScript], univers: Univers, dossier: Path, *,
                      + [x for d in univers.decors for x in (d.id, d.nom)]
         vocabulaire = risque_prompt.vocabulaire_connu(noms_connus)
 
-    for plan in plans:
-        perso = univers.personnage(plan.personnage)
-        if perso is None:
-            raise ErreurConfig(
-                f"Plan {plan.numero} : personnage « {plan.personnage} » "
-                f"absent de l'univers « {univers.nom} »."
-            )
-
+    for travail in _preparer(plans, univers, dossier, consignes=consignes,
+                             marque_interdite=marque_interdite,
+                             vocabulaire=vocabulaire):
         if planche.cout >= plafond:
             raise ErreurBudget(
                 f"Plafond de {plafond:.2f} € atteint après {len(planche.plans)} "
@@ -398,27 +455,13 @@ def fabriquer(plans: list[PlanScript], univers: Univers, dossier: Path, *,
                 "produits sont en cache et ne seront pas repayés."
             )
 
-        risques_marque = (
-            risque_prompt.mots_hors_vocabulaire(plan.action, plan.elements_obligatoires, vocabulaire)
-            if marque_interdite else []
-        )
-        contrat = contrat_visuel.compiler(plan, perso, univers, risques_marque=risques_marque)
-        for fait in decision_visuelle.verifier(contrat):
-            log.info("Plan %d : décision visuelle — %s", plan.numero, fait)
-        prompt = prompt_plan_depuis_contrat(contrat, univers, consignes=consignes)
-        destination = dossier / f"plan_{plan.numero:03d}.jpg"
         reste_pct = max(0.0, (plafond - planche.cout) / max(1e-6, plafond) * 100)
-
         cout, du_cache = _produire(
-            prompt, destination, univers=univers,
-            reference=planche.fiches.get(perso.id), profil=profil,
+            travail.prompt, travail.destination, univers=univers,
+            reference=planche.fiches.get(travail.personnage), profil=profil,
             budget_restant_pct=reste_pct, cache=cache, job_id=job_id,
         )
-        planche.plans.append(PlanImage(
-            numero=plan.numero, personnage=perso.id, prompt=prompt,
-            fichier=destination, cout=cout, depuis_cache=du_cache,
-            contrat=contrat,
-        ))
+        planche.plans.append(travail.en_image(cout, du_cache))
         planche.cout += cout
         planche.images_evitees += int(du_cache)
 
