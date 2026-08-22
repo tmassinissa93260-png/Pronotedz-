@@ -306,3 +306,67 @@ def test_la_timeline_fait_l_aller_retour_json():
 
     origine = audio_timeline(_bande())
     assert AudioTimeline.depuis_json(origine.en_json()) == origine
+
+
+# ── `relance` traverse vers ShotSpec — et rien d'autre ─────────────────
+#
+# Ce lot ajoute UN champ à `ShotSpec`, et la question posée avant de le
+# faire mérite d'être verrouillée : pourquoi celui-là et pas un second.
+
+def _plan_nu(**extra) -> PlanScript:
+    base = dict(numero=0, replique_numero=0, personnage="strawberina",
+                action="elle parle", emotion="colere")
+    base.update(extra)
+    return PlanScript(**base)
+
+
+@pytest.mark.parametrize("valeur", [True, False])
+def test_la_relance_traverse_l_adaptateur(valeur):
+    """Le signal éditorial le plus fort du dépôt doit atteindre le contrat.
+
+    ScriptWriter place une relance toutes les 15-20 s, et `animation.noter()`
+    s'en sert déjà pour décider quels plans méritent d'être PAYÉS. Tant que
+    `ShotSpec` ne le portait pas, faire de ce contrat l'autorité aurait
+    silencieusement supprimé ce signal de la décision de dépense.
+    """
+    assert shot_spec(_plan_nu(relance=valeur)).relance is valeur
+
+
+def test_l_intensite_de_mouvement_n_est_PAS_sur_le_shot_spec():
+    """Elle vit déjà sur `MotionProgram.intensite` — et c'est sa place.
+
+    Ce test existe pour empêcher une duplication qui a failli être commise :
+    `animation._importance()` lit `intensite_mouvement` sur son `dict`, et il
+    aurait été tentant de l'ajouter ici « pour que le contrat l'ait aussi ».
+    Or `PlanCompile` porte DÉJÀ le `MotionProgram` à côté du `ShotSpec` :
+    l'information est atteignable sans la recopier.
+
+    La règle générale : un fait vit dans le contrat dont il décrit le
+    domaine. L'intensité d'un mouvement décrit le MOUVEMENT, pas le plan.
+    """
+    assert "intensite_mouvement" not in type(shot_spec(_plan_nu())).model_fields
+    assert "intensite" not in type(shot_spec(_plan_nu())).model_fields
+
+
+def test_l_intensite_reste_atteignable_par_le_programme_de_mouvement():
+    """Le corollaire du test précédent : ne pas dupliquer n'est acceptable
+    que si l'information reste accessible. Elle l'est."""
+    assert motion_program(_legacy(intensite="fort")).intensite == "fort"
+    assert motion_program(_legacy(intensite="faible")).intensite == "faible"
+
+
+def test_un_shot_spec_ecrit_avant_la_relance_se_relit_sans_deviner():
+    """La migration 1.0.0 → 1.1.0, vérifiée de bout en bout.
+
+    `False` et non une déduction depuis `fonction` ou `emotion` : avant ce
+    champ, aucun ShotSpec ne portait l'information. Une valeur neutre reste
+    fausse-mais-honnête ; une valeur devinée serait fausse-et-crédible.
+    """
+    from pdz.contracts import ShotSpec
+
+    ancien = {"schema_version": "1.0.0", "contrat": "ShotSpec",
+              "id": "shot_000", "numero": 0, "duree_s": 3.0,
+              "sujet": "strawberina", "cree_le": 0.0, "maj_le": 0.0}
+    relu = ShotSpec.depuis_dict(ancien)
+    assert relu.relance is False
+    assert relu.VERSION == "1.1.0"

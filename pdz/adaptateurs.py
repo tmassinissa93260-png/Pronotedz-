@@ -59,6 +59,10 @@ def shot_spec(plan: PlanScript) -> ShotSpec:
         # Question 1 : ce que le plan a réellement déclaré. Vide s'il n'a
         # rien déclaré — voir l'en-tête du module.
         fonction=plan.fonction,
+        # Déductible sans rien inventer : `PlanScript.relance` porte déjà ce
+        # fait, posé par ScriptWriter. L'adaptateur le fait traverser, il ne
+        # le décide pas.
+        relance=plan.relance,
         # Question 2 : entièrement porté par PlanScript.
         sujet=plan.personnage,
         entites_secondaires=tuple(plan.elements_secondaires),

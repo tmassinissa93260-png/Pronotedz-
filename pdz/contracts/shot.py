@@ -19,7 +19,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from pdz.contracts.base import Contrat
+from pdz.contracts.base import Contrat, enregistrer_migration
 
 
 class Critere(BaseModel):
@@ -40,7 +40,10 @@ class Critere(BaseModel):
 class ShotSpec(Contrat):
     """Un plan, complètement spécifié."""
 
-    VERSION = "1.0.0"
+    # 1.1.0 : `relance` ajouté. Additif et rétrocompatible — un ShotSpec@1.0.0
+    # relu prend `False`, ce qui est exactement ce qu'il valait implicitement.
+    # MINOR et non PATCH : le schéma gagne un champ, il n'en corrige pas un.
+    VERSION = "1.1.0"
 
     numero: int = 0
     duree_s: float = 0.0
@@ -56,6 +59,24 @@ class ShotSpec(Contrat):
     # `PlanScript.fonction` (« révèle une information », « fait monter la
     # tension ») — jamais ce que le plan montre littéralement.
     fonction: str = ""
+    # Ce plan porte-t-il un temps fort de rétention ? ScriptWriter les place
+    # exprès toutes les 15-20 s, et `PlanScript.relance` le porte déjà — ce
+    # champ est la traversée de ce fait vers le contrat, pas une seconde
+    # décision.
+    #
+    # Pourquoi ici et pas ailleurs — la question a été posée avant l'ajout :
+    #
+    # · `EtatEmotionnel.relances` (DirectorState) porte les MOMENTS voulus,
+    #   en indices de beats. C'est la DÉCISION, et elle reste là-bas ; à
+    #   terme c'est elle qui remplira ce champ, via le ShotGraph. Ce champ
+    #   ne la remplace pas, il la reçoit.
+    # · `AudioTimeline.Replique.relance` porte le même fait au niveau de la
+    #   RÉPLIQUE. Un plan est une sous-unité d'une réplique (une réplique en
+    #   donne un ou deux) : les deux granularités coexistent déjà pour
+    #   `porte`, exactement pour cette raison.
+    #
+    # Producteur unique : ScriptWriter. Écrit ici par le seul adaptateur.
+    relance: bool = False
 
     # ── Question 2 : ce qu'il montre ────────────────────────────────────
     sujet: str = ""
@@ -90,6 +111,19 @@ class ShotSpec(Contrat):
         """
         return bool(self.but and self.sujet and self.criteres_reussite
                     and (self.evenement or self.etat_apres))
+
+
+@enregistrer_migration("ShotSpec", "1.0.0", "1.1.0")
+def _ajoute_la_relance(donnees: dict) -> dict:
+    """Un ShotSpec écrit avant 1.1.0 ne dit rien de la relance.
+
+    `False` et non une déduction : avant ce champ, aucun ShotSpec ne portait
+    l'information, et la deviner depuis `fonction` ou `emotion` inventerait
+    une décision de mise en scène qui n'a jamais été prise. Une valeur neutre
+    reste fausse-mais-honnête ; une valeur devinée serait fausse-et-crédible.
+    """
+    donnees.setdefault("relance", False)
+    return donnees
 
 
 class ShotGraph(Contrat):
