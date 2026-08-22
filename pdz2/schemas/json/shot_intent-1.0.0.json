@@ -1,0 +1,127 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "NarrativeFunction": {
+      "description": "Rôle d'une réplique ou d'un plan dans la démonstration.",
+      "enum": [
+        "hook",
+        "setup",
+        "question",
+        "mechanism",
+        "evidence",
+        "contrast",
+        "consequence",
+        "payoff",
+        "transition",
+        "cta"
+      ],
+      "title": "NarrativeFunction",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:shot_intent/1.0.0",
+  "additionalProperties": false,
+  "description": "Ce qu'un plan doit accomplir. Aucune donnée de rendu ici.",
+  "properties": {
+    "anchor_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Anchor Ids",
+      "type": "array"
+    },
+    "claim_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Claim Id"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "narrative_function": {
+      "$ref": "#/$defs/NarrativeFunction"
+    },
+    "order": {
+      "minimum": 0,
+      "title": "Order",
+      "type": "integer"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "target_duration_s": {
+      "exclusiveMinimum": 0.0,
+      "title": "Target Duration S",
+      "type": "number"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "what_the_viewer_must_see": {
+      "minLength": 1,
+      "title": "What The Viewer Must See",
+      "type": "string"
+    },
+    "what_the_viewer_must_understand": {
+      "minLength": 1,
+      "title": "What The Viewer Must Understand",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "order",
+    "narrative_function",
+    "what_the_viewer_must_understand",
+    "what_the_viewer_must_see",
+    "target_duration_s"
+  ],
+  "title": "ShotIntent",
+  "type": "object"
+}

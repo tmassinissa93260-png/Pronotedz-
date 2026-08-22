@@ -1,0 +1,166 @@
+{
+  "$defs": {
+    "ClaimKind": {
+      "enum": [
+        "fact",
+        "mechanism",
+        "quantity",
+        "definition",
+        "consequence",
+        "comparison"
+      ],
+      "title": "ClaimKind",
+      "type": "string"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "VerificationStatus": {
+      "enum": [
+        "unverified",
+        "corroborated",
+        "disputed",
+        "refuted"
+      ],
+      "title": "VerificationStatus",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:claim/1.0.0",
+  "additionalProperties": false,
+  "description": "Une affirmation, ses preuves, et ce qu'il faut montrer pour la prouver.",
+  "properties": {
+    "causal_mechanism": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Causal Mechanism"
+    },
+    "confidence": {
+      "default": 0.0,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Confidence",
+      "type": "number"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "depends_on": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Depends On",
+      "type": "array"
+    },
+    "evidence_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence Ids",
+      "type": "array"
+    },
+    "evidence_required": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Evidence Required"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "kind": {
+      "$ref": "#/$defs/ClaimKind",
+      "default": "fact"
+    },
+    "load_bearing": {
+      "default": false,
+      "title": "Load Bearing",
+      "type": "boolean"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "text": {
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "verification": {
+      "$ref": "#/$defs/VerificationStatus",
+      "default": "unverified"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "visual_proof": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Visual Proof"
+    },
+    "visually_demonstrable": {
+      "default": false,
+      "title": "Visually Demonstrable",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "text"
+  ],
+  "title": "Claim",
+  "type": "object"
+}

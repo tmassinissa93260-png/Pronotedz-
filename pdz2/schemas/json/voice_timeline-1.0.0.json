@@ -1,0 +1,202 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "TimingSource": {
+      "description": "Origine d'une durée.",
+      "enum": [
+        "estimated",
+        "measured_tts",
+        "measured_file"
+      ],
+      "title": "TimingSource",
+      "type": "string"
+    },
+    "VoiceSegment": {
+      "additionalProperties": false,
+      "description": "Portion d'audio réellement occupée par une réplique.",
+      "properties": {
+        "end_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "End S",
+          "type": "number"
+        },
+        "line_id": {
+          "minLength": 1,
+          "title": "Line Id",
+          "type": "string"
+        },
+        "line_index": {
+          "minimum": 0,
+          "title": "Line Index",
+          "type": "integer"
+        },
+        "start_s": {
+          "minimum": 0.0,
+          "title": "Start S",
+          "type": "number"
+        },
+        "words": {
+          "items": {
+            "$ref": "#/$defs/WordTiming"
+          },
+          "title": "Words",
+          "type": "array"
+        }
+      },
+      "required": [
+        "line_id",
+        "line_index",
+        "start_s",
+        "end_s"
+      ],
+      "title": "VoiceSegment",
+      "type": "object"
+    },
+    "WordTiming": {
+      "additionalProperties": false,
+      "properties": {
+        "end_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "End S",
+          "type": "number"
+        },
+        "start_s": {
+          "minimum": 0.0,
+          "title": "Start S",
+          "type": "number"
+        },
+        "word": {
+          "minLength": 1,
+          "title": "Word",
+          "type": "string"
+        }
+      },
+      "required": [
+        "word",
+        "start_s",
+        "end_s"
+      ],
+      "title": "WordTiming",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:voice_timeline/1.0.0",
+  "additionalProperties": false,
+  "description": "Vérité temporelle de l'épisode, mesurée sur l'audio réel.",
+  "properties": {
+    "audio_path": {
+      "minLength": 1,
+      "title": "Audio Path",
+      "type": "string"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "engine": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Engine"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "sample_rate": {
+      "exclusiveMinimum": 0,
+      "title": "Sample Rate",
+      "type": "integer"
+    },
+    "script_state_id": {
+      "minLength": 1,
+      "title": "Script State Id",
+      "type": "string"
+    },
+    "segments": {
+      "items": {
+        "$ref": "#/$defs/VoiceSegment"
+      },
+      "minItems": 1,
+      "title": "Segments",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "timing_source": {
+      "$ref": "#/$defs/TimingSource"
+    },
+    "total_duration_s": {
+      "exclusiveMinimum": 0.0,
+      "title": "Total Duration S",
+      "type": "number"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "voice_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Voice Id"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "script_state_id",
+    "audio_path",
+    "sample_rate",
+    "total_duration_s",
+    "timing_source",
+    "segments"
+  ],
+  "title": "VoiceTimeline",
+  "type": "object"
+}

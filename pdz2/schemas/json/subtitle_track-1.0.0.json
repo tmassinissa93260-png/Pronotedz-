@@ -1,0 +1,140 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "ScreenPosition": {
+      "enum": [
+        "top",
+        "upper_third",
+        "center",
+        "lower_third",
+        "bottom",
+        "left",
+        "right"
+      ],
+      "title": "ScreenPosition",
+      "type": "string"
+    },
+    "SubtitleCue": {
+      "additionalProperties": false,
+      "properties": {
+        "end_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "End S",
+          "type": "number"
+        },
+        "index": {
+          "minimum": 0,
+          "title": "Index",
+          "type": "integer"
+        },
+        "position": {
+          "$ref": "#/$defs/ScreenPosition",
+          "default": "lower_third"
+        },
+        "start_s": {
+          "minimum": 0.0,
+          "title": "Start S",
+          "type": "number"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "index",
+        "text",
+        "start_s",
+        "end_s"
+      ],
+      "title": "SubtitleCue",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:subtitle_track/1.0.0",
+  "additionalProperties": false,
+  "properties": {
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "cues": {
+      "items": {
+        "$ref": "#/$defs/SubtitleCue"
+      },
+      "minItems": 1,
+      "title": "Cues",
+      "type": "array"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "language": {
+      "default": "fr",
+      "maxLength": 8,
+      "minLength": 2,
+      "title": "Language",
+      "type": "string"
+    },
+    "max_chars_per_line": {
+      "default": 28,
+      "exclusiveMinimum": 0,
+      "title": "Max Chars Per Line",
+      "type": "integer"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "voice_timeline_id": {
+      "minLength": 1,
+      "title": "Voice Timeline Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "voice_timeline_id",
+    "cues"
+  ],
+  "title": "SubtitleTrack",
+  "type": "object"
+}

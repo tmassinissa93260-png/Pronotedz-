@@ -1,0 +1,290 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Easing": {
+      "enum": [
+        "linear",
+        "ease_in",
+        "ease_out",
+        "ease_in_out",
+        "spring"
+      ],
+      "title": "Easing",
+      "type": "string"
+    },
+    "MotionDescriptor": {
+      "additionalProperties": false,
+      "description": "Mouvement d'un sujet ou d'un environnement.",
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "direction": {
+          "$ref": "#/$defs/Vec3"
+        },
+        "magnitude": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Magnitude",
+          "type": "number"
+        },
+        "primitive": {
+          "$ref": "#/$defs/MotionPrimitive",
+          "default": "static"
+        },
+        "trajectory": {
+          "$ref": "#/$defs/Trajectory"
+        }
+      },
+      "title": "MotionDescriptor",
+      "type": "object"
+    },
+    "MotionPrimitive": {
+      "description": "Primitives de la grammaire de mouvement, chacune paramétrable.",
+      "enum": [
+        "static",
+        "linear",
+        "arc",
+        "orbit",
+        "oscillate",
+        "spiral",
+        "rotate",
+        "scale",
+        "flow",
+        "jitter"
+      ],
+      "title": "MotionPrimitive",
+      "type": "string"
+    },
+    "PerceptualTarget": {
+      "additionalProperties": false,
+      "description": "Ce que le mouvement doit produire chez le spectateur, mesurable.",
+      "properties": {
+        "motion_energy": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Motion Energy",
+          "type": "number"
+        },
+        "readability": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Readability",
+          "type": "number"
+        },
+        "tolerance": {
+          "default": 0.2,
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Tolerance",
+          "type": "number"
+        },
+        "visual_novelty": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Visual Novelty",
+          "type": "number"
+        }
+      },
+      "required": [
+        "motion_energy",
+        "visual_novelty",
+        "readability"
+      ],
+      "title": "PerceptualTarget",
+      "type": "object"
+    },
+    "Trajectory": {
+      "additionalProperties": false,
+      "description": "Trajectoire paramétrée. Représentation numérique, pas textuelle.",
+      "properties": {
+        "amplitude": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Amplitude",
+          "type": "number"
+        },
+        "axis": {
+          "$ref": "#/$defs/Vec3"
+        },
+        "control_points": {
+          "items": {
+            "$ref": "#/$defs/Vec3"
+          },
+          "title": "Control Points",
+          "type": "array"
+        },
+        "easing": {
+          "$ref": "#/$defs/Easing",
+          "default": "linear"
+        },
+        "frequency_hz": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Frequency Hz",
+          "type": "number"
+        },
+        "loop": {
+          "default": false,
+          "title": "Loop",
+          "type": "boolean"
+        },
+        "primitive": {
+          "$ref": "#/$defs/MotionPrimitive",
+          "default": "static"
+        }
+      },
+      "title": "Trajectory",
+      "type": "object"
+    },
+    "Vec3": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "default": 0.0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "default": 0.0,
+          "title": "Y",
+          "type": "number"
+        },
+        "z": {
+          "default": 0.0,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "title": "Vec3",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:motion_program/1.0.0",
+  "additionalProperties": false,
+  "description": "Source de vérité du mouvement d'un plan.",
+  "properties": {
+    "acceleration": {
+      "default": 0.0,
+      "title": "Acceleration",
+      "type": "number"
+    },
+    "camera_motion": {
+      "$ref": "#/$defs/MotionDescriptor"
+    },
+    "camera_program_id": {
+      "minLength": 1,
+      "title": "Camera Program Id",
+      "type": "string"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "environment_motion": {
+      "$ref": "#/$defs/MotionDescriptor"
+    },
+    "forbidden": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Forbidden",
+      "type": "array"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "intensity": {
+      "default": 0.0,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Intensity",
+      "type": "number"
+    },
+    "may_change": {
+      "items": {
+        "type": "string"
+      },
+      "title": "May Change",
+      "type": "array"
+    },
+    "must_preserve": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Must Preserve",
+      "type": "array"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "perceptual_target": {
+      "$ref": "#/$defs/PerceptualTarget"
+    },
+    "shot_id": {
+      "minLength": 1,
+      "title": "Shot Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "subject_motion": {
+      "$ref": "#/$defs/MotionDescriptor"
+    },
+    "trajectory": {
+      "$ref": "#/$defs/Trajectory"
+    },
+    "velocity": {
+      "default": 0.0,
+      "minimum": 0.0,
+      "title": "Velocity",
+      "type": "number"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "shot_id",
+    "camera_program_id",
+    "perceptual_target"
+  ],
+  "title": "MotionProgram",
+  "type": "object"
+}

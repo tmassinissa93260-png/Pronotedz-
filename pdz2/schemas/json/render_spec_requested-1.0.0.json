@@ -1,0 +1,209 @@
+{
+  "$defs": {
+    "CameraMove": {
+      "enum": [
+        "lock",
+        "pan",
+        "tilt",
+        "dolly",
+        "push_in",
+        "pull_out",
+        "track",
+        "orbit",
+        "parallax",
+        "handheld"
+      ],
+      "title": "CameraMove",
+      "type": "string"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "RenderStrategy": {
+      "enum": [
+        "direct_i2v",
+        "controlled_i2v",
+        "video_editing",
+        "vace_style_conditioning",
+        "parallax_2_5d",
+        "procedural",
+        "3d",
+        "hybrid",
+        "ken_burns",
+        "still"
+      ],
+      "title": "RenderStrategy",
+      "type": "string"
+    },
+    "Resolution": {
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "integer"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "width",
+        "height"
+      ],
+      "title": "Resolution",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:render_spec_requested/1.0.0",
+  "additionalProperties": false,
+  "description": "Ce que la réalisation demande. Aucun fournisseur, aucun modèle.",
+  "properties": {
+    "allow_ai_video": {
+      "default": true,
+      "title": "Allow Ai Video",
+      "type": "boolean"
+    },
+    "camera_program_id": {
+      "minLength": 1,
+      "title": "Camera Program Id",
+      "type": "string"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "deadline_s": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Deadline S"
+    },
+    "duration_s": {
+      "exclusiveMinimum": 0.0,
+      "title": "Duration S",
+      "type": "number"
+    },
+    "fps": {
+      "exclusiveMinimum": 0,
+      "maximum": 120,
+      "title": "Fps",
+      "type": "integer"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "identity_lock_required": {
+      "default": false,
+      "title": "Identity Lock Required",
+      "type": "boolean"
+    },
+    "image_spec_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Image Spec Ids",
+      "type": "array"
+    },
+    "max_cost_usd": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Max Cost Usd"
+    },
+    "motion_program_id": {
+      "minLength": 1,
+      "title": "Motion Program Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "preferred_strategy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/RenderStrategy"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "requested_camera": {
+      "$ref": "#/$defs/CameraMove",
+      "default": "lock"
+    },
+    "resolution": {
+      "$ref": "#/$defs/Resolution"
+    },
+    "shot_id": {
+      "minLength": 1,
+      "title": "Shot Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "shot_id",
+    "motion_program_id",
+    "camera_program_id",
+    "duration_s",
+    "resolution",
+    "fps"
+  ],
+  "title": "RenderSpecRequested",
+  "type": "object"
+}

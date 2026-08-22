@@ -1,0 +1,225 @@
+{
+  "$defs": {
+    "ColorScheme": {
+      "additionalProperties": false,
+      "properties": {
+        "contrast": {
+          "default": 0.5,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Contrast",
+          "type": "number"
+        },
+        "palette": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Palette",
+          "type": "array"
+        },
+        "saturation": {
+          "default": 0.5,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Saturation",
+          "type": "number"
+        },
+        "temperature": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": -1.0,
+          "title": "Temperature",
+          "type": "number"
+        }
+      },
+      "required": [
+        "palette"
+      ],
+      "title": "ColorScheme",
+      "type": "object"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Typography": {
+      "additionalProperties": false,
+      "properties": {
+        "family": {
+          "minLength": 1,
+          "title": "Family",
+          "type": "string"
+        },
+        "max_chars_per_line": {
+          "default": 28,
+          "exclusiveMinimum": 0,
+          "title": "Max Chars Per Line",
+          "type": "integer"
+        },
+        "safe_area_pct": {
+          "default": 0.86,
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Safe Area Pct",
+          "type": "number"
+        },
+        "uppercase": {
+          "default": false,
+          "title": "Uppercase",
+          "type": "boolean"
+        },
+        "weight": {
+          "default": 700,
+          "maximum": 900,
+          "minimum": 100,
+          "title": "Weight",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "family"
+      ],
+      "title": "Typography",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:visual_bible/1.0.0",
+  "additionalProperties": false,
+  "description": "Registre visuel de l'épisode. Source unique du style.",
+  "properties": {
+    "camera_language": {
+      "minLength": 1,
+      "title": "Camera Language",
+      "type": "string"
+    },
+    "color": {
+      "$ref": "#/$defs/ColorScheme"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "depth_of_field": {
+      "minLength": 1,
+      "title": "Depth Of Field",
+      "type": "string"
+    },
+    "director_state_id": {
+      "minLength": 1,
+      "title": "Director State Id",
+      "type": "string"
+    },
+    "environment": {
+      "minLength": 1,
+      "title": "Environment",
+      "type": "string"
+    },
+    "forbidden": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Forbidden",
+      "type": "array"
+    },
+    "graphics": {
+      "minLength": 1,
+      "title": "Graphics",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "lens_language": {
+      "minLength": 1,
+      "title": "Lens Language",
+      "type": "string"
+    },
+    "lighting": {
+      "minLength": 1,
+      "title": "Lighting",
+      "type": "string"
+    },
+    "materials": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Materials",
+      "type": "array"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "style": {
+      "minLength": 1,
+      "title": "Style",
+      "type": "string"
+    },
+    "texture": {
+      "minLength": 1,
+      "title": "Texture",
+      "type": "string"
+    },
+    "typography": {
+      "$ref": "#/$defs/Typography"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "visual_density": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Visual Density",
+      "type": "number"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "director_state_id",
+    "style",
+    "lighting",
+    "color",
+    "camera_language",
+    "lens_language",
+    "depth_of_field",
+    "environment",
+    "graphics",
+    "typography",
+    "texture",
+    "visual_density"
+  ],
+  "title": "VisualBible",
+  "type": "object"
+}

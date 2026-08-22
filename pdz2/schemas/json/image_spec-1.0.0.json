@@ -1,0 +1,292 @@
+{
+  "$defs": {
+    "AspectRatio": {
+      "enum": [
+        "9:16",
+        "16:9",
+        "1:1",
+        "4:5"
+      ],
+      "title": "AspectRatio",
+      "type": "string"
+    },
+    "CameraAngle": {
+      "enum": [
+        "eye",
+        "low",
+        "high",
+        "top_down",
+        "dutch",
+        "isometric",
+        "cross_section"
+      ],
+      "title": "CameraAngle",
+      "type": "string"
+    },
+    "Composition": {
+      "additionalProperties": false,
+      "description": "Cadrage d'un plan. Intention de mise en image, pas d'exécution.",
+      "properties": {
+        "angle": {
+          "$ref": "#/$defs/CameraAngle",
+          "default": "eye"
+        },
+        "framing": {
+          "$ref": "#/$defs/Framing"
+        },
+        "headroom": {
+          "default": 0.1,
+          "maximum": 0.5,
+          "minimum": 0.0,
+          "title": "Headroom",
+          "type": "number"
+        },
+        "negative_space": {
+          "default": 0.3,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Negative Space",
+          "type": "number"
+        },
+        "safe_area_pct": {
+          "default": 0.9,
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Safe Area Pct",
+          "type": "number"
+        },
+        "subject_position": {
+          "$ref": "#/$defs/ScreenPosition",
+          "default": "center"
+        }
+      },
+      "required": [
+        "framing"
+      ],
+      "title": "Composition",
+      "type": "object"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Framing": {
+      "enum": [
+        "extreme_wide",
+        "wide",
+        "medium_wide",
+        "medium",
+        "medium_close",
+        "close",
+        "extreme_close",
+        "macro",
+        "cutaway_diagram"
+      ],
+      "title": "Framing",
+      "type": "string"
+    },
+    "LayerRole": {
+      "description": "Rôle d'un calque, pour le moteur 2.5D.",
+      "enum": [
+        "sky",
+        "background",
+        "midground",
+        "subject",
+        "foreground",
+        "overlay"
+      ],
+      "title": "LayerRole",
+      "type": "string"
+    },
+    "LayerSpec": {
+      "additionalProperties": false,
+      "description": "Calque d'une image destinée au parallaxe 2.5D.",
+      "properties": {
+        "depth": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Depth",
+          "type": "number"
+        },
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "must_be_separable": {
+          "default": true,
+          "title": "Must Be Separable",
+          "type": "boolean"
+        },
+        "role": {
+          "$ref": "#/$defs/LayerRole"
+        }
+      },
+      "required": [
+        "role",
+        "depth",
+        "description"
+      ],
+      "title": "LayerSpec",
+      "type": "object"
+    },
+    "Resolution": {
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "integer"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "width",
+        "height"
+      ],
+      "title": "Resolution",
+      "type": "object"
+    },
+    "ScreenPosition": {
+      "enum": [
+        "top",
+        "upper_third",
+        "center",
+        "lower_third",
+        "bottom",
+        "left",
+        "right"
+      ],
+      "title": "ScreenPosition",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:image_spec/1.0.0",
+  "additionalProperties": false,
+  "description": "Ce qu'une image doit contenir. Pas le prompt final d'un fournisseur.",
+  "properties": {
+    "anchor_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Anchor Ids",
+      "type": "array"
+    },
+    "aspect_ratio": {
+      "$ref": "#/$defs/AspectRatio"
+    },
+    "composition": {
+      "$ref": "#/$defs/Composition"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "forbidden": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Forbidden",
+      "type": "array"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "intent": {
+      "minLength": 1,
+      "title": "Intent",
+      "type": "string"
+    },
+    "layers": {
+      "items": {
+        "$ref": "#/$defs/LayerSpec"
+      },
+      "title": "Layers",
+      "type": "array"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "resolution": {
+      "$ref": "#/$defs/Resolution"
+    },
+    "seed": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Seed"
+    },
+    "shot_id": {
+      "minLength": 1,
+      "title": "Shot Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "subject": {
+      "minLength": 1,
+      "title": "Subject",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "visual_bible_id": {
+      "minLength": 1,
+      "title": "Visual Bible Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "shot_id",
+    "visual_bible_id",
+    "subject",
+    "composition",
+    "resolution",
+    "aspect_ratio",
+    "intent"
+  ],
+  "title": "ImageSpec",
+  "type": "object"
+}

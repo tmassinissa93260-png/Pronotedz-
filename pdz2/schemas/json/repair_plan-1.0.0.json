@@ -1,0 +1,188 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "RepairAction": {
+      "enum": [
+        "retry_same",
+        "retry_new_seed",
+        "change_strategy",
+        "simplify_motion",
+        "regenerate_asset",
+        "reinforce_anchor",
+        "split_shot",
+        "shorten_shot",
+        "fallback_2_5d",
+        "fallback_ken_burns",
+        "fallback_still",
+        "escalate_human"
+      ],
+      "title": "RepairAction",
+      "type": "string"
+    },
+    "RepairStep": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "$ref": "#/$defs/RepairAction"
+        },
+        "estimated_cost_usd": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Estimated Cost Usd",
+          "type": "number"
+        },
+        "expected_effect": {
+          "minLength": 1,
+          "title": "Expected Effect",
+          "type": "string"
+        },
+        "rationale": {
+          "minLength": 1,
+          "title": "Rationale",
+          "type": "string"
+        },
+        "target_stage": {
+          "$ref": "#/$defs/Stage"
+        }
+      },
+      "required": [
+        "action",
+        "rationale",
+        "target_stage",
+        "expected_effect"
+      ],
+      "title": "RepairStep",
+      "type": "object"
+    },
+    "Stage": {
+      "description": "Étapes du compilateur, de l'idée au MP4.",
+      "enum": [
+        "research",
+        "direction",
+        "script",
+        "voice",
+        "timeline",
+        "visual_bible",
+        "shot_graph",
+        "motion",
+        "render_spec",
+        "static_validation",
+        "routing",
+        "assets",
+        "render",
+        "observation",
+        "diagnosis",
+        "repair",
+        "edit",
+        "audio_master",
+        "subtitles",
+        "final_qa",
+        "delivery"
+      ],
+      "title": "Stage",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:repair_plan/1.0.0",
+  "additionalProperties": false,
+  "description": "Suite d'actions bornée, avec un repli qui aboutit toujours.",
+  "properties": {
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "cycle": {
+      "minimum": 1,
+      "title": "Cycle",
+      "type": "integer"
+    },
+    "diagnosis_id": {
+      "minLength": 1,
+      "title": "Diagnosis Id",
+      "type": "string"
+    },
+    "guaranteed_fallback": {
+      "$ref": "#/$defs/RepairAction"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "max_cycles": {
+      "default": 3,
+      "maximum": 20,
+      "minimum": 1,
+      "title": "Max Cycles",
+      "type": "integer"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "shot_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Shot Id"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/RepairStep"
+      },
+      "minItems": 1,
+      "title": "Steps",
+      "type": "array"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "diagnosis_id",
+    "steps",
+    "cycle",
+    "guaranteed_fallback"
+  ],
+  "title": "RepairPlan",
+  "type": "object"
+}

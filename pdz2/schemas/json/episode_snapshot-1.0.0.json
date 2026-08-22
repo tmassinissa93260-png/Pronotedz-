@@ -1,0 +1,335 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "EpisodeStatus": {
+      "enum": [
+        "created",
+        "running",
+        "blocked",
+        "failed",
+        "delivered",
+        "abandoned"
+      ],
+      "title": "EpisodeStatus",
+      "type": "string"
+    },
+    "Stage": {
+      "description": "Étapes du compilateur, de l'idée au MP4.",
+      "enum": [
+        "research",
+        "direction",
+        "script",
+        "voice",
+        "timeline",
+        "visual_bible",
+        "shot_graph",
+        "motion",
+        "render_spec",
+        "static_validation",
+        "routing",
+        "assets",
+        "render",
+        "observation",
+        "diagnosis",
+        "repair",
+        "edit",
+        "audio_master",
+        "subtitles",
+        "final_qa",
+        "delivery"
+      ],
+      "title": "Stage",
+      "type": "string"
+    },
+    "StageState": {
+      "additionalProperties": false,
+      "description": "État d'une étape. Une liste typée, jamais un dictionnaire libre.",
+      "properties": {
+        "artifact_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Artifact Ids",
+          "type": "array"
+        },
+        "attempts": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Attempts",
+          "type": "integer"
+        },
+        "cost_usd": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Cost Usd",
+          "type": "number"
+        },
+        "detail": {
+          "default": "",
+          "title": "Detail",
+          "type": "string"
+        },
+        "ended_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ended At"
+        },
+        "stage": {
+          "$ref": "#/$defs/Stage"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Started At"
+        },
+        "status": {
+          "$ref": "#/$defs/StageStatus",
+          "default": "pending"
+        }
+      },
+      "required": [
+        "stage"
+      ],
+      "title": "StageState",
+      "type": "object"
+    },
+    "StageStatus": {
+      "enum": [
+        "pending",
+        "running",
+        "done",
+        "failed",
+        "skipped"
+      ],
+      "title": "StageStatus",
+      "type": "string"
+    },
+    "StateTransition": {
+      "additionalProperties": false,
+      "description": "Une ligne du journal d'états. Immuable une fois écrite.",
+      "properties": {
+        "actor": {
+          "default": "system",
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "at": {
+          "format": "date-time",
+          "title": "At",
+          "type": "string"
+        },
+        "contract_type": {
+          "title": "Contract Type",
+          "type": "string"
+        },
+        "cost_usd": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Cost Usd",
+          "type": "number"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "episode_id": {
+          "minLength": 1,
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "from_status": {
+          "$ref": "#/$defs/StageStatus"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "stage": {
+          "$ref": "#/$defs/Stage"
+        },
+        "status": {
+          "$ref": "#/$defs/ContractStatus",
+          "default": "draft"
+        },
+        "to_status": {
+          "$ref": "#/$defs/StageStatus"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_type",
+        "version",
+        "id",
+        "created_at",
+        "episode_id",
+        "stage",
+        "from_status",
+        "to_status",
+        "at",
+        "reason"
+      ],
+      "title": "StateTransition",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:episode_snapshot/1.0.0",
+  "additionalProperties": false,
+  "description": "État complet et reprenable d'un épisode.",
+  "properties": {
+    "budget_cap_usd": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Budget Cap Usd"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "episode_id": {
+      "minLength": 1,
+      "title": "Episode Id",
+      "type": "string"
+    },
+    "episode_status": {
+      "$ref": "#/$defs/EpisodeStatus",
+      "default": "created"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "max_repair_cycles": {
+      "default": 3,
+      "maximum": 20,
+      "minimum": 0,
+      "title": "Max Repair Cycles",
+      "type": "integer"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "repair_cycles": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Repair Cycles",
+      "type": "integer"
+    },
+    "spent_usd": {
+      "default": 0.0,
+      "minimum": 0.0,
+      "title": "Spent Usd",
+      "type": "number"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/StageState"
+      },
+      "minItems": 1,
+      "title": "Stages",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "topic_request_id": {
+      "minLength": 1,
+      "title": "Topic Request Id",
+      "type": "string"
+    },
+    "transitions": {
+      "items": {
+        "$ref": "#/$defs/StateTransition"
+      },
+      "title": "Transitions",
+      "type": "array"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "episode_id",
+    "topic_request_id",
+    "stages"
+  ],
+  "title": "EpisodeSnapshot",
+  "type": "object"
+}

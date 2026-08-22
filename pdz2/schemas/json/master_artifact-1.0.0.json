@@ -1,0 +1,211 @@
+{
+  "$defs": {
+    "AspectRatio": {
+      "enum": [
+        "9:16",
+        "16:9",
+        "1:1",
+        "4:5"
+      ],
+      "title": "AspectRatio",
+      "type": "string"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "LoudnessMeasurement": {
+      "additionalProperties": false,
+      "description": "Mesures normalisées EBU R128.",
+      "properties": {
+        "integrated_lufs": {
+          "title": "Integrated Lufs",
+          "type": "number"
+        },
+        "loudness_range_lu": {
+          "minimum": 0.0,
+          "title": "Loudness Range Lu",
+          "type": "number"
+        },
+        "method": {
+          "default": "ebu-r128",
+          "minLength": 1,
+          "title": "Method",
+          "type": "string"
+        },
+        "true_peak_dbtp": {
+          "title": "True Peak Dbtp",
+          "type": "number"
+        }
+      },
+      "required": [
+        "integrated_lufs",
+        "true_peak_dbtp",
+        "loudness_range_lu"
+      ],
+      "title": "LoudnessMeasurement",
+      "type": "object"
+    },
+    "Resolution": {
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "integer"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "width",
+        "height"
+      ],
+      "title": "Resolution",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:master_artifact/1.0.0",
+  "additionalProperties": false,
+  "description": "Livrable final et ce qui a été vérifié dessus.",
+  "properties": {
+    "aspect_ratio": {
+      "$ref": "#/$defs/AspectRatio"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "delivered": {
+      "default": false,
+      "title": "Delivered",
+      "type": "boolean"
+    },
+    "duration_s": {
+      "exclusiveMinimum": 0.0,
+      "title": "Duration S",
+      "type": "number"
+    },
+    "edit_timeline_id": {
+      "minLength": 1,
+      "title": "Edit Timeline Id",
+      "type": "string"
+    },
+    "episode_id": {
+      "minLength": 1,
+      "title": "Episode Id",
+      "type": "string"
+    },
+    "final_qa_report_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Final Qa Report Id"
+    },
+    "fps": {
+      "exclusiveMinimum": 0,
+      "maximum": 120,
+      "title": "Fps",
+      "type": "integer"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "loudness": {
+      "$ref": "#/$defs/LoudnessMeasurement"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "resolution": {
+      "$ref": "#/$defs/Resolution"
+    },
+    "sha256": {
+      "maxLength": 64,
+      "minLength": 64,
+      "title": "Sha256",
+      "type": "string"
+    },
+    "size_bytes": {
+      "exclusiveMinimum": 0,
+      "title": "Size Bytes",
+      "type": "integer"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "subtitles_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Subtitles Path"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "video_path": {
+      "minLength": 1,
+      "title": "Video Path",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "episode_id",
+    "edit_timeline_id",
+    "video_path",
+    "sha256",
+    "size_bytes",
+    "duration_s",
+    "resolution",
+    "aspect_ratio",
+    "fps",
+    "loudness"
+  ],
+  "title": "MasterArtifact",
+  "type": "object"
+}

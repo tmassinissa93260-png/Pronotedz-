@@ -1,0 +1,146 @@
+{
+  "$defs": {
+    "AnchorKind": {
+      "enum": [
+        "person",
+        "vehicle",
+        "object",
+        "building",
+        "machine",
+        "environment"
+      ],
+      "title": "AnchorKind",
+      "type": "string"
+    },
+    "AttributeBinding": {
+      "enum": [
+        "fixed",
+        "soft"
+      ],
+      "title": "AttributeBinding",
+      "type": "string"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "IdentityAttribute": {
+      "additionalProperties": false,
+      "description": "Un trait d'identité nommé, pas une chaîne libre.\n\nLa continuité est représentée dans les données : on ne demande jamais à un\nmodèle de « se souvenir » d'un objet.",
+      "properties": {
+        "binding": {
+          "$ref": "#/$defs/AttributeBinding",
+          "default": "fixed"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "IdentityAttribute",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:anchor_spec/1.0.0",
+  "additionalProperties": false,
+  "description": "Ancre de continuité : une entité qui doit rester elle-même.",
+  "properties": {
+    "canonical_description": {
+      "minLength": 1,
+      "title": "Canonical Description",
+      "type": "string"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "identity": {
+      "items": {
+        "$ref": "#/$defs/IdentityAttribute"
+      },
+      "minItems": 1,
+      "title": "Identity",
+      "type": "array"
+    },
+    "kind": {
+      "$ref": "#/$defs/AnchorKind"
+    },
+    "must_persist_across_shots": {
+      "default": true,
+      "title": "Must Persist Across Shots",
+      "type": "boolean"
+    },
+    "name": {
+      "minLength": 1,
+      "title": "Name",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "reference_asset_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Reference Asset Ids",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "name",
+    "kind",
+    "canonical_description",
+    "identity"
+  ],
+  "title": "AnchorSpec",
+  "type": "object"
+}

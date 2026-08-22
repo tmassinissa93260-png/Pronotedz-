@@ -1,0 +1,271 @@
+{
+  "$defs": {
+    "AspectRatio": {
+      "enum": [
+        "9:16",
+        "16:9",
+        "1:1",
+        "4:5"
+      ],
+      "title": "AspectRatio",
+      "type": "string"
+    },
+    "Clip": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "minLength": 1,
+          "title": "Artifact Id",
+          "type": "string"
+        },
+        "gain_db": {
+          "default": 0.0,
+          "maximum": 12.0,
+          "minimum": -60.0,
+          "title": "Gain Db",
+          "type": "number"
+        },
+        "shot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shot Id"
+        },
+        "source_in_s": {
+          "minimum": 0.0,
+          "title": "Source In S",
+          "type": "number"
+        },
+        "source_out_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "Source Out S",
+          "type": "number"
+        },
+        "timeline_in_s": {
+          "minimum": 0.0,
+          "title": "Timeline In S",
+          "type": "number"
+        },
+        "timeline_out_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "Timeline Out S",
+          "type": "number"
+        },
+        "transition_in": {
+          "$ref": "#/$defs/Transition"
+        },
+        "transition_out": {
+          "$ref": "#/$defs/Transition"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "source_in_s",
+        "source_out_s",
+        "timeline_in_s",
+        "timeline_out_s"
+      ],
+      "title": "Clip",
+      "type": "object"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Resolution": {
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "integer"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "width",
+        "height"
+      ],
+      "title": "Resolution",
+      "type": "object"
+    },
+    "Track": {
+      "additionalProperties": false,
+      "properties": {
+        "clips": {
+          "items": {
+            "$ref": "#/$defs/Clip"
+          },
+          "title": "Clips",
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/TrackKind"
+        },
+        "muted": {
+          "default": false,
+          "title": "Muted",
+          "type": "boolean"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "name"
+      ],
+      "title": "Track",
+      "type": "object"
+    },
+    "TrackKind": {
+      "enum": [
+        "video",
+        "voice",
+        "music",
+        "sfx",
+        "overlay"
+      ],
+      "title": "TrackKind",
+      "type": "string"
+    },
+    "Transition": {
+      "additionalProperties": false,
+      "properties": {
+        "duration_s": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "kind": {
+          "$ref": "#/$defs/TransitionKind",
+          "default": "cut"
+        }
+      },
+      "title": "Transition",
+      "type": "object"
+    },
+    "TransitionKind": {
+      "enum": [
+        "cut",
+        "dissolve",
+        "fade_in",
+        "fade_out",
+        "match_cut",
+        "whip",
+        "wipe"
+      ],
+      "title": "TransitionKind",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:edit_timeline/1.0.0",
+  "additionalProperties": false,
+  "properties": {
+    "aspect_ratio": {
+      "$ref": "#/$defs/AspectRatio"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "duration_s": {
+      "exclusiveMinimum": 0.0,
+      "title": "Duration S",
+      "type": "number"
+    },
+    "episode_id": {
+      "minLength": 1,
+      "title": "Episode Id",
+      "type": "string"
+    },
+    "fps": {
+      "exclusiveMinimum": 0,
+      "maximum": 120,
+      "title": "Fps",
+      "type": "integer"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "resolution": {
+      "$ref": "#/$defs/Resolution"
+    },
+    "shot_graph_id": {
+      "minLength": 1,
+      "title": "Shot Graph Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "tracks": {
+      "items": {
+        "$ref": "#/$defs/Track"
+      },
+      "minItems": 1,
+      "title": "Tracks",
+      "type": "array"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "episode_id",
+    "shot_graph_id",
+    "tracks",
+    "duration_s",
+    "fps",
+    "resolution",
+    "aspect_ratio"
+  ],
+  "title": "EditTimeline",
+  "type": "object"
+}

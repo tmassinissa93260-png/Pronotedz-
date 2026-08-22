@@ -1,0 +1,260 @@
+{
+  "$defs": {
+    "CameraMove": {
+      "enum": [
+        "lock",
+        "pan",
+        "tilt",
+        "dolly",
+        "push_in",
+        "pull_out",
+        "track",
+        "orbit",
+        "parallax",
+        "handheld"
+      ],
+      "title": "CameraMove",
+      "type": "string"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "DepthOfField": {
+      "additionalProperties": false,
+      "properties": {
+        "f_stop": {
+          "exclusiveMinimum": 0.0,
+          "title": "F Stop",
+          "type": "number"
+        },
+        "focus_distance_m": {
+          "exclusiveMinimum": 0.0,
+          "title": "Focus Distance M",
+          "type": "number"
+        },
+        "focus_pull": {
+          "default": false,
+          "title": "Focus Pull",
+          "type": "boolean"
+        },
+        "focus_target_m": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Focus Target M"
+        }
+      },
+      "required": [
+        "focus_distance_m",
+        "f_stop"
+      ],
+      "title": "DepthOfField",
+      "type": "object"
+    },
+    "Easing": {
+      "enum": [
+        "linear",
+        "ease_in",
+        "ease_out",
+        "ease_in_out",
+        "spring"
+      ],
+      "title": "Easing",
+      "type": "string"
+    },
+    "MotionPrimitive": {
+      "description": "Primitives de la grammaire de mouvement, chacune paramétrable.",
+      "enum": [
+        "static",
+        "linear",
+        "arc",
+        "orbit",
+        "oscillate",
+        "spiral",
+        "rotate",
+        "scale",
+        "flow",
+        "jitter"
+      ],
+      "title": "MotionPrimitive",
+      "type": "string"
+    },
+    "Trajectory": {
+      "additionalProperties": false,
+      "description": "Trajectoire paramétrée. Représentation numérique, pas textuelle.",
+      "properties": {
+        "amplitude": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Amplitude",
+          "type": "number"
+        },
+        "axis": {
+          "$ref": "#/$defs/Vec3"
+        },
+        "control_points": {
+          "items": {
+            "$ref": "#/$defs/Vec3"
+          },
+          "title": "Control Points",
+          "type": "array"
+        },
+        "easing": {
+          "$ref": "#/$defs/Easing",
+          "default": "linear"
+        },
+        "frequency_hz": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Frequency Hz",
+          "type": "number"
+        },
+        "loop": {
+          "default": false,
+          "title": "Loop",
+          "type": "boolean"
+        },
+        "primitive": {
+          "$ref": "#/$defs/MotionPrimitive",
+          "default": "static"
+        }
+      },
+      "title": "Trajectory",
+      "type": "object"
+    },
+    "Vec3": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "default": 0.0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "default": 0.0,
+          "title": "Y",
+          "type": "number"
+        },
+        "z": {
+          "default": 0.0,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "title": "Vec3",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:camera_program/1.0.0",
+  "additionalProperties": false,
+  "description": "Programme caméra indépendant du moteur de rendu.",
+  "properties": {
+    "acceleration": {
+      "default": 0.0,
+      "title": "Acceleration",
+      "type": "number"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "depth_of_field": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DepthOfField"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "focal_length_mm": {
+      "default": 35.0,
+      "exclusiveMinimum": 0.0,
+      "title": "Focal Length Mm",
+      "type": "number"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "locked": {
+      "default": false,
+      "title": "Locked",
+      "type": "boolean"
+    },
+    "move": {
+      "$ref": "#/$defs/CameraMove",
+      "default": "lock"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "position": {
+      "$ref": "#/$defs/Vec3"
+    },
+    "rotation": {
+      "$ref": "#/$defs/Vec3"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "target": {
+      "$ref": "#/$defs/Vec3"
+    },
+    "trajectory": {
+      "$ref": "#/$defs/Trajectory"
+    },
+    "velocity": {
+      "default": 0.0,
+      "minimum": 0.0,
+      "title": "Velocity",
+      "type": "number"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at"
+  ],
+  "title": "CameraProgram",
+  "type": "object"
+}

@@ -1,0 +1,164 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Emotion": {
+      "enum": [
+        "neutral",
+        "curious",
+        "wonder",
+        "serious",
+        "urgent",
+        "tense",
+        "warm",
+        "playful"
+      ],
+      "title": "Emotion",
+      "type": "string"
+    },
+    "NarrativeFunction": {
+      "description": "Rôle d'une réplique ou d'un plan dans la démonstration.",
+      "enum": [
+        "hook",
+        "setup",
+        "question",
+        "mechanism",
+        "evidence",
+        "contrast",
+        "consequence",
+        "payoff",
+        "transition",
+        "cta"
+      ],
+      "title": "NarrativeFunction",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:script_line/1.0.0",
+  "additionalProperties": false,
+  "properties": {
+    "claim_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Claim Id"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "emotion": {
+      "$ref": "#/$defs/Emotion",
+      "default": "neutral"
+    },
+    "emphasis_words": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Emphasis Words",
+      "type": "array"
+    },
+    "energy": {
+      "default": 0.5,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Energy",
+      "type": "number"
+    },
+    "estimated_duration_s": {
+      "exclusiveMinimum": 0.0,
+      "title": "Estimated Duration S",
+      "type": "number"
+    },
+    "function": {
+      "$ref": "#/$defs/NarrativeFunction"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "index": {
+      "minimum": 0,
+      "title": "Index",
+      "type": "integer"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "shot_intent_order": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Shot Intent Order"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "text": {
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "visual_requirement": {
+      "minLength": 1,
+      "title": "Visual Requirement",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "index",
+    "text",
+    "function",
+    "visual_requirement",
+    "estimated_duration_s"
+  ],
+  "title": "ScriptLine",
+  "type": "object"
+}
