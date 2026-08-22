@@ -1,11 +1,14 @@
-"""Moteurs — non implémenté.
+"""Moteurs de PDZ 2.
 
-Périmètre prévu : phases 1 à 7.
+Un moteur transforme un contrat en un autre. Il ne connaît que des
+*ports* — protocoles étroits que les adaptateurs implémentent — jamais un
+fournisseur nommé.
 
-Ce paquet est volontairement vide. Le cahier des charges interdit les faux
-adaptateurs et les capacités simulées : tant que le code réel n'existe pas,
-rien ici ne doit laisser croire le contraire. Les contrats que ces modules
-consommeront existent déjà dans `pdz2.contracts`.
+Implémenté :
+  * `research`  — recherche factuelle, Fact Graph, preuve visuelle (phase 1)
+  * `direction` — Director Core et compilateur déterministe (phase 1)
+
+À venir : image (phase 5), motion (phase 6), 2.5D et procédural (phase 7).
 """
 
 __all__: list[str] = []

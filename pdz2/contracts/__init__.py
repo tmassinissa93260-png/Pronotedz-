@@ -31,14 +31,17 @@ from pdz2.contracts.delivery import (
     TrackKind,
 )
 from pdz2.contracts.direction import (
+    AnchorDraft,
     AnchorKind,
     AnchorSpec,
     AttributeBinding,
+    DirectorBrief,
     DirectorState,
     IdentityAttribute,
     ShotIntent,
     VisualEvidencePlan,
     VisualLanguage,
+    VisualProofDraft,
 )
 from pdz2.contracts.enums import (
     ArtifactKind,
@@ -204,6 +207,9 @@ __all__ = [
     "VisualLanguage",
     "ShotIntent",
     "DirectorState",
+    "AnchorDraft",
+    "VisualProofDraft",
+    "DirectorBrief",
     # script et voix
     "ScriptLine",
     "ScriptState",

@@ -21,10 +21,14 @@ PDZ 2 ne migre pas et ne répare pas le système ci-dessous — il est écrit à
 part et les deux paquets cohabitent le temps du chantier.
 
 * Architecture et décisions : [`pdz2/architecture/`](./pdz2/architecture/)
-* État réel du chantier : `pdz2 phases` — **phase 0 seulement** aujourd'hui
-  (contrats versionnés, machine à états, persistance, schémas JSON).
-* La commande `pdz2 create` existe mais refuse de produire tant que les
-  phases suivantes ne sont pas réellement implémentées.
+* État réel du chantier : `pdz2 phases` — **phases 0 et 1** aujourd'hui.
+  Contrats versionnés, machine à états, persistance, schémas JSON, puis
+  recherche factuelle, Fact Graph et Director Core.
+* Ce qui tourne de bout en bout :
+  `pdz2 research` → `pdz2 brief-template` → `pdz2 direct`, d'une question à un
+  `DirectorState` compilé.
+* La commande `pdz2 create` existe mais refuse de produire une vidéo tant que
+  les phases suivantes ne sont pas réellement implémentées.
 
 ## Ce qu'il sait faire
 

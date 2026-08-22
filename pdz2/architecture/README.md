@@ -75,9 +75,9 @@ pdz2/
 ├── state/          graphe d'étapes et machine à états reprenable
 ├── storage/        dossier d'épisode : écriture atomique, relecture typée
 ├── cli/            inspection des contrats, des schémas et d'un épisode
+├── engines/        research + direction (phase 1) ; image, 2.5D à venir
 ├── providers/      adaptateurs de fournisseurs        — non implémenté
 ├── renderers/      exécution des stratégies de rendu   — non implémenté
-├── engines/        recherche, réalisation, image, 2.5D — non implémenté
 ├── qa/             observation déterministe            — non implémenté
 ├── repair/         diagnostic et réparation            — non implémenté
 ├── audio/          voix, sound design, mastering       — non implémenté
@@ -99,5 +99,10 @@ pourra prendre le nom `pdz` — c'est un renommage de paquet, pas une fusion.
 
 ## État réel du chantier
 
-Voir `pdz2 phases`. Aujourd'hui : **phase 0 seulement** — contrats,
-versionnage, machine à états, persistance, schémas, CLI d'inspection.
+Voir `pdz2 phases`. Aujourd'hui : **phases 0 et 1**.
+
+* Phase 0 — contrats, versionnage, machine à états, persistance, schémas.
+  Détail : [`PHASE-0.md`](../PHASE-0.md).
+* Phase 1 — recherche factuelle, Fact Graph, Director Core. Corpus local
+  seulement (le réseau de recherche est bloqué ici), brief rédigé à la main
+  (aucun raisonneur branché). Détail : [`PHASE-1.md`](../PHASE-1.md).

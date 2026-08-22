@@ -87,7 +87,9 @@ class TestContractsStayIndependent:
                     offenders.append(f"{path.name} importe {module}")
         assert not offenders, offenders
 
-    @pytest.mark.parametrize("package", ["contracts", "state", "storage", "schemas"])
+    @pytest.mark.parametrize(
+        "package", ["contracts", "state", "storage", "schemas", "engines"]
+    )
     def test_no_provider_brand_in_the_core(self, package: str) -> None:
         offenders: list[str] = []
         for path in _python_files(package):
@@ -170,10 +172,10 @@ class TestNoArbitraryDictionaries:
 class TestPhaseHonesty:
     """Les paquets des phases suivantes restent vides, sans faux moteur."""
 
-    @pytest.mark.parametrize(
-        "package",
-        ["providers", "renderers", "engines", "qa", "repair", "audio", "editing"],
-    )
+    UNIMPLEMENTED = ("providers", "renderers", "qa", "repair", "audio", "editing")
+    """Paquets dont la phase n'est pas faite. `engines` en est sorti en phase 1."""
+
+    @pytest.mark.parametrize("package", UNIMPLEMENTED)
     def test_unimplemented_packages_contain_only_their_notice(self, package: str) -> None:
         files = _python_files(package)
         assert [p.name for p in files] == ["__init__.py"], (
@@ -181,3 +183,126 @@ class TestPhaseHonesty:
         )
         text = files[0].read_text(encoding="utf-8")
         assert "non implémenté" in text
+
+    def test_the_engines_actually_shipped_are_the_ones_announced(self) -> None:
+        """Un moteur annoncé dans `engines/__init__` doit exister, et inversement."""
+        directory = PACKAGE_ROOT / "engines"
+        present = sorted(
+            path.name
+            for path in directory.iterdir()
+            if path.is_dir() and (path / "__init__.py").exists()
+        )
+        assert present == ["direction", "research"]
+
+    def test_no_reasoner_adapter_pretends_to_exist(self) -> None:
+        """Le port `Reasoner` est défini, aucun adaptateur ne l'implémente.
+
+        Le jour où un adaptateur arrive, ce test échoue — et c'est le moment
+        de retirer la mention « aucun raisonneur branché » de `pdz2 phases`.
+        """
+        from pdz2.cli.main import IMPLEMENTED_PHASES
+
+        adapters = _python_files("providers")
+        assert [p.name for p in adapters] == ["__init__.py"]
+        assert any("aucun raisonneur branché" in line for line in IMPLEMENTED_PHASES)
+
+
+class TestIndependenceFromPdz1:
+    """PDZ 2 ne doit rien à l'ancien système.
+
+    L'ancien paquet `pdz/` vit dans le même dépôt. Ce test échoue au moindre
+    emprunt : import, chemin en dur, ou lecture d'un de ses fichiers de
+    configuration. « PDZ 1 peut exister à côté, PDZ 2 ne lui doit rien » est
+    ainsi une propriété vérifiée, pas une intention.
+    """
+
+    FORBIDDEN_MODULE_PREFIXES = ("pdz.", "pdz2.tests.doubles_pdz1")
+    FORBIDDEN_PATHS = ("pdz/", "modeles.yaml", "univers/", "donnees/")
+
+    def test_no_module_of_pdz2_imports_the_old_package(self) -> None:
+        offenders: list[str] = []
+        for path in PACKAGE_ROOT.rglob("*.py"):
+            for module in _imports_of(path):
+                if module == "pdz" or module.startswith(self.FORBIDDEN_MODULE_PREFIXES):
+                    offenders.append(f"{path.relative_to(PACKAGE_ROOT)} importe {module}")
+        assert not offenders, offenders
+
+    def test_no_module_of_pdz2_reaches_into_the_old_tree(self) -> None:
+        offenders: list[str] = []
+        for path in PACKAGE_ROOT.rglob("*.py"):
+            if path == Path(__file__):  # ce fichier cite les motifs interdits
+                continue
+            text = path.read_text(encoding="utf-8")
+            for needle in self.FORBIDDEN_PATHS:
+                for quote in ('"', "'"):
+                    if f"{quote}{needle}" in text or f"{quote}./{needle}" in text:
+                        offenders.append(
+                            f"{path.relative_to(PACKAGE_ROOT)} référence {needle!r}"
+                        )
+        assert not offenders, offenders
+
+    def test_pdz2_is_importable_without_the_old_package(self) -> None:
+        """Le paquet se charge même si `pdz` est introuvable."""
+        import subprocess
+        import sys
+
+        script = (
+            "import sys;"
+            "sys.modules['pdz'] = None;"
+            "import pdz2.contracts, pdz2.state, pdz2.storage, pdz2.cli;"
+            "print('ok')"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            capture_output=True,
+            text=True,
+            cwd=PACKAGE_ROOT.parent,
+        )
+        assert result.returncode == 0, result.stderr
+        assert "ok" in result.stdout
+
+
+class TestContractRegistryIsComplete:
+    """Importer `pdz2.contracts` doit suffire à connaître tous les contrats.
+
+    Un contrat déclaré ailleurs — dans un moteur, un adaptateur — resterait
+    invisible du registre tant que ce module n'est pas importé : les schémas
+    seraient incomplets, et la relecture d'un épisode échouerait sur un
+    `contrat inconnu`. Ce test ferme cette porte.
+    """
+
+    def test_no_contract_is_declared_outside_the_contracts_package(self) -> None:
+        offenders: list[str] = []
+        for path in PACKAGE_ROOT.rglob("*.py"):
+            if path.parts[-2] == "contracts" or "tests" in path.parts:
+                continue
+            text = path.read_text(encoding="utf-8")
+            if "@contract(" in text:
+                offenders.append(str(path.relative_to(PACKAGE_ROOT)))
+        assert not offenders, (
+            f"contrats déclarés hors de `contracts/` : {offenders} — "
+            "ils échapperaient au registre et aux schémas"
+        )
+
+    def test_importing_contracts_alone_registers_everything(self) -> None:
+        import subprocess
+        import sys
+
+        script = (
+            "import pdz2.contracts as c;"
+            "print(len(c.registry.names()));"
+            "import pdz2.engines.research, pdz2.engines.direction, pdz2.cli.main;"
+            "print(len(c.registry.names()))"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            capture_output=True,
+            text=True,
+            cwd=PACKAGE_ROOT.parent,
+        )
+        assert result.returncode == 0, result.stderr
+        before, after = result.stdout.split()
+        assert before == after, (
+            f"{int(after) - int(before)} contrat(s) apparaissent seulement "
+            "après l'import d'un moteur"
+        )

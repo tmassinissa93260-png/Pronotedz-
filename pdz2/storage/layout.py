@@ -15,6 +15,7 @@ __all__ = ["EpisodeLayout", "SINGLETON_FILES", "COLLECTION_DIRS", "MEDIA_FILES"]
 SINGLETON_FILES: dict[str, str] = {
     "topic_request": "topic_request.json",
     "research_state": "research.json",
+    "director_brief": "director_brief.json",
     "director_state": "director_state.json",
     "script_state": "script.json",
     "voice_timeline": "voice_timeline.json",

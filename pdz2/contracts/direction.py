@@ -19,6 +19,9 @@ from pdz2.contracts.enums import NarrativeFunction, Pacing, Tone
 
 __all__ = [
     "AnchorKind",
+    "AnchorDraft",
+    "VisualProofDraft",
+    "DirectorBrief",
     "AttributeBinding",
     "IdentityAttribute",
     "AnchorSpec",
@@ -209,3 +212,107 @@ class DirectorState(Contract):
             if anchor.id == anchor_id:
                 return anchor
         raise KeyError(anchor_id)
+
+
+# ---------------------------------------------------------------------------
+# Le brief de réalisation : la décision conceptuelle, produite **une fois**.
+#
+# Le cahier des charges est explicite : « Une décision conceptuelle doit être
+# produite une fois puis transformée par des compilateurs déterministes. » Ce
+# contrat est cette décision — et rien d'autre. Tout ce qui s'en déduit
+# (chaîne causale, découpage, courbes, densité) est calculé, pas décidé.
+#
+# Il contient exactement ce qu'aucun calcul ne peut produire : une thèse, un
+# ton, un registre visuel, une chute, et — pour chaque affirmation qu'on veut
+# démontrer — ce que le spectateur doit physiquement voir.
+#
+# Il vit ici, avec les autres contrats, et non dans le moteur qui le consomme :
+# un contrat est le langage commun des couches, pas la propriété de l'une
+# d'elles. Il est ainsi enregistré dès l'import de `pdz2.contracts`.
+# ---------------------------------------------------------------------------
+
+class AnchorDraft(Element):
+    """Une ancre de continuité, telle que la réalisation la conçoit."""
+
+    name: str = Field(min_length=1)
+    kind: AnchorKind
+    canonical_description: str = Field(min_length=1)
+    identity: list[IdentityAttribute] = Field(min_length=1)
+
+
+class VisualProofDraft(Element):
+    """La réponse à « qu'est-ce que le spectateur doit physiquement voir ? »."""
+
+    claim_id: str = Field(min_length=1)
+    causal_mechanism: str = Field(min_length=1)
+    evidence_required: str = Field(min_length=1)
+    visual_proof: str = Field(min_length=1)
+    anchor_names: list[str] = Field(default_factory=list)
+
+    acknowledged_dispute: bool = False
+    """À cocher pour employer une affirmation que les sources contestent.
+
+    Le compilateur refuse une affirmation disputée sans cet aveu explicite :
+    une vidéo documentaire ne présente pas par inadvertance un point contesté
+    comme un fait acquis."""
+
+    @model_validator(mode="after")
+    def _proof_is_concrete(self) -> Self:
+        if len(self.visual_proof.split()) < 4:
+            raise ValueError(
+                f"preuve visuelle trop vague pour {self.claim_id} : décrire ce qui "
+                "est à l'écran, pas un thème"
+            )
+        return self
+
+
+@contract("director_brief", "1.0.0")
+class DirectorBrief(Contract):
+    """Décision de réalisation. Aucune donnée de rendu, aucun fournisseur."""
+
+    topic_request_id: str = Field(min_length=1)
+    research_state_id: str = Field(min_length=1)
+
+    thesis: str = Field(min_length=1)
+    audience: str = Field(min_length=1)
+    tone: Tone
+    pacing: Pacing
+    ending_payoff: str = Field(min_length=1)
+    visual_language: VisualLanguage
+
+    anchors: list[AnchorDraft] = Field(default_factory=list)
+    visual_proofs: list[VisualProofDraft] = Field(min_length=1)
+    excluded_claim_ids: list[str] = Field(default_factory=list)
+
+    author: str = Field(default="human", min_length=1)
+    """Qui a pris la décision : « human », ou le nom du raisonneur."""
+
+    @model_validator(mode="after")
+    def _coherent(self) -> Self:
+        names = [anchor.name for anchor in self.anchors]
+        if len(set(names)) != len(names):
+            raise ValueError("brief : deux ancres portent le même nom")
+        known = set(names)
+
+        claims = [proof.claim_id for proof in self.visual_proofs]
+        if len(set(claims)) != len(claims):
+            raise ValueError("brief : deux preuves visuelles pour la même affirmation")
+
+        excluded = set(self.excluded_claim_ids)
+        clash = excluded & set(claims)
+        if clash:
+            raise ValueError(f"brief : affirmations à la fois retenues et exclues {sorted(clash)}")
+
+        for proof in self.visual_proofs:
+            unknown = [name for name in proof.anchor_names if name not in known]
+            if unknown:
+                raise ValueError(
+                    f"brief : preuve de {proof.claim_id} citant des ancres inconnues {unknown}"
+                )
+        return self
+
+    def proof_for(self, claim_id: str) -> VisualProofDraft | None:
+        for proof in self.visual_proofs:
+            if proof.claim_id == claim_id:
+                return proof
+        return None

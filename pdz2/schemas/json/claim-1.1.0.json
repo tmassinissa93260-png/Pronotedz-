@@ -36,7 +36,7 @@
       "type": "string"
     }
   },
-  "$id": "pdz2:claim/1.0.0",
+  "$id": "pdz2:claim/1.1.0",
   "additionalProperties": false,
   "description": "Une affirmation, ses preuves, et ce qu'il faut montrer pour la prouver.",
   "properties": {
@@ -67,6 +67,13 @@
       "format": "date-time",
       "title": "Created At",
       "type": "string"
+    },
+    "demonstrability": {
+      "default": 0.0,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Demonstrability",
+      "type": "number"
     },
     "depends_on": {
       "items": {

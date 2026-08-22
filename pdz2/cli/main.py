@@ -21,9 +21,12 @@ from pdz2.schemas import SCHEMA_DIR, check_up_to_date, export_all, schema_for
 from pdz2.state.stages import STAGE_ORDER, definition
 from pdz2.storage import EpisodeStore
 
-IMPLEMENTED_PHASES = ("Phase 0 — contrats, versionnage, machine à états",)
+IMPLEMENTED_PHASES = (
+    "Phase 0 — contrats, versionnage, machine à états",
+    "Phase 1 — research + fact graph + director state "
+    "(corpus local ; aucun raisonneur branché, le brief est rédigé)",
+)
 PENDING_PHASES = (
-    "Phase 1 — research + fact graph + director state",
     "Phase 2 — script + TTS réel + timing",
     "Phase 3 — shot graph + visual bible",
     "Phase 4 — render spec + static validator",
@@ -130,8 +133,13 @@ def _cmd_phases(args: argparse.Namespace) -> int:
 
 def _cmd_create(args: argparse.Namespace) -> int:
     print(
-        "PDZ 2 ne sait pas encore produire d'épisode : seule la phase 0 "
-        "(contrats, versionnage, machine à états) est implémentée.\n"
+        "PDZ 2 ne sait pas encore produire d'épisode de bout en bout : les "
+        "phases 0 et 1 sont implémentées (contrats, machine à états, recherche, "
+        "Director Core).\n"
+        "Chaîne disponible aujourd'hui :\n"
+        "  pdz2 research       --episode DIR --topic \"...\" --corpus DIR\n"
+        "  pdz2 brief-template --episode DIR --out brief.json\n"
+        "  pdz2 direct         --episode DIR --brief brief.json\n"
         "Voir `pdz2 phases` pour l'état réel du chantier.",
         file=sys.stderr,
     )
@@ -172,6 +180,10 @@ def build_parser() -> argparse.ArgumentParser:
     show = state_sub.add_parser("show", help="afficher l'état d'un épisode")
     show.add_argument("episode", help="dossier de l'épisode")
     show.set_defaults(func=_cmd_state_show)
+
+    from pdz2.cli import phase1
+
+    phase1.register(subparsers)
 
     subparsers.add_parser("phases", help="état réel du chantier").set_defaults(func=_cmd_phases)
 

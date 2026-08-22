@@ -7,6 +7,7 @@ documentaire — une `Claim` sans preuve ne peut pas porter de confiance.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from datetime import date, datetime
 from enum import Enum
 from typing import Self
@@ -107,7 +108,7 @@ class Evidence(Contract):
     """Où retrouver la citation dans la source : page, section, horodatage."""
 
 
-@contract("claim", "1.0.0")
+@contract("claim", "1.1.0")
 class Claim(Contract):
     """Une affirmation, ses preuves, et ce qu'il faut montrer pour la prouver."""
 
@@ -119,6 +120,13 @@ class Claim(Contract):
 
     load_bearing: bool = False
     """Affirmation « importante » : la démonstration s'écroule sans elle."""
+
+    demonstrability: float = Field(default=0.0, ge=0.0, le=1.0)
+    """MESURE : à quel point l'affirmation est *montrable*, calculée par le
+    moteur de recherche. Indice de tri, pas une autorisation — cocher
+    `visually_demonstrable` reste une décision du Director Core, adossée à un
+    `visual_proof` rédigé. Ajouté en 1.1.0 ; absent des documents 1.0.0, où il
+    vaut 0.0 (« jamais mesuré »)."""
 
     # Visual Evidence Engine — cahier des charges §5.
     causal_mechanism: str | None = None
@@ -231,14 +239,33 @@ class FactGraph(Contract):
 
         return any(visit(node) for node in self.claim_ids)
 
-    def topological_order(self) -> list[str]:
-        """Ordre causal : une cause précède toujours sa conséquence."""
-        indegree = dict.fromkeys(self.claim_ids, 0)
-        successors: dict[str, list[str]] = {claim: [] for claim in self.claim_ids}
+    def topological_order(self, subset: Iterable[str] | None = None) -> list[str]:
+        """Ordre causal : une cause précède toujours sa conséquence.
+
+        `subset` restreint l'ordre au **sous-graphe induit** par ces
+        affirmations. C'est ce qu'il faut quand la réalisation n'en retient
+        qu'une partie : une dépendance vers une affirmation écartée ne doit
+        plus peser sur l'ordre de celles qui restent, sinon un plan se
+        retrouve relégué à cause d'un lien vers un plan qui n'existe pas.
+        """
+        if subset is None:
+            nodes = list(self.claim_ids)
+        else:
+            kept = set(subset)
+            unknown = kept - set(self.claim_ids)
+            if unknown:
+                raise KeyError(f"affirmations hors du graphe : {sorted(unknown)}")
+            nodes = [claim for claim in self.claim_ids if claim in kept]
+
+        scope = set(nodes)
+        indegree = dict.fromkeys(nodes, 0)
+        successors: dict[str, list[str]] = {claim: [] for claim in nodes}
         for edge in self.edges:
+            if edge.from_claim_id not in scope or edge.to_claim_id not in scope:
+                continue
             successors[edge.from_claim_id].append(edge.to_claim_id)
             indegree[edge.to_claim_id] += 1
-        ready = [node for node in self.claim_ids if indegree[node] == 0]
+        ready = [node for node in nodes if indegree[node] == 0]
         order: list[str] = []
         while ready:
             node = ready.pop(0)
