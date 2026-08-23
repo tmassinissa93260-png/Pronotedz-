@@ -45,7 +45,7 @@
       "type": "object"
     }
   },
-  "$id": "pdz2:render_artifact/1.0.0",
+  "$id": "pdz2:render_artifact/1.1.0",
   "additionalProperties": false,
   "description": "Ce qui est réellement sorti d'une exécution, avec son coût mesuré.",
   "properties": {
@@ -207,6 +207,18 @@
       "minimum": 0,
       "title": "Size Bytes",
       "type": "integer"
+    },
+    "source_contract_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Contract Id"
     },
     "status": {
       "$ref": "#/$defs/ContractStatus",

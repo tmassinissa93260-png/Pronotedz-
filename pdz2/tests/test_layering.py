@@ -169,11 +169,45 @@ class TestNoArbitraryDictionaries:
         assert not offenders, offenders
 
 
+class TestAudioCoreStaysEngineAgnostic:
+    """Un seul module de la chaîne audio a le droit de nommer un moteur.
+
+    Le port, la mesure, l'assemblage et la timeline doivent survivre au
+    remplacement du moteur de synthèse sans une ligne de changement.
+    """
+
+    ADAPTERS = {"espeak.py", "__init__.py"}
+    """L'adaptateur nomme son moteur, et la façade du paquet le ré-exporte.
+
+    Partout ailleurs — port, mesure, assemblage, timeline — le nom d'un moteur
+    est une fuite d'exécution dans une couche qui doit l'ignorer."""
+
+    def test_only_the_adapter_names_its_engine(self) -> None:
+        offenders: list[str] = []
+        for path in _python_files("audio"):
+            if path.name in self.ADAPTERS:
+                continue
+            lowered = path.read_text(encoding="utf-8").lower()
+            for brand in ("espeak", *PROVIDER_BRANDS):
+                if brand in lowered:
+                    offenders.append(f"{path.name} mentionne {brand!r}")
+        assert not offenders, offenders
+
+    def test_the_timeline_builder_knows_no_engine_at_all(self) -> None:
+        from pdz2.audio import timeline
+
+        source = Path(timeline.__file__).read_text(encoding="utf-8").lower()
+        assert "espeak" not in source
+        assert "subprocess" not in source
+
+
 class TestPhaseHonesty:
     """Les paquets des phases suivantes restent vides, sans faux moteur."""
 
-    UNIMPLEMENTED = ("providers", "renderers", "qa", "repair", "audio", "editing")
-    """Paquets dont la phase n'est pas faite. `engines` en est sorti en phase 1."""
+    UNIMPLEMENTED = ("providers", "renderers", "qa", "repair", "editing")
+    """Paquets dont la phase n'est pas faite.
+
+    `engines` en est sorti en phase 1, `audio` en phase 2."""
 
     @pytest.mark.parametrize("package", UNIMPLEMENTED)
     def test_unimplemented_packages_contain_only_their_notice(self, package: str) -> None:
@@ -192,7 +226,7 @@ class TestPhaseHonesty:
             for path in directory.iterdir()
             if path.is_dir() and (path / "__init__.py").exists()
         )
-        assert present == ["direction", "research"]
+        assert present == ["direction", "research", "script"]
 
     def test_no_reasoner_adapter_pretends_to_exist(self) -> None:
         """Le port `Reasoner` est défini, aucun adaptateur ne l'implémente.

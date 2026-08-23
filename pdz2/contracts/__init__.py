@@ -9,6 +9,7 @@ chose que les trois couches ont le droit de partager.
 from __future__ import annotations
 
 from pdz2.contracts.base import Contract, ContractStatus, Element, contract
+from pdz2.contracts.capability import CapabilityState, ProviderCapability
 from pdz2.contracts.common import (
     Composition,
     CostEstimate,
@@ -185,6 +186,8 @@ __all__ = [
     "CurvePoint",
     "CostEstimate",
     "QaCheck",
+    "CapabilityState",
+    "ProviderCapability",
     # recherche
     "TopicRequest",
     "SourceReference",

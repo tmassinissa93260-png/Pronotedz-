@@ -333,12 +333,18 @@ class ExecutionPlan(Contract):
         return order
 
 
-@contract("render_artifact", "1.0.0")
+@contract("render_artifact", "1.1.0")
 class RenderArtifact(Contract):
     """Ce qui est réellement sorti d'une exécution, avec son coût mesuré."""
 
     executable_spec_id: str | None = None
     shot_id: str | None = None
+    source_contract_id: str | None = None
+    """Contrat que cet artefact rend : une réplique de script, un plan…
+
+    Générique à dessein : un artefact sait de quoi il est le rendu sans que le
+    contrat connaisse toutes les couches. Ajouté en 1.1.0 ; absent des
+    documents 1.0.0, où il vaut `None`."""
     kind: ArtifactKind
     path: str = Field(min_length=1)
     sha256: str = Field(min_length=64, max_length=64)

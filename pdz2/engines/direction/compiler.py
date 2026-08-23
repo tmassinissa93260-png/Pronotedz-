@@ -120,8 +120,8 @@ class DirectorCompiler:
                     order=order,
                     narrative_function=function,
                     claim_id=claim.id if claim is not None else None,
-                    what_the_viewer_must_understand=(
-                        claim.text if claim is not None else brief.thesis
+                    what_the_viewer_must_understand=self._framing_understanding(
+                        function, brief, claim
                     ),
                     what_the_viewer_must_see=(
                         proof.visual_proof
@@ -305,6 +305,24 @@ class DirectorCompiler:
             return None
         index = order - offset
         return selected[index] if 0 <= index < len(selected) else None
+
+    @staticmethod
+    def _framing_understanding(
+        function: NarrativeFunction,
+        brief: DirectorBrief,
+        claim: Claim | None,
+    ) -> str:
+        """Ce que le plan doit faire comprendre.
+
+        Un plan démonstratif porte son affirmation. L'ouverture porte la
+        thèse ; la chute porte la chute — et non la thèse répétée, sans quoi
+        le script compilé dirait deux fois la même chose au spectateur.
+        """
+        if claim is not None:
+            return claim.text
+        if function is NarrativeFunction.PAYOFF:
+            return brief.ending_payoff
+        return brief.thesis
 
     @staticmethod
     def _framing_shot_subject(function: NarrativeFunction, brief: DirectorBrief) -> str:

@@ -55,7 +55,9 @@ HUMANS JUDGE.           Ce qu'aucune mesure ne tranche revient à l'humain.
 | Jamais un fait certain sans preuve | `Claim` : sans `evidence_ids`, la confiance est forcée à 0 et le statut reste `unverified` |
 | Une affirmation porteuse a une preuve visuelle | `Claim.load_bearing` exige `causal_mechanism`, `evidence_required`, `visual_proof` |
 | Ne pas illustrer une phrase abstraite | `VisualEvidencePlan` refuse un `visual_proof` de moins de quatre mots |
-| VOICE FIRST | `VoiceTimeline` refuse une source de timing estimée ; `TIMELINE` dépend de `VOICE` dans le graphe d'étapes |
+| VOICE FIRST | `VoiceTimeline` refuse un timing estimé ; `TIMELINE` dépend de `VOICE` ; `pdz2/audio/` ne peut pas lire `estimated_duration_s` |
+| La durée officielle sort d'un fichier | `MeasuredLine` n'a pas de champ de durée, seulement une mesure de trames |
+| Un audio muet n'a pas de durée officielle | plancher d'énergie : `AudioSilent` refuse un WAV lisible et vide |
 | Continuité représentée dans les données | `AnchorSpec` exige au moins un attribut d'identité `fixed` |
 | Pas de dégradation silencieuse | `RenderSpecExecutable` refuse tout écart avec l'écho de la demande qui n'est pas déclaré en `Degradation` |
 | Caméra verrouillée ≠ caméra qui bouge | `CameraProgram` refuse `locked=true` avec un mouvement, une vitesse ou une trajectoire |
@@ -75,12 +77,12 @@ pdz2/
 ├── state/          graphe d'étapes et machine à états reprenable
 ├── storage/        dossier d'épisode : écriture atomique, relecture typée
 ├── cli/            inspection des contrats, des schémas et d'un épisode
-├── engines/        research + direction (phase 1) ; image, 2.5D à venir
+├── engines/        research + direction + script ; image, 2.5D à venir
+├── audio/          synthèse réelle, mesure du WAV, VoiceTimeline (phase 2)
 ├── providers/      adaptateurs de fournisseurs        — non implémenté
 ├── renderers/      exécution des stratégies de rendu   — non implémenté
 ├── qa/             observation déterministe            — non implémenté
 ├── repair/         diagnostic et réparation            — non implémenté
-├── audio/          voix, sound design, mastering       — non implémenté
 ├── editing/        montage                             — non implémenté
 └── tests/          tests de contrat, d'état et d'architecture
 ```
@@ -106,3 +108,11 @@ Voir `pdz2 phases`. Aujourd'hui : **phases 0 et 1**.
 * Phase 1 — recherche factuelle, Fact Graph, Director Core. Corpus local
   seulement (le réseau de recherche est bloqué ici), brief rédigé à la main
   (aucun raisonneur branché). Détail : [`PHASE-1.md`](../PHASE-1.md).
+* Phase 2 — script compilé, synthèse vocale réelle, timeline mesurée. Moteur
+  eSpeak NG hors-ligne. Détail : [`PHASE-2.md`](../PHASE-2.md).
+
+### Dépendance système
+
+La phase 2 exige le binaire **`espeak-ng`** (`apt-get install espeak-ng`).
+Absent, l'adaptateur se déclare `UNAVAILABLE` avec la raison et les tests
+concernés sont ignorés — rien ne fait semblant de fonctionner.

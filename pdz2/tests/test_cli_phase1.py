@@ -183,4 +183,3 @@ class TestPhasesReportsReality:
         out = capsys.readouterr().out
         assert "[x] Phase 1" in out
         assert "aucun raisonneur branché" in out
-        assert "[ ] Phase 2" in out

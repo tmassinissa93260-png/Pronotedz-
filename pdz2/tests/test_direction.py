@@ -387,3 +387,19 @@ class TestDirectorCompiler:
             i.target_duration_s for i in second.state.shot_intents
         ]
         assert first.state.causal_chain == second.state.causal_chain
+
+
+class TestFramingShots:
+    """L'ouverture et la chute ne disent pas la même chose."""
+
+    def test_the_payoff_carries_the_payoff_not_the_thesis(self, research_pair) -> None:
+        request, research = research_pair
+        brief = _brief(request, research, [_claim(research, "stator").id])
+        state = DirectorCompiler().compile(
+            request=request, research=research, brief=brief
+        ).state
+        hook = state.shot_intents[0]
+        payoff = state.shot_intents[-1]
+        assert hook.what_the_viewer_must_understand == brief.thesis
+        assert payoff.what_the_viewer_must_understand == brief.ending_payoff
+        assert hook.what_the_viewer_must_understand != payoff.what_the_viewer_must_understand

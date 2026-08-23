@@ -21,12 +21,13 @@ PDZ 2 ne migre pas et ne répare pas le système ci-dessous — il est écrit à
 part et les deux paquets cohabitent le temps du chantier.
 
 * Architecture et décisions : [`pdz2/architecture/`](./pdz2/architecture/)
-* État réel du chantier : `pdz2 phases` — **phases 0 et 1** aujourd'hui.
-  Contrats versionnés, machine à états, persistance, schémas JSON, puis
-  recherche factuelle, Fact Graph et Director Core.
-* Ce qui tourne de bout en bout :
-  `pdz2 research` → `pdz2 brief-template` → `pdz2 direct`, d'une question à un
-  `DirectorState` compilé.
+* État réel du chantier : `pdz2 phases` — **phases 0 à 2** aujourd'hui.
+  Contrats versionnés, machine à états, recherche factuelle, Fact Graph,
+  Director Core, script compilé et voix réellement synthétisée.
+* Ce qui tourne de bout en bout : `pdz2 research` → `brief-template` →
+  `direct` → `script` → `voice` → `timeline`, d'une question à une timeline
+  de voix **mesurée sur l'audio réel**.
+* Dépendance système pour la voix : `espeak-ng`.
 * La commande `pdz2 create` existe mais refuse de produire une vidéo tant que
   les phases suivantes ne sont pas réellement implémentées.
 
