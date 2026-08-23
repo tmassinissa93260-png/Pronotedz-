@@ -232,9 +232,27 @@ class RenderSpecExecutable(Contract):
 
 
 _FREE_FORM_DEGRADATION_FIELDS = frozenset(
-    {"identity_lock", "motion", "subject_motion", "environment_motion", "audio"}
+    {
+        "identity_lock",
+        "motion",
+        "subject_motion",
+        "environment_motion",
+        "audio",
+        "provider_availability",
+        "retry_strategy",
+    }
 )
-"""Champs dont l'écart ne se déduit pas de l'écho : déclarés librement."""
+"""Champs dont l'écart ne se déduit pas de l'écho : déclarés librement.
+
+L'écho ne couvre que ce que la demande chiffrait — caméra, durée, résolution,
+cadence, stratégie préférée. Le reste se déclare ici, à condition d'être nommé.
+
+`provider_availability` et `retry_strategy` existent parce qu'ils ne sont
+*pas* des écarts de stratégie : quand la réalisation n'a exprimé aucune
+préférence, choisir une stratégie n'est pas une dégradation. Constater qu'un
+fournisseur autorisé est injoignable, ou qu'un plan a épuisé ses tentatives,
+en est une — et elle mérite son propre nom plutôt que de se déguiser en écart
+de stratégie."""
 
 
 class ExecutionStepKind(str, Enum):

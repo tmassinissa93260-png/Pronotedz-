@@ -34,7 +34,6 @@ COLLECTION_DIRS: dict[str, str] = {
     "render_spec_executable": "render_specs",
     "execution_plan": "execution_plans",
     "motion_program": "motion_programs",
-    "temporal_plan_item": "motion_programs",
     "camera_program": "motion_programs",
     "image_spec": "render_specs",
     "render_artifact": "renders",

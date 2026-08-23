@@ -204,10 +204,11 @@ class TestAudioCoreStaysEngineAgnostic:
 class TestPhaseHonesty:
     """Les paquets des phases suivantes restent vides, sans faux moteur."""
 
-    UNIMPLEMENTED = ("providers", "renderers", "qa", "repair", "editing")
+    UNIMPLEMENTED = ("renderers", "qa", "repair", "editing")
     """Paquets dont la phase n'est pas faite.
 
-    `engines` en est sorti en phase 1, `audio` en phase 2."""
+    `engines` en est sorti en phase 1, `audio` en phase 2, `providers` en
+    phase 6 — où il ne porte encore que des ports, sans adaptateur."""
 
     @pytest.mark.parametrize("package", UNIMPLEMENTED)
     def test_unimplemented_packages_contain_only_their_notice(self, package: str) -> None:
@@ -232,6 +233,7 @@ class TestPhaseHonesty:
             "motion",
             "renderspec",
             "research",
+            "routing",
             "script",
             "shots",
             "temporal",
@@ -239,17 +241,27 @@ class TestPhaseHonesty:
             "visual",
         ]
 
-    def test_no_reasoner_adapter_pretends_to_exist(self) -> None:
-        """Le port `Reasoner` est défini, aucun adaptateur ne l'implémente.
+    PORTS_WITHOUT_ADAPTER = {"__init__.py", "video.py"}
+    """Fichiers de `providers/` qui ne définissent qu'un port, sans adaptateur.
 
-        Le jour où un adaptateur arrive, ce test échoue — et c'est le moment
-        de retirer la mention « aucun raisonneur branché » de `pdz2 phases`.
-        """
+    Le jour où un adaptateur arrive, ce test échoue — et c'est le moment de
+    retirer les mentions « aucun raisonneur branché » et « aucun adaptateur
+    vidéo implémenté » de `pdz2 phases`.
+    """
+
+    def test_no_adapter_pretends_to_exist(self) -> None:
         from pdz2.cli.main import IMPLEMENTED_PHASES
 
-        adapters = _python_files("providers")
-        assert [p.name for p in adapters] == ["__init__.py"]
-        assert any("aucun raisonneur branché" in line for line in IMPLEMENTED_PHASES)
+        present = {path.name for path in _python_files("providers")}
+        assert present == self.PORTS_WITHOUT_ADAPTER
+        joined = " ".join(IMPLEMENTED_PHASES)
+        assert "aucun raisonneur branché" in joined
+        assert "aucun adaptateur vidéo implémenté" in joined
+
+    def test_the_video_port_declares_that_nothing_implements_it(self) -> None:
+        from pdz2.providers import NO_VIDEO_PROVIDERS
+
+        assert NO_VIDEO_PROVIDERS == ()
 
 
 class TestIndependenceFromPdz1:
