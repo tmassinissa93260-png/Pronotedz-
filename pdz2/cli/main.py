@@ -41,9 +41,10 @@ IMPLEMENTED_PHASES = (
     "(mesures sur les pixels réels ; aucun jugement esthétique)",
     "Phase 9 — diagnostic + repair compiler "
     "(causes adossées aux mesures, boucle bornée, repli garanti)",
+    "Phase 10 — montage + mastering audio + sous-titres + QA finale "
+    "(MP4 réellement produit et contrôlé)",
 )
 PENDING_PHASES = (
-    "Phase 10 — montage + mastering audio",
     "Phase 11 — capability matrix + cost governor",
     "Phase 12 — production journal",
 )
@@ -162,6 +163,10 @@ def _cmd_create(args: argparse.Namespace) -> int:
         "  pdz2 observe        --episode DIR\n"
         "  pdz2 diagnose       --episode DIR\n"
         "  pdz2 repair         --episode DIR [--apply]\n"
+        "  pdz2 edit           --episode DIR\n"
+        "  pdz2 master         --episode DIR\n"
+        "  pdz2 subtitle       --episode DIR\n"
+        "  pdz2 deliver        --episode DIR\n"
         "Voir `pdz2 phases` pour l'état réel du chantier.",
         file=sys.stderr,
     )
@@ -203,7 +208,18 @@ def build_parser() -> argparse.ArgumentParser:
     show.add_argument("episode", help="dossier de l'épisode")
     show.set_defaults(func=_cmd_state_show)
 
-    from pdz2.cli import phase1, phase2, phase3, phase4, phase5, phase6, phase7, phase8, phase9
+    from pdz2.cli import (
+        phase1,
+        phase2,
+        phase3,
+        phase4,
+        phase5,
+        phase6,
+        phase7,
+        phase8,
+        phase9,
+        phase10,
+    )
 
     phase1.register(subparsers)
     phase2.register(subparsers)
@@ -214,6 +230,7 @@ def build_parser() -> argparse.ArgumentParser:
     phase7.register(subparsers)
     phase8.register(subparsers)
     phase9.register(subparsers)
+    phase10.register(subparsers)
 
     subparsers.add_parser("phases", help="état réel du chantier").set_defaults(func=_cmd_phases)
 

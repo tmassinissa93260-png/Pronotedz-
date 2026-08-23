@@ -8,6 +8,12 @@ objet, la fidélité au sujet — revient à la revue humaine, parce que sans
 modèle, prétendre le rendre serait une mesure inventée.
 """
 
+from pdz2.qa.final import (
+    FINAL_QA_VERSION,
+    HUMAN_REVIEW_NOTICE,
+    FinalQa,
+    FinalQaOutcome,
+)
 from pdz2.qa.measures import (
     ANALYSIS_WIDTH,
     FrameSequence,
@@ -46,4 +52,8 @@ __all__ = [
     "sharpness",
     "colour_distance_to_palette",
     "ANALYSIS_WIDTH",
+    "FinalQa",
+    "FinalQaOutcome",
+    "FINAL_QA_VERSION",
+    "HUMAN_REVIEW_NOTICE",
 ]

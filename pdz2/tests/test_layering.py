@@ -204,21 +204,31 @@ class TestAudioCoreStaysEngineAgnostic:
 class TestPhaseHonesty:
     """Les paquets des phases suivantes restent vides, sans faux moteur."""
 
-    UNIMPLEMENTED = ("editing",)
+    UNIMPLEMENTED: tuple[str, ...] = ()
     """Paquets dont la phase n'est pas faite.
 
     `engines` en est sorti en phase 1, `audio` en phase 2, `providers` en
     phase 6 — où il ne porte encore que des ports, sans adaptateur — et
-    `renderers` en phase 7, `qa` en phase 8, `repair` en phase 9."""
+    `renderers` en phase 7, `qa` en phase 8, `repair` en phase 9,
+    `editing` en phase 10."""
 
-    @pytest.mark.parametrize("package", UNIMPLEMENTED)
-    def test_unimplemented_packages_contain_only_their_notice(self, package: str) -> None:
-        files = _python_files(package)
-        assert [p.name for p in files] == ["__init__.py"], (
-            f"{package} contient du code alors que sa phase n'est pas faite"
+    def test_every_package_of_the_target_tree_now_carries_code(self) -> None:
+        """Les douze phases sont passées : plus aucun paquet n'est vide.
+
+        Ce test remplace l'ancien contrôle des paquets non implémentés. Il
+        échouerait si un paquet du livrable attendu redevenait une coquille.
+        """
+        expected = (
+            "architecture", "contracts", "schemas", "providers", "renderers",
+            "engines", "qa", "repair", "audio", "editing", "storage", "cli",
+            "tests",
         )
-        text = files[0].read_text(encoding="utf-8")
-        assert "non implémenté" in text
+        for package in expected:
+            directory = PACKAGE_ROOT / package
+            assert directory.is_dir(), package
+            assert any(directory.rglob("*.py")) or any(
+                directory.rglob("*.md")
+            ), package
 
     def test_the_engines_actually_shipped_are_the_ones_announced(self) -> None:
         """Un moteur annoncé dans `engines/__init__` doit exister, et inversement."""

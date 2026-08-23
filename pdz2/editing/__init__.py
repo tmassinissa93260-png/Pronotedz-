@@ -1,11 +1,43 @@
-"""Montage — non implémenté.
+"""Montage, sous-titres et assemblage — phase 10.
 
-Périmètre prévu : phase 10.
-
-Ce paquet est volontairement vide. Le cahier des charges interdit les faux
-adaptateurs et les capacités simulées : tant que le code réel n'existe pas,
-rien ici ne doit laisser croire le contraire. Les contrats que ces modules
-consommeront existent déjà dans `pdz2.contracts`.
+Le montage n'invente rien : il pose les plans rendus aux instants du découpage,
+qui dérive lui-même de la voix mesurée. Il refuse dès que deux durées
+divergent — un montage bâti sur deux vérités temporelles produit un décalage
+qu'on ne rattrape plus.
 """
 
-__all__: list[str] = []
+from pdz2.editing.assembler import (
+    DURATION_TOLERANCE_S,
+    AssemblyFailed,
+    AssemblyOutcome,
+    VideoAssembler,
+)
+from pdz2.editing.subtitles import (
+    MIN_CUE_S,
+    SubtitleCompiler,
+    SubtitleOutcome,
+    SubtitleRejected,
+    to_srt,
+)
+from pdz2.editing.timeline import (
+    SYNC_TOLERANCE_S,
+    EditCompiler,
+    EditOutcome,
+    EditRejected,
+)
+
+__all__ = [
+    "EditCompiler",
+    "EditOutcome",
+    "EditRejected",
+    "SYNC_TOLERANCE_S",
+    "SubtitleCompiler",
+    "SubtitleOutcome",
+    "SubtitleRejected",
+    "to_srt",
+    "MIN_CUE_S",
+    "VideoAssembler",
+    "AssemblyOutcome",
+    "AssemblyFailed",
+    "DURATION_TOLERANCE_S",
+]

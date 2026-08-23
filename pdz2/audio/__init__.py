@@ -6,8 +6,9 @@ La durée officielle d'un épisode sort d'ici, et de nulle part ailleurs. Aucun
 module de ce paquet ne connaît `estimated_duration_s`.
 
 Implémenté : port de synthèse, adaptateur eSpeak NG, mesure de WAV en
-bibliothèque standard, construction de la `VoiceTimeline`.
-À venir : sound design, diarisation, mastering (phase 10).
+bibliothèque standard, construction de la `VoiceTimeline`, et le mastering
+EBU R128 en deux passes (phase 10).
+À venir : sound design et diarisation.
 """
 
 from pdz2.audio.errors import (
@@ -20,6 +21,15 @@ from pdz2.audio.errors import (
     SynthesisFailed,
 )
 from pdz2.audio.espeak import EspeakSynthesiser
+from pdz2.audio.mastering import (
+    LOUDNESS_TOLERANCE_LU,
+    TARGET_LUFS,
+    TARGET_TRUE_PEAK_DBTP,
+    AudioMasterer,
+    MasteringFailed,
+    MasteringOutcome,
+    measure_loudness,
+)
 from pdz2.audio.narration import NarrationOutcome, NarrationRecorder
 from pdz2.audio.ports import SpeechSynthesiser, SynthesisResult, VoiceSpec
 from pdz2.audio.timeline import (
@@ -65,4 +75,11 @@ __all__ = [
     "AudioSilent",
     "AudioFormatMismatch",
     "DurationInconsistent",
+    "AudioMasterer",
+    "MasteringOutcome",
+    "MasteringFailed",
+    "measure_loudness",
+    "TARGET_LUFS",
+    "TARGET_TRUE_PEAK_DBTP",
+    "LOUDNESS_TOLERANCE_LU",
 ]
