@@ -27,9 +27,10 @@ IMPLEMENTED_PHASES = (
     "(corpus local ; aucun raisonneur branché, le brief est rédigé)",
     "Phase 2 — script + TTS réel + timing "
     "(eSpeak NG hors-ligne ; durées mesurées sur l'audio, pas estimées)",
+    "Phase 3 — shot graph + visual bible "
+    "(découpage du temps mesuré ; aucun fournisseur nommé)",
 )
 PENDING_PHASES = (
-    "Phase 3 — shot graph + visual bible",
     "Phase 4 — render spec + static validator",
     "Phase 5 — image engine",
     "Phase 6 — motion program + un fournisseur vidéo",
@@ -135,8 +136,8 @@ def _cmd_phases(args: argparse.Namespace) -> int:
 def _cmd_create(args: argparse.Namespace) -> int:
     print(
         "PDZ 2 ne sait pas encore produire d'épisode de bout en bout : les "
-        "phases 0 à 2 sont implémentées (contrats, machine à états, recherche, "
-        "Director Core, script, voix mesurée).\n"
+        "phases 0 à 3 sont implémentées (contrats, machine à états, recherche, "
+        "Director Core, script, voix mesurée, découpage et bible visuelle).\n"
         "Chaîne disponible aujourd'hui :\n"
         "  pdz2 research       --episode DIR --topic \"...\" --corpus DIR\n"
         "  pdz2 brief-template --episode DIR --out brief.json\n"
@@ -144,6 +145,8 @@ def _cmd_create(args: argparse.Namespace) -> int:
         "  pdz2 script         --episode DIR\n"
         "  pdz2 voice          --episode DIR\n"
         "  pdz2 timeline       --episode DIR\n"
+        "  pdz2 bible          --episode DIR\n"
+        "  pdz2 shots          --episode DIR\n"
         "Voir `pdz2 phases` pour l'état réel du chantier.",
         file=sys.stderr,
     )
@@ -185,10 +188,11 @@ def build_parser() -> argparse.ArgumentParser:
     show.add_argument("episode", help="dossier de l'épisode")
     show.set_defaults(func=_cmd_state_show)
 
-    from pdz2.cli import phase1, phase2
+    from pdz2.cli import phase1, phase2, phase3
 
     phase1.register(subparsers)
     phase2.register(subparsers)
+    phase3.register(subparsers)
 
     subparsers.add_parser("phases", help="état réel du chantier").set_defaults(func=_cmd_phases)
 

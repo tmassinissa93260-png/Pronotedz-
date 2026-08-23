@@ -100,14 +100,22 @@ STAGE_DEFINITIONS: dict[Stage, StageDefinition] = {
         _d(
             Stage.SHOT_GRAPH,
             depends_on=(Stage.TIMELINE, Stage.VISUAL_BIBLE),
-            produces=("shot_graph", "shot_spec"),
-            description="Découper le temps mesuré en plans motivés.",
+            produces=("shot_graph", "shot_spec", "temporal_plan", "camera_program"),
+            description=(
+                "Découper le temps mesuré en plans motivés. Un plan ne peut pas "
+                "exister sans cadrage ni caméra : les programmes caméra naissent "
+                "ici, et l'étape `motion` en fait ensuite la source de vérité du "
+                "mouvement."
+            ),
         ),
         _d(
             Stage.MOTION,
             depends_on=(Stage.SHOT_GRAPH,),
-            produces=("motion_program", "camera_program"),
-            description="Programmes de mouvement et de caméra, typés.",
+            produces=("motion_program",),
+            description=(
+                "Source de vérité du mouvement, typée. Reprend les programmes "
+                "caméra posés au découpage et les complète."
+            ),
         ),
         _d(
             Stage.RENDER_SPEC,

@@ -43,6 +43,7 @@ from pdz2.contracts.direction import (
     VisualEvidencePlan,
     VisualLanguage,
     VisualProofDraft,
+    VisualStyleDecision,
 )
 from pdz2.contracts.enums import (
     ArtifactKind,
@@ -133,6 +134,13 @@ from pdz2.contracts.shots import (
     ShotGraph,
     ShotSpec,
 )
+from pdz2.contracts.temporal import (
+    RhythmFinding,
+    RhythmFindingKind,
+    ShotSlot,
+    SlotOrigin,
+    TemporalPlan,
+)
 from pdz2.contracts.versioning import (
     ContractRegistry,
     IncompatibleVersion,
@@ -213,6 +221,7 @@ __all__ = [
     "AnchorDraft",
     "VisualProofDraft",
     "DirectorBrief",
+    "VisualStyleDecision",
     # script et voix
     "ScriptLine",
     "ScriptState",
@@ -243,6 +252,12 @@ __all__ = [
     "ShotSpec",
     "ShotEdge",
     "ShotGraph",
+    # plan temporel
+    "TemporalPlan",
+    "ShotSlot",
+    "SlotOrigin",
+    "RhythmFinding",
+    "RhythmFindingKind",
     # ABI de rendu
     "RenderStrategy",
     "AI_VIDEO_STRATEGIES",

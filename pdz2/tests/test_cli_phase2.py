@@ -223,4 +223,3 @@ class TestPhasesReportsPhase2:
         out = capsys.readouterr().out
         assert "[x] Phase 2" in out
         assert "mesurées sur l'audio" in out
-        assert "[ ] Phase 3" in out

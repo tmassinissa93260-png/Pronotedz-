@@ -198,9 +198,77 @@
       ],
       "title": "VisualProofDraft",
       "type": "object"
+    },
+    "VisualStyleDecision": {
+      "additionalProperties": false,
+      "description": "Le parti pris visuel, décidé une fois, comme le reste du brief.\n\nCe sont les seuls champs de la `VisualBible` qu'aucun calcul ne peut\nproduire : un choix de matière, de lumière et de couleur. Tout le reste de\nla bible s'en déduit — densité visuelle depuis la densité d'information,\ninterdits depuis l'imagerie proscrite, langage caméra depuis le rythme.",
+      "properties": {
+        "environment": {
+          "minLength": 1,
+          "title": "Environment",
+          "type": "string"
+        },
+        "graphics": {
+          "minLength": 1,
+          "title": "Graphics",
+          "type": "string"
+        },
+        "lens_language": {
+          "minLength": 1,
+          "title": "Lens Language",
+          "type": "string"
+        },
+        "lighting": {
+          "minLength": 1,
+          "title": "Lighting",
+          "type": "string"
+        },
+        "materials": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Materials",
+          "type": "array"
+        },
+        "palette": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Palette",
+          "type": "array"
+        },
+        "style": {
+          "minLength": 1,
+          "title": "Style",
+          "type": "string"
+        },
+        "texture": {
+          "minLength": 1,
+          "title": "Texture",
+          "type": "string"
+        },
+        "typography_family": {
+          "default": "Inter",
+          "minLength": 1,
+          "title": "Typography Family",
+          "type": "string"
+        }
+      },
+      "required": [
+        "style",
+        "lighting",
+        "palette",
+        "lens_language",
+        "texture",
+        "environment",
+        "graphics"
+      ],
+      "title": "VisualStyleDecision",
+      "type": "object"
     }
   },
-  "$id": "pdz2:director_brief/1.0.0",
+  "$id": "pdz2:director_brief/1.1.0",
   "additionalProperties": false,
   "description": "Décision de réalisation. Aucune donnée de rendu, aucun fournisseur.",
   "properties": {
@@ -298,6 +366,17 @@
       "minItems": 1,
       "title": "Visual Proofs",
       "type": "array"
+    },
+    "visual_style": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/VisualStyleDecision"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": [

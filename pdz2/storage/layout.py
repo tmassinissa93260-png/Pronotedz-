@@ -20,6 +20,7 @@ SINGLETON_FILES: dict[str, str] = {
     "script_state": "script.json",
     "voice_timeline": "voice_timeline.json",
     "visual_bible": "visual_bible.json",
+    "temporal_plan": "temporal_plan.json",
     "shot_graph": "shot_graph.json",
     "edit_timeline": "edit_timeline.json",
     "master_artifact": "master.json",

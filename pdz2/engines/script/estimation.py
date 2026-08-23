@@ -22,6 +22,8 @@ from __future__ import annotations
 
 import re
 
+from pdz2.engines.research.text import syllable_count
+
 __all__ = [
     "DEFAULT_SPEECH_RATE_WPM",
     "estimate_duration_s",
@@ -34,22 +36,11 @@ DEFAULT_SPEECH_RATE_WPM = 165.0
 _SYLLABLE_RATIO = 2.9
 """Syllabes par mot, moyenne du français courant. Approximation assumée."""
 
-_VOWEL_GROUP = re.compile(r"[aeiouyàâäéèêëîïôöùûüœ]+", re.IGNORECASE)
-_WORD = re.compile(r"[^\W\d_]+", re.UNICODE)
 _PAUSE_MARKS = re.compile(r"[,;:]")
 _STOP_MARKS = re.compile(r"[.!?…]")
 
 _PAUSE_S = 0.18
 _STOP_S = 0.35
-
-
-def syllable_count(text: str) -> int:
-    """Nombre approché de syllabes : groupes de voyelles, au moins un par mot."""
-    total = 0
-    for word in _WORD.findall(text):
-        groups = len(_VOWEL_GROUP.findall(word))
-        total += max(1, groups)
-    return total
 
 
 def estimate_duration_s(text: str, rate_wpm: float = DEFAULT_SPEECH_RATE_WPM) -> float:

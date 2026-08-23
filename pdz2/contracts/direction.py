@@ -20,6 +20,7 @@ from pdz2.contracts.enums import NarrativeFunction, Pacing, Tone
 __all__ = [
     "AnchorKind",
     "AnchorDraft",
+    "VisualStyleDecision",
     "VisualProofDraft",
     "DirectorBrief",
     "AttributeBinding",
@@ -231,6 +232,28 @@ class DirectorState(Contract):
 # d'elles. Il est ainsi enregistré dès l'import de `pdz2.contracts`.
 # ---------------------------------------------------------------------------
 
+class VisualStyleDecision(Element):
+    """Le parti pris visuel, décidé une fois, comme le reste du brief.
+
+    Ce sont les seuls champs de la `VisualBible` qu'aucun calcul ne peut
+    produire : un choix de matière, de lumière et de couleur. Tout le reste de
+    la bible s'en déduit — densité visuelle depuis la densité d'information,
+    interdits depuis l'imagerie proscrite, langage caméra depuis le rythme.
+    """
+
+    style: str = Field(min_length=1)
+    lighting: str = Field(min_length=1)
+    palette: list[str] = Field(min_length=2)
+    """Couleurs en hexadécimal, la première dominante."""
+
+    lens_language: str = Field(min_length=1)
+    materials: list[str] = Field(default_factory=list)
+    texture: str = Field(min_length=1)
+    environment: str = Field(min_length=1)
+    graphics: str = Field(min_length=1)
+    typography_family: str = Field(default="Inter", min_length=1)
+
+
 class AnchorDraft(Element):
     """Une ancre de continuité, telle que la réalisation la conçoit."""
 
@@ -266,7 +289,7 @@ class VisualProofDraft(Element):
         return self
 
 
-@contract("director_brief", "1.0.0")
+@contract("director_brief", "1.1.0")
 class DirectorBrief(Contract):
     """Décision de réalisation. Aucune donnée de rendu, aucun fournisseur."""
 
@@ -279,6 +302,15 @@ class DirectorBrief(Contract):
     pacing: Pacing
     ending_payoff: str = Field(min_length=1)
     visual_language: VisualLanguage
+
+    visual_style: VisualStyleDecision | None = None
+    """Parti pris esthétique de l'épisode. Ajouté en 1.1.0, facultatif.
+
+    Absent, le compilateur applique un **préréglage déclaré** choisi sur le ton
+    de l'épisode, et l'écrit dans ses notes : le style aura été *défaut*, pas
+    *décidé*. Un préréglage est une table publiée dans
+    `pdz2.engines.visual.presets`, pas une génération — rien n'est inventé au
+    moment de la compilation."""
 
     anchors: list[AnchorDraft] = Field(default_factory=list)
     visual_proofs: list[VisualProofDraft] = Field(min_length=1)

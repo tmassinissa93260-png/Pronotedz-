@@ -18,6 +18,8 @@ __all__ = [
     "overlap",
     "is_negated",
     "contains_quantity",
+    "quantity_match",
+    "syllable_count",
     "STOP_WORDS",
 ]
 
@@ -131,3 +133,25 @@ def overlap(left: str, right: str) -> float:
 def contains_quantity(text: str) -> bool:
     """Vrai si la phrase porte une grandeur chiffrée avec son unité."""
     return _QUANTITY.search(text) is not None
+
+
+def quantity_match(text: str) -> str | None:
+    """La première grandeur chiffrée de la phrase, telle qu'elle est écrite."""
+    found = _QUANTITY.search(text)
+    return found.group(0).strip() if found else None
+
+
+_VOWEL_GROUP = re.compile(r"[aeiouyàâäéèêëîïôöùûüœ]+", re.IGNORECASE)
+_ALPHA_WORD = re.compile(r"[^\W\d_]+", re.UNICODE)
+
+
+def syllable_count(text: str) -> int:
+    """Nombre approché de syllabes : groupes de voyelles, au moins un par mot.
+
+    Mesure de texte, pas de durée. Elle sert de *numérateur* à des densités
+    dont le dénominateur est toujours une durée mesurée sur l'audio.
+    """
+    total = 0
+    for word in _ALPHA_WORD.findall(text):
+        total += max(1, len(_VOWEL_GROUP.findall(word)))
+    return total

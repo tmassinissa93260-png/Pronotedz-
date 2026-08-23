@@ -58,6 +58,10 @@ HUMANS JUDGE.           Ce qu'aucune mesure ne tranche revient à l'humain.
 | VOICE FIRST | `VoiceTimeline` refuse un timing estimé ; `TIMELINE` dépend de `VOICE` ; `pdz2/audio/` ne peut pas lire `estimated_duration_s` |
 | La durée officielle sort d'un fichier | `MeasuredLine` n'a pas de champ de durée, seulement une mesure de trames |
 | Un audio muet n'a pas de durée officielle | plancher d'énergie : `AudioSilent` refuse un WAV lisible et vide |
+| Les plans pavent exactement l'audio mesuré | `TemporalPlan` refuse tout trou ou chevauchement au-delà de 2 ms |
+| Un plan démontre une affirmation écrite | `ShotSpec.visual_subject` recopie la preuve rédigée ; sinon refus |
+| Aucune décision narrative dans le découpage | six tests : tout sujet, toute preuve, toute fonction vient de l'amont |
+| La bible ignore les fournisseurs | test d'architecture sur la bible compilée et sur les préréglages |
 | Continuité représentée dans les données | `AnchorSpec` exige au moins un attribut d'identité `fixed` |
 | Pas de dégradation silencieuse | `RenderSpecExecutable` refuse tout écart avec l'écho de la demande qui n'est pas déclaré en `Degradation` |
 | Caméra verrouillée ≠ caméra qui bouge | `CameraProgram` refuse `locked=true` avec un mouvement, une vitesse ou une trajectoire |
@@ -77,7 +81,7 @@ pdz2/
 ├── state/          graphe d'étapes et machine à états reprenable
 ├── storage/        dossier d'épisode : écriture atomique, relecture typée
 ├── cli/            inspection des contrats, des schémas et d'un épisode
-├── engines/        research + direction + script ; image, 2.5D à venir
+├── engines/        research, direction, script, temporal, visual, shots
 ├── audio/          synthèse réelle, mesure du WAV, VoiceTimeline (phase 2)
 ├── providers/      adaptateurs de fournisseurs        — non implémenté
 ├── renderers/      exécution des stratégies de rendu   — non implémenté
@@ -110,6 +114,9 @@ Voir `pdz2 phases`. Aujourd'hui : **phases 0 et 1**.
   (aucun raisonneur branché). Détail : [`PHASE-1.md`](../PHASE-1.md).
 * Phase 2 — script compilé, synthèse vocale réelle, timeline mesurée. Moteur
   eSpeak NG hors-ligne. Détail : [`PHASE-2.md`](../PHASE-2.md).
+* Phase 3 — Temporal Director, Shot Graph et Visual Bible. Durées issues de
+  l'audio mesuré seul, aucun fournisseur nommé.
+  Détail : [`PHASE-3.md`](../PHASE-3.md).
 
 ### Dépendance système
 

@@ -176,6 +176,17 @@ class ShotGraph(Contract):
                 )
         return self
 
+    def shots_for_claim(self, claim_id: str) -> list[ShotSpec]:
+        """Plans qui démontrent une affirmation. Le lien est dans les données."""
+        return [shot for shot in self.shots if shot.claim_id == claim_id]
+
+    def demonstrated_claim_ids(self) -> list[str]:
+        seen: list[str] = []
+        for shot in self.shots:
+            if shot.claim_id and shot.claim_id not in seen:
+                seen.append(shot.claim_id)
+        return seen
+
     def shot(self, shot_id: str) -> ShotSpec:
         for shot in self.shots:
             if shot.shot_id == shot_id:

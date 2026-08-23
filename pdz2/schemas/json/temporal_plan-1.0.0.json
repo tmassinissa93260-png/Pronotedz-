@@ -1,0 +1,309 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Curve": {
+      "additionalProperties": false,
+      "description": "Courbe perceptive normalisée sur [0, 1] x [0, 1].",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/CurvePoint"
+          },
+          "minItems": 2,
+          "title": "Points",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "points"
+      ],
+      "title": "Curve",
+      "type": "object"
+    },
+    "CurvePoint": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "T",
+          "type": "number"
+        },
+        "value": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "t",
+        "value"
+      ],
+      "title": "CurvePoint",
+      "type": "object"
+    },
+    "RhythmFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "minLength": 1,
+          "title": "Detail",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/RhythmFindingKind"
+        },
+        "measured": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Measured"
+        },
+        "shot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shot Id"
+        },
+        "threshold": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Threshold"
+        }
+      },
+      "required": [
+        "kind",
+        "detail"
+      ],
+      "title": "RhythmFinding",
+      "type": "object"
+    },
+    "RhythmFindingKind": {
+      "description": "Ce que le Temporal Director constate sans le corriger en silence.",
+      "enum": [
+        "shot_too_short",
+        "shot_split",
+        "monotonous_cadence",
+        "density_saturated",
+        "visual_repetition",
+        "attention_trough"
+      ],
+      "title": "RhythmFindingKind",
+      "type": "string"
+    },
+    "ShotSlot": {
+      "additionalProperties": false,
+      "description": "Fenêtre temporelle d'un plan, découpée dans l'audio mesuré.",
+      "properties": {
+        "end_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "End S",
+          "type": "number"
+        },
+        "line_id": {
+          "minLength": 1,
+          "title": "Line Id",
+          "type": "string"
+        },
+        "line_index": {
+          "minimum": 0,
+          "title": "Line Index",
+          "type": "integer"
+        },
+        "origin": {
+          "$ref": "#/$defs/SlotOrigin",
+          "default": "voice_segment"
+        },
+        "part": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Part",
+          "type": "integer"
+        },
+        "part_count": {
+          "default": 1,
+          "minimum": 1,
+          "title": "Part Count",
+          "type": "integer"
+        },
+        "shot_id": {
+          "minLength": 1,
+          "title": "Shot Id",
+          "type": "string"
+        },
+        "speech_end_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "Speech End S",
+          "type": "number"
+        },
+        "speech_start_s": {
+          "minimum": 0.0,
+          "title": "Speech Start S",
+          "type": "number"
+        },
+        "start_s": {
+          "minimum": 0.0,
+          "title": "Start S",
+          "type": "number"
+        }
+      },
+      "required": [
+        "shot_id",
+        "line_id",
+        "line_index",
+        "start_s",
+        "end_s",
+        "speech_start_s",
+        "speech_end_s"
+      ],
+      "title": "ShotSlot",
+      "type": "object"
+    },
+    "SlotOrigin": {
+      "enum": [
+        "voice_segment",
+        "split"
+      ],
+      "title": "SlotOrigin",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:temporal_plan/1.0.0",
+  "additionalProperties": false,
+  "description": "Découpage temporel et courbes cibles, dérivés de l'audio mesuré.",
+  "properties": {
+    "attention_curve": {
+      "$ref": "#/$defs/Curve"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "director_state_id": {
+      "minLength": 1,
+      "title": "Director State Id",
+      "type": "string"
+    },
+    "emotional_curve": {
+      "$ref": "#/$defs/Curve"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/RhythmFinding"
+      },
+      "title": "Findings",
+      "type": "array"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "information_curve": {
+      "$ref": "#/$defs/Curve"
+    },
+    "motion_curve": {
+      "$ref": "#/$defs/Curve"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "slots": {
+      "items": {
+        "$ref": "#/$defs/ShotSlot"
+      },
+      "minItems": 1,
+      "title": "Slots",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "total_duration_s": {
+      "exclusiveMinimum": 0.0,
+      "title": "Total Duration S",
+      "type": "number"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "visual_novelty_curve": {
+      "$ref": "#/$defs/Curve"
+    },
+    "voice_timeline_id": {
+      "minLength": 1,
+      "title": "Voice Timeline Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "director_state_id",
+    "voice_timeline_id",
+    "total_duration_s",
+    "slots",
+    "emotional_curve",
+    "attention_curve",
+    "information_curve",
+    "motion_curve",
+    "visual_novelty_curve"
+  ],
+  "title": "TemporalPlan",
+  "type": "object"
+}
