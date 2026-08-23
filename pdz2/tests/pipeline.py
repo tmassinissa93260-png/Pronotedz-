@@ -13,6 +13,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 
 from pdz2.audio import MeasuredLine, VoiceTimelineBuilder, measure_wav, write_wav
+from pdz2.contracts.common import Resolution
 from pdz2.contracts.direction import DirectorBrief, DirectorState
 from pdz2.contracts.research import ResearchState, TopicRequest
 from pdz2.contracts.script import ScriptState, VoiceTimeline
@@ -125,6 +126,7 @@ def build_episode(
     target_duration_s: float = 45.0,
     brief_overrides: dict | None = None,
     through_render_spec: bool = False,
+    resolution: Resolution | None = None,
 ) -> Episode:
     """Chaîne complète : recherche → réalisation → script → voix → plans."""
     request, research = build_research(target_duration_s)
@@ -160,10 +162,25 @@ def build_episode(
         graph=shots.graph,
         camera_programs=shots.camera_programs,
     )
-    return with_render_specs(episode) if through_render_spec else episode
+    return (
+        with_render_specs(episode, resolution=resolution)
+        if through_render_spec
+        else episode
+    )
 
 
-def with_render_specs(episode: Episode) -> Episode:
+SMALL = Resolution(width=180, height=320)
+"""Résolution des tests de rendu.
+
+Un 1080×1920 coûte une trentaine de secondes par plan : la suite de tests
+n'aurait plus le droit de tourner à chaque modification. Les règles testées ne
+dépendent pas de la taille du cadre.
+"""
+
+
+def with_render_specs(
+    episode: Episode, resolution: Resolution | None = None
+) -> Episode:
     """Prolonge un épisode jusqu'aux demandes de rendu validées (phase 4)."""
     motions = MotionCompiler().compile(
         shot_graph=episode.graph,
@@ -178,6 +195,10 @@ def with_render_specs(episode: Episode) -> Episode:
         director_state=episode.director_state,
         request=episode.request,
     ).specs
+    if resolution is not None:
+        images = [
+            spec.model_copy(update={"resolution": resolution}) for spec in images
+        ]
     specs = RenderSpecCompiler().compile(
         shot_graph=episode.graph,
         motion_programs=motions,

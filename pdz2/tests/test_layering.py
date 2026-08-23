@@ -204,11 +204,12 @@ class TestAudioCoreStaysEngineAgnostic:
 class TestPhaseHonesty:
     """Les paquets des phases suivantes restent vides, sans faux moteur."""
 
-    UNIMPLEMENTED = ("renderers", "qa", "repair", "editing")
+    UNIMPLEMENTED = ("repair", "editing")
     """Paquets dont la phase n'est pas faite.
 
     `engines` en est sorti en phase 1, `audio` en phase 2, `providers` en
-    phase 6 — où il ne porte encore que des ports, sans adaptateur."""
+    phase 6 — où il ne porte encore que des ports, sans adaptateur — et
+    `renderers` en phase 7, `qa` en phase 8."""
 
     @pytest.mark.parametrize("package", UNIMPLEMENTED)
     def test_unimplemented_packages_contain_only_their_notice(self, package: str) -> None:
@@ -257,6 +258,13 @@ class TestPhaseHonesty:
         joined = " ".join(IMPLEMENTED_PHASES)
         assert "aucun raisonneur branché" in joined
         assert "aucun adaptateur vidéo implémenté" in joined
+
+    def test_the_renderers_only_ship_deterministic_strategies(self) -> None:
+        """Aucun renderer génératif : ce sont des ports, pas des moteurs."""
+        from pdz2.contracts.render import AI_VIDEO_STRATEGIES
+        from pdz2.renderers import SUPPORTED_STRATEGIES
+
+        assert not SUPPORTED_STRATEGIES & AI_VIDEO_STRATEGIES
 
     def test_the_video_port_declares_that_nothing_implements_it(self) -> None:
         from pdz2.providers import NO_VIDEO_PROVIDERS
