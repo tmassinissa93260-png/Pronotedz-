@@ -70,6 +70,11 @@ HUMANS JUDGE.           Ce qu'aucune mesure ne tranche revient à l'humain.
 | Les replis garantissent la livraison | `RepairPlan.guaranteed_fallback` n'accepte que des actions sans fournisseur |
 | Pas de dictionnaire arbitraire | Test d'architecture : aucun contrat n'expose de champ `dict[...]` |
 | Provider-agnostic | Test d'architecture : aucune marque de fournisseur dans `contracts/`, `state/`, `storage/`, `schemas/` |
+| Une capacité annoncée n'est pas une capacité | `CapacityValue` refuse `MEASURED` sans date ni méthode, et `UNKNOWN` avec une valeur |
+| Une mesure vieillit | `is_stale()` à trente jours ; `trustworthy()` exige mesurée **et** récente |
+| Pas de dépense au coût inconnu | `CostGovernor` refuse `UNMEASURED_COST` même budget intact ; `estimate()` rend `None` plutôt qu'un chiffre annoncé |
+| Une dépense se refuse avant, pas après | `CostLedger` refuse un registre dont le total dépasse son plafond |
+| Un épisode s'explique après coup | `ProductionJournal` est **reconstruit** depuis les contrats du disque ; retirer un contrat retire ses entrées |
 
 ## Carte du paquet
 
@@ -81,20 +86,24 @@ pdz2/
 ├── state/          graphe d'étapes et machine à états reprenable
 ├── storage/        dossier d'épisode : écriture atomique, relecture typée
 ├── cli/            inspection des contrats, des schémas et d'un épisode
-├── engines/        research, direction, script, temporal, visual, shots
-├── audio/          synthèse réelle, mesure du WAV, VoiceTimeline (phase 2)
-├── providers/      adaptateurs de fournisseurs        — non implémenté
-├── renderers/      exécution des stratégies de rendu   — non implémenté
-├── qa/             observation déterministe            — non implémenté
-├── repair/         diagnostic et réparation            — non implémenté
-├── editing/        montage                             — non implémenté
+├── engines/        research, direction, script, temporal, visual, shots,
+│                   motion, imagery, renderspec, validation, routing,
+│                   governance, journal
+├── audio/          synthèse réelle, mesure du WAV, VoiceTimeline, mastering
+├── providers/      **ports** de fournisseurs — aucun adaptateur implémenté
+├── renderers/      stratégies déterministes locales, ffmpeg
+├── qa/             observation déterministe et QA finale
+├── repair/         diagnostic adossé aux mesures, réparation bornée
+├── editing/        montage, sous-titres, assemblage
 └── tests/          tests de contrat, d'état et d'architecture
 ```
 
-Les paquets marqués « non implémenté » sont vides *par décision*. Le cahier des
-charges interdit les faux adaptateurs et les capacités simulées : tant que le
-code réel n'existe pas, rien ne doit laisser croire le contraire. Un test le
-vérifie (`TestPhaseHonesty`).
+`providers/` ne contient **que des ports**, sans adaptateur : le cahier des
+charges interdit les faux adaptateurs et les capacités simulées, et aucun
+service de génération vidéo n'est joignable ici. Un test le verrouille
+(`TestPhaseHonesty::test_no_adapter_pretends_to_exist`), et il échouera le jour
+où un adaptateur réel arrivera — c'est le signal qu'il faudra retirer les
+mentions « aucun adaptateur vidéo implémenté » de `pdz2 phases`.
 
 ## Rapport avec l'ancien PDZ
 
@@ -105,21 +114,45 @@ pourra prendre le nom `pdz` — c'est un renommage de paquet, pas une fusion.
 
 ## État réel du chantier
 
-Voir `pdz2 phases`. Aujourd'hui : **phases 0 et 1**.
+Voir `pdz2 phases`. **Les douze phases sont implémentées.** La chaîne produit
+un MP4 réel, mesuré, à partir d'un corpus local et d'un brief humain.
 
-* Phase 0 — contrats, versionnage, machine à états, persistance, schémas.
-  Détail : [`PHASE-0.md`](../PHASE-0.md).
-* Phase 1 — recherche factuelle, Fact Graph, Director Core. Corpus local
-  seulement (le réseau de recherche est bloqué ici), brief rédigé à la main
-  (aucun raisonneur branché). Détail : [`PHASE-1.md`](../PHASE-1.md).
-* Phase 2 — script compilé, synthèse vocale réelle, timeline mesurée. Moteur
-  eSpeak NG hors-ligne. Détail : [`PHASE-2.md`](../PHASE-2.md).
-* Phase 3 — Temporal Director, Shot Graph et Visual Bible. Durées issues de
-  l'audio mesuré seul, aucun fournisseur nommé.
-  Détail : [`PHASE-3.md`](../PHASE-3.md).
+| phase | contenu | détail |
+| --- | --- | --- |
+| 0 | contrats, versionnage, machine à états, persistance, schémas | [`PHASE-0.md`](../PHASE-0.md) |
+| 1 | recherche factuelle, Fact Graph, Director Core | [`PHASE-1.md`](../PHASE-1.md) |
+| 2 | script compilé, synthèse vocale réelle, timeline mesurée | [`PHASE-2.md`](../PHASE-2.md) |
+| 3 | Temporal Director, Shot Graph, Visual Bible | [`PHASE-3.md`](../PHASE-3.md) |
+| 4 | RenderSpec et validateur statique (douze règles) | [`PHASE-4.md`](../PHASE-4.md) |
+| 5 | moteur d'images schématiques déterministe | [`PHASE-5.md`](../PHASE-5.md) |
+| 6 | MotionProgram, port vidéo, routeur de stratégie | [`PHASE-6.md`](../PHASE-6.md) |
+| 7 | 2.5D et procédural : vraies vidéos H.264 | [`PHASE-7.md`](../PHASE-7.md) |
+| 8 | observateur déterministe sur les pixels réels | [`PHASE-8.md`](../PHASE-8.md) |
+| 9 | diagnostic et repair compiler borné | [`PHASE-9.md`](../PHASE-9.md) |
+| 10 | montage, mastering, sous-titres, QA finale | [`PHASE-10.md`](../PHASE-10.md) |
+| 11 | matrice de capacités et gouverneur de coût | [`PHASE-11.md`](../PHASE-11.md) |
+| 12 | journal de production reconstruit | [`PHASE-12.md`](../PHASE-12.md) |
 
-### Dépendance système
+### Ce qui manque, et qui est déclaré plutôt que simulé
 
-La phase 2 exige le binaire **`espeak-ng`** (`apt-get install espeak-ng`).
-Absent, l'adaptateur se déclare `UNAVAILABLE` avec la raison et les tests
-concernés sont ignorés — rien ne fait semblant de fonctionner.
+* **Aucun raisonneur (LLM) n'est branché.** Le port existe ; aucun identifiant
+  n'est disponible ici. Le brief de réalisation est donc rédigé par un humain,
+  et `pdz2 create` s'arrête devant lui plutôt que d'inventer une thèse.
+* **Aucun adaptateur de génération vidéo n'est joignable.** Le routeur
+  enregistre une `Degradation` nommée pour chaque plan qui bascule sur une
+  stratégie déterministe locale.
+* **Aucune recherche en ligne.** La politique réseau de cet environnement
+  refuse les hôtes de recherche ; le corpus est local et sourcé.
+
+`pdz2 capabilities` dit à tout moment ce qui est réellement joignable, mesuré
+et daté.
+
+### Dépendances système
+
+| binaire | rôle | absent ? |
+| --- | --- | --- |
+| `espeak-ng` | synthèse vocale (phase 2) | l'adaptateur se déclare `UNAVAILABLE` avec la raison, les tests concernés sont ignorés |
+| `ffmpeg` / `ffprobe` | encodage, mesure, mastering (phases 7 à 10) | idem |
+
+Rien ne fait semblant de fonctionner : une dépendance absente est déclarée,
+jamais contournée par une simulation.

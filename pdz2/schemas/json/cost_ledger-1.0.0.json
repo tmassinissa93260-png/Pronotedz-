@@ -1,0 +1,146 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "SpendRecord": {
+      "additionalProperties": false,
+      "description": "Une dépense réelle, imputée à une étape et à un plan.",
+      "properties": {
+        "amount_usd": {
+          "minimum": 0.0,
+          "title": "Amount Usd",
+          "type": "number"
+        },
+        "at": {
+          "format": "date-time",
+          "title": "At",
+          "type": "string"
+        },
+        "detail": {
+          "default": "",
+          "title": "Detail",
+          "type": "string"
+        },
+        "provider": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Provider"
+        },
+        "shot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shot Id"
+        },
+        "stage": {
+          "minLength": 1,
+          "title": "Stage",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "amount_usd",
+        "at"
+      ],
+      "title": "SpendRecord",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:cost_ledger/1.0.0",
+  "additionalProperties": false,
+  "description": "Registre des dépenses d'un épisode, et son plafond.",
+  "properties": {
+    "budget_cap_usd": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Budget Cap Usd"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "episode_id": {
+      "minLength": 1,
+      "title": "Episode Id",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "records": {
+      "items": {
+        "$ref": "#/$defs/SpendRecord"
+      },
+      "title": "Records",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "episode_id"
+  ],
+  "title": "CostLedger",
+  "type": "object"
+}

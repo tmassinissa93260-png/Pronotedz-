@@ -10,6 +10,14 @@ from __future__ import annotations
 
 from pdz2.contracts.base import Contract, ContractStatus, Element, contract
 from pdz2.contracts.capability import CapabilityState, ProviderCapability
+from pdz2.contracts.capacity import (
+    CapabilityEntry,
+    CapabilityMatrix,
+    CapacityValue,
+    CostLedger,
+    Provenance,
+    SpendRecord,
+)
 from pdz2.contracts.common import (
     Composition,
     CostEstimate,
@@ -61,6 +69,11 @@ from pdz2.contracts.enums import (
     TransitionKind,
 )
 from pdz2.contracts.identity import deterministic_ids, new_id
+from pdz2.contracts.journal import (
+    JournalEntry,
+    JournalEntryKind,
+    ProductionJournal,
+)
 from pdz2.contracts.motion import (
     CameraMove,
     CameraProgram,
@@ -201,6 +214,15 @@ __all__ = [
     "QaCheck",
     "CapabilityState",
     "ProviderCapability",
+    "Provenance",
+    "CapacityValue",
+    "CapabilityEntry",
+    "CapabilityMatrix",
+    "SpendRecord",
+    "CostLedger",
+    "ProductionJournal",
+    "JournalEntry",
+    "JournalEntryKind",
     # recherche
     "TopicRequest",
     "SourceReference",

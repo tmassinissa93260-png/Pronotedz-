@@ -24,6 +24,9 @@ SINGLETON_FILES: dict[str, str] = {
     "shot_graph": "shot_graph.json",
     "edit_timeline": "edit_timeline.json",
     "validation_report": "validation_report.json",
+    "production_journal": "production_log.json",
+    "capability_matrix": "capability_matrix.json",
+    "cost_ledger": "cost_ledger.json",
     "master_artifact": "master.json",
     "episode_snapshot": "state.json",
 }
@@ -48,9 +51,13 @@ MEDIA_FILES: dict[str, str] = {
     "voice": "voice.wav",
     "audio_master": "audio_master.wav",
     "final": "final.mp4",
-    "production_log": "production_log.json",
 }
-"""Fichiers non contractuels, produits par les phases 2, 10 et 12."""
+"""Fichiers non contractuels : les médias produits par les phases 2 et 10.
+
+Le journal de production n'y figure pas : c'est un contrat à part entière
+(`production_journal`), écrit dans `production_log.json` comme les autres
+singletons.
+"""
 
 
 @dataclass(frozen=True)

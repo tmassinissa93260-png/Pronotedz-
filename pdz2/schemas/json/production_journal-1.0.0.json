@@ -1,0 +1,401 @@
+{
+  "$defs": {
+    "CapabilityState": {
+      "enum": [
+        "available",
+        "unavailable",
+        "unknown"
+      ],
+      "title": "CapabilityState",
+      "type": "string"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "EpisodeStatus": {
+      "enum": [
+        "created",
+        "running",
+        "blocked",
+        "failed",
+        "delivered",
+        "abandoned"
+      ],
+      "title": "EpisodeStatus",
+      "type": "string"
+    },
+    "JournalEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "at": {
+          "format": "date-time",
+          "title": "At",
+          "type": "string"
+        },
+        "detail": {
+          "default": "",
+          "title": "Detail",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/JournalEntryKind"
+        },
+        "stage": {
+          "default": "",
+          "title": "Stage",
+          "type": "string"
+        },
+        "subject_id": {
+          "default": "",
+          "title": "Subject Id",
+          "type": "string"
+        },
+        "summary": {
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "at",
+        "summary"
+      ],
+      "title": "JournalEntry",
+      "type": "object"
+    },
+    "JournalEntryKind": {
+      "enum": [
+        "decision",
+        "degradation",
+        "finding",
+        "refusal",
+        "capability",
+        "spend",
+        "limitation"
+      ],
+      "title": "JournalEntryKind",
+      "type": "string"
+    },
+    "ProviderCapability": {
+      "additionalProperties": false,
+      "description": "Ce qu'un adaptateur sait faire, et depuis quand on le sait.",
+      "properties": {
+        "detail": {
+          "default": "",
+          "title": "Detail",
+          "type": "string"
+        },
+        "max_results": {
+          "default": 10,
+          "exclusiveMinimum": 0,
+          "title": "Max Results",
+          "type": "integer"
+        },
+        "measured_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Measured At"
+        },
+        "measurement_method": {
+          "default": "",
+          "maxLength": 400,
+          "title": "Measurement Method",
+          "type": "string"
+        },
+        "provider": {
+          "minLength": 1,
+          "title": "Provider",
+          "type": "string"
+        },
+        "requires_credentials": {
+          "default": false,
+          "title": "Requires Credentials",
+          "type": "boolean"
+        },
+        "requires_network": {
+          "default": true,
+          "title": "Requires Network",
+          "type": "boolean"
+        },
+        "state": {
+          "$ref": "#/$defs/CapabilityState"
+        }
+      },
+      "required": [
+        "provider",
+        "state"
+      ],
+      "title": "ProviderCapability",
+      "type": "object"
+    },
+    "Stage": {
+      "description": "Étapes du compilateur, de l'idée au MP4.",
+      "enum": [
+        "research",
+        "direction",
+        "script",
+        "voice",
+        "timeline",
+        "visual_bible",
+        "shot_graph",
+        "motion",
+        "render_spec",
+        "static_validation",
+        "routing",
+        "assets",
+        "render",
+        "observation",
+        "diagnosis",
+        "repair",
+        "edit",
+        "audio_master",
+        "subtitles",
+        "final_qa",
+        "delivery"
+      ],
+      "title": "Stage",
+      "type": "string"
+    },
+    "StageStatus": {
+      "enum": [
+        "pending",
+        "running",
+        "done",
+        "failed",
+        "skipped"
+      ],
+      "title": "StageStatus",
+      "type": "string"
+    },
+    "StateTransition": {
+      "additionalProperties": false,
+      "description": "Une ligne du journal d'états. Immuable une fois écrite.",
+      "properties": {
+        "actor": {
+          "default": "system",
+          "minLength": 1,
+          "title": "Actor",
+          "type": "string"
+        },
+        "at": {
+          "format": "date-time",
+          "title": "At",
+          "type": "string"
+        },
+        "contract_type": {
+          "title": "Contract Type",
+          "type": "string"
+        },
+        "cost_usd": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Cost Usd",
+          "type": "number"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "episode_id": {
+          "minLength": 1,
+          "title": "Episode Id",
+          "type": "string"
+        },
+        "from_status": {
+          "$ref": "#/$defs/StageStatus"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "stage": {
+          "$ref": "#/$defs/Stage"
+        },
+        "status": {
+          "$ref": "#/$defs/ContractStatus",
+          "default": "draft"
+        },
+        "to_status": {
+          "$ref": "#/$defs/StageStatus"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_type",
+        "version",
+        "id",
+        "created_at",
+        "episode_id",
+        "stage",
+        "from_status",
+        "to_status",
+        "at",
+        "reason"
+      ],
+      "title": "StateTransition",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:production_journal/1.0.0",
+  "additionalProperties": false,
+  "description": "Ce qu'il faut pour expliquer un épisode après coup.",
+  "properties": {
+    "capabilities": {
+      "items": {
+        "$ref": "#/$defs/ProviderCapability"
+      },
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "contract_versions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Contract Versions",
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "ended_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ended At"
+    },
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/JournalEntry"
+      },
+      "title": "Entries",
+      "type": "array"
+    },
+    "episode_id": {
+      "minLength": 1,
+      "title": "Episode Id",
+      "type": "string"
+    },
+    "episode_status": {
+      "$ref": "#/$defs/EpisodeStatus"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "tool_versions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Tool Versions",
+      "type": "array"
+    },
+    "topic": {
+      "minLength": 1,
+      "title": "Topic",
+      "type": "string"
+    },
+    "total_spent_usd": {
+      "default": 0.0,
+      "minimum": 0.0,
+      "title": "Total Spent Usd",
+      "type": "number"
+    },
+    "transitions": {
+      "items": {
+        "$ref": "#/$defs/StateTransition"
+      },
+      "title": "Transitions",
+      "type": "array"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "episode_id",
+    "topic",
+    "episode_status",
+    "started_at"
+  ],
+  "title": "ProductionJournal",
+  "type": "object"
+}

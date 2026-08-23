@@ -11,27 +11,37 @@ sur ma machine.
 > 👉 **[Comment l'installer sur ta machine](./INSTALLER.md)**
 > 📱 **[Pas d'ordinateur ? Le faire tourner depuis ton téléphone](./TELEPHONE.md)**
 
-## PDZ 2 — reconstruction en cours
+## PDZ 2 — reconstruction terminée
 
-Une reconstruction complète et indépendante du système est en chantier dans
+Une reconstruction complète et indépendante du système vit dans
 [`pdz2/`](./pdz2/) : un **compilateur audiovisuel** modulaire, observable,
 provider-agnostic, capable de fonctionner avec ou sans génération vidéo IA.
 
 PDZ 2 ne migre pas et ne répare pas le système ci-dessous — il est écrit à
-part et les deux paquets cohabitent le temps du chantier.
+part et les deux paquets cohabitent.
 
+* **Les douze phases sont implémentées.** `pdz2 phases` donne l'état réel.
 * Architecture et décisions : [`pdz2/architecture/`](./pdz2/architecture/)
-* État réel du chantier : `pdz2 phases` — **phases 0 à 3** aujourd'hui.
-  Contrats versionnés, machine à états, recherche factuelle, Fact Graph,
-  Director Core, script compilé, voix réellement synthétisée, découpage et
-  bible visuelle.
-* Ce qui tourne de bout en bout : `pdz2 research` → `brief-template` →
-  `direct` → `script` → `voice` → `timeline` → `bible` → `shots`, d'une
-  question à un découpage en plans dont **toutes les durées viennent de
-  l'audio réellement mesuré**.
-* Dépendance système pour la voix : `espeak-ng`.
-* La commande `pdz2 create` existe mais refuse de produire une vidéo tant que
-  les phases suivantes ne sont pas réellement implémentées.
+* De bout en bout, en une commande :
+
+  ```
+  pdz2 create --episode ep/ --topic "..." --corpus docs/ --brief brief.json
+  ```
+
+  La chaîne s'arrête volontairement une fois si le brief manque : la thèse, le
+  ton et le public sont des décisions humaines, et le compilateur ne les
+  invente pas.
+* Ce qui sort : un **MP4 réel** — H.264 1080×1920, AAC 48 kHz, sous-titres,
+  audio normalisé EBU R128, chaque contrôle final mesuré sur le fichier.
+* Toutes les durées viennent de l'**audio réellement synthétisé et mesuré**,
+  jamais d'une estimation.
+* Dépendances système : `espeak-ng` (voix) et `ffmpeg` (image, son, mesure).
+  Absentes, elles sont déclarées `UNAVAILABLE` — rien ne fait semblant de
+  fonctionner. `pdz2 capabilities --measure` dit ce qui est réellement là.
+* Ce qui n'est **pas** branché, et qui est déclaré plutôt que simulé : aucun
+  raisonneur (LLM), aucun adaptateur de génération vidéo, aucune recherche en
+  ligne. `pdz2 journal` liste, pour chaque épisode, tout ce que la chaîne a dû
+  accepter.
 
 ## Ce qu'il sait faire
 

@@ -240,7 +240,9 @@ class TestPhaseHonesty:
         )
         assert present == [
             "direction",
+            "governance",
             "imagery",
+            "journal",
             "motion",
             "renderspec",
             "research",

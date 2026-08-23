@@ -43,11 +43,12 @@ IMPLEMENTED_PHASES = (
     "(causes adossées aux mesures, boucle bornée, repli garanti)",
     "Phase 10 — montage + mastering audio + sous-titres + QA finale "
     "(MP4 réellement produit et contrôlé)",
+    "Phase 11 — capability matrix + cost governor "
+    "(capacités sondées et datées ; dépense autorisée avant, pas constatée après)",
+    "Phase 12 — production journal "
+    "(journal relu depuis les contrats, jamais tenu à la main)",
 )
-PENDING_PHASES = (
-    "Phase 11 — capability matrix + cost governor",
-    "Phase 12 — production journal",
-)
+PENDING_PHASES: tuple[str, ...] = ()
 
 
 def _cmd_contracts_list(args: argparse.Namespace) -> int:
@@ -134,43 +135,18 @@ def _cmd_phases(args: argparse.Namespace) -> int:
     print("Implémenté :")
     for line in IMPLEMENTED_PHASES:
         print(f"  [x] {line}")
-    print("\nÀ faire :")
-    for line in PENDING_PHASES:
-        print(f"  [ ] {line}")
+    if PENDING_PHASES:
+        print("\nÀ faire :")
+        for line in PENDING_PHASES:
+            print(f"  [ ] {line}")
+    else:
+        print(
+            "\nLes douze phases du cahier des charges sont implémentées. Ce qui "
+            "reste manquant est déclaré, pas simulé : aucun adaptateur vidéo IA "
+            "n'est joignable dans cet environnement, et aucun raisonneur n'est "
+            "branché — voir `pdz2 capabilities`."
+        )
     return 0
-
-
-def _cmd_create(args: argparse.Namespace) -> int:
-    print(
-        "PDZ 2 ne sait pas encore produire d'épisode de bout en bout : les "
-        "phases 0 à 3 sont implémentées (contrats, machine à états, recherche, "
-        "Director Core, script, voix mesurée, découpage et bible visuelle).\n"
-        "Chaîne disponible aujourd'hui :\n"
-        "  pdz2 research       --episode DIR --topic \"...\" --corpus DIR\n"
-        "  pdz2 brief-template --episode DIR --out brief.json\n"
-        "  pdz2 direct         --episode DIR --brief brief.json\n"
-        "  pdz2 script         --episode DIR\n"
-        "  pdz2 voice          --episode DIR\n"
-        "  pdz2 timeline       --episode DIR\n"
-        "  pdz2 bible          --episode DIR\n"
-        "  pdz2 shots          --episode DIR\n"
-        "  pdz2 motion         --episode DIR\n"
-        "  pdz2 specs          --episode DIR\n"
-        "  pdz2 validate       --episode DIR\n"
-        "  pdz2 route          --episode DIR\n"
-        "  pdz2 assets         --episode DIR\n"
-        "  pdz2 render         --episode DIR\n"
-        "  pdz2 observe        --episode DIR\n"
-        "  pdz2 diagnose       --episode DIR\n"
-        "  pdz2 repair         --episode DIR [--apply]\n"
-        "  pdz2 edit           --episode DIR\n"
-        "  pdz2 master         --episode DIR\n"
-        "  pdz2 subtitle       --episode DIR\n"
-        "  pdz2 deliver        --episode DIR\n"
-        "Voir `pdz2 phases` pour l'état réel du chantier.",
-        file=sys.stderr,
-    )
-    return 2
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -219,6 +195,8 @@ def build_parser() -> argparse.ArgumentParser:
         phase8,
         phase9,
         phase10,
+        phase11,
+        phase12,
     )
 
     phase1.register(subparsers)
@@ -231,14 +209,14 @@ def build_parser() -> argparse.ArgumentParser:
     phase8.register(subparsers)
     phase9.register(subparsers)
     phase10.register(subparsers)
+    phase11.register(subparsers)
+    phase12.register(subparsers)
 
     subparsers.add_parser("phases", help="état réel du chantier").set_defaults(func=_cmd_phases)
 
-    create = subparsers.add_parser("create", help="produire un épisode (pas encore disponible)")
-    create.add_argument("--topic", required=True)
-    create.add_argument("--duration", type=float, default=45.0)
-    create.add_argument("--format", default="9:16")
-    create.set_defaults(func=_cmd_create)
+    from pdz2.cli import orchestrate
+
+    orchestrate.register(subparsers)
 
     return parser
 

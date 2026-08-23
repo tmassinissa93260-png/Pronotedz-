@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 
@@ -95,16 +96,133 @@ class TestCli:
         assert main(["state", "show", str(tmp_path / "vide")]) == 1
         assert "aucun état" in capsys.readouterr().err
 
-    def test_create_refuses_instead_of_pretending(self, capsys) -> None:
-        code = main(["create", "--topic", "Comment fonctionne une voiture électrique ?"])
-        assert code == 2
-        assert "ne sait pas encore produire" in capsys.readouterr().err
+    def test_create_stops_at_the_human_decision(self, tmp_path, capsys) -> None:
+        """`create` sans brief prépare le gabarit et rend la main.
+
+        C'est le seul arrêt volontaire de la chaîne : la thèse, le ton et le
+        public sont des décisions qu'aucune mesure de ce système ne prend.
+        """
+        corpus = Path(__file__).parent / "fixtures" / "corpus"
+        code = main(
+            [
+                "create",
+                "--episode", str(tmp_path / "ep"),
+                "--topic", "Comment fonctionne une voiture électrique ?",
+                "--corpus", str(corpus),
+            ]
+        )
+        assert code == 3
+        captured = capsys.readouterr()
+        assert "décision humaine" in captured.err
+        assert (tmp_path / "ep" / "brief.json").is_file()
 
     def test_phases_reports_the_real_state_of_the_build(self, capsys) -> None:
         assert main(["phases"]) == 0
         out = capsys.readouterr().out
-        assert "[x] Phase 0" in out
-        assert "[ ] Phase 1" in out
+        # Une assertion sur « Phase 1 » seule passerait sur « Phase 11 » :
+        # les douze lignes sont donc vérifiées entières.
+        for number in range(13):
+            assert f"[x] Phase {number} —" in out
+        assert "[ ]" not in out
+
+    def test_phases_still_declares_what_is_missing(self, capsys) -> None:
+        """Les douze phases faites ne veulent pas dire que tout est branché."""
+        assert main(["phases"]) == 0
+        out = capsys.readouterr().out
+        assert "aucun adaptateur vidéo IA n'est joignable" in out
+        assert "aucun raisonneur n'est branché" in out
+
+    def test_capabilities_probes_the_real_environment(self, capsys) -> None:
+        assert main(["capabilities"]) == 0
+        out = capsys.readouterr().out
+        assert "ffmpeg/libx264" in out
+        assert "espeak-ng/fr" in out
+        assert "n'en invente pas" in out
+
+    def test_capabilities_writes_the_matrix_when_asked(self, tmp_path) -> None:
+        from pdz2.storage import EpisodeStore
+
+        assert main(["capabilities", "--episode", str(tmp_path / "ep")]) == 0
+        assert EpisodeStore(tmp_path / "ep").exists("capability_matrix")
+
+    def test_costs_refuses_an_unmeasured_spend(self, tmp_path, capsys) -> None:
+        from pdz2.contracts import Stage
+        from pdz2.state import EpisodeStateMachine
+        from pdz2.storage import EpisodeStore
+
+        store = EpisodeStore(tmp_path / "ep")
+        store.initialise()
+        machine = EpisodeStateMachine.create(
+            episode_id="ep-1", topic_request_id="topic_request-1", budget_cap_usd=2.0
+        )
+        machine.start(Stage.RESEARCH)
+        machine.complete(Stage.RESEARCH)
+        store.save_snapshot(machine.snapshot)
+
+        assert main(["costs", "--episode", str(tmp_path / "ep")]) == 0
+        assert store.exists("cost_ledger")
+
+        code = main(
+            [
+                "costs",
+                "--episode", str(tmp_path / "ep"),
+                "--authorize", "5.0",
+                "--stage", "render",
+            ]
+        )
+        assert code == 1
+        assert "REFUSÉ [would_exceed]" in capsys.readouterr().err
+
+    def test_costs_reports_a_missing_episode(self, tmp_path, capsys) -> None:
+        assert main(["costs", "--episode", str(tmp_path / "vide")]) == 1
+        assert "aucun épisode" in capsys.readouterr().err
+
+    def test_create_skips_a_stage_already_done(self, tmp_path, capsys) -> None:
+        """Reprendre `create` après avoir rempli le brief ne rejoue rien.
+
+        La machine à états refuse — à juste titre — de rejouer une étape faite
+        sans rembobinage explicite. L'orchestrateur la saute donc, au lieu de
+        buter dessus, et le dit à l'écran.
+        """
+        corpus = Path(__file__).parent / "fixtures" / "corpus"
+        episode = tmp_path / "ep"
+        arguments = [
+            "create",
+            "--episode", str(episode),
+            "--topic", "Comment fonctionne une voiture électrique ?",
+            "--corpus", str(corpus),
+        ]
+        assert main(arguments) == 3
+        capsys.readouterr()
+        # Deuxième passage, toujours sans brief rempli : la recherche est faite.
+        assert main(arguments) == 3
+        out = capsys.readouterr().out
+        assert "pdz2 research — déjà fait, sauté" in out
+
+    def test_the_orchestrator_covers_every_stage_of_the_graph(self) -> None:
+        """Aucune étape du graphe ne peut être oubliée par `create`."""
+        from pdz2.cli.orchestrate import STAGE_OF, STEPS
+        from pdz2.contracts.pipeline import Stage
+
+        commands = {"research", "direct"} | {name for name, _ in STEPS}
+        covered = {STAGE_OF[name] for name in commands if name in STAGE_OF}
+        # FINAL_QA et REPAIR sont franchies par `deliver` et par la boucle de
+        # réparation, qui ne se déclenche que sur diagnostic.
+        assert set(Stage) - covered == {Stage.FINAL_QA, Stage.REPAIR}
+
+    def test_journal_refuses_an_episode_without_a_request(self, tmp_path, capsys) -> None:
+        from pdz2.state import EpisodeStateMachine
+        from pdz2.storage import EpisodeStore
+
+        store = EpisodeStore(tmp_path / "ep")
+        store.initialise()
+        store.save_snapshot(
+            EpisodeStateMachine.create(
+                episode_id="ep-1", topic_request_id="topic_request-1"
+            ).snapshot
+        )
+        assert main(["journal", "--episode", str(tmp_path / "ep")]) == 1
+        assert "rien à raconter" in capsys.readouterr().err
 
     def test_a_missing_subcommand_is_an_error(self) -> None:
         with pytest.raises(SystemExit):

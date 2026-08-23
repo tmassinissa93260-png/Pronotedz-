@@ -169,17 +169,38 @@ class TestDirectCommand:
         assert "pas de recherche" in capsys.readouterr().err
 
 
-class TestCreateStillRefuses:
-    def test_create_names_the_commands_that_do_work(self, capsys):
-        assert main(["create", "--topic", TOPIC]) == 2
+class TestCreateRunsTheChain:
+    def test_create_researches_then_hands_the_brief_back_to_a_human(
+        self, tmp_path, capsys
+    ):
+        """La phase 1 tourne pour de vrai, puis `create` s'arrête net.
+
+        Ce n'est pas un refus par manque d'implémentation : la recherche a
+        eu lieu, le gabarit est rempli d'éléments réellement trouvés, et ce
+        qui manque est une décision — thèse, ton, public — qu'aucune mesure
+        de ce système ne prend.
+        """
+        episode = tmp_path / "ep"
+        assert (
+            main(
+                [
+                    "create",
+                    "--episode", str(episode),
+                    "--topic", TOPIC,
+                    "--corpus", str(CORPUS),
+                ]
+            )
+            == 3
+        )
         error = capsys.readouterr().err
-        assert "pdz2 research" in error
-        assert "pdz2 direct" in error
+        assert "décision humaine" in error
+        assert (episode / "research.json").is_file()
+        assert (episode / "brief.json").is_file()
 
 
 class TestPhasesReportsReality:
     def test_phase_1_is_marked_done_with_its_limit(self, capsys):
         assert main(["phases"]) == 0
         out = capsys.readouterr().out
-        assert "[x] Phase 1" in out
+        assert "[x] Phase 1 — research" in out
         assert "aucun raisonneur branché" in out
