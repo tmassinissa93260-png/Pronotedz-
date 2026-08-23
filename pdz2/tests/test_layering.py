@@ -226,7 +226,18 @@ class TestPhaseHonesty:
             for path in directory.iterdir()
             if path.is_dir() and (path / "__init__.py").exists()
         )
-        assert present == ["direction", "research", "script", "shots", "temporal", "visual"]
+        assert present == [
+            "direction",
+            "imagery",
+            "motion",
+            "renderspec",
+            "research",
+            "script",
+            "shots",
+            "temporal",
+            "validation",
+            "visual",
+        ]
 
     def test_no_reasoner_adapter_pretends_to_exist(self) -> None:
         """Le port `Reasoner` est défini, aucun adaptateur ne l'implémente.

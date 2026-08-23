@@ -19,10 +19,14 @@ from pdz2.contracts.script import ScriptState, VoiceTimeline
 from pdz2.contracts.temporal import TemporalPlan
 from pdz2.contracts.visual import VisualBible
 from pdz2.engines.direction import DirectorCompiler
+from pdz2.engines.imagery import ImageSpecCompiler
+from pdz2.engines.motion import MotionCompiler
+from pdz2.engines.renderspec import RenderSpecCompiler
 from pdz2.engines.research import LocalCorpusProvider, ResearchEngine
 from pdz2.engines.script import ScriptCompiler
 from pdz2.engines.shots import ShotGraphCompiler
 from pdz2.engines.temporal import TemporalDirector
+from pdz2.engines.validation import StaticValidator
 from pdz2.engines.visual import VisualBibleCompiler
 from pdz2.tests.fixtures import CORPUS
 from pdz2.tests.test_audio_measurement import tone
@@ -45,6 +49,10 @@ class Episode:
     temporal_plan: TemporalPlan
     graph: object
     camera_programs: list
+    motion_programs: list | None = None
+    image_specs: list | None = None
+    render_specs: list | None = None
+    validation: object | None = None
 
     def claim(self, fragment: str):
         return next(c for c in self.research.claims if fragment in c.text)
@@ -116,6 +124,7 @@ def build_episode(
     durations: list[float] | None = None,
     target_duration_s: float = 45.0,
     brief_overrides: dict | None = None,
+    through_render_spec: bool = False,
 ) -> Episode:
     """Chaîne complète : recherche → réalisation → script → voix → plans."""
     request, research = build_research(target_duration_s)
@@ -139,7 +148,7 @@ def build_episode(
         research=research,
         request=request,
     )
-    return Episode(
+    episode = Episode(
         request=request,
         research=research,
         brief=brief,
@@ -150,6 +159,47 @@ def build_episode(
         temporal_plan=plan,
         graph=shots.graph,
         camera_programs=shots.camera_programs,
+    )
+    return with_render_specs(episode) if through_render_spec else episode
+
+
+def with_render_specs(episode: Episode) -> Episode:
+    """Prolonge un épisode jusqu'aux demandes de rendu validées (phase 4)."""
+    motions = MotionCompiler().compile(
+        shot_graph=episode.graph,
+        temporal_plan=episode.temporal_plan,
+        camera_programs=episode.camera_programs,
+        director_state=episode.director_state,
+        visual_bible=episode.bible,
+    ).programs
+    images = ImageSpecCompiler().compile(
+        shot_graph=episode.graph,
+        visual_bible=episode.bible,
+        director_state=episode.director_state,
+        request=episode.request,
+    ).specs
+    specs = RenderSpecCompiler().compile(
+        shot_graph=episode.graph,
+        motion_programs=motions,
+        camera_programs=episode.camera_programs,
+        image_specs=images,
+        request=episode.request,
+    ).specs
+    report = StaticValidator().validate(
+        episode_id="test-episode",
+        shot_graph=episode.graph,
+        requested=specs,
+        motion_programs=motions,
+        camera_programs=episode.camera_programs,
+        image_specs=images,
+        request=episode.request,
+    ).report
+    return replace(
+        episode,
+        motion_programs=motions,
+        image_specs=images,
+        render_specs=specs,
+        validation=report,
     )
 
 

@@ -141,6 +141,11 @@ from pdz2.contracts.temporal import (
     SlotOrigin,
     TemporalPlan,
 )
+from pdz2.contracts.validation import (
+    ValidationIssue,
+    ValidationReport,
+    ValidationRule,
+)
 from pdz2.contracts.versioning import (
     ContractRegistry,
     IncompatibleVersion,
@@ -258,6 +263,10 @@ __all__ = [
     "SlotOrigin",
     "RhythmFinding",
     "RhythmFindingKind",
+    # validation
+    "ValidationReport",
+    "ValidationIssue",
+    "ValidationRule",
     # ABI de rendu
     "RenderStrategy",
     "AI_VIDEO_STRATEGIES",

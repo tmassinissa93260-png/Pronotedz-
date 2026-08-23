@@ -126,14 +126,20 @@ STAGE_DEFINITIONS: dict[Stage, StageDefinition] = {
         _d(
             Stage.STATIC_VALIDATION,
             depends_on=(Stage.RENDER_SPEC,),
-            produces=("render_spec_executable", "execution_plan"),
-            description="Refuser avant de dépenser. Barrière de coût.",
+            produces=("validation_report",),
+            description=(
+                "Refuser avant de dépenser. Barrière de coût. Le validateur "
+                "constate et rejette ; il ne choisit rien."
+            ),
         ),
         _d(
             Stage.ROUTING,
             depends_on=(Stage.STATIC_VALIDATION,),
-            produces=("execution_plan",),
-            description="Choisir une stratégie de rendu par plan.",
+            produces=("render_spec_executable", "execution_plan"),
+            description=(
+                "Choisir une stratégie de rendu par plan, en fonction des "
+                "capacités réellement mesurées, et enregistrer toute dégradation."
+            ),
         ),
         _d(
             Stage.ASSETS,

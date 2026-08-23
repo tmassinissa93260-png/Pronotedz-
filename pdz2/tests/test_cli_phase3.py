@@ -168,4 +168,3 @@ class TestPhasesReportsPhase3:
         out = capsys.readouterr().out
         assert "[x] Phase 3" in out
         assert "aucun fournisseur nommé" in out
-        assert "[ ] Phase 4" in out

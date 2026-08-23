@@ -29,9 +29,10 @@ IMPLEMENTED_PHASES = (
     "(eSpeak NG hors-ligne ; durées mesurées sur l'audio, pas estimées)",
     "Phase 3 — shot graph + visual bible "
     "(découpage du temps mesuré ; aucun fournisseur nommé)",
+    "Phase 4 — render spec + static validator "
+    "(douze règles nommées ; barrière de coût effective)",
 )
 PENDING_PHASES = (
-    "Phase 4 — render spec + static validator",
     "Phase 5 — image engine",
     "Phase 6 — motion program + un fournisseur vidéo",
     "Phase 7 — 2.5D + procédural",
@@ -147,6 +148,9 @@ def _cmd_create(args: argparse.Namespace) -> int:
         "  pdz2 timeline       --episode DIR\n"
         "  pdz2 bible          --episode DIR\n"
         "  pdz2 shots          --episode DIR\n"
+        "  pdz2 motion         --episode DIR\n"
+        "  pdz2 specs          --episode DIR\n"
+        "  pdz2 validate       --episode DIR\n"
         "Voir `pdz2 phases` pour l'état réel du chantier.",
         file=sys.stderr,
     )
@@ -188,11 +192,12 @@ def build_parser() -> argparse.ArgumentParser:
     show.add_argument("episode", help="dossier de l'épisode")
     show.set_defaults(func=_cmd_state_show)
 
-    from pdz2.cli import phase1, phase2, phase3
+    from pdz2.cli import phase1, phase2, phase3, phase4
 
     phase1.register(subparsers)
     phase2.register(subparsers)
     phase3.register(subparsers)
+    phase4.register(subparsers)
 
     subparsers.add_parser("phases", help="état réel du chantier").set_defaults(func=_cmd_phases)
 
