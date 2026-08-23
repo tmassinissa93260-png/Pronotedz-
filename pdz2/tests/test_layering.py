@@ -204,12 +204,12 @@ class TestAudioCoreStaysEngineAgnostic:
 class TestPhaseHonesty:
     """Les paquets des phases suivantes restent vides, sans faux moteur."""
 
-    UNIMPLEMENTED = ("repair", "editing")
+    UNIMPLEMENTED = ("editing",)
     """Paquets dont la phase n'est pas faite.
 
     `engines` en est sorti en phase 1, `audio` en phase 2, `providers` en
     phase 6 — où il ne porte encore que des ports, sans adaptateur — et
-    `renderers` en phase 7, `qa` en phase 8."""
+    `renderers` en phase 7, `qa` en phase 8, `repair` en phase 9."""
 
     @pytest.mark.parametrize("package", UNIMPLEMENTED)
     def test_unimplemented_packages_contain_only_their_notice(self, package: str) -> None:
