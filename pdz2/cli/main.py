@@ -131,6 +131,30 @@ def _cmd_state_show(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_state_recover(args: argparse.Namespace) -> int:
+    """Rend redémarrable un épisode qu'une interruption a laissé en cours."""
+    store = EpisodeStore(args.episode)
+    if not store.has_snapshot():
+        print(f"aucun état dans {args.episode}", file=sys.stderr)
+        return 1
+    from pdz2.state import EpisodeStateMachine
+
+    machine = EpisodeStateMachine.resume(store.load_snapshot())
+    bloquees = machine.interrupted_stages
+    if not bloquees:
+        print("aucune étape interrompue : rien à reprendre.")
+        return 0
+    reprises = machine.recover(reason=args.reason)
+    store.save_snapshot(machine.snapshot)
+    for stage in reprises:
+        print(f"  {stage.value} : en cours → en attente")
+    print(
+        f"\n{len(reprises)} étape(s) redémarrable(s). Les artefacts qu'elles "
+        "avaient commencés sont oubliés : on ne sait pas s'ils sont complets."
+    )
+    return 0
+
+
 def _cmd_phases(args: argparse.Namespace) -> int:
     print("Implémenté :")
     for line in IMPLEMENTED_PHASES:
@@ -183,6 +207,14 @@ def build_parser() -> argparse.ArgumentParser:
     show = state_sub.add_parser("show", help="afficher l'état d'un épisode")
     show.add_argument("episode", help="dossier de l'épisode")
     show.set_defaults(func=_cmd_state_show)
+    recover = state_sub.add_parser(
+        "recover", help="reprendre un épisode interrompu en cours d'étape"
+    )
+    recover.add_argument("episode", help="dossier de l'épisode")
+    recover.add_argument(
+        "--reason", default="reprise après interruption", help="motif consigné"
+    )
+    recover.set_defaults(func=_cmd_state_recover)
 
     from pdz2.cli import (
         phase1,

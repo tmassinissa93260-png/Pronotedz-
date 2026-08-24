@@ -264,6 +264,60 @@ class EpisodeStateMachine:
             self._snapshot.episode_status = EpisodeStatus.RUNNING
         return rewound
 
+    def recover(
+        self, *, reason: str = "reprise après interruption", actor: str = "system"
+    ) -> list[Stage]:
+        """Rend redémarrables les étapes qu'une interruption a laissées en cours.
+
+        Un processus tué au milieu d'une étape — Ctrl-C, mémoire épuisée,
+        conteneur repris — laisse cette étape `RUNNING` sur le disque. À la
+        reprise, `start()` la refuse (« tourne déjà ») et l'épisode est bloqué
+        pour de bon : rien dans la machine ne savait défaire cet état.
+
+        Ce n'est **pas** un rembobinage. `rewind()` est l'outil du Repair
+        Compiler : il consomme un cycle de réparation, plafonné, et remet
+        aussi tout l'aval en attente. Une interruption n'est pas une
+        réparation — elle ne doit rien coûter au budget de réparation, et
+        l'aval n'a jamais démarré.
+
+        Ce n'est pas non plus un abandon : `abandon()` marque les étapes en
+        cours comme perdues et clôt l'épisode.
+
+        Les artefacts déjà écrits par l'étape interrompue sont oubliés
+        volontairement : on ne sait pas s'ils sont complets. L'étape repart de
+        zéro, et la transition reste au journal pour que l'interruption se
+        voie.
+        """
+        if not reason.strip():
+            raise TransitionRefused("une reprise exige un motif")
+        reprises: list[Stage] = []
+        for stage in STAGE_ORDER:
+            state = self._snapshot.state(stage)
+            if state.status is not StageStatus.RUNNING:
+                continue
+            state.artifact_ids = []
+            state.status = StageStatus.PENDING
+            state.started_at = None
+            state.ended_at = None
+            state.detail = reason
+            self._record(stage, StageStatus.RUNNING, StageStatus.PENDING, reason, actor)
+            reprises.append(stage)
+        if reprises and self._snapshot.episode_status in {
+            EpisodeStatus.BLOCKED,
+            EpisodeStatus.FAILED,
+        }:
+            self._snapshot.episode_status = EpisodeStatus.RUNNING
+        return reprises
+
+    @property
+    def interrupted_stages(self) -> list[Stage]:
+        """Étapes restées en cours : la trace d'un processus qui n'est pas revenu."""
+        return [
+            stage
+            for stage in STAGE_ORDER
+            if self._snapshot.state(stage).status is StageStatus.RUNNING
+        ]
+
     def abandon(self, *, reason: str, actor: str = "human") -> None:
         if not reason.strip():
             raise TransitionRefused("un abandon exige un motif")
