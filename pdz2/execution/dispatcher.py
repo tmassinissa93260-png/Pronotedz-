@@ -39,6 +39,7 @@ from pdz2.contracts.motion import MotionProgram
 from pdz2.contracts.render import (
     Degradation,
     DegradationSeverity,
+    ExecutionPlan,
     RenderArtifact,
     RenderSpecExecutable,
     RenderStrategy,
@@ -124,6 +125,23 @@ def _local_fallback(strategy: RenderStrategy) -> RenderStrategy:
     return RenderStrategy.STILL
 
 
+def _budgets(plan: ExecutionPlan | None) -> dict[str, int]:
+    """Budget de tentatives par exécutable, tel que le plan le déclare.
+
+    Le plan d'exécution était produit, validé, persisté — et relu par
+    personne. Ses `retry_budget` et son ordonnancement ne gouvernaient rien,
+    pendant que l'aiguilleur appliquait sa propre politique en dur. Un contrat
+    que personne ne relit n'est pas une frontière.
+    """
+    if plan is None:
+        return {}
+    return {
+        step.spec_id: step.retry_budget
+        for step in plan.steps
+        if step.spec_id is not None
+    }
+
+
 @dataclass
 class ExecutionDispatcher:
     """Confie chaque plan à l'exécutant que sa stratégie appelle."""
@@ -138,8 +156,16 @@ class ExecutionDispatcher:
         motion_programs: list[MotionProgram],
         images: list[RenderedImage],
         into: Path,
+        plan: ExecutionPlan | None = None,
     ) -> ExecutionOutcome:
+        """Exécute les plans, en suivant le plan d'exécution s'il est fourni.
+
+        `plan` porte, par plan de tournage, un budget de tentatives et un
+        délai. Sans lui, l'aiguilleur s'en tient à une tentative : c'est le
+        choix le plus prudent, jamais une reprise inventée.
+        """
         outcome = ExecutionOutcome()
+        budgets = _budgets(plan)
         par_image = {image.shot_id: image for image in images}
         a_rendre_localement: list[RenderSpecExecutable] = []
 
@@ -164,7 +190,12 @@ class ExecutionDispatcher:
                     f"{executable.shot_id} : aucune image de départ pour un plan génératif"
                 )
             rendu = self._try_provider(
-                executable, fournisseur, image, into, outcome
+                executable,
+                fournisseur,
+                image,
+                into,
+                outcome,
+                budget=budgets.get(executable.id, 1),
             )
             if rendu is None:
                 a_rendre_localement.append(self._degrade(executable, outcome))
@@ -222,26 +253,38 @@ class ExecutionDispatcher:
         image: RenderedImage,
         into: Path,
         outcome: ExecutionOutcome,
+        budget: int = 1,
     ) -> RenderArtifact | None:
-        """Une tentative, une seule. Un échec est nommé, jamais rejoué."""
+        """Tente, dans la limite du budget **déclaré** par le plan d'exécution.
+
+        Ce n'est pas une reprise à l'aveugle : le nombre de tentatives vient
+        d'un contrat validé en amont, il est borné, et chaque échec est nommé.
+        Par défaut le budget vaut 1 — on ne rejoue rien que personne n'a
+        autorisé.
+        """
         into.mkdir(parents=True, exist_ok=True)
         debut = time.monotonic()
-        try:
-            resultat = provider.generate(
-                VideoJob(
-                    executable=executable,
-                    start_image=image.composite_path,
-                    reference_images=tuple(
-                        image.layer_paths[role] for role in sorted(
-                            image.layer_paths, key=lambda r: r.value
-                        )
-                    ),
+        resultat = None
+        for tentative in range(1, max(1, budget) + 1):
+            try:
+                resultat = provider.generate(
+                    VideoJob(
+                        executable=executable,
+                        start_image=image.composite_path,
+                        reference_images=tuple(
+                            image.layer_paths[role] for role in sorted(
+                                image.layer_paths, key=lambda r: r.value
+                            )
+                        ),
+                    )
                 )
-            )
-        except (ProviderUnavailable, OSError) as panne:
-            outcome.notes.append(
-                f"{executable.shot_id} : {provider.name} a échoué — {panne}"
-            )
+                break
+            except (ProviderUnavailable, OSError) as panne:
+                outcome.notes.append(
+                    f"{executable.shot_id} : {provider.name} a échoué "
+                    f"(tentative {tentative}/{max(1, budget)}) — {panne}"
+                )
+        if resultat is None:
             return None
 
         chemin = Path(resultat.path)

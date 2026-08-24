@@ -175,6 +175,10 @@ class RepairCompiler:
             executable = by_shot.get(shot_id or "")
             steps = self._steps(diagnosis, executable, cycle)
             fallback = self._guaranteed_fallback(cycle)
+            interdites: list[RenderStrategy] = []
+            if shot_id and executable is not None and self._blames_strategy(diagnosis):
+                forbidden.setdefault(shot_id, set()).add(executable.strategy)
+                interdites = [executable.strategy]
             plans.append(
                 RepairPlan(
                     diagnosis_id=diagnosis.id,
@@ -183,11 +187,10 @@ class RepairCompiler:
                     cycle=cycle,
                     max_cycles=self.max_cycles,
                     guaranteed_fallback=fallback,
+                    forbidden_strategies=interdites,
                     parent_id=diagnosis.id,
                 )
             )
-            if shot_id and executable is not None and self._blames_strategy(diagnosis):
-                forbidden.setdefault(shot_id, set()).add(executable.strategy)
 
         return RepairOutcome(
             plans=plans,

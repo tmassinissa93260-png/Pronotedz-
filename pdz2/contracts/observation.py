@@ -18,6 +18,7 @@ from pdz2.contracts.base import Contract, Element, contract
 from pdz2.contracts.common import QaCheck
 from pdz2.contracts.enums import Severity
 from pdz2.contracts.pipeline import Stage
+from pdz2.contracts.render import RenderStrategy
 
 __all__ = [
     "Measurement",
@@ -194,7 +195,7 @@ class RepairStep(Element):
         return self
 
 
-@contract("repair_plan", "1.0.0")
+@contract("repair_plan", "1.1.0")
 class RepairPlan(Contract):
     """Suite d'actions bornée, avec un repli qui aboutit toujours."""
 
@@ -205,6 +206,19 @@ class RepairPlan(Contract):
     max_cycles: int = Field(default=3, ge=1, le=20)
     guaranteed_fallback: RepairAction
     """Ce qui sera fait si toutes les étapes échouent. Livraison garantie."""
+
+    forbidden_strategies: list[RenderStrategy] = Field(default_factory=list)
+    """Stratégies que ce plan interdit désormais sur son plan de tournage.
+
+    Ajouté en 1.1.0, et c'est une correction de frontière, pas un confort. Ce
+    que le cycle de réparation suivant doit savoir — « n'essaie plus celle-ci,
+    elle a déjà échoué ici » — vivait dans un JSON libre à côté des contrats
+    (`repairs/forbidden_strategies.json`). Le `RepairPlan` était produit,
+    persisté, puis jamais relu : l'état réel de la boucle était porté par un
+    dictionnaire arbitraire, ce que le §4 interdit.
+
+    Absent des documents 1.0.0, où il vaut une liste vide — un épisode
+    d'avant cette version n'interdisait rien de façon lisible."""
 
     @model_validator(mode="after")
     def _bounded_and_guaranteed(self) -> Self:

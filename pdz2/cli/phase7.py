@@ -98,11 +98,13 @@ def cmd_render(args: argparse.Namespace) -> int:
 
     try:
         images = _rebuild_images(store)
+        plans = store.load_collection("execution_plan")
         outcome = dispatcher.execute(
             executables=executables,
             motion_programs=store.load_collection("motion_program"),
             images=images,
             into=store.root / RENDERS_DIR,
+            plan=plans[0] if plans else None,
         )
     except (RenderFailed, FfmpegUnavailable, DispatchRejected) as failure:
         machine.fail(Stage.RENDER, reason=str(failure))

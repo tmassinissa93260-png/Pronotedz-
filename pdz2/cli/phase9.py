@@ -10,7 +10,6 @@ est une décision écrite au journal, pas un oubli.
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 
 from pdz2.contracts.pipeline import Stage
@@ -19,9 +18,6 @@ from pdz2.state import EpisodeStateMachine, TransitionRefused
 from pdz2.storage import EpisodeStore
 
 __all__ = ["register", "cmd_diagnose", "cmd_repair"]
-
-FORBIDDEN_FILE = "repairs/forbidden_strategies.json"
-
 
 def _open(episode: str):
     store = EpisodeStore(episode)
@@ -122,7 +118,6 @@ def cmd_repair(args: argparse.Namespace) -> int:
 
     for plan in outcome.plans:
         store.save(plan)
-    _save_forbidden(store, outcome.forbidden_strategies)
     machine.complete(Stage.REPAIR, artifact_ids=[p.id for p in outcome.plans])
 
     for note in outcome.notes:
@@ -162,30 +157,23 @@ def _earliest_stage(stages) -> Stage:
 
 
 def _load_forbidden(store: EpisodeStore) -> dict[str, set]:
-    from pdz2.contracts.render import RenderStrategy
+    """Relit les interdictions dans les plans de réparation déjà écrits.
 
-    path = store.root / FORBIDDEN_FILE
-    if not path.is_file():
-        return {}
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    return {
-        shot: {RenderStrategy(value) for value in values}
-        for shot, values in payload.items()
-    }
+    Cet état vivait auparavant dans un JSON libre à côté des contrats. Le
+    `RepairPlan` était produit, persisté, puis jamais relu : la boucle de
+    réparation tournait sur un dictionnaire arbitraire, alors que le contrat
+    existait pour porter exactement cela. Un contrat qu'on n'a pas le droit de
+    relire n'est pas une frontière, c'est une trace.
+    """
+    forbidden: dict[str, set] = {}
+    for plan in store.load_collection("repair_plan"):
+        if not plan.shot_id:
+            continue
+        for strategy in plan.forbidden_strategies:
+            forbidden.setdefault(plan.shot_id, set()).add(strategy)
+    return forbidden
 
 
-def _save_forbidden(store: EpisodeStore, forbidden: dict[str, set]) -> None:
-    path = store.root / FORBIDDEN_FILE
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
-        json.dumps(
-            {shot: sorted(s.value for s in values) for shot, values in forbidden.items()},
-            ensure_ascii=False,
-            indent=2,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
 
 
 def register(subparsers) -> None:

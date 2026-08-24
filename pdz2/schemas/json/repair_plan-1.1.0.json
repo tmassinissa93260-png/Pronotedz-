@@ -13,6 +13,22 @@
       "title": "ContractStatus",
       "type": "string"
     },
+    "RenderStrategy": {
+      "enum": [
+        "direct_i2v",
+        "controlled_i2v",
+        "video_editing",
+        "vace_style_conditioning",
+        "parallax_2_5d",
+        "procedural",
+        "3d",
+        "hybrid",
+        "ken_burns",
+        "still"
+      ],
+      "title": "RenderStrategy",
+      "type": "string"
+    },
     "RepairAction": {
       "enum": [
         "retry_same",
@@ -95,7 +111,7 @@
       "type": "string"
     }
   },
-  "$id": "pdz2:repair_plan/1.0.0",
+  "$id": "pdz2:repair_plan/1.1.0",
   "additionalProperties": false,
   "description": "Suite d'actions bornée, avec un repli qui aboutit toujours.",
   "properties": {
@@ -117,6 +133,13 @@
       "minLength": 1,
       "title": "Diagnosis Id",
       "type": "string"
+    },
+    "forbidden_strategies": {
+      "items": {
+        "$ref": "#/$defs/RenderStrategy"
+      },
+      "title": "Forbidden Strategies",
+      "type": "array"
     },
     "guaranteed_fallback": {
       "$ref": "#/$defs/RepairAction"
