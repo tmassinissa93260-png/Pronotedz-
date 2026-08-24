@@ -17,6 +17,7 @@ from pdz2.contracts import DirectorState, RenderSpecExecutable, RenderSpecReques
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 
 EXECUTION_ONLY_PACKAGES = {
+    "pdz2.execution",
     "pdz2.providers",
     "pdz2.renderers",
     "pdz2.engines",
@@ -221,7 +222,7 @@ class TestPhaseHonesty:
         expected = (
             "architecture", "contracts", "schemas", "providers", "renderers",
             "engines", "qa", "repair", "audio", "editing", "storage", "cli",
-            "tests",
+            "execution", "tests",
         )
         for package in expected:
             directory = PACKAGE_ROOT / package

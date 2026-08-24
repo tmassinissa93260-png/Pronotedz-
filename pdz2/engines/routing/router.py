@@ -66,6 +66,57 @@ hauteur de l'énergie de mouvement visée, puis redescend si la capacité, la
 durée ou le budget l'y obligent.
 """
 
+STRATEGY_LADDER: tuple[RenderStrategy, ...] = (
+    *MOTION_COMPLEXITY_ORDER,
+    RenderStrategy.HYBRID,
+    RenderStrategy.CONTROLLED_I2V,
+    RenderStrategy.DIRECT_I2V,
+)
+"""L'échelle entière, du plus sobre au plus mouvant.
+
+Les quatre premiers barreaux s'exécutent sans personne ; les trois derniers
+demandent un fournisseur. Un barreau génératif n'entre dans les stratégies
+mobilisables que si un fournisseur joignable le déclare, mesuré : c'est ce qui
+fait qu'en l'absence de fournisseur, l'échelle se réduit exactement à
+`MOTION_COMPLEXITY_ORDER` et que le routeur se comporte comme avant.
+
+`HYBRID` s'y trouve au-dessus du procédural et en dessous de l'I2V : il
+combine une base générative et un traitement local, donc il demande un
+fournisseur, mais il en demande moins qu'un plan entièrement généré.
+"""
+
+_NEEDS_PROVIDER: frozenset[RenderStrategy] = AI_VIDEO_STRATEGIES | {
+    RenderStrategy.HYBRID
+}
+"""Barreaux qu'aucune machine locale ne sait franchir seule.
+
+`HYBRID` en fait partie : sa base est générée. Sans fournisseur, il n'entre
+jamais dans les stratégies mobilisables.
+"""
+
+_GENERATIVE_ABOVE = 0.80
+"""Au-delà, le mouvement dépasse ce que l'échelle locale sait porter.
+
+Calé sur les valeurs réellement produites, pas au jugé. L'énergie visée sort
+de `FUNCTION_MOTION[fonction] + PACING_MOTION_BIAS[rythme] (+ regain de
+répétition)`, ce qui donne :
+
+    plafond par fonction            MECHANISM   0.70
+    rythme mesuré (documentaire)    +0.00       → 0.70  jamais génératif
+    rythme soutenu                  +0.10       → 0.80  génératif
+    rythme rapide                   +0.20       → 0.90  génératif
+    mécanisme répété, mesuré        +0.15       → 0.85  génératif
+
+Mesuré sur l'épisode de référence (8 plans, rythme mesuré) : énergies de 0.30
+à 0.70, donc **aucun plan génératif** — ce qui est le comportement voulu, une
+narration posée n'a pas besoin qu'on paie un modèle. Un seuil plus haut, lui,
+n'aurait jamais pu se déclencher : 0.90 exige à la fois le mécanisme et le
+rythme rapide.
+
+Le procédural entre à 0.70 et ne coûte rien : on ne paie un fournisseur que
+pour ce qu'aucune stratégie gratuite ne sait produire.
+"""
+
 _STILL_BELOW = 0.15
 _KEN_BURNS_BELOW = 0.40
 _PARALLAX_BELOW = 0.70
@@ -183,7 +234,7 @@ class RenderRouter:
             usable = [RenderStrategy.STILL]
 
         energy = motion.perceptual_target.motion_energy
-        wanted = self._by_energy(energy)
+        wanted = spec.preferred_strategy or self._aim(energy, available)
         wanted = self._respect_layers(wanted, layer_count, degradations)
         chosen = self._best(wanted, usable)
 
@@ -210,6 +261,7 @@ class RenderRouter:
                 )
             )
 
+        retenu = self._porteur(chosen)
         camera = self._camera(spec, chosen, degradations)
         if spec.identity_lock_required and chosen in AI_VIDEO_STRATEGIES:
             degradations.append(
@@ -232,12 +284,81 @@ class RenderRouter:
             duration_s=spec.duration_s,
             resolution=spec.resolution,
             fps=spec.fps,
-            provider=None,
-            model=None,
+            provider=retenu.capability.provider if retenu else None,
+            model=(retenu.model or None) if retenu else None,
             degradations=degradations,
-            estimated_cost_usd=0.0,
+            estimated_cost_usd=self._cout_attendu(retenu, spec.duration_s),
             parent_id=spec.id,
         )
+
+    @staticmethod
+    def _tient_le_plan(
+        capability: VideoCapability,
+        spec: RenderSpecRequested,
+        degradations: list[Degradation],
+    ) -> bool:
+        """Le fournisseur tient-il réellement la durée et le cadre demandés ?
+
+        Une limite `None` n'est pas « pas de limite » : c'est une limite
+        inconnue. Le §14 est clair — UNKNOWN ne devient jamais SUPPORTED sans
+        preuve — donc une limite non mesurée ne sert pas à écarter le
+        fournisseur, mais elle ne sert pas non plus à le retenir : seule une
+        limite mesurée et dépassée l'écarte, et l'écart est déclaré.
+        """
+        trop = []
+        if capability.max_duration_s is not None and spec.duration_s > capability.max_duration_s:
+            trop.append(
+                f"durée {spec.duration_s:.2f}s au-delà de "
+                f"{capability.max_duration_s:.2f}s"
+            )
+        if capability.max_width is not None and spec.resolution.width > capability.max_width:
+            trop.append(f"largeur {spec.resolution.width} au-delà de {capability.max_width}")
+        if capability.max_height is not None and spec.resolution.height > capability.max_height:
+            trop.append(f"hauteur {spec.resolution.height} au-delà de {capability.max_height}")
+        if not trop:
+            return True
+        degradations.append(
+            Degradation(
+                field="provider_availability",
+                requested=f"génération par {capability.capability.provider}",
+                executed="stratégie déterministe locale",
+                reason=(
+                    f"{capability.capability.provider} ne tient pas ce plan : "
+                    + " ; ".join(trop)
+                ),
+                description="le plan dépasse une limite mesurée du fournisseur",
+                severity=DegradationSeverity.PERCEPTUAL,
+            )
+        )
+        return False
+
+    def _porteur(self, strategy: RenderStrategy) -> VideoCapability | None:
+        """Le fournisseur qui exécutera cette stratégie, s'il en faut un.
+
+        Une stratégie locale ne nomme personne : le renderer déterministe
+        n'est pas un fournisseur, il n'a ni compte ni facture. Nommer un
+        fournisseur là où il n'y en a pas ferait croire à une dépendance qui
+        n'existe pas.
+        """
+        if strategy not in _NEEDS_PROVIDER:
+            return None
+        for capability in self.video_capabilities:
+            if capability.usable and strategy in capability.strategies:
+                return capability
+        return None
+
+    @staticmethod
+    def _cout_attendu(retenu: VideoCapability | None, duree_s: float) -> float:
+        """Coût attendu, et seulement s'il est chiffré par la capacité.
+
+        Un fournisseur qui ne dit pas ce qu'il coûte laisse 0 ici : c'est le
+        gouverneur de coût qui refusera la dépense pour `UNMEASURED_COST`.
+        Inventer un chiffre à sa place serait exactement ce que le §14
+        interdit.
+        """
+        if retenu is None or retenu.cost_per_second_usd is None:
+            return 0.0
+        return round(retenu.cost_per_second_usd * duree_s, 6)
 
     def _available(
         self, spec: RenderSpecRequested, degradations: list[Degradation]
@@ -252,10 +373,12 @@ class RenderRouter:
         if spec.allow_ai_video:
             if reachable:
                 for capability in reachable:
+                    if not self._tient_le_plan(capability, spec, degradations):
+                        continue
                     available.extend(
                         strategy
                         for strategy in capability.strategies
-                        if strategy in AI_VIDEO_STRATEGIES
+                        if strategy in _NEEDS_PROVIDER
                     )
             else:
                 degradations.append(
@@ -282,6 +405,24 @@ class RenderRouter:
                 f"{spec.shot_id} : aucune stratégie disponible, pas même un repli"
             )
         return available
+
+    def _aim(
+        self, energy: float, available: list[RenderStrategy]
+    ) -> RenderStrategy:
+        """Stratégie visée : l'énergie de mouvement, puis ce qu'on sait faire.
+
+        Au-delà de `_GENERATIVE_ABOVE`, le mouvement demandé dépasse ce qu'un
+        recadrage ou un décalage de calques sait rendre : c'est là, et là
+        seulement, qu'un fournisseur génératif vaut son coût. S'il n'y en a
+        aucun, `available` ne contient aucun barreau génératif et la visée
+        redescend d'elle-même sur l'échelle locale — sans écart à déclarer,
+        puisque rien de génératif n'a été demandé.
+        """
+        local = self._by_energy(energy)
+        if energy < _GENERATIVE_ABOVE:
+            return local
+        generative = [s for s in STRATEGY_LADDER if s in available and s in _NEEDS_PROVIDER]
+        return generative[-1] if generative else local
 
     @staticmethod
     def _by_energy(energy: float) -> RenderStrategy:
@@ -330,14 +471,12 @@ class RenderRouter:
         """La stratégie visée, ou la plus proche en deçà sur l'échelle."""
         if wanted in usable:
             return wanted
-        scale = [s for s in MOTION_COMPLEXITY_ORDER if s in usable]
+        scale = [s for s in STRATEGY_LADDER if s in usable]
         if not scale:
-            raise RoutingRejected("aucune stratégie locale disponible")
-        if wanted in MOTION_COMPLEXITY_ORDER:
-            index = MOTION_COMPLEXITY_ORDER.index(wanted)
-            below = [
-                s for s in scale if MOTION_COMPLEXITY_ORDER.index(s) <= index
-            ]
+            raise RoutingRejected("aucune stratégie disponible")
+        if wanted in STRATEGY_LADDER:
+            index = STRATEGY_LADDER.index(wanted)
+            below = [s for s in scale if STRATEGY_LADDER.index(s) <= index]
             if below:
                 return below[-1]
         return scale[-1]

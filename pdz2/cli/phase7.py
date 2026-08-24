@@ -16,6 +16,9 @@ from pdz2.contracts.pipeline import Stage
 from pdz2.contracts.render import RenderSpecExecutable
 from pdz2.contracts.visual import ImageSpec, LayerRole
 from pdz2.engines.imagery.renderer import RenderedImage
+from pdz2.execution import ExecutionDispatcher
+from pdz2.execution.dispatcher import DispatchRejected
+from pdz2.providers import NO_VIDEO_PROVIDERS
 from pdz2.renderers import DeterministicRenderer, FfmpegUnavailable, RenderFailed
 from pdz2.state import EpisodeStateMachine, TransitionRefused
 from pdz2.storage import EpisodeStore
@@ -80,6 +83,12 @@ def cmd_render(args: argparse.Namespace) -> int:
     renderer = DeterministicRenderer(keep_frames=args.keep_frames)
     capability = renderer.get_capabilities()
     print(f"encodeur : {capability.state.value} — {capability.detail}")
+    # L'aiguilleur, pas le renderer : c'est lui qui décide qui exécute quoi.
+    # `NO_VIDEO_PROVIDERS` est vide dans ce dépôt, donc tout part en local —
+    # mais le chemin fournisseur existe et sera emprunté sans toucher au CLI.
+    dispatcher = ExecutionDispatcher(
+        renderer=renderer, providers=NO_VIDEO_PROVIDERS
+    )
 
     try:
         machine.start(Stage.RENDER, reason=f"{len(executables)} plans")
@@ -89,13 +98,13 @@ def cmd_render(args: argparse.Namespace) -> int:
 
     try:
         images = _rebuild_images(store)
-        outcome = renderer.render(
+        outcome = dispatcher.execute(
             executables=executables,
             motion_programs=store.load_collection("motion_program"),
             images=images,
             into=store.root / RENDERS_DIR,
         )
-    except (RenderFailed, FfmpegUnavailable) as failure:
+    except (RenderFailed, FfmpegUnavailable, DispatchRejected) as failure:
         machine.fail(Stage.RENDER, reason=str(failure))
         store.save_snapshot(machine.snapshot)
         print(f"rendu refusé : {failure}", file=sys.stderr)
@@ -103,23 +112,28 @@ def cmd_render(args: argparse.Namespace) -> int:
 
     for artifact in outcome.artifacts:
         store.save(artifact)
+    depense = round(sum(a.actual_cost_usd for a in outcome.artifacts), 6)
     machine.complete(
         Stage.RENDER,
         artifact_ids=[a.id for a in outcome.artifacts],
-        cost_usd=0.0,
-        reason=f"{len(outcome.renders)} plans rendus localement",
+        cost_usd=depense,
+        reason=f"{len(outcome.artifacts)} plans rendus",
     )
     store.save_snapshot(machine.snapshot)
 
     for note in outcome.notes:
         print(note)
-    for render in outcome.renders:
-        print(
-            f"  {render.shot_id}: {render.strategy.value:<15} "
-            f"{render.frame_count:>4} images {render.duration_s:6.3f}s "
-            f"{render.video_path.stat().st_size // 1024:>5} Kio "
-            f"en {render.latency_s:.1f}s"
+    for dispatch in sorted(outcome.dispatches, key=lambda d: d.shot_id):
+        artefact = next(
+            (a for a in outcome.artifacts if a.shot_id == dispatch.shot_id), None
         )
+        taille = f"{artefact.size_bytes // 1024:>5} Kio" if artefact else "    —"
+        print(
+            f"  {dispatch.shot_id}: {dispatch.strategy.value:<15} "
+            f"[{dispatch.executor.value:<8}] {taille}  {dispatch.detail}"
+        )
+    for ecart in outcome.degradations:
+        print(f"  DÉGRADÉ {ecart.field} : {ecart.reason}")
     print(f"\nécrit : {store.root / RENDERS_DIR}")
     return 0
 

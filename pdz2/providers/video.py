@@ -53,6 +53,11 @@ class VideoCapability(Element):
     """
 
     capability: ProviderCapability
+    model: str = Field(default="", max_length=200)
+    """Modèle précis derrière le fournisseur. Le couple (fournisseur, modèle)
+    est ce que la matrice de capacités date et ce que le registre de coût
+    impute — un fournisseur seul ne suffit pas à savoir ce qu'on exécute."""
+
     strategies: list[RenderStrategy] = Field(default_factory=list)
     camera_moves: list[CameraMove] = Field(default_factory=list)
     max_duration_s: float | None = Field(default=None, gt=0.0)
