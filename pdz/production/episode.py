@@ -67,8 +67,15 @@ from pdz.config import config
 from pdz.moteur.erreurs import ErreurConfig, ErreurPdz, ErreurValidation
 from pdz.moteur.pipeline import Contexte, executer_avec_relance
 from pdz.production import (
-    animation, coherence_duree, continuite, images, qa_images, qa_video_finale,
-    risque_prompt, storyboard, voix,
+    animation,
+    coherence_duree,
+    continuite,
+    images,
+    qa_images,
+    qa_video_finale,
+    risque_prompt,
+    storyboard,
+    voix,
 )
 from pdz.production.storyboard import PlanScript
 from pdz.univers import Univers

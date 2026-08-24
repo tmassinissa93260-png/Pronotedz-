@@ -69,7 +69,7 @@ def main() -> int:
     debut = time.perf_counter()
     plans: list[Plan] = []
 
-    for i, (perso, texte, emotion) in enumerate(SCRIPT):
+    for i, (perso, _texte, emotion) in enumerate(SCRIPT):
         # Plan A — celui qui parle, bouche animée.
         d_parle = DUREE_REPLIQUE * PART_PARLANT
         clip_a = clip_parle(perso, emotion, d_parle, TRAVAIL / f"{i:02d}a.mp4")

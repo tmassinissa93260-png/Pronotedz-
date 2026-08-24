@@ -53,7 +53,7 @@ def _fond(d: ImageDraw.ImageDraw, ap: Apparence) -> None:
         d.rectangle(
             [0, y, L, y + 4],
             fill=tuple(round(a + (b - a) * t)
-                       for a, b in zip(ap.fond_haut, ap.fond_bas)),
+                       for a, b in zip(ap.fond_haut, ap.fond_bas, strict=True)),
         )
 
 
@@ -115,20 +115,20 @@ def _bouche(d: ImageDraw.ImageDraw, cx: int, cy: int, emotion: str,
 def _corps(d: ImageDraw.ImageDraw, ap: Apparence, cx: int, cy: int,
            echelle: float) -> tuple[int, int]:
     """Dessine le corps, renvoie le centre du visage."""
-    l = round(300 * echelle)
+    demi_largeur = round(300 * echelle)
     h = round(360 * echelle)
 
     if ap.forme == "fraise":
-        d.ellipse([cx - l, cy - h + 40, cx + l, cy + h - 40], fill=ap.corps)
+        d.ellipse([cx - demi_largeur, cy - h + 40, cx + demi_largeur, cy + h - 40], fill=ap.corps)
         # Pointe du bas : plus étroite que l'ellipse, sinon elle en dépasse
         # sur les côtés et donne des « oreilles ».
-        d.polygon([(cx - round(l * 0.94), cy),
+        d.polygon([(cx - round(demi_largeur * 0.94), cy),
                    (cx, cy + h + 40),
-                   (cx + round(l * 0.94), cy)], fill=ap.corps)
+                   (cx + round(demi_largeur * 0.94), cy)], fill=ap.corps)
         # Akènes sur le bas du corps uniquement : sur le visage, ça fait sale.
         for rangee in range(3):
             y = cy + 150 + rangee * 70
-            largeur = round(l * (0.72 - rangee * 0.22))
+            largeur = round(demi_largeur * (0.72 - rangee * 0.22))
             for k in range(-2 + rangee, 3 - rangee):
                 x = cx + round(k * largeur / 2.2)
                 d.ellipse([x - 8, y - 13, x + 8, y + 13], fill=(255, 232, 150))
@@ -148,12 +148,12 @@ def _corps(d: ImageDraw.ImageDraw, ap: Apparence, cx: int, cy: int,
         for i in range(49):
             u = i / 48
             angle = math.pi * (0.12 + 0.76 * u)
-            x = cx + round(math.cos(angle) * l * 0.98)
+            x = cx + round(math.cos(angle) * demi_largeur * 0.98)
             # Courbe volontairement douce : trop marquée, le fruit devient un
             # bol et le visage n'a plus de place dessus.
             y = cy + round(math.sin(angle) * h * 0.22) - 20
             effile = math.sin(math.pi * u) ** 0.42        # fin aux extrémités
-            demi = round(l * 0.56 * effile)
+            demi = round(demi_largeur * 0.56 * effile)
             pts_bas.append((x, y + demi))
             pts_haut.append((x, y - demi))
         d.polygon(pts_haut + pts_bas[::-1], fill=ap.corps)
@@ -164,8 +164,8 @@ def _corps(d: ImageDraw.ImageDraw, ap: Apparence, cx: int, cy: int,
         visage_y = cy + 10
 
     else:  # avocat
-        d.ellipse([cx - l, cy - h + 110, cx + l, cy + h], fill=ap.corps)
-        d.ellipse([cx - l + 90, cy - h, cx + l - 90, cy + 60], fill=ap.corps)
+        d.ellipse([cx - demi_largeur, cy - h + 110, cx + demi_largeur, cy + h], fill=ap.corps)
+        d.ellipse([cx - demi_largeur + 90, cy - h, cx + demi_largeur - 90, cy + 60], fill=ap.corps)
         d.ellipse([cx - 88, cy + 190, cx + 88, cy + 350], fill=ap.accent)
         visage_y = cy - 70
 

@@ -24,8 +24,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from PIL import Image, ImageEnhance, ImageFilter  # noqa: E402
 
-from pdz.video.vie import Effets, animer  # noqa: E402
-
 from pdz.video import Montage, Mouvement, Plan  # noqa: E402
 from pdz.video.montage import MARGE_MOUVEMENT  # noqa: E402
 from pdz.video.soustitres import (  # noqa: E402
@@ -33,6 +31,7 @@ from pdz.video.soustitres import (  # noqa: E402
     generer_ass,
     mots_depuis_texte,
 )
+from pdz.video.vie import Effets, animer  # noqa: E402
 
 SORTIE = Path("donnees/sorties")
 TRAVAIL = Path("donnees/travail/une-image")
@@ -147,7 +146,7 @@ def main(chemin_source: str) -> int:
 
     debut = time.perf_counter()
     plans = []
-    for i, ((zone, mv, texte, sens, feu), duree) in enumerate(
+    for i, ((zone, mv, _texte, sens, feu), duree) in enumerate(
             zip(PLANS, durees, strict=True)):
         base = preparer_plan(source, zone, TRAVAIL / f"plan{i}.jpg")
 

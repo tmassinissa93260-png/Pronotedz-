@@ -301,7 +301,7 @@ def test_les_positions_de_relance_respectent_lintervalle_de_15_a_20s():
     duree, repliques = 90, nb_repliques_pour(90)
     duree_par_replique = duree / repliques
     positions = positions_relance_par_defaut(duree, repliques)
-    ecarts = [b - a for a, b in zip(positions, positions[1:])]
+    ecarts = [b - a for a, b in zip(positions, positions[1:], strict=False)]
     for ecart in ecarts:
         assert 15 <= ecart * duree_par_replique <= 20
 
@@ -665,8 +665,10 @@ def test_les_variables_du_prompt_sont_calculees_depuis_lunivers():
 # ── Empreinte créative : direction, jamais une contrainte chiffrée ───────
 
 def _empreinte():
-    champ = lambda v, c=0.8: ChampInterprete(valeur=v, confiance=c,
-                                             observation="vu dans la référence")
+    def champ(v, c=0.8):
+        return ChampInterprete(valeur=v, confiance=c,
+                               observation="vu dans la référence")
+
     return EmpreinteCreative(
         hook=EmpreinteHook(type=champ("question impossible"),
                            mecanisme=champ("hypothèse personnelle"),

@@ -77,7 +77,7 @@ def verifier_diversite(cadrages: list[str]) -> list[str]:
     l'interdire dans le code.
     """
     avertissements = []
-    for i, (a, b) in enumerate(zip(cadrages, cadrages[1:])):
+    for i, (a, b) in enumerate(zip(cadrages, cadrages[1:], strict=False)):
         if a and b and a == b:
             avertissements.append(f"plans {i} et {i + 1} : même cadrage ({a}) à la suite")
     return avertissements

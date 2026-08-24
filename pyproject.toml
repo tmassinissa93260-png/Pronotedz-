@@ -66,6 +66,11 @@ ignore = [
 "pdz/cli.py" = ["B008"]
 # Les fabriques de test construisent volontairement des objets invalides.
 "pdz2/tests/*" = ["B008"]
+# Importer une fixture pytest pour s'en servir comme paramètre est l'idiome
+# du framework, pas une redéfinition : `from tests.x import atelier` puis
+# `def test_y(atelier)`. Le `# noqa: F401` posé sur la ligne d'import ne peut
+# pas couvrir les F811 signalés, eux, sur chaque paramètre.
+"tests/*" = ["F811"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "pdz2/tests"]

@@ -75,7 +75,7 @@ def sphere(d, centre, rayon, cam, rot, meridiens=14, paralleles=8) -> None:
             pts.append((cx + rayon * math.cos(t) * math.cos(a),
                         cy + rayon * math.sin(t),
                         cz + rayon * math.cos(t) * math.sin(a)))
-        for p, q in zip(pts, pts[1:]):
+        for p, q in zip(pts, pts[1:], strict=False):
             trait(d, p, q, cam, rot, BLANC, 1)
     for p_ in range(1, paralleles):
         t = p_ * math.pi / paralleles - math.pi / 2
@@ -83,7 +83,7 @@ def sphere(d, centre, rayon, cam, rot, meridiens=14, paralleles=8) -> None:
         y = cy + rayon * math.sin(t)
         pts = [(cx + r * math.cos(a * math.pi / 12), y, cz + r * math.sin(a * math.pi / 12))
                for a in range(25)]
-        for p, q in zip(pts, pts[1:]):
+        for p, q in zip(pts, pts[1:], strict=False):
             trait(d, p, q, cam, rot, BLANC, 1)
 
 
@@ -96,7 +96,7 @@ def orbite(d, centre, rayon, inclinaison, cam, rot, couleur=GRIS) -> None:
         y = z * math.sin(inclinaison)
         z = z * math.cos(inclinaison)
         pts.append((cx + x, cy + y, cz + z))
-    for p, q in zip(pts, pts[1:]):
+    for p, q in zip(pts, pts[1:], strict=False):
         trait(d, p, q, cam, rot, couleur, 1)
 
 
@@ -180,7 +180,7 @@ def annotation(d, xy, texte: str, ancre_xy=None) -> None:
     f = _police(20)
     x, y = xy
     lignes = texte.upper().split("\n")
-    larg = max(d.textlength(l, font=f) for l in lignes) + 20
+    larg = max(d.textlength(ligne, font=f) for ligne in lignes) + 20
     haut = len(lignes) * 26 + 12
     d.rectangle([x, y, x + larg, y + haut], outline=GRIS, width=1)
     for i, ligne in enumerate(lignes):

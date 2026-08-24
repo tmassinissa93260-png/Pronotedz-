@@ -94,7 +94,7 @@ class RapportTransfert:
         évite « trois plans de ville qui se ressemblent ». Une valeur non
         nulle ici est une régression mesurable, pas une question de goût.
         """
-        paires = zip(self.plans, self.plans[1:])
+        paires = zip(self.plans, self.plans[1:], strict=False)
         return sum(1 for a, b in paires if a.fonction and a.fonction == b.fonction)
 
     def fonctions_distinctes(self) -> int:
