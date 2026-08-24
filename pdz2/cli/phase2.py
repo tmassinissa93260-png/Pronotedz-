@@ -29,17 +29,30 @@ from pdz2.audio import (
     VoiceTimelineBuilder,
     measure_wav,
 )
-from pdz2.audio.errors import DurationInconsistent
+from pdz2.audio.duration import DurationNegotiator
+from pdz2.audio.errors import (
+    DurationInconsistent,
+    SynthesiserUnavailable,
+    SynthesisFailed,
+)
 from pdz2.contracts.direction import DirectorState
 from pdz2.contracts.enums import ArtifactKind
 from pdz2.contracts.pipeline import Stage
 from pdz2.contracts.render import RenderArtifact
+from pdz2.contracts.research import TopicRequest
 from pdz2.contracts.script import ScriptState
 from pdz2.engines.script import ScriptCompiler, ScriptRejected
 from pdz2.state import EpisodeStateMachine, TransitionRefused
 from pdz2.storage import EpisodeStore
 
 __all__ = ["register", "cmd_script", "cmd_voice", "cmd_timeline"]
+
+DEFAULT_RATE_WPM = 165
+"""Débit de départ quand l'opérateur n'en impose pas.
+
+Point de calibration, pas une autorité : la négociation de durée s'en écarte
+si la commande l'exige, et `--rate` le fige quand l'opérateur tranche.
+"""
 
 LINES_DIR = "audio/lines"
 MEASUREMENT_TOLERANCE_S = 0.001
@@ -123,9 +136,50 @@ def cmd_voice(args: argparse.Namespace) -> int:
     capability = synthesiser.get_capabilities()
     print(f"moteur {capability.provider} : {capability.state.value} — {capability.detail}")
 
+    debit_impose = args.rate is not None
     voice = VoiceSpec(
-        voice_id=args.voice, rate_wpm=args.rate, pitch=args.pitch, gap_ms=args.gap
+        voice_id=args.voice,
+        rate_wpm=args.rate if debit_impose else DEFAULT_RATE_WPM,
+        pitch=args.pitch,
+        gap_ms=args.gap,
     )
+
+    # La durée commandée se négocie AVANT la synthèse définitive, sur une
+    # calibration réellement synthétisée puis mesurée. Aucune estimation
+    # n'entre ici, et la durée officielle restera celle de la VoiceTimeline.
+    request = store.load_as(TopicRequest)
+    negociateur = DurationNegotiator(synthesiser=synthesiser)
+    try:
+        policy = negociateur.negotiate(
+            script=script,
+            voice=voice,
+            requested_s=request.target_duration_s,
+            workdir=store.root / "audio",
+        )
+    except (SynthesisFailed, SynthesiserUnavailable, ValueError) as failure:
+        print(f"calibration impossible : {failure}", file=sys.stderr)
+        return 1
+    store.save(policy)
+    for note in negociateur.notes:
+        print(note)
+    print(f"durée : {policy.decision.value} — {policy.rationale}")
+    if debit_impose and policy.chosen_rate_wpm != voice.rate_wpm:
+        # Un débit passé en argument est une décision d'opérateur : elle prime.
+        # La négociation reste consignée, pour que l'écart avec la commande
+        # soit lisible plutôt que subi.
+        print(
+            f"débit imposé à {voice.rate_wpm} mots/min : la négociation "
+            f"({policy.chosen_rate_wpm}) n'est pas appliquée"
+        )
+    elif policy.chosen_rate_wpm != voice.rate_wpm:
+        voice = VoiceSpec(
+            voice_id=voice.voice_id,
+            rate_wpm=policy.chosen_rate_wpm,
+            pitch=voice.pitch,
+            amplitude=voice.amplitude,
+            gap_ms=voice.gap_ms,
+        )
+
     try:
         machine.start(Stage.VOICE, reason=f"synthèse {voice.fingerprint()}")
     except TransitionRefused as refusal:
@@ -290,7 +344,12 @@ def register(subparsers) -> None:
     voice = subparsers.add_parser("voice", help="synthétiser la voix, réellement")
     voice.add_argument("--episode", required=True)
     voice.add_argument("--voice", default="fr")
-    voice.add_argument("--rate", type=int, default=165, help="débit du moteur TTS")
+    voice.add_argument(
+        "--rate",
+        type=int,
+        default=None,
+        help="débit du moteur TTS ; imposé, il prime sur la négociation de durée",
+    )
     voice.add_argument("--pitch", type=int, default=50)
     voice.add_argument("--gap", type=int, default=0)
     voice.set_defaults(func=cmd_voice)

@@ -11,6 +11,7 @@ EBU R128 en deux passes (phase 10).
 À venir : sound design et diarisation.
 """
 
+from pdz2.audio.duration import DurationNegotiator
 from pdz2.audio.errors import (
     AudioCorrupt,
     AudioError,
@@ -50,6 +51,7 @@ from pdz2.audio.wave_io import (
 )
 
 __all__ = [
+    "DurationNegotiator",
     "SpeechSynthesiser",
     "VoiceSpec",
     "SynthesisResult",

@@ -179,3 +179,89 @@ class VoiceTimeline(Contract):
     @property
     def speech_duration_s(self) -> float:
         return sum(segment.duration_s for segment in self.segments)
+
+
+class DurationDecision(str, Enum):
+    """Ce que le compilateur a décidé face à la durée commandée."""
+
+    NO_TARGET = "no_target"
+    """Aucune durée commandée : rien à tenir."""
+
+    ON_TARGET = "on_target"
+    """Le débit habituel tombe déjà dans la tolérance."""
+
+    RATE_ADJUSTED = "rate_adjusted"
+    """Le débit a été ajusté, dans la bande naturelle, pour tenir la commande."""
+
+    CONTENT_TOO_SHORT = "content_too_short"
+    """La commande exigerait un débit sous la bande : il manque du contenu."""
+
+    CONTENT_TOO_LONG = "content_too_long"
+    """La commande exigerait un débit au-dessus de la bande : il y a trop de texte."""
+
+
+@contract("duration_policy", "1.0.0")
+class DurationPolicy(Contract):
+    """Décision de compilation sur la durée, adossée à une mesure réelle.
+
+    Quatre grandeurs que rien ne doit confondre, et que ce contrat sépare :
+
+        requested_s    ce qui a été commandé          — une intention
+        calibrated_s   ce que ce texte dure vraiment  — une MESURE
+        tolerance      l'écart acceptable             — une règle
+        decision       ce que le compilateur en fait  — un choix assumé
+
+    La durée estimée du script n'apparaît pas ici, et c'est délibéré : elle
+    n'entre dans aucune décision. `calibrated_s` sort d'une synthèse réellement
+    exécutée au débit de référence, puis mesurée sur les trames du WAV. Le
+    débit retenu s'en déduit, et la durée officielle restera celle que
+    `VoiceTimeline` mesurera sur l'audio définitif.
+
+    Ce contrat existe parce que l'incohérence était silencieuse : un épisode
+    commandé à 40 s en livrait 27,4 sans qu'aucune décision ne soit prise ni
+    inscrite nulle part.
+    """
+
+    script_state_id: str = Field(min_length=1)
+    requested_s: float | None = Field(default=None, gt=0.0)
+    calibrated_s: float = Field(gt=0.0)
+    """Durée mesurée d'une synthèse réelle au débit de référence."""
+
+    calibration_rate_wpm: int = Field(gt=0)
+    chosen_rate_wpm: int = Field(gt=0)
+    """Débit que la synthèse définitive doit employer."""
+
+    tolerance: float = Field(default=0.15, ge=0.0, le=1.0)
+    decision: DurationDecision
+    rationale: str = Field(min_length=1)
+    projected_s: float = Field(gt=0.0)
+    """Durée attendue au débit retenu. Projection, jamais une autorité."""
+
+    @model_validator(mode="after")
+    def _the_decision_matches_its_numbers(self) -> Self:
+        if self.decision is DurationDecision.NO_TARGET:
+            if self.requested_s is not None:
+                raise ValueError("NO_TARGET avec une durée commandée")
+            return self
+        if self.requested_s is None:
+            raise ValueError(f"{self.decision.value} sans durée commandée")
+        if self.decision is DurationDecision.ON_TARGET:
+            if self.chosen_rate_wpm != self.calibration_rate_wpm:
+                raise ValueError(
+                    "ON_TARGET mais le débit a bougé : c'est un ajustement"
+                )
+        if self.decision is DurationDecision.RATE_ADJUSTED:
+            ecart = abs(self.projected_s - self.requested_s) / self.requested_s
+            if ecart > self.tolerance + 1e-9:
+                raise ValueError(
+                    f"RATE_ADJUSTED mais la projection reste à {ecart:.0%} "
+                    f"de la commande, au-delà de {self.tolerance:.0%} — "
+                    "la cible n'est pas atteinte, la décision doit le dire"
+                )
+        return self
+
+    @property
+    def within_tolerance(self) -> bool:
+        if self.requested_s is None:
+            return True
+        return abs(self.projected_s - self.requested_s) <= self.requested_s * self.tolerance

@@ -18,6 +18,7 @@ SINGLETON_FILES: dict[str, str] = {
     "director_brief": "director_brief.json",
     "director_state": "director_state.json",
     "script_state": "script.json",
+    "duration_policy": "duration_policy.json",
     "voice_timeline": "voice_timeline.json",
     "visual_bible": "visual_bible.json",
     "temporal_plan": "temporal_plan.json",
