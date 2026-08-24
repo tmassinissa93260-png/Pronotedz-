@@ -32,6 +32,19 @@ Relevé sur le script de l'épisode de référence (82 mots, 502 caractères) :
    120 wpm → 35.20 s      190 wpm → 21.41 s
                           220 wpm → 18.39 s
 
+## Le biais connu de la calibration
+
+La calibration synthétise le script **d'un trait**, alors que la narration
+définitive enchaîne les répliques une à une, avec un silence entre chacune.
+La calibration sous-estime donc le total, systématiquement.
+
+Mesuré sur l'épisode de référence (8 répliques) : 41,86 s calibrées pour
+44,47 s réellement mesurées, soit +6,2 %, c'est-à-dire environ un tiers de
+seconde par jointure. L'écart est du bon côté — on ne promet jamais plus court
+que ce qui sortira — et reste très en deçà de la tolérance de 15 %. Le corriger
+demanderait de connaître les silences avant de les produire ; la durée
+officielle, elle, reste celle que `VoiceTimeline` mesure sur l'audio définitif.
+
 La durée varie bien en raison inverse du débit. La bande retenue est
 `[120, 200]` : en deçà la parole traîne au point de s'entendre, au-delà elle
 se précipite. Hors de cette bande, le compilateur refuse d'ajuster et déclare
