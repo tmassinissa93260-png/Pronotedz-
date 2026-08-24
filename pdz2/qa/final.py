@@ -34,6 +34,21 @@ HUMAN_REVIEW_NOTICE = (
 )
 
 _DURATION_TOLERANCE_S = 0.2
+
+_TARGET_TOLERANCE = 0.15
+"""Écart toléré entre la durée commandée et celle réellement livrée.
+
+15 % : sur une commande de 40 s, un livrable entre 34 et 46 s reste le même
+objet éditorial. Au-delà, ce n'est plus le format demandé — l'épisode de
+référence est tombé à 27,4 s pour 40 s commandées (−31 %), et rien ne le
+disait une fois le MP4 écrit.
+
+Le contrôle est MINOR, pas BLOCKING, et c'est délibéré : la vidéo est
+techniquement parfaite, la durée officielle vient de la voix mesurée et elle
+est exacte. Bloquer la livraison pour ça reviendrait à jeter un livrable
+valide. Mais le taire reviendrait à laisser croire que la commande a été
+tenue.
+"""
 _BLACK_LIMIT = 0.02
 _LOUDNESS_TOLERANCE_LU = 2.5
 
@@ -60,6 +75,7 @@ class FinalQa:
         loudness: LoudnessMeasurement,
         aspect_ratio: AspectRatio,
         master_artifact_id: str,
+        target_duration_s: float | None = None,
     ) -> FinalQaOutcome:
         probe = probe_video(master_path)
         sequence = decode_frames(master_path)
@@ -98,6 +114,31 @@ class FinalQa:
                 expected=round(timeline.duration_s, 3),
                 tolerance=_DURATION_TOLERANCE_S,
                 severity=Severity.BLOCKING,
+            ),
+            QaCheck(
+                check_id="final_duration_target",
+                name="le livrable tient la durée commandée",
+                passed=(
+                    True
+                    if target_duration_s is None
+                    else abs(probe.duration_s - target_duration_s)
+                    <= target_duration_s * _TARGET_TOLERANCE
+                ),
+                observed=round(probe.duration_s, 2),
+                expected=round(target_duration_s, 2) if target_duration_s else None,
+                tolerance=(
+                    round(target_duration_s * _TARGET_TOLERANCE, 2)
+                    if target_duration_s
+                    else None
+                ),
+                severity=Severity.MINOR,
+                detail=(
+                    "écart éditorial, pas technique : la durée officielle vient "
+                    "de la voix mesurée et elle est juste. C'est le script qui "
+                    "n'a pas la longueur commandée — un épisode plus court que "
+                    "demandé reste diffusable, mais ce n'est pas ce qui a été "
+                    "commandé, et personne ne doit s'en apercevoir au montage."
+                ),
             ),
             QaCheck(
                 check_id="final_format",

@@ -235,6 +235,7 @@ def cmd_deliver(args: argparse.Namespace) -> int:
         loudness=loudness,
         aspect_ratio=request.aspect_ratio,
         master_artifact_id=master.id,
+        target_duration_s=request.target_duration_s,
     )
     store.save(qa.report)
 

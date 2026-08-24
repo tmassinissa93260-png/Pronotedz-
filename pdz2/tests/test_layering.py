@@ -339,6 +339,37 @@ class TestIndependenceFromPdz1:
         assert result.returncode == 0, result.stderr
         assert "ok" in result.stdout
 
+    def test_the_packaging_of_pdz2_stands_on_its_own(self) -> None:
+        """Rien de ce dont PDZ 2 a besoin dans `pyproject.toml` ne cite PDZ 1.
+
+        L'indépendance du code ne suffit pas : si l'empaquetage de PDZ 2
+        dépendait de `pdz`, supprimer l'ancien paquet casserait l'installation
+        du nouveau. Les entrées qui nomment `pdz` doivent toutes être des
+        entrées **de PDZ 1**, retirables d'un bloc — c'est la procédure écrite
+        dans `architecture/README.md`.
+        """
+        import tomllib
+
+        config = tomllib.loads(
+            (PACKAGE_ROOT.parent / "pyproject.toml").read_text(encoding="utf-8")
+        )
+        scripts = config["project"]["scripts"]
+        assert scripts["pdz2"].startswith("pdz2."), scripts["pdz2"]
+        packages = config["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"]
+        assert "pdz2" in packages
+        # Les seules mentions de l'ancien paquet sont ses propres entrées.
+        assert {k for k, v in scripts.items() if v.startswith("pdz.")} == {"pdz"}
+        assert [p for p in packages if p != "pdz2"] in ([], ["pdz"])
+
+    def test_the_removal_procedure_is_written_down(self) -> None:
+        """Une propriété vérifiée qui n'est pas écrite se perd au prochain tri."""
+        readme = (PACKAGE_ROOT / "architecture" / "README.md").read_text(
+            encoding="utf-8"
+        )
+        assert "Supprimer PDZ 1" in readme
+        for etape in ("rm -rf pdz/", "rm -rf tests/", "testpaths"):
+            assert etape in readme, etape
+
 
 class TestContractRegistryIsComplete:
     """Importer `pdz2.contracts` doit suffire à connaître tous les contrats.

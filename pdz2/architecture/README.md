@@ -109,8 +109,40 @@ mentions « aucun adaptateur vidéo implémenté » de `pdz2 phases`.
 
 L'ancien système vit toujours dans `pdz/` et n'est **ni migré, ni réparé, ni
 importé**. PDZ 2 est un paquet indépendant : aucun module de `pdz2/` n'importe
-quoi que ce soit de `pdz/`. Le jour où l'ancien système sera retiré, `pdz2`
-pourra prendre le nom `pdz` — c'est un renommage de paquet, pas une fusion.
+quoi que ce soit de `pdz/`.
+
+Trois tests le tiennent (`TestIndependenceFromPdz1`) : aucun import, aucun
+chemin en dur vers l'ancien arbre, et le paquet se charge même en sabotant
+`sys.modules['pdz']`.
+
+### Supprimer PDZ 1
+
+La propriété a été vérifiée pour de vrai, pas seulement par ces tests :
+`pdz/` a été supprimé et les 781 tests de PDZ 2 sont restés verts, la chaîne
+complète produisant toujours son MP4.
+
+Trois choses partent ensemble :
+
+```
+rm -rf pdz/          le paquet
+rm -rf tests/        ses tests — ils ne collectent plus sans lui, et c'est normal
+```
+
+puis dans `pyproject.toml`, trois lignes qui ne concernent que PDZ 1 :
+
+```toml
+[project.scripts]
+pdz = "pdz.cli:app"          # ← retirer
+
+[tool.hatch.build.targets.wheel]
+packages = ["pdz", "pdz2"]   # ← devient ["pdz2"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests", "pdz2/tests"]   # ← devient ["pdz2/tests"]
+```
+
+Rien d'autre. `pdz2` peut ensuite prendre le nom `pdz` — c'est un renommage de
+paquet, pas une fusion.
 
 ## État réel du chantier
 

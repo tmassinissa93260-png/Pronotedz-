@@ -53,6 +53,7 @@ class JournalBuilder:
         entries += self._refusals(store, snapshot)
         entries += self._spend(snapshot)
         entries += self._limitations(store)
+        entries += self._duree_commandee(store, request)
         for capability in capabilities or []:
             entries.append(
                 JournalEntry(
@@ -249,6 +250,44 @@ class JournalBuilder:
             )
             for transition in snapshot.transitions
             if transition.cost_usd > 0
+        ]
+
+    @staticmethod
+    def _duree_commandee(store: EpisodeStore, request) -> list[JournalEntry]:
+        """La durée livrée tient-elle la commande ?
+
+        La durée officielle vient de la voix mesurée, et elle est juste — ce
+        n'est pas elle qu'on met en doute. Ce qui se perdait, c'est que la
+        **commande** ne soit pas tenue : un épisode de 27 s pour 40 s
+        demandées est un autre objet éditorial, et rien ne le disait une fois
+        le MP4 écrit.
+        """
+        if not store.exists("voice_timeline") or not request.target_duration_s:
+            return []
+        timeline = store.load("voice_timeline")
+        cible = request.target_duration_s
+        mesuree = timeline.total_duration_s
+        ecart = (mesuree - cible) / cible
+        if abs(ecart) < 0.15:
+            return []
+        sens = "au-dessus" if ecart > 0 else "en dessous"
+        return [
+            JournalEntry(
+                kind=JournalEntryKind.FINDING,
+                at=timeline.created_at,
+                stage="timeline",
+                subject_id=timeline.id,
+                summary=(
+                    f"durée commandée non tenue : {mesuree:.1f}s pour {cible:.0f}s"
+                ),
+                detail=(
+                    f"{abs(ecart) * 100:.0f} % {sens} de la commande. La durée "
+                    "mesurée est exacte ; c'est le script qui n'a pas la "
+                    "longueur demandée. Sans raisonneur branché, le script est "
+                    "assemblé à partir des seules affirmations du corpus : sa "
+                    "longueur est bornée par celle des sources."
+                ),
+            )
         ]
 
     @staticmethod

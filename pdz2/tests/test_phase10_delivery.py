@@ -364,3 +364,45 @@ class TestAssemblyAndFinalQa:
                 audio_path=tmp_path / "rien.wav",
                 out_path=tmp_path / "out.mp4",
             )
+
+
+class TestTheOrderedDurationIsChecked:
+    """Le livrable tient-il la durée commandée, et le dit-il quand non ?"""
+
+    def _report(self, delivered, target):
+        from pdz2.audio.mastering import measure_loudness
+        from pdz2.qa import FinalQa
+
+        _, _, edit, master, _, _, _, root = delivered
+        return FinalQa().check(
+            master_path=root / "final.mp4",
+            timeline=edit.timeline,
+            loudness=measure_loudness(master.path),
+            aspect_ratio=AspectRatio.VERTICAL,
+            master_artifact_id="master_artifact-test",
+            target_duration_s=target,
+        ).report
+
+    def _check(self, report):
+        return next(
+            c for c in report.checks if c.check_id == "final_duration_target"
+        )
+
+    @needs_ffmpeg
+    def test_a_deliverable_of_the_ordered_length_passes(self, delivered):
+        reel = delivered[2].timeline.duration_s
+        assert self._check(self._report(delivered, reel)).passed
+
+    @needs_ffmpeg
+    def test_a_deliverable_far_shorter_than_ordered_is_flagged(self, delivered):
+        """40 s commandées pour 27 s livrées : le cas réel du vertical slice."""
+        commande = delivered[2].timeline.duration_s * 1.5
+        check = self._check(self._report(delivered, commande))
+        assert not check.passed
+        assert check.severity is Severity.MINOR, (
+            "un écart éditorial ne doit pas jeter un livrable techniquement bon"
+        )
+
+    @needs_ffmpeg
+    def test_without_an_order_there_is_nothing_to_hold(self, delivered):
+        assert self._check(self._report(delivered, None)).passed

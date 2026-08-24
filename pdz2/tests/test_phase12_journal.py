@@ -263,3 +263,47 @@ def test_an_entry_without_a_timezone_is_refused():
         JournalEntry(
             kind=JournalEntryKind.DECISION, at=datetime(2026, 1, 1), summary="x"
         )
+
+
+# ------------------------------------------------- la commande est-elle tenue
+
+
+def test_a_shortfall_against_the_ordered_duration_is_recorded(store, episode):
+    """Un épisode plus court que commandé ne doit pas passer inaperçu.
+
+    Mesuré sur le vertical slice : 40 s commandées, 27,4 s livrées (−31 %).
+    La durée mesurée était juste, le MP4 techniquement parfait, et rien nulle
+    part ne disait que la commande n'avait pas été tenue.
+    """
+    from pdz2.contracts.journal import JournalEntryKind
+
+    entries = build(store).of_kind(JournalEntryKind.FINDING)
+    cible = episode.request.target_duration_s
+    mesuree = episode.timeline.total_duration_s
+    manquant = abs(mesuree - cible) / cible >= 0.15
+
+    dit = [e for e in entries if "durée commandée non tenue" in e.summary]
+    assert bool(dit) == manquant, (
+        f"cible {cible}s, mesurée {mesuree:.1f}s : "
+        f"{'un constat était attendu' if manquant else 'aucun constat attendu'}"
+    )
+
+
+def test_a_duration_within_tolerance_says_nothing(store, episode, monkeypatch):
+    """Le constat ne se déclenche pas sur un écart normal."""
+    from pdz2.contracts.journal import JournalEntryKind
+    from pdz2.contracts.research import TopicRequest
+
+    juste = TopicRequest(
+        **(
+            episode.request.model_dump()
+            | {"target_duration_s": round(episode.timeline.total_duration_s, 1)}
+        )
+    )
+    store.save(juste)
+    dit = [
+        e
+        for e in build(store).of_kind(JournalEntryKind.FINDING)
+        if "durée commandée" in e.summary
+    ]
+    assert not dit
