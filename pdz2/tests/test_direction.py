@@ -56,7 +56,13 @@ def _claim(state: ResearchState, fragment: str):
 def _proof(claim_id: str, **overrides) -> VisualProofDraft:
     payload = {
         "claim_id": claim_id,
-        "causal_mechanism": "Le courant crée un champ qui met le rotor en rotation.",
+        # Un mécanisme distinct par preuve : deux preuves qui partagent leur
+        # mécanisme font dire deux fois la même phrase à l'écran, et le
+        # compilateur les refuse désormais.
+        "causal_mechanism": (
+            f"Mécanisme propre à {claim_id[-6:]} : le courant met le rotor "
+            "en rotation."
+        ),
         "evidence_required": "Voir l'énergie entrer et la rotation sortir.",
         "visual_proof": "Coupe transparente : le courant circule, puis l'arbre tourne.",
         "anchor_names": ["moteur-coupe"],
@@ -403,3 +409,79 @@ class TestFramingShots:
         assert hook.what_the_viewer_must_understand == brief.thesis
         assert payoff.what_the_viewer_must_understand == brief.ending_payoff
         assert hook.what_the_viewer_must_understand != payoff.what_the_viewer_must_understand
+
+
+class TestRepeatedMechanismsAreRefused:
+    """Deux preuves ne peuvent pas énoncer le même mécanisme causal.
+
+    Le mécanisme rédigé dans le plan de preuve **devient la réplique** du plan.
+    Le partager fait dire mot pour mot la même phrase à deux plans, ce que le
+    §8 proscrit.
+
+    Constaté sur un épisode réel : six preuves portaient le même mécanisme, le
+    script a compilé six répliques identiques sur huit, l'épisode est parti au
+    rendu, a coûté neuf plans — et le défaut ne se voyait qu'en lisant le
+    script à la main. Ni le brief, ni le script, ni la QA finale ne disaient
+    rien.
+    """
+
+    def _deux_preuves(self, research_pair, mecanisme_partage: bool):
+        request, research = research_pair
+        premier = _claim(research, "stator")
+        second = _claim(research, "rotor porte")
+        preuves = [
+            _proof(premier.id),
+            _proof(
+                second.id,
+                **({} if mecanisme_partage else {"causal_mechanism": "Un autre mécanisme, distinct."}),
+            ),
+        ]
+        if mecanisme_partage:
+            preuves[1] = _proof(
+                second.id, causal_mechanism=preuves[0].causal_mechanism
+            )
+        return request, research, _brief(
+            request, research, [premier.id, second.id], visual_proofs=preuves
+        )
+
+    def test_two_proofs_sharing_a_mechanism_are_refused(self, research_pair):
+        request, research, brief = self._deux_preuves(research_pair, mecanisme_partage=True)
+        with pytest.raises(BriefRejected, match="mécanismes causaux répétés"):
+            DirectorCompiler().compile(
+                request=request, research=research, brief=brief
+            )
+
+    def test_the_refusal_says_what_to_do(self, research_pair):
+        request, research, brief = self._deux_preuves(research_pair, mecanisme_partage=True)
+        with pytest.raises(BriefRejected) as refus:
+            DirectorCompiler().compile(
+                request=request, research=research, brief=brief
+            )
+        assert "un mécanisme distinct par preuve" in str(refus.value).lower()
+
+    def test_distinct_mechanisms_pass(self, research_pair):
+        request, research, brief = self._deux_preuves(research_pair, mecanisme_partage=False)
+        outcome = DirectorCompiler().compile(
+            request=request, research=research, brief=brief
+        )
+        assert outcome.state.shot_intents
+
+    def test_the_refusal_ignores_case_and_spacing(self, research_pair):
+        """« Le  COURANT crée… » et « le courant crée… » sont la même phrase."""
+        from pdz2.engines.direction.compiler import _repeated_mechanisms
+
+        request, research, brief = self._deux_preuves(research_pair, mecanisme_partage=False)
+        varie = brief.model_copy(
+            update={
+                "visual_proofs": [
+                    brief.visual_proofs[0],
+                    brief.visual_proofs[1].model_copy(
+                        update={
+                            "causal_mechanism": "  "
+                            + brief.visual_proofs[0].causal_mechanism.upper()
+                        }
+                    ),
+                ]
+            }
+        )
+        assert _repeated_mechanisms(varie)

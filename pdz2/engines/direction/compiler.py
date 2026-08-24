@@ -51,6 +51,15 @@ from pdz2.engines.direction.rhythm import (
 __all__ = ["DirectorCompiler", "DirectionOutcome", "BriefRejected", "KIND_TO_FUNCTION"]
 
 
+def _repeated_mechanisms(brief: DirectorBrief) -> dict[str, list[str]]:
+    """Mécanismes causaux employés par plus d'une preuve visuelle."""
+    par_texte: dict[str, list[str]] = {}
+    for proof in brief.visual_proofs:
+        cle = " ".join(proof.causal_mechanism.lower().split())
+        par_texte.setdefault(cle, []).append(proof.claim_id)
+    return {texte: ids for texte, ids in par_texte.items() if len(ids) > 1}
+
+
 class BriefRejected(ValueError):
     """Le brief ne peut pas être compilé. La raison est toujours nommée."""
 
@@ -213,6 +222,37 @@ class DirectorCompiler:
                 f"({brief.research_state_id} ≠ {research.id})"
             )
 
+    @staticmethod
+    def _refuse_repeated_mechanisms(brief: DirectorBrief) -> None:
+        """Deux preuves ne peuvent pas énoncer le même mécanisme.
+
+        Le mécanisme causal rédigé dans le plan de preuve **devient la
+        réplique** du plan (voir `ScriptCompiler._text_for`). Deux preuves qui
+        le partagent produisent donc deux plans qui disent mot pour mot la
+        même phrase, ce que le §8 proscrit.
+
+        Constaté sur un épisode réel : six preuves portaient le même
+        mécanisme, le script a compilé six répliques identiques sur huit, et
+        rien ne l'a signalé — ni au brief, ni au script, ni à la QA finale.
+        L'épisode est parti au rendu, a coûté neuf plans, et le défaut ne se
+        voyait qu'en lisant le script à la main.
+
+        Le refus tombe ici parce que c'est le premier endroit qui voit le
+        brief, et qu'il est avant la moindre dépense.
+        """
+        repetes = _repeated_mechanisms(brief)
+        if not repetes:
+            return
+        details = "; ".join(
+            f"« {texte[:60]}… » sur {len(ids)} preuves" for texte, ids in repetes.items()
+        )
+        raise BriefRejected(
+            f"mécanismes causaux répétés : {details}. Chaque mécanisme devient "
+            "la réplique de son plan : le répéter fait dire deux fois la même "
+            "phrase à l'écran. Rédiger un mécanisme distinct par preuve, ou "
+            "retirer les preuves en trop."
+        )
+
     def _select(
         self,
         research: ResearchState,
@@ -228,6 +268,8 @@ class DirectorCompiler:
         by_id = {claim.id: claim for claim in research.claims}
         dropped: list[str] = []
         keepers: dict[str, Claim] = {}
+
+        self._refuse_repeated_mechanisms(brief)
 
         unknown_exclusions = [
             claim_id for claim_id in brief.excluded_claim_ids if claim_id not in by_id

@@ -36,9 +36,13 @@ def _fill(template: dict, research: ResearchState) -> dict:
         canonical_description="Moteur synchrone en coupe, carter bleu nuit.",
     )
     filled["anchors"][0]["identity"][0].update(name="carter", value="bleu nuit mat")
-    for proof in filled["visual_proofs"]:
+    for index, proof in enumerate(filled["visual_proofs"]):
         proof.update(
-            causal_mechanism="Le courant crée un champ qui met le rotor en rotation.",
+            # Un mécanisme distinct par preuve : le compilateur refuse deux
+            # preuves qui feraient dire la même phrase à deux plans.
+            causal_mechanism=(
+                f"Mécanisme {index} : le courant met le rotor en rotation."
+            ),
             evidence_required="Voir l'énergie entrer et la rotation sortir.",
             visual_proof="Coupe transparente : le courant circule, puis l'arbre tourne.",
             anchor_names=["moteur-coupe"],

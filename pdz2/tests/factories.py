@@ -87,6 +87,8 @@ def claim(evidence_ids: list[str] | None = None, **overrides) -> Claim:
         "confidence": 0.85 if ids else 0.0,
         "load_bearing": True,
         "causal_mechanism": "Le courant crée un champ magnétique tournant.",
+        # Les appelants qui construisent plusieurs preuves doivent varier ce
+        # texte : deux preuves au même mécanisme sont refusées par le brief.
         "evidence_required": "Voir le courant, le champ, puis la rotation.",
         "visual_proof": (
             "Coupe transparente du moteur montrant le courant, le champ "
