@@ -35,6 +35,24 @@ HUMAN_REVIEW_NOTICE = (
 
 _DURATION_TOLERANCE_S = 0.2
 
+_DECODED_TOLERANCE = 0.02
+"""Écart toléré entre les images annoncées et celles réellement décodables.
+
+`ffprobe` lit la durée et le nombre d'images dans l'en-tête du conteneur, pas
+dans le flux. Un master tronqué garde donc un en-tête intact et ment sans
+qu'aucun contrôle de durée ne s'en aperçoive.
+
+Mesuré sur le livrable de référence, tronqué exprès à 58 Kio sur 2 699 :
+l'en-tête annonçait toujours 823 images et 27,44 s, et seules 13 images se
+décodaient — soit 1,6 % du fichier. Le contrôle de durée passait. Seul
+`final_not_frozen` l'attrapait, par ricochet, parce qu'il ne restait plus
+assez d'images pour mesurer un mouvement : un fichier tronqué plus tard, ou
+sur une séquence plus agitée, serait passé.
+
+2 % : un décodeur peut légitimement laisser tomber une image ou deux en fin de
+flux. Perdre plus, c'est un fichier abîmé.
+"""
+
 _TARGET_TOLERANCE = 0.15
 """Écart toléré entre la durée commandée et celle réellement livrée.
 
@@ -114,6 +132,23 @@ class FinalQa:
                 expected=round(timeline.duration_s, 3),
                 tolerance=_DURATION_TOLERANCE_S,
                 severity=Severity.BLOCKING,
+            ),
+            QaCheck(
+                check_id="final_complete",
+                name="le fichier contient réellement ce qu'il annonce",
+                passed=(
+                    probe.frame_count <= 0
+                    or sequence.count / probe.frame_count >= 1.0 - _DECODED_TOLERANCE
+                ),
+                observed=sequence.count,
+                expected=probe.frame_count,
+                tolerance=round(probe.frame_count * _DECODED_TOLERANCE, 1),
+                severity=Severity.BLOCKING,
+                detail=(
+                    "images réellement décodées contre images annoncées par "
+                    "l'en-tête. Un master tronqué garde un en-tête intact : "
+                    "sans ce contrôle, sa durée paraît juste."
+                ),
             ),
             QaCheck(
                 check_id="final_duration_target",

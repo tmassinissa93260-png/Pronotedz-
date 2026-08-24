@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -406,3 +407,69 @@ class TestTheOrderedDurationIsChecked:
     @needs_ffmpeg
     def test_without_an_order_there_is_nothing_to_hold(self, delivered):
         assert self._check(self._report(delivered, None)).passed
+
+
+class TestATruncatedMasterIsRefused:
+    """Un en-tête intact ne prouve pas un fichier intact.
+
+    `ffprobe` lit la durée et le nombre d'images dans l'en-tête du conteneur.
+    Un master tronqué garde donc un en-tête juste et ment : mesuré sur le
+    livrable de référence coupé à 58 Kio sur 2 699, l'en-tête annonçait
+    toujours 823 images et 27,44 s, et 13 images se décodaient.
+    """
+
+    def _tronque(self, source: Path, cible: Path, octets: int = 60_000) -> Path:
+        cible.write_bytes(source.read_bytes()[:octets])
+        return cible
+
+    @needs_ffmpeg
+    def test_the_header_of_a_truncated_master_still_lies(self, delivered, tmp_path):
+        """Le défaut d'origine : le contrôle de durée ne voyait rien."""
+        from pdz2.renderers.ffmpeg import probe_video
+
+        *_, root = delivered
+        abime = self._tronque(root / "final.mp4", tmp_path / "tronque.mp4")
+        sain = probe_video(root / "final.mp4")
+        menteur = probe_video(abime)
+        assert abime.stat().st_size < (root / "final.mp4").stat().st_size / 4
+        assert menteur.duration_s == pytest.approx(sain.duration_s, abs=0.1)
+
+    @needs_ffmpeg
+    def test_the_completeness_check_catches_it(self, delivered, tmp_path):
+        from pdz2.audio.mastering import measure_loudness
+        from pdz2.qa import FinalQa
+
+        _, _, edit, master, _, _, _, root = delivered
+        abime = self._tronque(root / "final.mp4", tmp_path / "tronque.mp4")
+        qa = FinalQa().check(
+            master_path=abime,
+            timeline=edit.timeline,
+            loudness=measure_loudness(master.path),
+            aspect_ratio=AspectRatio.VERTICAL,
+            master_artifact_id="master_artifact-test",
+        )
+        complet = next(
+            c for c in qa.report.checks if c.check_id == "final_complete"
+        )
+        assert not complet.passed
+        assert complet.severity is Severity.BLOCKING
+        assert not qa.deliverable, "un master tronqué ne doit jamais être livrable"
+
+    @needs_ffmpeg
+    def test_an_intact_master_passes_the_completeness_check(self, delivered):
+        from pdz2.audio.mastering import measure_loudness
+        from pdz2.qa import FinalQa
+
+        _, _, edit, master, _, _, _, root = delivered
+        qa = FinalQa().check(
+            master_path=root / "final.mp4",
+            timeline=edit.timeline,
+            loudness=measure_loudness(master.path),
+            aspect_ratio=AspectRatio.VERTICAL,
+            master_artifact_id="master_artifact-test",
+        )
+        complet = next(
+            c for c in qa.report.checks if c.check_id == "final_complete"
+        )
+        assert complet.passed, f"{complet.observed}/{complet.expected}"
+        assert qa.deliverable
