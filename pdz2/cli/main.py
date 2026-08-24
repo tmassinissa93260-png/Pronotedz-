@@ -47,6 +47,10 @@ IMPLEMENTED_PHASES = (
     "(capacités sondées et datées ; dépense autorisée avant, pas constatée après)",
     "Phase 12 — production journal "
     "(journal relu depuis les contrats, jamais tenu à la main)",
+    "Phase 13 — couche d'exécution "
+    "(stratégie, fournisseur et renderer séparés ; le port vidéo est emprunté)",
+    "Phase 14 — reprise après interruption "
+    "(une étape tuée en cours redevient démarrable, sans coûter de réparation)",
 )
 PENDING_PHASES: tuple[str, ...] = ()
 
@@ -165,7 +169,8 @@ def _cmd_phases(args: argparse.Namespace) -> int:
             print(f"  [ ] {line}")
     else:
         print(
-            "\nLes douze phases du cahier des charges sont implémentées. Ce qui "
+            "\nLes douze phases du cahier des charges sont implémentées, plus "
+            "deux que l'audit du chemin critique a rendues nécessaires. Ce qui "
             "reste manquant est déclaré, pas simulé : aucun adaptateur vidéo IA "
             "n'est joignable dans cet environnement, et aucun raisonneur n'est "
             "branché — voir `pdz2 capabilities`."
