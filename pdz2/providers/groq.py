@@ -89,6 +89,15 @@ On ne compte pas les jetons exactement : il faudrait le tokeniseur du modèle,
 qui n'est pas là. Sous-estimer coûterait un refus, alors on surestime — et
 `_MARGE` absorbe le reste."""
 
+_TENTATIVES_SCHEMA = 2
+"""Un refus de forme par le service est stochastique : on retente une fois.
+
+À ne pas confondre avec la boucle de reprise du contrat, qui vit dans
+`reasoning.py` et renvoie au modèle *ce que le contrat reproche*. Ici, le
+modèle n'a même pas produit de sortie exploitable : le service l'a arrêté
+avant. Rien à lui expliquer — la même demande peut simplement mieux tomber.
+Deux tentatives, pas plus : au-delà, ce n'est plus de la malchance."""
+
 _MARGE_JETONS = 400
 _SORTIE_MINIMALE = 1500
 """En dessous, une décision de six preuves visuelles ne tient pas. Mieux vaut
@@ -255,22 +264,29 @@ class GroqReasoner:
             "tools": [outil],
             "tool_choice": {"type": "function", "function": {"name": _TOOL_NAME}},
         }
-        try:
-            reponse = httpx.post(
-                f"{BASE_URL}/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {self._cle()}",
-                    "content-type": "application/json",
-                },
-                json=charge,
-                timeout=_DECISION_TIMEOUT_S,
-            )
-        except httpx.HTTPError as erreur:
-            raise ReasonerUnavailable(
-                f"{self.name} : appel impossible ({erreur})"
-            ) from erreur
-        if reponse.status_code >= 400:
-            raise ReasonerUnavailable(f"{self.name} : {_motif(reponse)}")
+        for tentative in range(_TENTATIVES_SCHEMA):
+            if tentative:
+                self._attendre_la_fenetre(entree + sortie)
+            try:
+                reponse = httpx.post(
+                    f"{BASE_URL}/chat/completions",
+                    headers={
+                        "Authorization": f"Bearer {self._cle()}",
+                        "content-type": "application/json",
+                    },
+                    json=charge,
+                    timeout=_DECISION_TIMEOUT_S,
+                )
+            except httpx.HTTPError as erreur:
+                raise ReasonerUnavailable(
+                    f"{self.name} : appel impossible ({erreur})"
+                ) from erreur
+            if reponse.status_code < 400:
+                break
+            motif = _motif(reponse)
+            if not _forme_refusee(reponse) or tentative + 1 == _TENTATIVES_SCHEMA:
+                raise ReasonerUnavailable(f"{self.name} : {motif}")
+            self.notes.append(f"forme refusée par le service, on retente — {motif}")
 
         charge_rendue = reponse.json()
         usage = charge_rendue.get("usage") or {}
@@ -335,6 +351,22 @@ def _plafond_declare() -> int:
     if not brut.isdigit() or int(brut) <= 0:
         return DEFAULT_TPM
     return int(brut)
+
+
+def _forme_refusee(reponse: httpx.Response) -> bool:
+    """Le service a-t-il refusé la *forme* de la sortie du modèle ?
+
+    Ce refus-là vient du modèle, pas de la requête : il a écrit quelque chose
+    que le schéma n'accepte pas. Une seconde tentative a des chances d'aboutir,
+    là où reprendre une clé refusée ou un plafond dépassé n'en a aucune.
+    """
+    if reponse.status_code != 400:
+        return False
+    try:
+        detail = (reponse.json().get("error") or {}).get("message", "")
+    except ValueError:
+        detail = reponse.text
+    return "validation failed" in detail.lower()
 
 
 def _motif(reponse: httpx.Response) -> str:

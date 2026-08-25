@@ -159,24 +159,52 @@ def test_the_schema_refuses_what_the_model_must_not_decide() -> None:
         jsonschema.validate(decision, decision_schema())
 
 
-def test_the_schema_carries_no_definition_it_does_not_use() -> None:
-    """Envoyer des définitions inutiles décrirait des champs non demandés."""
+def test_the_schema_points_nowhere_the_model_has_to_follow() -> None:
+    """Aucun `$ref` : le modèle voit les champs là où il les écrit.
+
+    Le premier appel qui a vraiment produit une décision est revenu avec des
+    preuves visuelles réduites à un `claim_id` et un champ `description`
+    inventé — signature d'un renvoi vers `$defs` que le modèle n'a pas suivi.
+    Le service a refusé sa propre sortie contre le schéma, ce qui a rendu le
+    diagnostic immédiat.
+    """
+    import json as _json
+
     schema = decision_schema()
-    cites = set()
+    assert "$defs" not in schema
+    assert "$ref" not in _json.dumps(schema)
 
-    def parcourir(noeud):
-        if isinstance(noeud, dict):
-            if "$ref" in noeud:
-                cites.add(noeud["$ref"].rsplit("/", 1)[-1])
-            for valeur in noeud.values():
-                parcourir(valeur)
-        elif isinstance(noeud, list):
-            for element in noeud:
-                parcourir(element)
+    # Ce que le contrat exige d'une preuve visuelle est lisible sur place.
+    preuve = schema["properties"]["visual_proofs"]["items"]
+    assert set(preuve["required"]) == {
+        "claim_id",
+        "causal_mechanism",
+        "evidence_required",
+        "visual_proof",
+        "anchor_names",
+        "acknowledged_dispute",
+    }
+    assert preuve["additionalProperties"] is False
+    # Et les énumérations aussi : pas de renvoi à suivre pour connaître le ton.
+    assert "documentary" in schema["properties"]["tone"]["enum"]
 
-    parcourir(schema["properties"])
-    parcourir(schema["$defs"])
-    assert set(schema["$defs"]) == cites
+
+def test_inlining_the_schema_costs_nothing() -> None:
+    """Déplacer les définitions ne les duplique pas : chacune sert une fois.
+
+    Si un contrat futur citait deux fois la même définition, l'inlining la
+    copierait — et sur un plafond de huit mille jetons par minute, ça se
+    verrait. Ce test le dirait avant le fournisseur.
+    """
+    import json as _json
+
+    from pdz2.providers.groq import DEFAULT_TPM, _jetons
+
+    assert _jetons(decision_schema()) < DEFAULT_TPM // 4, (
+        "le schéma mange plus du quart du plafond par minute : "
+        f"{_jetons(decision_schema())} jetons pour {DEFAULT_TPM} permis"
+    )
+    assert "$defs" not in _json.dumps(decision_schema())
 
 
 def test_no_default_survives_into_the_schema() -> None:
@@ -405,3 +433,112 @@ def test_the_instruction_no_longer_repeats_the_schema_as_a_template(episode) -> 
     assert episode.request.topic in texte
     for claim in episode.research.claims[:3]:
         assert claim.id in texte
+
+
+def test_a_shape_refused_by_the_service_is_retried_once(monkeypatch) -> None:
+    """Le service refuse la sortie du modèle : on retente, une fois.
+
+    Ce refus vient du modèle, pas de la requête — il a écrit quelque chose
+    que le schéma n'accepte pas, et la même demande peut mieux tomber.
+    Distinct de la reprise du contrat, qui explique au modèle ce qu'on lui
+    reproche : ici il n'a rien produit d'exploitable à commenter.
+    """
+    import httpx
+
+    from pdz2.providers import groq as module
+
+    appels: list[int] = []
+    valide = {
+        "choices": [
+            {
+                "message": {
+                    "tool_calls": [
+                        {"function": {"arguments": '{"thesis": "une thèse"}'}}
+                    ]
+                }
+            }
+        ],
+        "usage": {"prompt_tokens": 10, "completion_tokens": 20},
+    }
+
+    def poste(url, **kwargs):
+        appels.append(1)
+        if len(appels) == 1:
+            return httpx.Response(
+                400,
+                json={"error": {"message": "Tool call validation failed: …"}},
+                request=httpx.Request("POST", url),
+            )
+        return httpx.Response(200, json=valide, request=httpx.Request("POST", url))
+
+    monkeypatch.setattr(module.httpx, "post", poste)
+    monkeypatch.setattr(module.time, "sleep", lambda _: None)
+    monkeypatch.setenv(module.GROQ_KEY_ENV, "clé-de-test")
+
+    decision = module.GroqReasoner()._decide([{"role": "user", "content": "x"}])
+    assert len(appels) == 2, "un refus de forme doit être retenté une fois"
+    assert decision == {"thesis": "une thèse"}
+
+
+def test_a_refused_key_is_never_retried(monkeypatch) -> None:
+    """Retenter une clé refusée ne la rend pas valide : on s'arrête net."""
+    import httpx
+
+    from pdz2.providers import groq as module
+
+    appels: list[int] = []
+
+    def poste(url, **kwargs):
+        appels.append(1)
+        return httpx.Response(
+            401,
+            json={"error": {"message": "Invalid API Key"}},
+            request=httpx.Request("POST", url),
+        )
+
+    monkeypatch.setattr(module.httpx, "post", poste)
+    monkeypatch.setenv(module.GROQ_KEY_ENV, "clé-de-test")
+
+    with pytest.raises(ReasonerUnavailable, match="clé refusée"):
+        module.GroqReasoner()._decide([{"role": "user", "content": "x"}])
+    assert len(appels) == 1
+
+
+def test_groq_translates_the_boolean_dialect_without_loosening_the_contract(
+    monkeypatch,
+) -> None:
+    """`"true"` rendu en chaîne redevient un booléen. Le contrat reste strict."""
+    import httpx
+
+    from pdz2.providers import groq as module
+
+    rendu = {
+        "visual_proofs": [
+            {"claim_id": "c1", "acknowledged_dispute": "true"},
+            {"claim_id": "c2", "acknowledged_dispute": "false"},
+        ]
+    }
+    monkeypatch.setattr(
+        module.httpx,
+        "post",
+        lambda url, **k: httpx.Response(
+            200,
+            json={
+                "choices": [
+                    {
+                        "message": {
+                            "tool_calls": [
+                                {"function": {"arguments": json.dumps(rendu)}}
+                            ]
+                        }
+                    }
+                ]
+            },
+            request=httpx.Request("POST", url),
+        ),
+    )
+    monkeypatch.setenv(module.GROQ_KEY_ENV, "clé-de-test")
+
+    decision = module.GroqReasoner()._decide([{"role": "user", "content": "x"}])
+    aveux = [p["acknowledged_dispute"] for p in decision["visual_proofs"]]
+    assert aveux == [True, False], f"dialecte non traduit : {aveux}"

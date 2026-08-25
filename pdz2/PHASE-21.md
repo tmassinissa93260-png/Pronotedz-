@@ -103,6 +103,33 @@ après la première, **attend le tour de la fenêtre** au lieu de se cogner à u
 plafond qu'on savait atteindre. La requête réelle est passée de 18 813 jetons
 demandés à 7 360, pour 8 000 permis.
 
+### Ce que le deuxième appel réel a appris
+
+La requête est passée, le modèle a décidé — et le service a refusé sa sortie
+contre le schéma :
+
+    /visual_proofs/0 : missing properties: 'acknowledged_dispute',
+      'anchor_names', 'causal_mechanism', 'evidence_required', 'visual_proof'
+    /visual_proofs/0 : additionalProperties 'description' not allowed
+
+Une preuve visuelle réduite à un `claim_id` et un champ `description` inventé :
+la signature d'un **renvoi vers `$defs` que le modèle n'a pas suivi**. Il ne
+voyait, à l'endroit où il écrivait, qu'un pointeur.
+
+Le schéma envoyé ne contient donc plus aucun `$ref` : chaque définition est
+mise en place. Le coût est nul — chacune n'était citée qu'une fois, donc on
+les déplace au lieu de les copier ; le schéma a même perdu 68 jetons avec
+l'enveloppe `$defs`. Un test refuse désormais qu'un `$ref` revienne, et un
+autre surveille que l'inlining ne se mette pas à dupliquer si un contrat futur
+citait deux fois la même définition.
+
+S'y ajoute un filet : **un refus de forme par le service est retenté une
+fois**. Il vient du modèle, pas de la requête — la même demande peut mieux
+tomber. À ne pas confondre avec la reprise du contrat, qui explique au modèle
+ce qu'on lui reproche ; ici il n'a rien produit d'exploitable à commenter. Une
+clé refusée ou un plafond dépassé, eux, ne sont jamais retentés : les rejouer
+ne les rendrait pas valides.
+
 ## LE RAISONNEUR NE REÇOIT PAS UN FORMULAIRE RECOPIÉ
 
 La surface de décision — ce qu'aucun calcul ne peut produire — est **dérivée

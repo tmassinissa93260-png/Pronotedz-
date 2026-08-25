@@ -121,9 +121,40 @@ def decision_schema() -> dict[str, Any]:
         "additionalProperties": False,
     }
     defs = _reachable_defs(properties, full.get("$defs", {}))
-    if defs:
-        schema["$defs"] = defs
-    return _strict(schema)
+    return _strict(_inline(schema, defs))
+
+
+def _inline(node: Any, defs: dict[str, Any], _en_cours: frozenset[str] = frozenset()) -> Any:
+    """Remplace chaque `$ref` par la définition elle-même.
+
+    Un modèle qui ne suit pas un renvoi vers `$defs` ne voit, à l'endroit où
+    il écrit, qu'un pointeur — et invente. Mesuré le 25/08/2026 sur le premier
+    appel qui a vraiment produit une décision : les preuves visuelles sont
+    revenues avec un `claim_id`, un champ `description` inventé, et aucun des
+    cinq champs que le contrat exige. Le service a refusé sa propre sortie
+    contre le schéma, ce qui a rendu le diagnostic immédiat.
+
+    Le coût est nul ici : chaque définition n'est citée qu'une fois, donc
+    l'inlining les déplace au lieu de les copier. Le garde contre les cycles
+    n'a rien à protéger aujourd'hui — les contrats de décision sont un arbre —
+    mais il évite qu'un contrat récursif ajouté plus tard ne boucle en
+    silence.
+    """
+    if isinstance(node, list):
+        return [_inline(item, defs, _en_cours) for item in node]
+    if not isinstance(node, dict):
+        return node
+
+    reference = node.get("$ref")
+    if reference:
+        nom = reference.rsplit("/", 1)[-1]
+        if nom in _en_cours or nom not in defs:
+            return {key: value for key, value in node.items() if key != "$ref"}
+        cible = _inline(defs[nom], defs, _en_cours | {nom})
+        autres = {key: value for key, value in node.items() if key != "$ref"}
+        return {**cible, **autres}
+
+    return {key: _inline(value, defs, _en_cours) for key, value in node.items()}
 
 
 def _reachable_defs(root: Any, defs: dict[str, Any]) -> dict[str, Any]:
