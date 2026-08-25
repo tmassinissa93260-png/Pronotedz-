@@ -249,6 +249,7 @@ class DeterministicRenderer:
             provider=None,
             model=f"{self.name} {RENDERER_VERSION} / {executable.strategy.value}",
             source_contract_id=executable.id,
+            executable_spec_id=executable.id,
             shot_id=executable.shot_id,
             actual_cost_usd=0.0,
             latency_s=round(latency, 4),

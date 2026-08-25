@@ -288,7 +288,9 @@ class ExecutionDispatcher:
         into.mkdir(parents=True, exist_ok=True)
         debut = time.monotonic()
         resultat = None
+        aboutie = 1
         for tentative in range(1, max(1, budget) + 1):
+            aboutie = tentative
             try:
                 resultat = provider.generate(
                     VideoJob(
@@ -329,8 +331,10 @@ class ExecutionDispatcher:
             provider=resultat.provider,
             model=resultat.model,
             source_contract_id=executable.id,
+            executable_spec_id=executable.id,
             shot_id=executable.shot_id,
             actual_cost_usd=resultat.cost_usd,
+            attempt=aboutie,
             latency_s=round(resultat.latency_s or (time.monotonic() - debut), 4),
             parent_id=executable.id,
         )

@@ -286,6 +286,7 @@ class TopicRequest(Contract):
     target_duration_s: float = Field(gt=0.0, le=600.0)
     aspect_ratio: AspectRatio = AspectRatio.VERTICAL
     platform: Platform = Platform.TIKTOK
+    """Plateforme visée. Contraint le format : voir `_the_format_suits_the_platform`."""
     audience: str = "grand public curieux"
     tone: Tone = Tone.DOCUMENTARY
     budget_cap_usd: float | None = Field(default=None, ge=0.0)
@@ -294,6 +295,28 @@ class TopicRequest(Contract):
 
     seed: int | None = None
     """Graine de reproductibilité, propagée jusqu'aux générateurs."""
+
+    @model_validator(mode="after")
+    def _the_format_suits_the_platform(self) -> Self:
+        """Un format qui contredit la plateforme est une incohérence muette.
+
+        `platform` était enregistrée et lue par personne, pendant que
+        `aspect_ratio` gouvernait seule la forme du livrable. Rien n'empêchait
+        de commander un épisode TikTok en 16:9 — l'épisode se serait produit,
+        et son format aurait été découvert à la publication.
+
+        Les plateformes verticales n'acceptent pas un format paysage. YouTube
+        et « generic » n'imposent rien : on ne refuse que ce qui est
+        réellement incompatible.
+        """
+        verticales = {Platform.TIKTOK, Platform.SHORTS, Platform.REELS}
+        if self.platform in verticales and self.aspect_ratio is AspectRatio.HORIZONTAL:
+            raise ValueError(
+                f"{self.platform.value} n'accepte pas un format "
+                f"{self.aspect_ratio.value} : choisir un format vertical, ou "
+                "une plateforme qui prend le paysage"
+            )
+        return self
 
 
 @contract("research_state", "1.0.0")

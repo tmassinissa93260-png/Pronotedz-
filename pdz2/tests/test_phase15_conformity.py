@@ -12,6 +12,8 @@ Deux flèches étaient annoncées et absentes :
 
 from __future__ import annotations
 
+import pytest
+
 from pdz2.contracts.render import RenderStrategy
 from pdz2.storage import EpisodeStore
 
@@ -207,3 +209,64 @@ def test_a_provider_is_retried_exactly_as_the_plan_allows(tmp_path):
     except Exception:
         pass  # le repli local échouera faute d'image réelle : ce n'est pas l'objet
     assert en_panne.appels == 3, f"{en_panne.appels} tentatives pour un budget de 3"
+
+
+# ----------------------------------------------------- champs morts comblés
+
+
+def test_a_render_artifact_names_the_executable_it_came_from(tmp_path):
+    """`executable_spec_id` était toujours vide : un champ mort dans l'artefact."""
+    from pdz2.engines.imagery import ProceduralImageRenderer
+    from pdz2.engines.routing import RenderRouter
+    from pdz2.execution import ExecutionDispatcher
+    from pdz2.renderers import ffmpeg_capability
+    from pdz2.tests import pipeline
+
+    if not ffmpeg_capability().usable:
+        pytest.skip("binaire ffmpeg absent")
+
+    episode = pipeline.build_episode(
+        tmp_path / "ep", through_render_spec=True, resolution=pipeline.SMALL
+    )
+    images = ProceduralImageRenderer().render(
+        specs=episode.image_specs, visual_bible=episode.bible, into=tmp_path / "a"
+    )
+    route = RenderRouter().route(
+        episode_id="ep",
+        requested=episode.render_specs,
+        motion_programs=episode.motion_programs,
+        image_specs=episode.image_specs,
+    )
+    rendu = ExecutionDispatcher().execute(
+        executables=route.executables,
+        motion_programs=episode.motion_programs,
+        images=images.images,
+        into=tmp_path / "r",
+    )
+    connus = {e.id for e in route.executables}
+    videos = [a for a in rendu.artifacts if a.kind.value == "video"]
+    assert videos
+    for artefact in videos:
+        assert artefact.executable_spec_id in connus
+        assert artefact.attempt >= 1
+
+
+def test_a_vertical_platform_refuses_a_landscape_format():
+    """`platform` était enregistrée et lue par personne."""
+    from pdz2.contracts.enums import AspectRatio, Platform
+    from pdz2.contracts.research import TopicRequest
+
+    with pytest.raises(Exception, match="n'accepte pas un format"):
+        TopicRequest(
+            topic="x",
+            target_duration_s=40,
+            platform=Platform.TIKTOK,
+            aspect_ratio=AspectRatio.HORIZONTAL,
+        )
+    # Une plateforme qui prend le paysage n'est pas gênée.
+    assert TopicRequest(
+        topic="x",
+        target_duration_s=40,
+        platform=Platform.YOUTUBE,
+        aspect_ratio=AspectRatio.HORIZONTAL,
+    )
