@@ -1,10 +1,18 @@
 """Adaptateur de raisonneur — le modèle Anthropic décide, le contrat contraint.
 
     ⚠️ LA DÉCISION N'A JAMAIS ÉTÉ OBTENUE DANS L'ENVIRONNEMENT OÙ CE CODE A
-    ÉTÉ ÉCRIT : aucune clé n'y est présente. La sonde, elle, part réellement
-    sur le réseau — `api.anthropic.com` y est joignable — donc
-    `get_capabilities()` dit la vérité dès ici. Le premier vrai
-    `draft_brief()` aura lieu dans GitHub Actions.
+    ÉTÉ ÉCRIT : aucune clé valide n'y est présente.
+
+    La sonde, en revanche, a été **réellement exercée** contre le service, à
+    la différence des autres adaptateurs de ce paquet. Avec une clé
+    volontairement fausse elle rend :
+
+        unavailable | modèle claude-opus-5 inaccessible : Error code: 401 —
+        {'type': 'error', 'error': {'type': 'authentication_error', …}}
+
+    Ce qui est donc vérifié ici : le chemin réseau, l'usage du SDK, le point
+    d'entrée, et le traitement de l'erreur. Ce qui ne l'est pas : la décision
+    elle-même. Son premier vrai `draft_brief()` a lieu dans GitHub Actions.
 
 Ce module est le seul de PDZ 2 où un modèle de langue a le droit de *décider*.
 Il ne lui laisse pour autant aucune liberté de forme :
@@ -195,7 +203,7 @@ Règles dures :
   à l'autre. Chaque ancre porte au moins un trait d'identité « fixed ».
 - N'invente aucun fait : tu ne disposes que des affirmations fournies. Une
   affirmation que tu ne retiens pas va dans `excluded_claim_ids`.
-- Réponds en français."""
+- Écris dans la langue de l'épisode, indiquée avec la commande."""
 
 
 def _instruction(
@@ -205,6 +213,7 @@ def _instruction(
 ) -> str:
     return (
         f"SUJET : {request.topic}\n"
+        f"LANGUE DE L'ÉPISODE : {request.language}\n"
         f"PUBLIC VISÉ : {request.audience}\n"
         f"TON DEMANDÉ : {request.tone.value}\n"
         f"QUESTION DE RECHERCHE : {research.question}\n"

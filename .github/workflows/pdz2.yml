@@ -95,11 +95,22 @@ jobs:
       - name: Produire
         id: produire
         run: |
+          set +e
           pdz2 create \
             --episode episode \
             --topic "${{ inputs.sujet }}" \
             --corpus "${{ inputs.corpus }}" \
             --duration "${{ inputs.duree }}"
+          code=$?
+          set -e
+          # 3 n'est pas une panne : c'est l'arrêt volontaire devant le brief,
+          # quand aucun raisonneur n'est branché pour le décider. Le gabarit
+          # est dans l'artefact ; le remplir et relancer avec --brief.
+          if [ "$code" -eq 3 ]; then
+            echo "::warning::la chaîne s'est arrêtée devant le brief de réalisation — gabarit dans l'artefact « episode-complet »"
+            exit 0
+          fi
+          exit "$code"
         env:
           FAL_KEY: ${{ inputs.distants && secrets.FAL_KEY || '' }}
           ELEVENLABS_API_KEY: ${{ inputs.distants && secrets.ELEVENLABS_API_KEY || '' }}
