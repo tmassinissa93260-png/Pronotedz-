@@ -308,5 +308,8 @@ class FalVideoProvider:
             provider=self.name,
             model=self.model,
             latency_s=round(time.monotonic() - debut, 3),
+            # Zéro parce que rien n'a été facturé ET relevé, pas parce que
+            # l'appel est gratuit : `cost_per_second_usd` reste vide pour la
+            # même raison, et c'est ce vide qui fait refuser le gouverneur.
             cost_usd=0.0,
         )

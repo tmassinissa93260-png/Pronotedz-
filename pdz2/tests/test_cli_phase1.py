@@ -175,15 +175,22 @@ class TestDirectCommand:
 
 class TestCreateRunsTheChain:
     def test_create_researches_then_hands_the_brief_back_to_a_human(
-        self, tmp_path, capsys
+        self, tmp_path, capsys, monkeypatch
     ):
         """La phase 1 tourne pour de vrai, puis `create` s'arrête net.
 
         Ce n'est pas un refus par manque d'implémentation : la recherche a
         eu lieu, le gabarit est rempli d'éléments réellement trouvés, et ce
-        qui manque est une décision — thèse, ton, public — qu'aucune mesure
-        de ce système ne prend.
+        qui manque est une décision — thèse, ton, public — qu'aucun
+        compilateur déterministe de ce système ne prend.
+
+        L'environnement est vidé du raisonneur : ce test décrit la chaîne
+        sans lui. Branché, elle franchit cette marche — et la décision reste
+        un fichier signé, jugé par le même contrat.
         """
+        from pdz2.providers.registry import ANTHROPIC_KEY_ENV
+
+        monkeypatch.delenv(ANTHROPIC_KEY_ENV, raising=False)
         episode = tmp_path / "ep"
         assert (
             main(
@@ -197,7 +204,7 @@ class TestCreateRunsTheChain:
             == 3
         )
         error = capsys.readouterr().err
-        assert "décision humaine" in error
+        assert "aucun raisonneur n'est branché pour les décider" in error
         assert (episode / "research.json").is_file()
         assert (episode / "brief.json").is_file()
 

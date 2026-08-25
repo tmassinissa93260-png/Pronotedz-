@@ -20,7 +20,13 @@ from pdz2.engines.research import LocalCorpusProvider, ResearchEngine, SearchUna
 from pdz2.state import EpisodeStateMachine, TransitionRefused
 from pdz2.storage import EpisodeStore
 
-__all__ = ["register", "cmd_research", "cmd_brief_template", "cmd_direct"]
+__all__ = [
+    "register",
+    "cmd_research",
+    "cmd_brief_template",
+    "cmd_brief_draft",
+    "cmd_direct",
+]
 
 
 def _machine(store: EpisodeStore, request: TopicRequest | None = None):
@@ -109,6 +115,61 @@ def cmd_brief_template(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_brief_draft(args: argparse.Namespace) -> int:
+    """Fait rédiger le brief par le raisonneur, et l'écrit sur le disque.
+
+    La décision reste un **fichier**, relu et modifiable, exactement comme un
+    brief humain : `direct` ne fait aucune différence entre les deux, et le
+    contrat porte la signature de qui a décidé. Sans raisonneur actif la
+    commande refuse — elle n'écrit pas un gabarit vide en prétendant avoir
+    décidé.
+    """
+    from pdz2.contracts.research import ResearchState
+    from pdz2.engines.direction.ports import ReasonerUnavailable, save_brief
+    from pdz2.providers import active_providers
+
+    store = EpisodeStore(args.episode)
+    if not store.exists("research_state"):
+        print(f"pas de recherche dans {args.episode}", file=sys.stderr)
+        return 1
+
+    raisonneur = active_providers().reasoner
+    if raisonneur is None:
+        print(
+            "aucun raisonneur actif : `pdz2 brief-template` produit le gabarit "
+            "à remplir à la main.",
+            file=sys.stderr,
+        )
+        return 2
+
+    request = store.load_as(TopicRequest)
+    research = store.load_as(ResearchState)
+    capacite = raisonneur.get_capabilities()
+    print(f"raisonneur {capacite.provider} : {capacite.state.value} — {capacite.detail}")
+
+    try:
+        brief = raisonneur.draft_brief(request, research)
+    except ReasonerUnavailable as refus:
+        print(f"aucune décision obtenue : {refus}", file=sys.stderr)
+        return 1
+
+    target = Path(args.out) if args.out else store.root / "director_brief.json"
+    save_brief(brief, target)
+    print(f"brief écrit : {target}")
+    print(f"  thèse   : {brief.thesis}")
+    print(f"  chute   : {brief.ending_payoff}")
+    print(f"  registre: {brief.visual_language.visual_register}")
+    print(
+        f"  {len(brief.visual_proofs)} preuve(s) visuelle(s), "
+        f"{len(brief.anchors)} ancre(s), décidé par « {brief.author} »"
+    )
+    print(
+        "\nCe brief est un fichier : le relire et le corriger avant `pdz2 direct` "
+        "reste la meilleure chose à en faire."
+    )
+    return 0
+
+
 def cmd_direct(args: argparse.Namespace) -> int:
     from pdz2.contracts.research import ResearchState
 
@@ -186,6 +247,13 @@ def register(subparsers) -> None:
     template.add_argument("--out", default=None)
     template.add_argument("--max-proofs", type=int, default=6, dest="max_proofs")
     template.set_defaults(func=cmd_brief_template)
+
+    draft = subparsers.add_parser(
+        "brief-draft", help="faire rédiger le brief par le raisonneur"
+    )
+    draft.add_argument("--episode", required=True)
+    draft.add_argument("--out", default=None)
+    draft.set_defaults(func=cmd_brief_draft)
 
     direct = subparsers.add_parser(
         "direct", help="compiler un brief en DirectorState"

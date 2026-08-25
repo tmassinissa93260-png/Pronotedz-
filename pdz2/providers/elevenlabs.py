@@ -30,9 +30,16 @@ from pdz2.audio.ports import SynthesisResult, VoiceSpec
 from pdz2.audio.wave_io import measure_wav, require_audible
 from pdz2.contracts.capability import CapabilityState, ProviderCapability
 
-__all__ = ["ElevenLabsSynthesiser", "ELEVENLABS_KEY_ENV"]
+__all__ = ["ElevenLabsSynthesiser", "ELEVENLABS_KEY_ENV", "ELEVENLABS_VOICE_ENV"]
 
 ELEVENLABS_KEY_ENV = "ELEVENLABS_API_KEY"
+ELEVENLABS_VOICE_ENV = "ELEVENLABS_VOICE_ID"
+FALLBACK_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"
+"""Voix publique du catalogue par défaut du service, employée faute de choix.
+
+Elle est nommée ici et nulle part ailleurs : c'est une donnée de fournisseur,
+au même titre que le nom du modèle."""
+
 BASE_URL = "https://api.elevenlabs.io/v1"
 _PROBE_TIMEOUT_S = 15.0
 _SYNTHESIS_TIMEOUT_S = 180.0
@@ -46,6 +53,10 @@ class ElevenLabsSynthesiser:
 
     name: str = "elevenlabs"
     model: str = "eleven_multilingual_v2"
+
+    @property
+    def default_voice_id(self) -> str:
+        return os.environ.get(ELEVENLABS_VOICE_ENV, "").strip() or FALLBACK_VOICE_ID
 
     def _cle(self) -> str | None:
         return os.environ.get(ELEVENLABS_KEY_ENV, "").strip() or None

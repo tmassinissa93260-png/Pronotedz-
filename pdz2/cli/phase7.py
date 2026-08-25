@@ -18,7 +18,7 @@ from pdz2.contracts.visual import ImageSpec, LayerRole, VisualBible
 from pdz2.engines.imagery.renderer import RenderedImage
 from pdz2.execution import ExecutionDispatcher
 from pdz2.execution.dispatcher import DispatchRejected
-from pdz2.providers import NO_VIDEO_PROVIDERS
+from pdz2.providers import active_providers
 from pdz2.renderers import DeterministicRenderer, FfmpegUnavailable, RenderFailed
 from pdz2.state import EpisodeStateMachine, TransitionRefused
 from pdz2.storage import EpisodeStore
@@ -84,10 +84,15 @@ def cmd_render(args: argparse.Namespace) -> int:
     capability = renderer.get_capabilities()
     print(f"encodeur : {capability.state.value} — {capability.detail}")
     # L'aiguilleur, pas le renderer : c'est lui qui décide qui exécute quoi.
-    # `NO_VIDEO_PROVIDERS` est vide dans ce dépôt, donc tout part en local —
-    # mais le chemin fournisseur existe et sera emprunté sans toucher au CLI.
-    dispatcher = ExecutionDispatcher(
-        renderer=renderer, providers=NO_VIDEO_PROVIDERS
+    # Les fournisseurs viennent de l'inventaire, qui lit l'environnement :
+    # sans clé la liste est vide et tout part en local, avec sa dégradation
+    # inscrite ; avec clé le chemin fournisseur est emprunté, sans que le CLI
+    # n'ait à savoir lequel.
+    fournisseurs = active_providers().video
+    dispatcher = ExecutionDispatcher(renderer=renderer, providers=fournisseurs)
+    print(
+        "fournisseurs vidéo actifs : "
+        + (", ".join(f.name for f in fournisseurs) or "aucun, rendu local seul")
     )
 
     try:

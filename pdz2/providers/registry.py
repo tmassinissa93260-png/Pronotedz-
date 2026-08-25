@@ -41,7 +41,14 @@ from pdz2.providers.image import ImageProvider
 from pdz2.providers.reasoner import ANTHROPIC_KEY_ENV, AnthropicReasoner
 from pdz2.providers.video import VideoProvider
 
-__all__ = ["ActiveProviders", "active_providers", "CREDENTIAL_ENV"]
+__all__ = [
+    "ActiveProviders",
+    "active_providers",
+    "CREDENTIAL_ENV",
+    "ANTHROPIC_KEY_ENV",
+    "ELEVENLABS_KEY_ENV",
+    "FAL_KEY_ENV",
+]
 
 CREDENTIAL_ENV = {
     "fal": FAL_KEY_ENV,

@@ -67,6 +67,8 @@ __all__ = [
     "NATURAL_RATE_MIN_WPM",
     "NATURAL_RATE_MAX_WPM",
     "DEFAULT_TOLERANCE",
+    "RATE_EFFECT_FLOOR",
+    "PROBE_SENTENCE",
 ]
 
 NATURAL_RATE_MIN_WPM = 120
@@ -78,6 +80,17 @@ NATURAL_RATE_MAX_WPM = 200
 DEFAULT_TOLERANCE = 0.15
 """Sur 40 s commandées, un livrable entre 34 et 46 s reste le même objet."""
 
+PROBE_SENTENCE = "Une phrase courte, dite deux fois, à deux vitesses."
+"""Texte de la sonde de contrôlabilité. Court : elle peut coûter un appel."""
+
+RATE_EFFECT_FLOOR = 0.10
+"""Écart relatif minimal entre les deux vitesses pour dire « le débit agit ».
+
+Entre 120 et 200 mots/min, un moteur qui obéit rend un écart d'environ 40 %.
+Un moteur qui ignore le réglage rend deux fois la même durée, à la gigue de
+mesure près. Le seuil est placé très bas entre les deux : il ne s'agit pas de
+noter l'obéissance, seulement de distinguer « agit » de « n'agit pas »."""
+
 
 @dataclass
 class DurationNegotiator:
@@ -88,6 +101,8 @@ class DurationNegotiator:
     rate_min_wpm: int = NATURAL_RATE_MIN_WPM
     rate_max_wpm: int = NATURAL_RATE_MAX_WPM
     notes: list[str] = field(default_factory=list)
+    _controle: bool | None = field(default=None, repr=False)
+    """Résultat mémorisé de la sonde de débit. `None` : pas encore sondé."""
 
     def negotiate(
         self,
@@ -117,9 +132,27 @@ class DurationNegotiator:
 
         # Durée et débit varient en raison inverse : c'est ce que la mesure
         # montre, et c'est ce qui rend le débit visé calculable d'un trait.
+        # Encore faut-il que le moteur obéisse au réglage — ce qui se vérifie,
+        # et ne se suppose pas : tous ne l'exposent pas.
         vise = int(round(reference * calibree / requested_s))
         borne = max(self.rate_min_wpm, min(self.rate_max_wpm, vise))
         projetee = round(reference * calibree / borne, 3)
+
+        if not self._debit_agit(voice, workdir):
+            trop_long = calibree > requested_s
+            return self._policy(
+                script, reference, reference, calibree, requested_s,
+                DurationDecision.CONTENT_TOO_LONG
+                if trop_long
+                else DurationDecision.CONTENT_TOO_SHORT,
+                calibree,
+                f"le moteur de voix ignore le débit — mesuré, pas supposé : "
+                f"{PROBE_SENTENCE!r} dure la même chose à {self.rate_min_wpm} "
+                f"et à {self.rate_max_wpm} mots/min. Le seul levier restant "
+                f"est le texte : {calibree:.1f}s mesurées pour "
+                f"{requested_s:.0f}s commandées, il y a "
+                f"{'trop' if trop_long else 'trop peu'} de texte.",
+            )
 
         if borne == vise:
             return self._policy(
@@ -145,6 +178,50 @@ class DurationNegotiator:
             "Aucun réglage de voix ne corrige un contenu de la mauvaise "
             "longueur — seul le script le peut.",
         )
+
+    # ---------------------------------------------------- sonde de débit
+
+    def _debit_agit(self, voice: VoiceSpec, workdir: Path | None) -> bool:
+        """Le moteur obéit-il vraiment au débit ? Deux synthèses le disent.
+
+        Sans cette sonde, un moteur distant qui n'expose aucun réglage de
+        vitesse laisserait le négociateur annoncer un débit « porté de 165 à
+        190 » sans que rien ne change dans l'audio : une décision inscrite au
+        contrat, et démentie par le fichier. La dégradation serait invisible.
+
+        La sonde est mise en cache : elle ne dépend que du moteur, pas du
+        script, et peut coûter un appel facturé.
+        """
+        if self._controle is not None:
+            return self._controle
+
+        cible = Path(workdir) if workdir else Path(tempfile.mkdtemp(prefix="pdz2-son-"))
+        cible.mkdir(parents=True, exist_ok=True)
+        durees: list[float] = []
+        for rate in (self.rate_min_wpm, self.rate_max_wpm):
+            sortie = cible / f"sonde-{rate}.wav"
+            self.synthesiser.synthesise(
+                PROBE_SENTENCE,
+                VoiceSpec(
+                    voice_id=voice.voice_id,
+                    rate_wpm=rate,
+                    pitch=voice.pitch,
+                    amplitude=voice.amplitude,
+                    gap_ms=voice.gap_ms,
+                ),
+                sortie,
+            )
+            durees.append(measure_wav(sortie).duration_s)
+
+        lent, rapide = durees
+        ecart = abs(lent - rapide) / lent if lent > 0 else 0.0
+        self._controle = ecart >= RATE_EFFECT_FLOOR
+        self.notes.append(
+            f"sonde de débit : {lent:.2f}s à {self.rate_min_wpm} mots/min contre "
+            f"{rapide:.2f}s à {self.rate_max_wpm} — écart {ecart:.0%}, le moteur "
+            + ("obéit au réglage" if self._controle else "l'ignore")
+        )
+        return self._controle
 
     # ------------------------------------------------------------ calibration
 

@@ -22,7 +22,6 @@ from pathlib import Path
 
 from pdz2.audio import (
     AudioError,
-    EspeakSynthesiser,
     MeasuredLine,
     NarrationRecorder,
     VoiceSpec,
@@ -42,6 +41,7 @@ from pdz2.contracts.render import RenderArtifact
 from pdz2.contracts.research import TopicRequest
 from pdz2.contracts.script import ScriptState
 from pdz2.engines.script import ScriptCompiler, ScriptRejected
+from pdz2.providers import active_providers
 from pdz2.state import EpisodeStateMachine, TransitionRefused
 from pdz2.storage import EpisodeStore
 
@@ -122,6 +122,29 @@ def cmd_script(args: argparse.Namespace) -> int:
 # --------------------------------------------------------------------- voix
 
 
+def _premier_moteur_joignable():
+    """Le premier moteur de voix qui répond ; le dernier de la liste est local.
+
+    Chaque moteur écarté est annoncé. Un repli silencieux vers la voix locale
+    donnerait un épisode correct et un journal faux — le contraire de ce que
+    cette chaîne promet.
+
+    La durée reste mesurée sur l'audio produit, quel que soit le moteur
+    retenu : `VoiceTimeline` demeure l'autorité unique, et aucun fournisseur
+    ne se voit demander combien de temps il a parlé.
+    """
+    for moteur in active_providers().speech:
+        capacite = moteur.get_capabilities()
+        etat = "retenu" if capacite.usable else "écarté"
+        print(
+            f"moteur {capacite.provider} : {etat} — "
+            f"{capacite.state.value}, {capacite.detail}"
+        )
+        if capacite.usable:
+            return moteur
+    return None
+
+
 def cmd_voice(args: argparse.Namespace) -> int:
     opened = _open(args.episode)
     if opened is None:
@@ -132,13 +155,14 @@ def cmd_voice(args: argparse.Namespace) -> int:
         return 1
 
     script = store.load_as(ScriptState)
-    synthesiser = EspeakSynthesiser()
-    capability = synthesiser.get_capabilities()
-    print(f"moteur {capability.provider} : {capability.state.value} — {capability.detail}")
+    synthesiser = _premier_moteur_joignable()
+    if synthesiser is None:
+        print("aucun moteur de voix joignable", file=sys.stderr)
+        return 1
 
     debit_impose = args.rate is not None
     voice = VoiceSpec(
-        voice_id=args.voice,
+        voice_id=args.voice or synthesiser.default_voice_id,
         rate_wpm=args.rate if debit_impose else DEFAULT_RATE_WPM,
         pitch=args.pitch,
         gap_ms=args.gap,
@@ -343,7 +367,11 @@ def register(subparsers) -> None:
 
     voice = subparsers.add_parser("voice", help="synthétiser la voix, réellement")
     voice.add_argument("--episode", required=True)
-    voice.add_argument("--voice", default="fr")
+    voice.add_argument(
+        "--voice",
+        default=None,
+        help="identifiant de voix ; par défaut celui du moteur retenu",
+    )
     voice.add_argument(
         "--rate",
         type=int,

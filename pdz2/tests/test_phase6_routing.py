@@ -97,7 +97,7 @@ class TestRoutingWithoutAnyProvider:
         reasons = {
             d.reason for d in outcome.degradations if d.field == "provider_availability"
         }
-        assert any("aucun adaptateur n'est implémenté" in reason for reason in reasons)
+        assert any("aucun adaptateur actif" in reason for reason in reasons)
 
     def test_no_degradation_is_left_undeclared(self, episode) -> None:
         """Le contrat le refuserait : on vérifie qu'il est bien sollicité."""

@@ -4,18 +4,17 @@ Le cœur du système ne connaît aucun moteur vidéo : il connaît ce protocole.
 Un adaptateur déclare sa capacité — **mesurée et datée**, jamais annoncée —
 et rend un fichier dont l'observateur mesurera ensuite le contenu.
 
-État réel dans ce dépôt : **aucun adaptateur n'est implémenté**. La politique
-réseau de cet environnement refuse les hôtes de génération vidéo, et aucun
-identifiant n'est disponible. Écrire un client qu'on ne peut ni joindre ni
-vérifier reviendrait à livrer une capacité fictive — ce que le cahier des
-charges interdit explicitement.
+Un adaptateur implémente ce protocole depuis la phase 21
+(`pdz2.providers.fal`). Il n'est **actif que si sa clé est présente** : sans
+elle, `pdz2.providers.registry` ne le fait rejoindre aucune famille, et le
+routeur reçoit une liste vide.
 
 Ce n'est pas une impasse : le §46 exige que le système fonctionne **avec ou
-sans génération vidéo IA**. Les stratégies déterministes (phase 7) sont le
-chemin réel, et le routeur enregistre chaque dégradation qui en découle.
+sans génération vidéo IA**. Les stratégies déterministes (phase 7) restent le
+chemin garanti, et le routeur enregistre chaque dégradation qui en découle.
 
-Quand un adaptateur arrivera, il implémentera ce protocole, se sondera comme
-les autres, et rien en aval ne bougera.
+Le port n'a pas bougé d'une ligne pour accueillir cet adaptateur — c'était
+tout l'intérêt de l'écrire avant lui.
 """
 
 from __future__ import annotations
@@ -107,8 +106,11 @@ class VideoProvider(Protocol):
 
 
 NO_VIDEO_PROVIDERS: tuple[VideoProvider, ...] = ()
-"""Aucun adaptateur vidéo n'est implémenté dans ce dépôt.
+"""Aucun adaptateur vidéo n'est actif par défaut.
 
-Constante explicite plutôt que liste vide anonyme : le routeur la reçoit, la
-nomme dans ses dégradations, et le lecteur sait pourquoi.
+Un adaptateur existe désormais dans `pdz2.providers.fal` ; il ne rejoint
+cette famille que si sa clé est présente — voir `pdz2.providers.registry`.
+Sans clé la liste reste vide, et c'est bien ce vide qui compte : constante
+explicite plutôt que liste anonyme, le routeur la reçoit, la nomme dans ses
+dégradations, et le lecteur sait pourquoi tout est parti en local.
 """

@@ -5,12 +5,19 @@ phase, dans l'ordre du graphe d'étapes, et s'arrête à la première qui refuse
 Il ne rattrape rien, il ne contourne rien — un refus d'étape est un refus de
 production.
 
-Il s'arrête aussi, volontairement, devant le brief de réalisation. Le brief
-est la décision qu'aucune machine de cette chaîne ne sait prendre : quelle
-thèse défendre, sur quel ton, pour qui. `create` prépare le gabarit, le
-remplit d'éléments réellement trouvés, et rend la main.
+Il s'arrête aussi, volontairement, devant le brief de réalisation — sauf si
+un raisonneur est branché. Le brief est la décision qu'aucun *compilateur* de
+cette chaîne ne sait prendre : quelle thèse défendre, sur quel ton, pour qui.
+Sans raisonneur, `create` prépare le gabarit, le remplit d'éléments réellement
+trouvés, et rend la main.
 
     HUMANS JUDGE WHAT MACHINES CANNOT MEASURE
+
+La règle n'est pas contournée par `brief-draft` : elle est déplacée d'un cran.
+Le raisonneur décide, et sa décision reste un fichier relisible, signé de son
+nom dans `DirectorBrief.author`, refusable par le contrat comme n'importe quel
+brief. Ce qui reste interdit, ici comme avant, c'est qu'un compilateur
+déterministe invente une thèse parce que personne ne lui en a donné.
 """
 
 from __future__ import annotations
@@ -129,20 +136,29 @@ def cmd_create(args: argparse.Namespace) -> int:
 
     if brief is None or not brief.is_file():
         target = brief or Path(episode) / "brief.json"
-        code = _run("brief-template", ["--episode", episode, "--out", str(target)])
+        # Un raisonneur actif est le seul cas où la chaîne franchit cette
+        # marche seule. Il ne remplace pas le jugement humain : il produit un
+        # fichier signé de son nom, que `direct` traite comme n'importe quel
+        # brief et que le contrat juge de la même façon.
+        code = _run("brief-draft", ["--episode", episode, "--out", str(target)])
+        if code == 2:
+            code = _run("brief-template", ["--episode", episode, "--out", str(target)])
+            if code != 0:
+                return code
+            print(
+                "\nLa chaîne s'arrête ici, et c'est voulu.\n"
+                f"Le brief de réalisation attend une décision : {target}\n"
+                "Thèse, ton, public, angle — aucune mesure de ce système ne les "
+                "remplace, et aucun raisonneur n'est branché pour les décider.\n"
+                f"Reprendre ensuite avec :\n"
+                f"  pdz2 create --episode {episode} --topic \"{args.topic}\" "
+                f"--corpus {args.corpus} --brief {target}",
+                file=sys.stderr,
+            )
+            return 3
         if code != 0:
             return code
-        print(
-            "\nLa chaîne s'arrête ici, et c'est voulu.\n"
-            f"Le brief de réalisation attend une décision humaine : {target}\n"
-            "Thèse, ton, public, angle — aucune mesure de ce système ne les "
-            "remplace.\n"
-            f"Reprendre ensuite avec :\n"
-            f"  pdz2 create --episode {episode} --topic \"{args.topic}\" "
-            f"--corpus {args.corpus} --brief {target}",
-            file=sys.stderr,
-        )
-        return 3
+        brief = target
 
     code = _step(episode, "direct", ["--episode", episode, "--brief", str(brief)])
     if code != 0:

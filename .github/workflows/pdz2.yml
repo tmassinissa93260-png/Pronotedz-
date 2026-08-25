@@ -1,0 +1,130 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  PDZ 2 — produire un épisode sur les machines de GitHub.
+#
+#  Onglet « Actions » → « PDZ 2 — produire un épisode » → « Run workflow ».
+#  Le MP4 attend en fin de page, dans les artefacts du run.
+#
+#  Ce workflow est le premier endroit où les adaptateurs distants sont
+#  RÉELLEMENT appelés : ils ont été écrits dans un environnement où leurs
+#  hôtes sont injoignables. Un échec ici est une information, pas une
+#  surprise — et l'épisode se termine quand même, en local dégradé, parce
+#  que chaque famille de fournisseurs garde son repli.
+# ═══════════════════════════════════════════════════════════════════════
+
+name: PDZ 2 — produire un épisode
+
+on:
+  workflow_dispatch:
+    inputs:
+      sujet:
+        description: "Le sujet de l'épisode"
+        required: true
+        default: "Comment fonctionne une voiture électrique ?"
+        type: string
+      duree:
+        description: "Durée visée, en secondes"
+        required: true
+        default: "45"
+        type: string
+      corpus:
+        description: >-
+          Dossier de documents sourcés. Le sujet doit correspondre à ce
+          corpus : la recherche ne va pas sur le web, elle lit ces
+          fichiers. Le corpus fourni parle de voiture électrique.
+        required: true
+        default: "pdz2/tests/fixtures/corpus"
+        type: string
+      distants:
+        description: "Employer les fournisseurs distants (images, animation, voix, raisonneur)"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  episode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Outils système
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg espeak-ng fonts-dejavu-core
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Dépendances
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[providers,dev]"
+
+      - name: Ce que cette machine sait faire
+        run: |
+          pdz2 phases
+          echo "────────────────────────────────────────────"
+          pdz2 providers --probe
+        env:
+          FAL_KEY: ${{ inputs.distants && secrets.FAL_KEY || '' }}
+          ELEVENLABS_API_KEY: ${{ inputs.distants && secrets.ELEVENLABS_API_KEY || '' }}
+          ELEVENLABS_VOICE_ID: ${{ vars.ELEVENLABS_VOICE_ID }}
+          ANTHROPIC_API_KEY: ${{ inputs.distants && secrets.ANTHROPIC_API_KEY || '' }}
+
+      - name: Le corpus existe et n'est pas vide
+        run: |
+          if [ ! -d "${{ inputs.corpus }}" ] || [ -z "$(ls -A "${{ inputs.corpus }}" 2>/dev/null)" ]; then
+            echo "::error::corpus introuvable ou vide : ${{ inputs.corpus }}"
+            echo "La recherche de PDZ 2 lit des documents sourcés, elle n'interroge"
+            echo "aucun moteur de recherche. Déposer des fichiers .md avec un en-tête"
+            echo "  ---"
+            echo "  title: …"
+            echo "  kind: documentation|paper|encyclopedia|…"
+            echo "  url: …"
+            echo "  authority: 0.0 à 1.0"
+            echo "  ---"
+            exit 1
+          fi
+          ls -la "${{ inputs.corpus }}"
+
+      - name: Produire
+        id: produire
+        run: |
+          pdz2 create \
+            --episode episode \
+            --topic "${{ inputs.sujet }}" \
+            --corpus "${{ inputs.corpus }}" \
+            --duration "${{ inputs.duree }}"
+        env:
+          FAL_KEY: ${{ inputs.distants && secrets.FAL_KEY || '' }}
+          ELEVENLABS_API_KEY: ${{ inputs.distants && secrets.ELEVENLABS_API_KEY || '' }}
+          ELEVENLABS_VOICE_ID: ${{ vars.ELEVENLABS_VOICE_ID }}
+          ANTHROPIC_API_KEY: ${{ inputs.distants && secrets.ANTHROPIC_API_KEY || '' }}
+
+      - name: Journal de production
+        if: always()
+        run: pdz2 journal --episode episode || true
+
+      - name: La vidéo
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: episode-mp4
+          path: episode/final.mp4
+          if-no-files-found: warn
+
+      - name: Le dossier complet — contrats, journal, mesures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: episode-complet
+          path: |
+            episode/**
+            !episode/renders/**/frames/**
+          if-no-files-found: warn
+          retention-days: 14

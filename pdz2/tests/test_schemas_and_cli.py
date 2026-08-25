@@ -96,12 +96,15 @@ class TestCli:
         assert main(["state", "show", str(tmp_path / "vide")]) == 1
         assert "aucun état" in capsys.readouterr().err
 
-    def test_create_stops_at_the_human_decision(self, tmp_path, capsys) -> None:
-        """`create` sans brief prépare le gabarit et rend la main.
+    def test_create_stops_at_the_human_decision(self, tmp_path, capsys, monkeypatch) -> None:
+        """`create` sans brief ni raisonneur prépare le gabarit et rend la main.
 
         C'est le seul arrêt volontaire de la chaîne : la thèse, le ton et le
         public sont des décisions qu'aucune mesure de ce système ne prend.
         """
+        from pdz2.providers.registry import ANTHROPIC_KEY_ENV
+
+        monkeypatch.delenv(ANTHROPIC_KEY_ENV, raising=False)
         corpus = Path(__file__).parent / "fixtures" / "corpus"
         code = main(
             [
@@ -113,7 +116,7 @@ class TestCli:
         )
         assert code == 3
         captured = capsys.readouterr()
-        assert "décision humaine" in captured.err
+        assert "aucun raisonneur n'est branché pour les décider" in captured.err
         assert (tmp_path / "ep" / "brief.json").is_file()
 
     def test_phases_reports_the_real_state_of_the_build(self, capsys) -> None:

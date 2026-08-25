@@ -41,6 +41,13 @@ class EspeakSynthesiser:
 
     name = "espeak-ng"
 
+    default_voice_id = "fr"
+    """Voix employée quand l'opérateur n'en impose aucune.
+
+    Un identifiant de voix n'a de sens que pour le moteur qui le lit : « fr »
+    ici, une chaîne opaque ailleurs. C'est donc l'adaptateur qui le porte, et
+    non la ligne de commande, qui ne sait pas à qui elle parlera."""
+
     def __init__(self, binary: str = "espeak-ng", timeout_s: float = _SYNTHESIS_TIMEOUT_S):
         self.binary = binary
         self.timeout_s = timeout_s

@@ -15,6 +15,7 @@ import sys
 from pdz2.contracts.pipeline import Stage
 from pdz2.contracts.research import TopicRequest
 from pdz2.engines.routing import RenderRouter, RoutingRejected
+from pdz2.providers import active_providers
 from pdz2.state import EpisodeStateMachine, TransitionRefused
 from pdz2.storage import EpisodeStore
 
@@ -41,8 +42,20 @@ def cmd_route(args: argparse.Namespace) -> int:
         return 1
 
     request = store.load_as(TopicRequest)
+    # L'aiguilleur ne connaît que des capacités, jamais des marques. Sans
+    # fournisseur actif la liste est vide, et l'échelle de stratégies
+    # s'arrête d'elle-même aux stratégies déterministes locales.
+    fournisseurs = active_providers().video
+    capacites = [fournisseur.get_capabilities() for fournisseur in fournisseurs]
+    for capacite in capacites:
+        declaree = capacite.capability
+        print(
+            f"fournisseur vidéo {declaree.provider} : {declaree.state.value} — "
+            f"{declaree.detail}"
+        )
     try:
         outcome = RenderRouter(
+            video_capabilities=capacites,
             capability_matrix=store.latest("capability_matrix"),
         ).route(
             episode_id=store.root.name,

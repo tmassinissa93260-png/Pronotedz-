@@ -465,7 +465,7 @@ class RenderRouter:
                         reason=(
                             "aucun fournisseur vidéo joignable : "
                             + (
-                                "aucun adaptateur n'est implémenté"
+                                "aucun adaptateur actif dans cet environnement"
                                 if not self.video_capabilities
                                 else "tous les adaptateurs se déclarent injoignables"
                             )

@@ -228,3 +228,99 @@ class TestAnExplicitRateWins:
         policy = store.load_as(DurationPolicy)
         assert policy.calibration_rate_wpm == 165
         assert policy.decision is not None
+
+
+# ------------------------------------- un moteur qui ignore le débit se voit
+
+
+class _RateDeafSynthesiser:
+    """Un moteur qui rend toujours la même durée, quel que soit le débit.
+
+    Ce n'est pas un moteur fictif au sens interdit : il **synthétise
+    réellement** — il délègue à eSpeak NG — et se contente d'écraser le
+    réglage de vitesse avant de le transmettre. C'est exactement le
+    comportement d'un service distant qui n'expose aucune commande de débit,
+    et c'est le seul moyen d'observer ce cas sans clé ni réseau.
+    """
+
+    name = "rate-deaf"
+
+    def __init__(self) -> None:
+        self._moteur = EspeakSynthesiser()
+        self.rates_recus: list[int] = []
+
+    def get_capabilities(self):
+        return self._moteur.get_capabilities()
+
+    def synthesise(self, text, voice, out_path):
+        self.rates_recus.append(voice.rate_wpm)
+        sourd = VoiceSpec(
+            voice_id=voice.voice_id,
+            pitch=voice.pitch,
+            amplitude=voice.amplitude,
+            gap_ms=voice.gap_ms,
+        )
+        return self._moteur.synthesise(text, sourd, out_path)
+
+
+@needs_espeak
+def test_an_engine_that_ignores_the_rate_is_measured_as_such(script, tmp_path):
+    """La sonde constate la surdité au lieu de la supposer."""
+    moteur = _RateDeafSynthesiser()
+    negociateur = DurationNegotiator(synthesiser=moteur)
+    assert negociateur._debit_agit(VoiceSpec(voice_id="fr"), tmp_path) is False
+    assert moteur.rates_recus == [NATURAL_RATE_MIN_WPM, NATURAL_RATE_MAX_WPM]
+    assert any("l'ignore" in note for note in negociateur.notes)
+
+
+@needs_espeak
+def test_a_speed_controllable_engine_is_measured_as_such(tmp_path):
+    """Et le moteur local, lui, obéit — même sonde, verdict inverse."""
+    negociateur = DurationNegotiator(synthesiser=EspeakSynthesiser())
+    assert negociateur._debit_agit(VoiceSpec(voice_id="fr"), tmp_path) is True
+    assert any("obéit au réglage" in note for note in negociateur.notes)
+
+
+@needs_espeak
+def test_no_rate_adjustment_is_claimed_when_the_rate_does_nothing(script, tmp_path):
+    """La décision devient « c'est le texte », parce que c'est la vérité.
+
+    Sans la sonde, le négociateur annonçait `rate_adjusted` et inscrivait un
+    débit au contrat : une décision démentie par l'audio produit. Ici la même
+    commande impossible donne une décision qui, elle, tient.
+    """
+    policy = DurationNegotiator(synthesiser=_RateDeafSynthesiser()).negotiate(
+        script=script,
+        voice=VoiceSpec(voice_id="fr", rate_wpm=165),
+        requested_s=8.0,
+        workdir=tmp_path,
+    )
+    assert policy.decision is DurationDecision.CONTENT_TOO_LONG
+    assert policy.chosen_rate_wpm == 165, "aucun débit n'a été « porté » à rien"
+    assert policy.projected_s == policy.calibrated_s
+    assert "ignore le débit" in policy.rationale
+
+
+@needs_espeak
+def test_the_probe_is_paid_for_once_per_engine(script, tmp_path):
+    """La sonde peut coûter un appel facturé : elle ne se rejoue pas."""
+    moteur = _RateDeafSynthesiser()
+    negociateur = DurationNegotiator(synthesiser=moteur)
+    voice = VoiceSpec(voice_id="fr")
+    assert negociateur._debit_agit(voice, tmp_path) is False
+    assert negociateur._debit_agit(voice, tmp_path) is False
+    assert len(moteur.rates_recus) == 2
+
+
+@needs_espeak
+def test_the_probe_stays_out_of_the_way_when_nothing_needs_adjusting(script, tmp_path):
+    """Une commande déjà tenue ne déclenche aucune sonde : rien à décider."""
+    calibree = _negocier(script, None, tmp_path).calibrated_s
+    negociateur = DurationNegotiator(synthesiser=EspeakSynthesiser())
+    negociateur.negotiate(
+        script=script,
+        voice=VoiceSpec(voice_id="fr", rate_wpm=165),
+        requested_s=calibree,
+        workdir=tmp_path,
+    )
+    assert negociateur._controle is None
