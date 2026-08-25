@@ -256,22 +256,76 @@ class TestPhaseHonesty:
             "visual",
         ]
 
-    PORTS_WITHOUT_ADAPTER = {"__init__.py", "video.py"}
-    """Fichiers de `providers/` qui ne définissent qu'un port, sans adaptateur.
+    PORTS = {"__init__.py", "image.py", "video.py"}
+    """Fichiers de `providers/` qui ne définissent qu'un port, sans adaptateur."""
 
-    Le jour où un adaptateur arrive, ce test échoue — et c'est le moment de
-    retirer les mentions « aucun raisonneur branché » et « aucun adaptateur
-    vidéo implémenté » de `pdz2 phases`.
+    ADAPTERS = {"elevenlabs.py", "fal.py", "reasoner.py"}
+    """Adaptateurs distants. Chacun nomme sa marque — c'est leur seul droit.
+
+    Ce test a longtemps affirmé l'inverse : « aucun adaptateur n'existe ». Il
+    a changé de camp le jour où ils sont arrivés, et il garde la même
+    exigence, retournée : un adaptateur présent doit être *déclaré actif sur
+    condition*, jamais supposé joignable.
     """
 
-    def test_no_adapter_pretends_to_exist(self) -> None:
-        from pdz2.cli.main import IMPLEMENTED_PHASES
+    PLUMBING = {"prompting.py", "registry.py"}
+    """Ni port ni adaptateur : la compilation contrat→prompt et l'inventaire."""
 
+    def test_the_providers_package_holds_exactly_what_is_announced(self) -> None:
         present = {path.name for path in _python_files("providers")}
-        assert present == self.PORTS_WITHOUT_ADAPTER
-        joined = " ".join(IMPLEMENTED_PHASES)
-        assert "aucun raisonneur branché" in joined
-        assert "aucun adaptateur vidéo implémenté" in joined
+        assert present == self.PORTS | self.ADAPTERS | self.PLUMBING
+
+    def test_no_adapter_is_active_without_its_credential(self) -> None:
+        """Un adaptateur *existe* ; il n'est *actif* que si sa clé est là.
+
+        C'est la garantie qui remplace « aucun adaptateur n'existe » : le
+        dépôt peut contenir un client distant sans jamais prétendre pouvoir
+        l'appeler.
+        """
+        from pdz2.providers.registry import CREDENTIAL_ENV, active_providers
+
+        nu = active_providers({})
+        assert nu.video == ()
+        assert nu.reasoners == ()
+        assert [p.name for p in nu.image] == ["procedural-image"]
+        assert [p.name for p in nu.speech] == ["espeak-ng"]
+
+        complet = active_providers({name: "x" for name in CREDENTIAL_ENV.values()})
+        assert len(complet.video) == 1
+        assert len(complet.reasoners) == 1
+        assert [p.name for p in complet.image][-1] == "procedural-image"
+        assert [p.name for p in complet.speech][-1] == "espeak-ng"
+
+    def test_the_local_fallback_is_never_dropped_from_a_family(self) -> None:
+        """Le repli local ferme toujours la liste, quoi qu'il y ait devant."""
+        from pdz2.providers.registry import CREDENTIAL_ENV, active_providers
+
+        for cle in [{}, *({name: "x"} for name in CREDENTIAL_ENV.values())]:
+            actifs = active_providers(cle)
+            assert actifs.image[-1].name == "procedural-image", cle
+            assert actifs.speech[-1].name == "espeak-ng", cle
+
+    def test_the_reasoner_asks_the_model_exactly_what_the_contract_leaves_open(
+        self,
+    ) -> None:
+        """La surface de décision suit le contrat, elle n'est pas recopiée."""
+        from pdz2.contracts.direction import DirectorBrief
+        from pdz2.providers.reasoner import _DECIDED_BY_THE_REASONER, decision_schema
+
+        connus = set(DirectorBrief.model_fields)
+        assert set(_DECIDED_BY_THE_REASONER) <= connus
+
+        # Ce que le modèle ne doit jamais choisir : l'identité du dossier, la
+        # lignée du contrat, et la signature de son propre travail.
+        interdits = {
+            "topic_request_id", "research_state_id", "author",
+            "id", "parent_id", "contract_type", "version", "created_at", "status",
+        }
+        assert not interdits & set(_DECIDED_BY_THE_REASONER)
+
+        schema = decision_schema()
+        assert schema["additionalProperties"] is False
+        assert set(schema["required"]) == set(_DECIDED_BY_THE_REASONER)
 
     def test_the_renderers_only_ship_deterministic_strategies(self) -> None:
         """Aucun renderer génératif : ce sont des ports, pas des moteurs."""

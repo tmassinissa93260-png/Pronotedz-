@@ -32,6 +32,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter
 
+from pdz2.contracts.capability import ProviderCapability
 from pdz2.contracts.common import Resolution
 from pdz2.contracts.enums import ArtifactKind, Framing, ScreenPosition
 from pdz2.contracts.render import RenderArtifact
@@ -118,6 +119,33 @@ class ProceduralImageRenderer:
     """Compose des images schématiques conformes à la bible visuelle."""
 
     name = "procedural-image"
+
+    def get_capabilities(self) -> ProviderCapability:
+        """Sonde la seule dépendance de ce moteur : la bibliothèque d'images.
+
+        Elle est locale et installée, donc la sonde répond presque toujours
+        `AVAILABLE` — mais elle sonde vraiment, et un environnement sans
+        Pillow le dirait au lieu d'échouer plus tard sur un import.
+        """
+        try:
+            from PIL import Image as _Image
+
+            version = getattr(_Image, "__version__", "version inconnue")
+        except ImportError as absente:  # pragma: no cover - Pillow est requis
+            return ProviderCapability.measured(
+                self.name,
+                reachable=False,
+                method="import de la bibliothèque d'images",
+                detail=f"bibliothèque d'images absente : {absente}",
+                requires_network=False,
+            )
+        return ProviderCapability.measured(
+            self.name,
+            reachable=True,
+            method="import de la bibliothèque d'images",
+            detail=f"moteur local, sans réseau ({version})",
+            requires_network=False,
+        )
 
     def render(
         self,

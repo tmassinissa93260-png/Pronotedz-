@@ -1,21 +1,38 @@
-"""Adaptateurs de fournisseurs.
+"""Ports et adaptateurs de fournisseurs.
 
-**Aucun adaptateur n'est implémenté.** Les ports sont définis — c'est eux qui
-comptent pour l'architecture — mais la politique réseau de cet environnement
-refuse les hôtes de génération et aucun identifiant n'est disponible. Un
-client qu'on ne peut ni joindre ni vérifier serait une capacité fictive, que
-le cahier des charges interdit.
+Ce paquet a longtemps ne porté que des ports, et le disait : « aucun
+adaptateur n'est implémenté ». Ce n'est plus vrai, et la nuance qui remplace
+cette phrase compte plus qu'elle :
 
-Le système fonctionne sans eux : les stratégies déterministes des phases 5 et
-7 rendent réellement, et chaque dégradation qui en découle est enregistrée.
+    un adaptateur **existe** dans le dépôt ;
+    il n'est **actif** que si son identifiant est présent dans l'environnement.
 
-Ports disponibles :
-  * `pdz2.providers.video`   — génération vidéo (phase 6)
-  * `pdz2.audio.ports`       — synthèse vocale (phase 2, adaptateur eSpeak NG)
-  * `pdz2.engines.research.ports`   — recherche documentaire (phase 1)
-  * `pdz2.engines.direction.ports`  — raisonneur (phase 1)
+Sans clé, `registry.active_providers()` ne rend que les moteurs locaux — le
+rendu procédural et la voix hors-ligne — et l'écrit dans ses notes. La chaîne
+produit alors un épisode complet, sans réseau, avec ses dégradations
+enregistrées. Avec les clés, les adaptateurs distants passent devant, et le
+repli local reste derrière eux : il n'est jamais retiré de la liste.
+
+Aucun de ces adaptateurs n'a été appelé dans l'environnement où il a été
+écrit — leurs hôtes y sont injoignables. Chacun le déclare en tête de fichier.
+Leur première exécution réelle a lieu en intégration continue, et leur sonde
+dit la vérité dès le premier appel : `pdz2 providers`.
+
+Ports :
+  * `pdz2.providers.video`   — génération vidéo
+  * `pdz2.providers.image`   — génération d'images
+  * `pdz2.audio.ports`       — synthèse vocale (adaptateur local eSpeak NG)
+  * `pdz2.audio.library`     — bibliothèque sonore (aucun adaptateur)
+  * `pdz2.engines.research.ports`   — recherche documentaire
+  * `pdz2.engines.direction.ports`  — raisonneur
 """
 
+from pdz2.providers.image import (
+    NO_IMAGE_PROVIDERS,
+    ImageProvider,
+    ImageProviderUnavailable,
+)
+from pdz2.providers.registry import ActiveProviders, active_providers
 from pdz2.providers.video import (
     NO_VIDEO_PROVIDERS,
     ProviderUnavailable,
@@ -32,4 +49,9 @@ __all__ = [
     "VideoResult",
     "ProviderUnavailable",
     "NO_VIDEO_PROVIDERS",
+    "ImageProvider",
+    "ImageProviderUnavailable",
+    "NO_IMAGE_PROVIDERS",
+    "ActiveProviders",
+    "active_providers",
 ]

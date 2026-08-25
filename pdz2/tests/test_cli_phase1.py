@@ -203,8 +203,17 @@ class TestCreateRunsTheChain:
 
 
 class TestPhasesReportsReality:
-    def test_phase_1_is_marked_done_with_its_limit(self, capsys):
+    def test_phase_1_is_marked_done_with_its_limit(self, capsys, monkeypatch):
+        """Sans clé, `phases` doit dire qu'aucun raisonneur n'est branché.
+
+        L'environnement est vidé explicitement : ce test décrit un dépôt nu,
+        pas la machine qui l'exécute — en intégration continue les clés sont
+        là, et la sortie doit alors dire l'inverse (voir le test jumeau)."""
+        from pdz2.providers.registry import CREDENTIAL_ENV
+
+        for name in CREDENTIAL_ENV.values():
+            monkeypatch.delenv(name, raising=False)
         assert main(["phases"]) == 0
         out = capsys.readouterr().out
         assert "[x] Phase 1 — research" in out
-        assert "aucun raisonneur branché" in out
+        assert "raisonneur : aucun" in out

@@ -28,6 +28,12 @@ analyse = [
     "soundfile>=0.12",
     "numpy>=1.26",
 ]
+# Adaptateurs de fournisseurs distants — voir pdz2/providers/registry.py.
+# Hors de ce groupe, PDZ 2 tourne entièrement en local : rendu procédural,
+# voix hors-ligne, brief rédigé à la main.
+providers = [
+    "anthropic>=1.0",           # raisonneur : SDK officiel, pas d'HTTP à la main
+]
 dev = [
     "pytest>=8.2",
     "pytest-asyncio>=0.23",

@@ -125,12 +125,37 @@ class TestCli:
             assert f"[x] Phase {number} —" in out
         assert "[ ]" not in out
 
-    def test_phases_still_declares_what_is_missing(self, capsys) -> None:
-        """Les douze phases faites ne veulent pas dire que tout est branché."""
+    def test_phases_still_declares_what_is_missing(self, capsys, monkeypatch) -> None:
+        """Les phases faites ne veulent pas dire que tout est branché."""
+        from pdz2.providers.registry import CREDENTIAL_ENV
+
+        for name in CREDENTIAL_ENV.values():
+            monkeypatch.delenv(name, raising=False)
         assert main(["phases"]) == 0
         out = capsys.readouterr().out
-        assert "aucun adaptateur vidéo IA n'est joignable" in out
-        assert "aucun raisonneur n'est branché" in out
+        assert "vidéo : aucun fournisseur génératif" in out
+        assert "raisonneur : aucun" in out
+        assert "sons : aucune bibliothèque implémentée" in out
+
+    def test_phases_says_the_opposite_once_the_keys_are_there(
+        self, capsys, monkeypatch
+    ) -> None:
+        """La même commande doit changer d'avis quand l'environnement change.
+
+        Sans ce test jumeau, « rien n'est branché » pourrait rester une
+        constante recopiée : la commande dirait toujours la même chose, vraie
+        par hasard dans un dépôt nu et fausse partout ailleurs.
+        """
+        from pdz2.providers.registry import CREDENTIAL_ENV
+
+        for name in CREDENTIAL_ENV.values():
+            monkeypatch.setenv(name, "clé-de-test")
+        assert main(["phases"]) == 0
+        out = capsys.readouterr().out
+        assert "vidéo : un fournisseur génératif" in out
+        assert "raisonneur : branché" in out
+        # Ce qui n'a pas d'adaptateur ne change jamais d'avis, clé ou pas.
+        assert "sons : aucune bibliothèque implémentée" in out
 
     def test_capabilities_probes_the_real_environment(self, capsys) -> None:
         assert main(["capabilities"]) == 0

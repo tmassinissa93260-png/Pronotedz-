@@ -36,7 +36,8 @@ from pdz2.contracts.capacity import (
     CapacityValue,
     Provenance,
 )
-from pdz2.providers.video import NO_VIDEO_PROVIDERS
+from pdz2.providers.registry import active_providers
+from pdz2.providers.video import VideoProvider
 from pdz2.renderers.deterministic import SUPPORTED_STRATEGIES
 from pdz2.renderers.ffmpeg import encode_raw_frames, ffmpeg_capability, probe_video
 
@@ -79,6 +80,14 @@ class CapabilityProbe:
     Sans cela, la matrice sait qu'un outil existe et ce qu'il coûte ; elle ne
     sait pas encore à quelle vitesse il rend. Deux niveaux de connaissance,
     tous deux honnêtes, jamais confondus.
+    """
+
+    video_providers: tuple[VideoProvider, ...] | None = None
+    """Adaptateurs vidéo à sonder. `None` : ceux que l'environnement active.
+
+    Ce champ existait en dur, à vide. La matrice affirmait donc « aucun
+    adaptateur » quelle que soit la réalité — une constante déguisée en
+    mesure. Elle demande maintenant à l'inventaire, qui lit l'environnement.
     """
 
     def run(self) -> ProbeOutcome:
@@ -281,18 +290,23 @@ class CapabilityProbe:
 
     # ------------------------------------------------------- fournisseurs vidéo
 
-    @staticmethod
     def _declared_video_providers(
-        capabilities: list[ProviderCapability], notes: list[str]
+        self, capabilities: list[ProviderCapability], notes: list[str]
     ) -> list[CapabilityEntry]:
-        """Sonde les adaptateurs vidéo réellement déclarés — aujourd'hui aucun.
+        """Sonde les adaptateurs vidéo réellement actifs — souvent aucun.
 
-        Le chemin de code existe et sera emprunté dès qu'un adaptateur sera
-        branché. Inventer une entrée pour un fournisseur absent reviendrait à
-        recopier une brochure, ce que cette matrice existe pour empêcher.
+        Un adaptateur présent dans le dépôt mais sans identifiant n'est pas
+        actif : il n'apparaît pas ici. Inventer une entrée pour un fournisseur
+        absent reviendrait à recopier une brochure, ce que cette matrice
+        existe pour empêcher.
         """
+        declares = (
+            active_providers().video
+            if self.video_providers is None
+            else self.video_providers
+        )
         entries: list[CapabilityEntry] = []
-        for provider in NO_VIDEO_PROVIDERS:
+        for provider in declares:
             declared = provider.get_capabilities()
             capabilities.append(declared.capability)
             entries.append(

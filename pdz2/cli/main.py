@@ -17,6 +17,7 @@ import pdz2.contracts  # noqa: F401  (enregistre les contrats dans le registre)
 from pdz2 import __version__
 from pdz2.contracts.pipeline import Stage, StageStatus
 from pdz2.contracts.versioning import registry
+from pdz2.providers import active_providers
 from pdz2.schemas import SCHEMA_DIR, check_up_to_date, export_all, schema_for
 from pdz2.state.stages import STAGE_ORDER, definition
 from pdz2.storage import EpisodeStore
@@ -24,7 +25,7 @@ from pdz2.storage import EpisodeStore
 IMPLEMENTED_PHASES = (
     "Phase 0 — contrats, versionnage, machine à états",
     "Phase 1 — research + fact graph + director state "
-    "(corpus local ; aucun raisonneur branché, le brief est rédigé)",
+    "(corpus local ; raisonneur distant branché, sinon le brief est rédigé)",
     "Phase 2 — script + TTS réel + timing "
     "(eSpeak NG hors-ligne ; durées mesurées sur l'audio, pas estimées)",
     "Phase 3 — shot graph + visual bible "
@@ -34,7 +35,7 @@ IMPLEMENTED_PHASES = (
     "Phase 5 — image engine "
     "(moteur schématique déterministe, calqué ; aucun fournisseur joignable)",
     "Phase 6 — motion program + port fournisseur vidéo + routeur de stratégie "
-    "(aucun adaptateur vidéo implémenté : chaque dégradation est enregistrée)",
+    "(adaptateur vidéo branché sur clé ; sans clé, chaque dégradation est enregistrée)",
     "Phase 7 — 2.5D + procédural "
     "(vraies vidéos H.264 par ffmpeg, sans aucun fournisseur)",
     "Phase 8 — observateur déterministe "
@@ -54,6 +55,9 @@ IMPLEMENTED_PHASES = (
     "Phases 15-19 — fermeture des contrats sans consommateur "
     "(incrustations rendues et mesurées, conception sonore déclarée, "
     "répétition de mécanisme refusée avant dépense)",
+    "Phase 21 — adaptateurs de fournisseurs "
+    "(images, animation, voix et raisonneur ; actifs seulement si leur clé "
+    "est présente, le repli local reste garanti — `pdz2 providers`)",
 )
 PENDING_PHASES: tuple[str, ...] = ()
 
@@ -173,10 +177,57 @@ def _cmd_phases(args: argparse.Namespace) -> int:
     else:
         print(
             "\nLes douze phases du cahier des charges sont implémentées, plus "
-            "deux que l'audit du chemin critique a rendues nécessaires. Ce qui "
-            "reste manquant est déclaré, pas simulé : aucun adaptateur vidéo IA "
-            "n'est joignable dans cet environnement, et aucun raisonneur n'est "
-            "branché — voir `pdz2 capabilities`."
+            "celles que l'audit du chemin critique a rendues nécessaires. Ce "
+            "qui manque reste déclaré, jamais simulé — l'état réel des "
+            "adaptateurs dépend des clés présentes :"
+        )
+        print()
+        for note in active_providers().notes:
+            print(f"  {note}")
+        print("\nDétail mesuré : `pdz2 providers` puis `pdz2 capabilities`.")
+    return 0
+
+
+def _cmd_providers(args: argparse.Namespace) -> int:
+    """Qui est branché, et — si on le demande — qui répond vraiment.
+
+    Sans `--probe`, la commande ne touche pas au réseau : elle dit seulement
+    quels adaptateurs sont actifs et pourquoi. Avec `--probe`, chaque
+    adaptateur est réellement interrogé, et son verdict est daté.
+    """
+    actifs = active_providers()
+    print(actifs.summary())
+
+    if not args.probe:
+        print(
+            "\nAucune sonde lancée : ces lignes ne disent que la présence des "
+            "clés. `--probe` interroge réellement chaque adaptateur."
+        )
+        return 0
+
+    familles = (
+        ("vidéo", actifs.video),
+        ("images", actifs.image),
+        ("voix", actifs.speech),
+        ("raisonneur", actifs.reasoners),
+    )
+    print()
+    injoignables = 0
+    for famille, membres in familles:
+        for membre in membres:
+            capacite = membre.get_capabilities()
+            declared = getattr(capacite, "capability", capacite)
+            marque = "OK " if declared.usable else "NON"
+            if not declared.usable:
+                injoignables += 1
+            print(
+                f"  [{marque}] {famille:<10} {declared.provider:<18} "
+                f"{declared.detail}"
+            )
+    if injoignables:
+        print(
+            f"\n{injoignables} adaptateur(s) actif(s) mais injoignable(s) : la "
+            "production les écartera et enregistrera la dégradation."
         )
     return 0
 
@@ -253,6 +304,16 @@ def build_parser() -> argparse.ArgumentParser:
     phase12.register(subparsers)
 
     subparsers.add_parser("phases", help="état réel du chantier").set_defaults(func=_cmd_phases)
+
+    fournisseurs = subparsers.add_parser(
+        "providers", help="adaptateurs branchés, et leur état réel"
+    )
+    fournisseurs.add_argument(
+        "--probe",
+        action="store_true",
+        help="interroger réellement chaque adaptateur (réseau)",
+    )
+    fournisseurs.set_defaults(func=_cmd_providers)
 
     from pdz2.cli import orchestrate
 
