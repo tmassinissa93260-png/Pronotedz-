@@ -29,6 +29,7 @@ from pdz2.editing import (
     VideoAssembler,
     to_srt,
 )
+from pdz2.engines.sound import SoundCompiler
 from pdz2.qa import FinalQa
 from pdz2.state import EpisodeStateMachine, TransitionRefused
 from pdz2.storage import EpisodeStore
@@ -85,7 +86,21 @@ def cmd_edit(args: argparse.Namespace) -> int:
         return 1
 
     store.save(outcome.timeline)
-    machine.complete(Stage.EDIT, artifact_ids=[outcome.timeline.id])
+
+    # Les repères sonores décidés par la grammaire de plans aboutissent ici :
+    # placés sur la timeline de l'épisode, et déclarés muets faute de source.
+    sound = SoundCompiler().compile(
+        episode_id=store.root.name,
+        shot_graph=store.load_as(ShotGraph),
+        temporal_plan=store.load_as(TemporalPlan),
+    )
+    store.save(sound.design)
+    for note in sound.notes:
+        print(note)
+
+    machine.complete(
+        Stage.EDIT, artifact_ids=[outcome.timeline.id, sound.design.id]
+    )
     store.save_snapshot(machine.snapshot)
     for note in outcome.notes:
         print(note)

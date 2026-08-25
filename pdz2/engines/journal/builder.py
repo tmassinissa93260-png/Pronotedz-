@@ -54,6 +54,7 @@ class JournalBuilder:
         entries += self._spend(snapshot)
         entries += self._limitations(store)
         entries += self._duree_commandee(store, request)
+        entries += self._sons_muets(store)
         for capability in capabilities or []:
             entries.append(
                 JournalEntry(
@@ -250,6 +251,43 @@ class JournalBuilder:
             )
             for transition in snapshot.transitions
             if transition.cost_usd > 0
+        ]
+
+    @staticmethod
+    def _sons_muets(store: EpisodeStore) -> list[JournalEntry]:
+        """Les repères sonores décidés mais sans source réelle.
+
+        Ils sont voulus : la grammaire de plans les a placés. Ce qui manque
+        est le son lui-même. Le taire laisserait croire l'épisode conçu sans
+        habillage, alors qu'il en a un — non exécuté.
+        """
+        if not store.exists("audio_design"):
+            return []
+        design = store.load("audio_design")
+        if not design.unresolved:
+            return []
+        par_type: dict[str, int] = {}
+        for cue in design.unresolved:
+            par_type[cue.kind.value] = par_type.get(cue.kind.value, 0) + 1
+        return [
+            JournalEntry(
+                kind=JournalEntryKind.LIMITATION,
+                at=design.created_at,
+                stage="edit",
+                subject_id=design.id,
+                summary=(
+                    f"{len(design.unresolved)} repère(s) sonore(s) décidés mais "
+                    "sans source"
+                ),
+                detail=(
+                    "répartition : "
+                    + ", ".join(f"{k}×{n}" for k, n in sorted(par_type.items()))
+                    + ". "
+                    + (design.unresolved[0].detail or "")
+                    + " L'habillage sonore est conçu et placé ; il ne sera pas "
+                    "monté tant qu'aucune bibliothèque ne sera branchée."
+                ),
+            )
         ]
 
     @staticmethod

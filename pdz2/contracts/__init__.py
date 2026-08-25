@@ -147,6 +147,7 @@ from pdz2.contracts.shots import (
     ShotGraph,
     ShotSpec,
 )
+from pdz2.contracts.sound import AudioCue, AudioDesign, CueState
 from pdz2.contracts.temporal import (
     RhythmFinding,
     RhythmFindingKind,
@@ -176,6 +177,9 @@ from pdz2.contracts.visual import (
 )
 
 __all__ = [
+    "AudioCue",
+    "AudioDesign",
+    "CueState",
     # socle
     "Contract",
     "ContractStatus",

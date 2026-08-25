@@ -1,0 +1,181 @@
+{
+  "$defs": {
+    "AudioCue": {
+      "additionalProperties": false,
+      "description": "Un évènement sonore placé sur la timeline de l'épisode.",
+      "properties": {
+        "detail": {
+          "default": "",
+          "title": "Detail",
+          "type": "string"
+        },
+        "duration_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "gain_db": {
+          "default": 0.0,
+          "maximum": 12.0,
+          "minimum": -60.0,
+          "title": "Gain Db",
+          "type": "number"
+        },
+        "hint": {
+          "default": "",
+          "title": "Hint",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/AudioEventKind"
+        },
+        "shot_id": {
+          "minLength": 1,
+          "title": "Shot Id",
+          "type": "string"
+        },
+        "source_path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Path"
+        },
+        "state": {
+          "$ref": "#/$defs/CueState"
+        },
+        "timeline_at_s": {
+          "minimum": 0.0,
+          "title": "Timeline At S",
+          "type": "number"
+        }
+      },
+      "required": [
+        "shot_id",
+        "kind",
+        "timeline_at_s",
+        "duration_s",
+        "state"
+      ],
+      "title": "AudioCue",
+      "type": "object"
+    },
+    "AudioEventKind": {
+      "enum": [
+        "sfx",
+        "impact",
+        "whoosh",
+        "ambience",
+        "music_cue",
+        "silence"
+      ],
+      "title": "AudioEventKind",
+      "type": "string"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "CueState": {
+      "description": "Ce qu'on sait faire de ce repère sonore.",
+      "enum": [
+        "resolved",
+        "unresolved",
+        "refused"
+      ],
+      "title": "CueState",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:audio_design/1.0.0",
+  "additionalProperties": false,
+  "description": "Tous les repères sonores de l'épisode, résolus ou déclarés muets.",
+  "properties": {
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "cues": {
+      "items": {
+        "$ref": "#/$defs/AudioCue"
+      },
+      "title": "Cues",
+      "type": "array"
+    },
+    "episode_id": {
+      "minLength": 1,
+      "title": "Episode Id",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "library": {
+      "default": "",
+      "maxLength": 200,
+      "title": "Library",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "shot_graph_id": {
+      "minLength": 1,
+      "title": "Shot Graph Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "total_duration_s": {
+      "exclusiveMinimum": 0.0,
+      "title": "Total Duration S",
+      "type": "number"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "episode_id",
+    "shot_graph_id",
+    "total_duration_s"
+  ],
+  "title": "AudioDesign",
+  "type": "object"
+}

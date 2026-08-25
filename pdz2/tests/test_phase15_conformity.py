@@ -108,6 +108,7 @@ PRODUITS_TERMINAUX = {
     "render_spec_executable", "edit_timeline", "episode_snapshot",
     "capability_matrix", "repair_plan", "execution_plan",
     "duration_policy",   # relu par la commande voice, puis par la QA
+    "audio_design",      # relu par le journal ; sources absentes, déclarées
 }
 
 

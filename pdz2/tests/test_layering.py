@@ -250,6 +250,7 @@ class TestPhaseHonesty:
             "routing",
             "script",
             "shots",
+            "sound",
             "temporal",
             "validation",
             "visual",
