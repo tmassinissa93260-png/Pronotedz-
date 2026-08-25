@@ -45,13 +45,10 @@ from pdz2.contracts.enums import Pacing, Tone
 from pdz2.engines.direction.ports import Reasoner, ReasonerUnavailable
 from pdz2.providers.elevenlabs import ELEVENLABS_KEY_ENV, ElevenLabsSynthesiser
 from pdz2.providers.fal import FAL_KEY_ENV, FalImageProvider, FalVideoProvider
+from pdz2.providers.groq import GROQ_KEY_ENV, GroqReasoner
 from pdz2.providers.image import ImageProvider
-from pdz2.providers.reasoner import (
-    _DECIDED_BY_THE_REASONER,
-    ANTHROPIC_KEY_ENV,
-    AnthropicReasoner,
-    decision_schema,
-)
+from pdz2.providers.reasoner import ANTHROPIC_KEY_ENV, AnthropicReasoner
+from pdz2.providers.reasoning import DECIDED_BY_THE_REASONER, decision_schema
 from pdz2.providers.video import VideoProvider
 
 # ------------------------------------------------------- les ports sont tenus
@@ -74,6 +71,7 @@ def test_every_adapter_satisfies_the_port_it_claims() -> None:
     assert isinstance(ElevenLabsSynthesiser(), SpeechSynthesiser)
     assert isinstance(EspeakSynthesiser(), SpeechSynthesiser)
     assert isinstance(AnthropicReasoner(), Reasoner)
+    assert isinstance(GroqReasoner(), Reasoner)
 
 
 @pytest.mark.parametrize(
@@ -83,6 +81,7 @@ def test_every_adapter_satisfies_the_port_it_claims() -> None:
         (FalVideoProvider, FAL_KEY_ENV),
         (ElevenLabsSynthesiser, ELEVENLABS_KEY_ENV),
         (AnthropicReasoner, ANTHROPIC_KEY_ENV),
+        (GroqReasoner, GROQ_KEY_ENV),
     ],
 )
 def test_a_probe_without_credentials_says_unreachable(
@@ -145,7 +144,7 @@ def _brief_complet() -> DirectorBrief:
 
 def _decision_de(brief: DirectorBrief) -> dict:
     charge = brief.to_payload()
-    return {champ: charge[champ] for champ in _DECIDED_BY_THE_REASONER}
+    return {champ: charge[champ] for champ in DECIDED_BY_THE_REASONER}
 
 
 def test_a_real_brief_validates_against_the_schema_sent_to_the_model() -> None:

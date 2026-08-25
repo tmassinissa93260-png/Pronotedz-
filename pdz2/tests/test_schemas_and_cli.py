@@ -156,7 +156,7 @@ class TestCli:
         assert main(["phases"]) == 0
         out = capsys.readouterr().out
         assert "vidéo : un fournisseur génératif" in out
-        assert "raisonneur : branché" in out
+        assert "raisonneur : anthropic" in out
         # Ce qui n'a pas d'adaptateur ne change jamais d'avis, clé ou pas.
         assert "sons : aucune bibliothèque implémentée" in out
 

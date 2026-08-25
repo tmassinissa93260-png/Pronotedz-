@@ -259,7 +259,7 @@ class TestPhaseHonesty:
     PORTS = {"__init__.py", "image.py", "video.py"}
     """Fichiers de `providers/` qui ne définissent qu'un port, sans adaptateur."""
 
-    ADAPTERS = {"elevenlabs.py", "fal.py", "reasoner.py"}
+    ADAPTERS = {"elevenlabs.py", "fal.py", "reasoner.py", "groq.py"}
     """Adaptateurs distants. Chacun nomme sa marque — c'est leur seul droit.
 
     Ce test a longtemps affirmé l'inverse : « aucun adaptateur n'existe ». Il
@@ -268,8 +268,9 @@ class TestPhaseHonesty:
     condition*, jamais supposé joignable.
     """
 
-    PLUMBING = {"prompting.py", "registry.py"}
-    """Ni port ni adaptateur : la compilation contrat→prompt et l'inventaire."""
+    PLUMBING = {"prompting.py", "registry.py", "reasoning.py"}
+    """Ni port ni adaptateur : la compilation contrat→prompt, l'inventaire,
+    et la surface de décision commune aux raisonneurs."""
 
     def test_the_providers_package_holds_exactly_what_is_announced(self) -> None:
         present = {path.name for path in _python_files("providers")}
@@ -292,9 +293,40 @@ class TestPhaseHonesty:
 
         complet = active_providers({name: "x" for name in CREDENTIAL_ENV.values()})
         assert len(complet.video) == 1
-        assert len(complet.reasoners) == 1
+        assert complet.reasoners, "toutes les clés posées, aucun raisonneur retenu"
         assert [p.name for p in complet.image][-1] == "procedural-image"
         assert [p.name for p in complet.speech][-1] == "espeak-ng"
+
+    def test_naming_a_reasoner_settles_it_and_a_missing_one_is_never_swapped(
+        self,
+    ) -> None:
+        """Deux raisonneurs branchés : c'est un choix, pas un ordre subi.
+
+        Et si le raisonneur nommé n'a pas sa clé, aucun autre ne prend sa
+        place : le brief serait signé d'un nom qu'on n'a pas demandé, et
+        personne ne s'en apercevrait avant de relire le contrat.
+        """
+        from pdz2.providers.registry import (
+            ANTHROPIC_KEY_ENV,
+            GROQ_KEY_ENV,
+            REASONER_CHOICE_ENV,
+            active_providers,
+        )
+
+        deux = {ANTHROPIC_KEY_ENV: "x", GROQ_KEY_ENV: "y"}
+        choisi = active_providers({**deux, REASONER_CHOICE_ENV: "groq"})
+        assert choisi.reasoner.name == "groq"
+        assert len(choisi.reasoners) == 1, "un choix écarte les autres"
+
+        orphelin = active_providers(
+            {ANTHROPIC_KEY_ENV: "x", REASONER_CHOICE_ENV: "groq"}
+        )
+        assert orphelin.reasoner is None
+        assert "aucun repli" in orphelin.summary()
+
+        inconnu = active_providers({**deux, REASONER_CHOICE_ENV: "mistral"})
+        assert inconnu.reasoner is None
+        assert "inconnu" in inconnu.summary()
 
     def test_the_local_fallback_is_never_dropped_from_a_family(self) -> None:
         """Le repli local ferme toujours la liste, quoi qu'il y ait devant."""
@@ -310,10 +342,10 @@ class TestPhaseHonesty:
     ) -> None:
         """La surface de décision suit le contrat, elle n'est pas recopiée."""
         from pdz2.contracts.direction import DirectorBrief
-        from pdz2.providers.reasoner import _DECIDED_BY_THE_REASONER, decision_schema
+        from pdz2.providers.reasoning import DECIDED_BY_THE_REASONER, decision_schema
 
         connus = set(DirectorBrief.model_fields)
-        assert set(_DECIDED_BY_THE_REASONER) <= connus
+        assert set(DECIDED_BY_THE_REASONER) <= connus
 
         # Ce que le modèle ne doit jamais choisir : l'identité du dossier, la
         # lignée du contrat, et la signature de son propre travail.
@@ -321,11 +353,11 @@ class TestPhaseHonesty:
             "topic_request_id", "research_state_id", "author",
             "id", "parent_id", "contract_type", "version", "created_at", "status",
         }
-        assert not interdits & set(_DECIDED_BY_THE_REASONER)
+        assert not interdits & set(DECIDED_BY_THE_REASONER)
 
         schema = decision_schema()
         assert schema["additionalProperties"] is False
-        assert set(schema["required"]) == set(_DECIDED_BY_THE_REASONER)
+        assert set(schema["required"]) == set(DECIDED_BY_THE_REASONER)
 
     def test_the_renderers_only_ship_deterministic_strategies(self) -> None:
         """Aucun renderer génératif : ce sont des ports, pas des moteurs."""

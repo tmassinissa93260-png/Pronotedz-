@@ -33,12 +33,46 @@ mesure appartient à la matrice de capacités, qui la date.
 | images | `fal-flux`, un appel par calque | `procedural-image`, toujours en fin de liste |
 | animation | `fal-kling`, image vers vidéo | stratégies déterministes locales |
 | voix | `elevenlabs` | `espeak-ng`, toujours en fin de liste |
-| raisonneur | `anthropic` | aucun — le brief se rédige à la main |
+| raisonneur | `anthropic`, `groq` | aucun — le brief se rédige à la main |
 | sons | aucun | aucun : les repères restent **non résolus**, et le disent |
 
 Le repli local n'est jamais retiré d'une famille. Ce n'est pas un plan B
 facultatif, c'est la garantie de livraison — et un test d'architecture le
 vérifie pour chaque combinaison de clés.
+
+## DEUX RAISONNEURS, UNE SEULE SURFACE DE DÉCISION
+
+Anthropic et Groq : deux services, deux formes d'API, deux factures — dont
+une nulle, Groq servant sur son palier gratuit. Ce qu'on leur demande est
+strictement identique, et `providers/reasoning.py` le tient : surface de
+décision, consigne, scellement, boucle de reprise. Un adaptateur ne fournit
+qu'une chose, `demander(échanges) -> dict`.
+
+Sans cette séparation, la surface de décision existerait en deux exemplaires
+qui divergeraient au premier changement de contrat — le motif exact que ce
+dépôt traque.
+
+Quand les deux clés sont là, l'ordre tranche, mais un ordre n'est pas une
+décision : `PDZ2_REASONER` nomme celui qu'on veut. Et si le raisonneur nommé
+n'a pas sa clé, **aucun autre ne prend sa place** : le brief serait signé
+d'un nom qu'on n'a pas demandé, et personne ne s'en apercevrait avant de
+relire le contrat.
+
+### Ce que Groq impose, et qu'on a appris ailleurs
+
+Trois choses ne sont pas devinées — elles viennent de mesures faites en
+production par l'ancien système, que cet adaptateur consigne :
+
+* **La contrainte de forme passe par un appel d'outil forcé**, pas par
+  `response_format` : `tools` + `tool_choice`, à la façon OpenAI.
+* **Groq rend parfois `"true"` en chaîne** là où le schéma attend un
+  booléen — et `VisualProofDraft.acknowledged_dispute` en est un. Le schéma
+  envoyé accepte les deux types, la réponse est durcie au retour. On accepte
+  un dialecte à la porte, pas dans la maison : le contrat reste strict.
+* **`llama-3.3-70b-versatile` est mort** — coupé le 17/06/2026, constaté en
+  production le 18/08/2026 par un 404 avant le premier appel. Un identifiant
+  périmé n'est rattrapable par aucun repli. La sonde vérifie donc que le
+  modèle est encore au catalogue, et le dit s'il n'y est plus.
 
 ## LE RAISONNEUR NE REÇOIT PAS UN FORMULAIRE RECOPIÉ
 
@@ -110,5 +144,6 @@ et aucun adaptateur de recherche distante n'a été écrit pour la masquer.
     pdz2 brief-draft          faire rédiger le brief par le raisonneur
 
 Les variables lues : `FAL_KEY`, `ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`,
-`ANTHROPIC_API_KEY`. Aucune n'a de valeur par défaut, et aucune valeur n'est
-jamais écrite dans un contrat, un journal ou une sortie de commande.
+`ANTHROPIC_API_KEY`, `GROQ_API_KEY`, `GROQ_MODEL`, `PDZ2_REASONER`. Aucune n'a
+de valeur par défaut, et aucune valeur n'est jamais écrite dans un contrat, un
+journal ou une sortie de commande.
