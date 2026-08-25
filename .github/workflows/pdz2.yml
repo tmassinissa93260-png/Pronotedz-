@@ -39,6 +39,18 @@ on:
         required: true
         default: true
         type: boolean
+      raisonneur:
+        description: >-
+          Qui décide le brief. « groq » est gratuit ; « anthropic » demande
+          un crédit. Laisser vide prend le premier dont la clé est là.
+        required: false
+        default: groq
+        type: choice
+        options:
+          - groq
+          - anthropic
+          - ""
+
 
 permissions:
   contents: read
@@ -75,6 +87,9 @@ jobs:
           ELEVENLABS_API_KEY: ${{ inputs.distants && secrets.ELEVENLABS_API_KEY || '' }}
           ELEVENLABS_VOICE_ID: ${{ vars.ELEVENLABS_VOICE_ID }}
           ANTHROPIC_API_KEY: ${{ inputs.distants && secrets.ANTHROPIC_API_KEY || '' }}
+          GROQ_API_KEY: ${{ inputs.distants && secrets.GROQ_API_KEY || '' }}
+          GROQ_MODEL: ${{ vars.GROQ_MODEL }}
+          PDZ2_REASONER: ${{ inputs.raisonneur }}
 
       - name: Le corpus existe et n'est pas vide
         run: |
@@ -116,6 +131,9 @@ jobs:
           ELEVENLABS_API_KEY: ${{ inputs.distants && secrets.ELEVENLABS_API_KEY || '' }}
           ELEVENLABS_VOICE_ID: ${{ vars.ELEVENLABS_VOICE_ID }}
           ANTHROPIC_API_KEY: ${{ inputs.distants && secrets.ANTHROPIC_API_KEY || '' }}
+          GROQ_API_KEY: ${{ inputs.distants && secrets.GROQ_API_KEY || '' }}
+          GROQ_MODEL: ${{ vars.GROQ_MODEL }}
+          PDZ2_REASONER: ${{ inputs.raisonneur }}
 
       - name: Journal de production
         if: always()
