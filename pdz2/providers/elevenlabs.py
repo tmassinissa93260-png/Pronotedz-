@@ -19,7 +19,7 @@ from __future__ import annotations
 import os
 import time
 import wave
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -34,11 +34,20 @@ __all__ = ["ElevenLabsSynthesiser", "ELEVENLABS_KEY_ENV", "ELEVENLABS_VOICE_ENV"
 
 ELEVENLABS_KEY_ENV = "ELEVENLABS_API_KEY"
 ELEVENLABS_VOICE_ENV = "ELEVENLABS_VOICE_ID"
-FALLBACK_VOICE_ID = "21m00Tcm4TlvDq8ikWAM"
-"""Voix publique du catalogue par défaut du service, employée faute de choix.
 
-Elle est nommée ici et nulle part ailleurs : c'est une donnée de fournisseur,
-au même titre que le nom du modèle."""
+_CATEGORIES_PREFEREES = ("cloned", "generated", "premade")
+"""Ordre de préférence des voix, du plus sûr au moins sûr.
+
+Il y avait ici un identifiant de voix **en dur**, pris dans le catalogue
+public. Le compte de l'utilisateur étant au palier gratuit, le service l'a
+refusé :
+
+    402 — Free users cannot use library voices via the API.
+
+Une voix de bibliothèque n'appartient pas au compte : la choisir pour lui
+était une supposition, et elle était fausse. On lit désormais son catalogue,
+et on préfère ce qui est à lui — une voix clonée ou générée par lui — avant
+les voix communes."""
 
 BASE_URL = "https://api.elevenlabs.io/v1"
 _PROBE_TIMEOUT_S = 15.0
@@ -53,10 +62,33 @@ class ElevenLabsSynthesiser:
 
     name: str = "elevenlabs"
     model: str = "eleven_multilingual_v2"
+    _catalogue: list[dict] = field(default_factory=list, repr=False)
+    """Voix du compte, telles que la sonde les a lues. Jamais devinées."""
 
     @property
     def default_voice_id(self) -> str:
-        return os.environ.get(ELEVENLABS_VOICE_ENV, "").strip() or FALLBACK_VOICE_ID
+        """La voix à employer : celle qu'on impose, sinon celle du compte.
+
+        Aucune valeur de repli codée en dur : si le compte n'expose aucune
+        voix, c'est une indisponibilité qu'il faut déclarer, pas un
+        identifiant à inventer. Le moteur local prendra le relais.
+        """
+        impose = os.environ.get(ELEVENLABS_VOICE_ENV, "").strip()
+        if impose:
+            return impose
+        if not self._catalogue:
+            self.get_capabilities()
+        for categorie in _CATEGORIES_PREFEREES:
+            for voix in self._catalogue:
+                if voix.get("category") == categorie and voix.get("voice_id"):
+                    return voix["voice_id"]
+        for voix in self._catalogue:
+            if voix.get("voice_id"):
+                return voix["voice_id"]
+        raise SynthesiserUnavailable(
+            f"{self.name} : le compte n'expose aucune voix utilisable — "
+            f"en nommer une avec {ELEVENLABS_VOICE_ENV}"
+        )
 
     def _cle(self) -> str | None:
         return os.environ.get(ELEVENLABS_KEY_ENV, "").strip() or None
@@ -79,8 +111,13 @@ class ElevenLabsSynthesiser:
             return self._capacite(
                 False, f"clé refusée ou service en erreur ({reponse.status_code})"
             )
-        voix = len((reponse.json() or {}).get("voices", []))
-        return self._capacite(True, f"{voix} voix disponibles sur {BASE_URL}")
+        self._catalogue = list((reponse.json() or {}).get("voices", []))
+        categories = sorted({v.get("category", "?") for v in self._catalogue})
+        return self._capacite(
+            True,
+            f"{len(self._catalogue)} voix sur le compte "
+            f"({', '.join(categories) or 'sans catégorie'})",
+        )
 
     def _capacite(self, joignable: bool, detail: str) -> ProviderCapability:
         return ProviderCapability(

@@ -542,3 +542,151 @@ def test_groq_translates_the_boolean_dialect_without_loosening_the_contract(
     decision = module.GroqReasoner()._decide([{"role": "user", "content": "x"}])
     aveux = [p["acknowledged_dispute"] for p in decision["visual_proofs"]]
     assert aveux == [True, False], f"dialecte non traduit : {aveux}"
+
+
+# ------------------------------------ le repli tient à la synthèse, pas à la sonde
+
+
+class _SondeVerteSyntheseMorte:
+    """Un moteur qui se déclare joignable puis refuse de synthétiser.
+
+    Ce n'est pas un cas de laboratoire : c'est exactement ce qu'a fait un
+    service distant le 25/08/2026. Sa sonde répondait « 21 voix disponibles »,
+    et la première synthèse rendait :
+
+        402 — Free users cannot use library voices via the API.
+
+    Sonde verte, production morte. Le registre promettait que le moteur local
+    n'est jamais retiré d'une famille ; la promesse ne valait rien tant qu'elle
+    n'était pas tenue au moment où elle sert.
+    """
+
+    name = "sonde-verte"
+    default_voice_id = "peu-importe"
+
+    def get_capabilities(self):
+        from datetime import UTC, datetime
+
+        from pdz2.contracts.capability import CapabilityState, ProviderCapability
+
+        return ProviderCapability(
+            provider=self.name,
+            state=CapabilityState.AVAILABLE,
+            measured_at=datetime.now(UTC),
+            measurement_method="double de test",
+            detail="se déclare joignable, et ment",
+        )
+
+    def synthesise(self, text, voice, out_path):
+        from pdz2.audio.errors import SynthesisFailed
+
+        raise SynthesisFailed("402 — palier gratuit : voix refusée")
+
+
+def test_a_provider_that_dies_at_synthesis_falls_back_to_the_local_engine(
+    tmp_path, monkeypatch, capsys
+) -> None:
+    """La production continue en local, et la dégradation est dite."""
+    from pdz2.audio.espeak import EspeakSynthesiser
+    from pdz2.cli import phase2
+    from pdz2.providers.registry import ActiveProviders
+
+    if not EspeakSynthesiser().get_capabilities().usable:
+        pytest.skip("eSpeak NG absent")
+
+    from pdz2.tests import pipeline
+
+    episode = pipeline.build_episode(tmp_path)
+    monkeypatch.setattr(
+        phase2,
+        "active_providers",
+        lambda: ActiveProviders(
+            video=(),
+            image=(),
+            speech=(_SondeVerteSyntheseMorte(), EspeakSynthesiser()),
+            reasoners=(),
+            sound_libraries=(),
+            notes=(),
+        ),
+    )
+
+    class _Args:
+        rate, voice, pitch, gap = 165, None, 50, 0
+
+    rendu = phase2._synthetiser_avec_repli(
+        script=episode.script,
+        request=episode.request,
+        workdir=tmp_path / "audio",
+        lines_dir=tmp_path / "lines",
+        args=_Args(),
+    )
+
+    assert rendu.moteur.name == "espeak-ng", "le repli local n'a pas pris le relais"
+    assert rendu.ecarts, "un repli silencieux est un journal faux"
+    assert "sonde-verte" in rendu.ecarts[0]
+    assert "402" in rendu.ecarts[0]
+    # VOICE FIRST tient malgré le repli : les durées sortent de l'audio produit.
+    assert all(ligne.duration_s > 0 for ligne in rendu.outcome.lines)
+
+
+def test_every_engine_dying_is_a_refusal_not_a_silent_empty_episode(
+    tmp_path, monkeypatch
+) -> None:
+    """Si personne ne parle, on refuse — on ne rend pas un épisode muet."""
+    from pdz2.audio.errors import SynthesiserUnavailable
+    from pdz2.cli import phase2
+    from pdz2.providers.registry import ActiveProviders
+    from pdz2.tests import pipeline
+
+    episode = pipeline.build_episode(tmp_path)
+    monkeypatch.setattr(
+        phase2,
+        "active_providers",
+        lambda: ActiveProviders(
+            video=(),
+            image=(),
+            speech=(_SondeVerteSyntheseMorte(), _SondeVerteSyntheseMorte()),
+            reasoners=(),
+            sound_libraries=(),
+            notes=(),
+        ),
+    )
+
+    class _Args:
+        rate, voice, pitch, gap = 165, None, 50, 0
+
+    with pytest.raises(SynthesiserUnavailable, match="aucun moteur de voix"):
+        phase2._synthetiser_avec_repli(
+            script=episode.script,
+            request=episode.request,
+            workdir=tmp_path / "audio",
+            lines_dir=tmp_path / "lines",
+            args=_Args(),
+        )
+
+
+def test_no_voice_identifier_is_invented_for_an_account(monkeypatch) -> None:
+    """Choisir une voix de bibliothèque pour un compte gratuit était une supposition.
+
+    Elle était fausse, et le service l'a dit : « Free users cannot use library
+    voices via the API. » On lit le catalogue du compte, et à défaut on
+    déclare l'indisponibilité — le moteur local prendra le relais.
+    """
+    from pdz2.audio.errors import SynthesiserUnavailable
+    from pdz2.providers.elevenlabs import ELEVENLABS_VOICE_ENV, ElevenLabsSynthesiser
+
+    monkeypatch.delenv(ELEVENLABS_VOICE_ENV, raising=False)
+    nu = ElevenLabsSynthesiser()
+    with pytest.raises(SynthesiserUnavailable, match="aucune voix utilisable"):
+        assert nu.default_voice_id
+
+    # Le catalogue du compte tranche, et ce qui lui appartient passe devant.
+    garni = ElevenLabsSynthesiser()
+    garni._catalogue = [
+        {"voice_id": "commune", "category": "premade"},
+        {"voice_id": "la-sienne", "category": "cloned"},
+    ]
+    assert garni.default_voice_id == "la-sienne"
+
+    monkeypatch.setenv(ELEVENLABS_VOICE_ENV, "imposée")
+    assert garni.default_voice_id == "imposée", "un choix explicite prime"

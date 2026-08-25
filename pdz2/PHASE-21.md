@@ -130,6 +130,33 @@ ce qu'on lui reproche ; ici il n'a rien produit d'exploitable à commenter. Une
 clé refusée ou un plafond dépassé, eux, ne sont jamais retentés : les rejouer
 ne les rendrait pas valides.
 
+## UNE SONDE VERTE N'EST PAS UNE GARANTIE
+
+Le repli local n'était pas tenu là où il sert. Le CLI choisissait le moteur de
+voix sur sa **sonde**, puis s'y accrochait :
+
+    moteur elevenlabs : retenu — 21 voix disponibles
+    calibration impossible : 402 — Free users cannot use library
+      voices via the API.
+    PRODUCTION INTERROMPUE à l'étape « voice ».
+
+Sonde verte, production morte. Le registre promettait que le moteur local
+n'est jamais retiré d'une famille ; la promesse ne valait rien tant qu'elle
+n'était pas tenue **au moment où elle sert**, c'est-à-dire quand le distant
+lâche en cours de route.
+
+Le repli se déclenche désormais sur la synthèse, pas seulement sur la sonde,
+et chaque écart est inscrit au journal comme dégradation — un repli silencieux
+donnerait un épisode correct et un journal faux. Si aucun moteur ne parle,
+c'est un refus : jamais un épisode muet.
+
+Une seconde supposition tombe avec celle-là. L'adaptateur portait un
+identifiant de voix **en dur**, pris dans le catalogue public. Une voix de
+bibliothèque n'appartient pas au compte, et le palier gratuit la refuse. On
+lit maintenant le catalogue du compte, en préférant ce qui est à lui — voix
+clonée ou générée — avant les voix communes ; et à défaut on déclare
+l'indisponibilité au lieu d'inventer un identifiant.
+
 ## LE RAISONNEUR NE REÇOIT PAS UN FORMULAIRE RECOPIÉ
 
 La surface de décision — ce qu'aucun calcul ne peut produire — est **dérivée

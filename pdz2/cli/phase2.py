@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 from pdz2.audio import (
@@ -122,47 +123,72 @@ def cmd_script(args: argparse.Namespace) -> int:
 # --------------------------------------------------------------------- voix
 
 
-def _premier_moteur_joignable():
-    """Le premier moteur de voix qui répond ; le dernier de la liste est local.
+@dataclass
+class _Voix:
+    """Ce qu'une tentative de synthèse réussie a produit, et à quel prix."""
 
-    Chaque moteur écarté est annoncé. Un repli silencieux vers la voix locale
-    donnerait un épisode correct et un journal faux — le contraire de ce que
-    cette chaîne promet.
+    moteur: object
+    voice: VoiceSpec
+    policy: object
+    outcome: object
+    ecarts: list[str]
 
-    La durée reste mesurée sur l'audio produit, quel que soit le moteur
-    retenu : `VoiceTimeline` demeure l'autorité unique, et aucun fournisseur
-    ne se voit demander combien de temps il a parlé.
+
+def _synthetiser_avec_repli(
+    *, script, request, workdir, lines_dir, args
+) -> _Voix:
+    """Essaie chaque moteur dans l'ordre ; le dernier de la liste est local.
+
+    Le repli ne se déclenche plus sur la seule *sonde*. C'était le défaut :
+    un moteur distant peut répondre à `GET /voices` — donc se déclarer
+    joignable — puis refuser la synthèse elle-même. Mesuré le 25/08/2026 :
+
+        402 — Free users cannot use library voices via the API.
+
+    Sonde verte, production morte. Le registre promet que le moteur local
+    n'est jamais retiré d'une famille ; cette promesse ne valait rien tant
+    qu'elle n'était pas tenue **au moment où elle sert**, c'est-à-dire quand
+    le distant lâche en cours de route.
+
+    Chaque écart est rendu à l'appelant pour être inscrit au journal : un
+    repli silencieux donnerait un épisode correct et un journal faux.
+
+    La durée reste mesurée sur l'audio réellement produit, quel que soit le
+    moteur retenu. `VoiceTimeline` demeure l'autorité unique.
     """
-    for moteur in active_providers().speech:
+    ecarts: list[str] = []
+    candidats = active_providers().speech
+    for moteur in candidats:
         capacite = moteur.get_capabilities()
-        etat = "retenu" if capacite.usable else "écarté"
-        print(
-            f"moteur {capacite.provider} : {etat} — "
-            f"{capacite.state.value}, {capacite.detail}"
-        )
-        if capacite.usable:
-            return moteur
-    return None
+        if not capacite.usable:
+            ecart = f"{capacite.provider} écarté : {capacite.detail}"
+            print(ecart)
+            ecarts.append(ecart)
+            continue
+        print(f"moteur {capacite.provider} : retenu — {capacite.detail}")
+        try:
+            return _tenter(moteur, script=script, request=request,
+                           workdir=workdir, lines_dir=lines_dir,
+                           args=args, ecarts=ecarts)
+        except (SynthesisFailed, SynthesiserUnavailable, AudioError) as panne:
+            ecart = f"{moteur.name} a lâché à la synthèse : {panne}"
+            print(ecart, file=sys.stderr)
+            ecarts.append(ecart)
+
+    raise SynthesiserUnavailable(
+        "aucun moteur de voix n'a produit d'audio — " + " | ".join(ecarts)
+    )
 
 
-def cmd_voice(args: argparse.Namespace) -> int:
-    opened = _open(args.episode)
-    if opened is None:
-        return 1
-    store, machine = opened
-    if not store.exists("script_state"):
-        print("pas de script — lancer `pdz2 script` d'abord", file=sys.stderr)
-        return 1
+def _tenter(moteur, *, script, request, workdir, lines_dir, args, ecarts) -> _Voix:
+    """Une tentative complète sur un moteur : calibration, puis narration.
 
-    script = store.load_as(ScriptState)
-    synthesiser = _premier_moteur_joignable()
-    if synthesiser is None:
-        print("aucun moteur de voix joignable", file=sys.stderr)
-        return 1
-
+    Les deux vont ensemble. Négocier sur un moteur puis enregistrer sur un
+    autre donnerait un débit choisi pour une voix qui ne le lira pas.
+    """
     debit_impose = args.rate is not None
     voice = VoiceSpec(
-        voice_id=args.voice or synthesiser.default_voice_id,
+        voice_id=args.voice or moteur.default_voice_id,
         rate_wpm=args.rate if debit_impose else DEFAULT_RATE_WPM,
         pitch=args.pitch,
         gap_ms=args.gap,
@@ -171,22 +197,17 @@ def cmd_voice(args: argparse.Namespace) -> int:
     # La durée commandée se négocie AVANT la synthèse définitive, sur une
     # calibration réellement synthétisée puis mesurée. Aucune estimation
     # n'entre ici, et la durée officielle restera celle de la VoiceTimeline.
-    request = store.load_as(TopicRequest)
-    negociateur = DurationNegotiator(synthesiser=synthesiser)
-    try:
-        policy = negociateur.negotiate(
-            script=script,
-            voice=voice,
-            requested_s=request.target_duration_s,
-            workdir=store.root / "audio",
-        )
-    except (SynthesisFailed, SynthesiserUnavailable, ValueError) as failure:
-        print(f"calibration impossible : {failure}", file=sys.stderr)
-        return 1
-    store.save(policy)
+    negociateur = DurationNegotiator(synthesiser=moteur)
+    policy = negociateur.negotiate(
+        script=script,
+        voice=voice,
+        requested_s=request.target_duration_s,
+        workdir=workdir,
+    )
     for note in negociateur.notes:
         print(note)
     print(f"durée : {policy.decision.value} — {policy.rationale}")
+
     if debit_impose and policy.chosen_rate_wpm != voice.rate_wpm:
         # Un débit passé en argument est une décision d'opérateur : elle prime.
         # La négociation reste consignée, pour que l'écart avec la commande
@@ -204,20 +225,47 @@ def cmd_voice(args: argparse.Namespace) -> int:
             gap_ms=voice.gap_ms,
         )
 
+    outcome = NarrationRecorder(synthesiser=moteur, voice=voice).record(
+        script=script, into=lines_dir
+    )
+    return _Voix(moteur=moteur, voice=voice, policy=policy,
+                 outcome=outcome, ecarts=list(ecarts))
+
+
+def cmd_voice(args: argparse.Namespace) -> int:
+    opened = _open(args.episode)
+    if opened is None:
+        return 1
+    store, machine = opened
+    if not store.exists("script_state"):
+        print("pas de script — lancer `pdz2 script` d'abord", file=sys.stderr)
+        return 1
+
+    script = store.load_as(ScriptState)
+    request = store.load_as(TopicRequest)
+
     try:
-        machine.start(Stage.VOICE, reason=f"synthèse {voice.fingerprint()}")
+        machine.start(Stage.VOICE, reason="synthèse de la narration")
     except TransitionRefused as refusal:
         print(f"étape refusée : {refusal}", file=sys.stderr)
         return 1
 
-    recorder = NarrationRecorder(synthesiser=synthesiser, voice=voice)
     try:
-        outcome = recorder.record(script=script, into=store.root / LINES_DIR)
-    except AudioError as failure:
-        machine.fail(Stage.VOICE, reason=str(failure))
+        rendu = _synthetiser_avec_repli(
+            script=script,
+            request=request,
+            workdir=store.root / "audio",
+            lines_dir=store.root / LINES_DIR,
+            args=args,
+        )
+    except (SynthesiserUnavailable, SynthesisFailed, AudioError, ValueError) as panne:
+        machine.fail(Stage.VOICE, reason=str(panne))
         store.save_snapshot(machine.snapshot)
-        print(f"synthèse refusée : {failure}", file=sys.stderr)
+        print(f"synthèse impossible : {panne}", file=sys.stderr)
         return 1
+
+    outcome = rendu.outcome
+    store.save(rendu.policy)
 
     artifacts = []
     for item in outcome.lines:
@@ -239,12 +287,21 @@ def cmd_voice(args: argparse.Namespace) -> int:
     machine.complete(
         Stage.VOICE,
         artifact_ids=[artifact.id for artifact in artifacts],
-        reason=f"{len(artifacts)} répliques synthétisées",
+        reason=(
+            f"{len(artifacts)} répliques synthétisées par {rendu.moteur.name}"
+            + "".join(f" | {ecart}" for ecart in rendu.ecarts)
+        ),
     )
     store.save_snapshot(machine.snapshot)
 
     for note in outcome.notes:
         print(note)
+    if rendu.ecarts:
+        print(
+            f"\nREPLI : la narration est de {rendu.moteur.name}, après "
+            f"{len(rendu.ecarts)} moteur(s) écarté(s). C'est une dégradation, "
+            "elle est inscrite au journal."
+        )
     print("\ndurées MESURÉES par réplique :")
     for item in outcome.lines:
         estimated = item.line.estimated_duration_s
