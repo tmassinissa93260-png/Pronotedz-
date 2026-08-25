@@ -51,6 +51,9 @@ IMPLEMENTED_PHASES = (
     "(stratégie, fournisseur et renderer séparés ; le port vidéo est emprunté)",
     "Phase 14 — reprise après interruption "
     "(une étape tuée en cours redevient démarrable, sans coûter de réparation)",
+    "Phases 15-19 — fermeture des contrats sans consommateur "
+    "(incrustations rendues et mesurées, conception sonore déclarée, "
+    "répétition de mécanisme refusée avant dépense)",
 )
 PENDING_PHASES: tuple[str, ...] = ()
 
