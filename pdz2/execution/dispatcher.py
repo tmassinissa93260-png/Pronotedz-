@@ -143,6 +143,26 @@ def _budgets(plan: ExecutionPlan | None) -> dict[str, int]:
     }
 
 
+def _ce_qui_est_perdu(demande: RenderStrategy, repli: RenderStrategy) -> str:
+    """Nomme précisément l'élément perdu, plutôt qu'un « rendu localement ».
+
+    Un plan hybride ne perd pas tout : son fond procédural, sa caméra 2.5D et
+    ses incrustations s'exécutent réellement en local. Ce qu'il perd, c'est le
+    sujet généré — et le dire précisément vaut mieux que laisser croire que le
+    plan entier a été remplacé.
+    """
+    commun = (
+        "la livraison ne dépend d'aucun fournisseur ; fond procédural, caméra "
+        "2.5D et incrustations sont rendus localement"
+    )
+    if demande is RenderStrategy.HYBRID:
+        return (
+            f"sujet généré non exécuté, reste du plan rendu en {repli.value} : "
+            + commun
+        )
+    return f"plan entièrement rendu en {repli.value} : " + commun
+
+
 @dataclass
 class ExecutionDispatcher:
     """Confie chaque plan à l'exécutant que sa stratégie appelle."""
@@ -344,10 +364,7 @@ class ExecutionDispatcher:
                 f"aucun fournisseur n'a exécuté ce plan à l'exécution "
                 f"({executable.provider or 'aucun fournisseur nommé'})"
             ),
-            description=(
-                "le plan est rendu localement : la livraison ne dépend d'aucun "
-                "fournisseur"
-            ),
+            description=_ce_qui_est_perdu(executable.strategy, repli),
             severity=DegradationSeverity.PERCEPTUAL,
         )
         outcome.degradations.append(ecart)
