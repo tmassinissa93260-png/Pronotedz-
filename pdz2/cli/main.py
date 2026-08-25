@@ -315,6 +315,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     fournisseurs.set_defaults(func=_cmd_providers)
 
+    from pdz2.cli import prompts as prompts_cli
+
+    prompts_cli.register(subparsers)
+
     from pdz2.cli import orchestrate
 
     orchestrate.register(subparsers)
