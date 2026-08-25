@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Self
+from typing import Annotated, Self
 
-from pydantic import Field, model_validator
+from pydantic import Field, StringConstraints, model_validator
 
 from pdz2.contracts.base import Element
 from pdz2.contracts.enums import (
@@ -17,6 +17,8 @@ from pdz2.contracts.enums import (
 )
 
 __all__ = [
+    "HexColour",
+    "HEX_COLOUR_PATTERN",
     "Vec3",
     "Resolution",
     "Composition",
@@ -27,6 +29,31 @@ __all__ = [
     "CostEstimate",
     "QaCheck",
 ]
+
+
+HEX_COLOUR_PATTERN = r"^#[0-9a-fA-F]{6}$"
+
+HexColour = Annotated[
+    str,
+    StringConstraints(pattern=HEX_COLOUR_PATTERN),
+    Field(description="Couleur hexadécimale sur six chiffres, par exemple #101820."),
+]
+"""Une couleur, et la seule forme qu'un contrat en accepte.
+
+La règle vivait dans deux docstrings et un validateur de fin de chaîne. Elle
+était donc invisible à deux endroits où elle comptait :
+
+* le **brief** l'ignorait — une palette écrite « bleu électrique, gris acier »
+  passait la validation, était acceptée, enregistrée, puis faisait tomber la
+  compilation visuelle trois étapes plus loin, avec une trace d'exécution ;
+* le **schéma envoyé au raisonneur** n'en disait rien : il annonçait une liste
+  de chaînes. Le modèle n'a pas deviné, et on ne le lui avait pas demandé.
+
+En type annoté, la contrainte est vérifiée à la porte *et* publiée dans le
+schéma JSON. Un raisonneur la lit avant d'écrire ; s'il se trompe quand même,
+le contrat refuse tout de suite et la boucle de reprise lui rend l'erreur
+exacte, au lieu de laisser passer.
+"""
 
 
 class Vec3(Element):

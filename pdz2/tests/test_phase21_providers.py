@@ -690,3 +690,53 @@ def test_no_voice_identifier_is_invented_for_an_account(monkeypatch) -> None:
 
     monkeypatch.setenv(ELEVENLABS_VOICE_ENV, "imposée")
     assert garni.default_voice_id == "imposée", "un choix explicite prime"
+
+
+# --------------------------- ce qu'un contrat n'exige pas, un modèle l'ignore
+
+
+def test_the_palette_rule_reaches_the_model_and_the_door() -> None:
+    """La règle vivait dans une docstring : invisible des deux côtés.
+
+    Un raisonneur a rendu « bleu électrique, gris acier, blanc pur ». Le brief
+    a été accepté, enregistré, et la compilation visuelle est tombée trois
+    étapes plus loin sur une trace d'exécution. Deux endroits l'ignoraient :
+    le schéma envoyé au modèle, qui n'annonçait qu'une liste de chaînes, et le
+    contrat du brief, qui ne vérifiait rien.
+    """
+    from pydantic import ValidationError as _ValidationError
+
+    from pdz2.contracts.direction import VisualStyleDecision
+
+    # Le modèle lit la contrainte avant d'écrire.
+    palette = decision_schema()["properties"]["visual_style"]["properties"]["palette"]
+    assert palette["items"]["pattern"] == "^#[0-9a-fA-F]{6}$"
+    assert "hexadécimale" in palette["items"]["description"]
+
+    # Et s'il l'ignore quand même, le refus est immédiat.
+    with pytest.raises(_ValidationError):
+        VisualStyleDecision(
+            style="coupe technique",
+            lighting="rasante",
+            palette=["bleu électrique", "gris acier"],
+            lens_language="macro",
+            texture="métal",
+            environment="atelier",
+            graphics="repères",
+        )
+
+
+def test_one_hex_rule_governs_the_brief_and_the_bible() -> None:
+    """La même règle des deux côtés de la frontière, définie une fois.
+
+    Elle existait en double — une docstring dans le brief, un validateur dans
+    la bible — et les deux ne disaient pas la même chose : l'un décrivait,
+    l'autre refusait. C'est ainsi qu'une palette invalide traverse.
+    """
+    from pdz2.contracts.direction import VisualStyleDecision
+    from pdz2.contracts.visual import ColorScheme
+
+    def motif(modele, champ):
+        return modele.model_json_schema()["properties"][champ]["items"]["pattern"]
+
+    assert motif(VisualStyleDecision, "palette") == motif(ColorScheme, "palette")

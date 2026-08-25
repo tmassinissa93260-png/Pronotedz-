@@ -157,6 +157,34 @@ lit maintenant le catalogue du compte, en préférant ce qui est à lui — voix
 clonée ou générée — avant les voix communes ; et à défaut on déclare
 l'indisponibilité au lieu d'inventer un identifiant.
 
+## CE QU'UN CONTRAT N'EXIGE PAS, UN MODÈLE L'IGNORE
+
+La palette de la bible visuelle devait être hexadécimale. La règle vivait dans
+deux docstrings et un validateur de fin de chaîne — donc nulle part où elle
+comptait. Le raisonneur a rendu :
+
+    palette : ['bleu électrique', 'gris acier', 'blanc pur']
+
+Le brief a été **accepté**, enregistré, et la compilation visuelle est tombée
+trois étapes plus tard sur une trace d'exécution.
+
+Deux endroits l'ignoraient, et c'est le même oubli vu de deux côtés :
+
+* le **schéma envoyé au modèle** n'annonçait qu'une liste de chaînes ;
+* le **contrat du brief** ne vérifiait rien, laissant le refus à un
+  consommateur lointain.
+
+`HexColour` est maintenant un type annoté, défini une fois dans
+`contracts/common.py` et employé par le brief comme par la bible. En type, la
+contrainte est vérifiée **à la porte** et publiée **dans le schéma JSON** : le
+raisonneur la lit avant d'écrire, et s'il se trompe quand même, la boucle de
+reprise lui rend l'erreur exacte au lieu de laisser passer.
+
+La leçon générale, elle, dépasse les couleurs : une règle qu'un commentaire
+est seul à porter n'est pas une règle. Elle ne devient contraignante qu'en
+atteignant le type — le seul endroit que lisent à la fois le validateur et le
+modèle.
+
 ## LE RAISONNEUR NE REÇOIT PAS UN FORMULAIRE RECOPIÉ
 
 La surface de décision — ce qu'aucun calcul ne peut produire — est **dérivée
