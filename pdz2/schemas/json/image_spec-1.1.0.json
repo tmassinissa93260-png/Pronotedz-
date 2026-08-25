@@ -174,7 +174,7 @@
       "type": "string"
     }
   },
-  "$id": "pdz2:image_spec/1.0.0",
+  "$id": "pdz2:image_spec/1.1.0",
   "additionalProperties": false,
   "description": "Ce qu'une image doit contenir. Pas le prompt final d'un fournisseur.",
   "properties": {
@@ -188,6 +188,18 @@
     "aspect_ratio": {
       "$ref": "#/$defs/AspectRatio"
     },
+    "claim_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Claim Id"
+    },
     "composition": {
       "$ref": "#/$defs/Composition"
     },
@@ -199,6 +211,18 @@
       "format": "date-time",
       "title": "Created At",
       "type": "string"
+    },
+    "evidence_required": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Evidence Required"
     },
     "forbidden": {
       "items": {
