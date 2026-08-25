@@ -314,3 +314,94 @@ def test_the_model_is_asked_in_terms_of_the_research_it_was_given(episode, monke
     assert episode.research.question in demande
     for claim in episode.research.claims[:3]:
         assert claim.id in demande
+
+
+# ------------------------------------------- le plafond par minute de Groq
+
+
+def test_the_request_fits_under_the_free_tier_ceiling(episode) -> None:
+    """La requête réelle tient sous 8 000 jetons/minute, avec de la réserve.
+
+    Le premier appel réel a été refusé : 18 813 jetons demandés pour 8 000
+    permis. La cause n'était pas le texte envoyé — 2 800 jetons — mais les
+    16 000 réservés pour une sortie jamais écrite : Groq compte la réserve
+    dans son plafond.
+    """
+    from pdz2.providers.groq import (
+        _MARGE_JETONS,
+        _TOOL_NAME,
+        GroqReasoner,
+        _accepte_aussi_une_chaine,
+        _jetons,
+    )
+    from pdz2.providers.reasoning import SYSTEM, decision_schema, instruction
+
+    raisonneur = GroqReasoner()
+    outil = {
+        "type": "function",
+        "function": {
+            "name": _TOOL_NAME,
+            "description": "Rend la décision de réalisation demandée.",
+            "parameters": _accepte_aussi_une_chaine(decision_schema()),
+        },
+    }
+    messages = [
+        {"role": "system", "content": SYSTEM},
+        {"role": "user", "content": instruction(episode.request, episode.research)},
+    ]
+    entree = _jetons(messages) + _jetons(outil) + _MARGE_JETONS
+    demande = entree + raisonneur._sortie_possible(entree)
+
+    assert demande < raisonneur.tpm, f"{demande} demandés pour {raisonneur.tpm} permis"
+    assert raisonneur.tpm - demande >= 300, "aucune réserve : un écart d'estimation refuse"
+
+
+def test_a_ceiling_too_low_to_write_is_refused_not_truncated() -> None:
+    """Mieux vaut dire non que rendre une décision coupée en deux."""
+    from pdz2.providers.groq import GroqReasoner
+
+    etroit = GroqReasoner(tpm=3000)
+    with pytest.raises(ReasonerUnavailable, match="jetons pour écrire"):
+        etroit._sortie_possible(2900)
+
+
+def test_the_second_attempt_waits_for_the_window_instead_of_being_refused(
+    monkeypatch,
+) -> None:
+    """La reprise arrive dans la même minute : on attend, on ne se cogne pas.
+
+    Sans cela, la boucle de reprise du contrat produirait mécaniquement un
+    refus de débit à chaque brief invalide — un échec provoqué par nous, pas
+    par le modèle.
+    """
+    from pdz2.providers import groq as module
+
+    dormi: list[float] = []
+    monkeypatch.setattr(module.time, "sleep", dormi.append)
+
+    raisonneur = module.GroqReasoner(tpm=8000)
+    raisonneur._attendre_la_fenetre(7000)
+    assert dormi == [], "le premier appel n'attend rien"
+
+    raisonneur._attendre_la_fenetre(7000)
+    assert len(dormi) == 1, "le second appel de la minute doit attendre"
+    assert 0 < dormi[0] <= module._FENETRE_S
+    assert any("attente" in note for note in raisonneur.notes)
+
+
+def test_the_instruction_no_longer_repeats_the_schema_as_a_template(episode) -> None:
+    """Le gabarit recopié disait deux fois ce que le schéma dit mieux.
+
+    Mille jetons sur un plafond de huit mille, pour une redite : le schéma
+    envoyé décrit la forme plus strictement qu'un exemple, et les
+    affirmations que le gabarit rappelait sont dans le relevé de recherche.
+    """
+    from pdz2.providers.reasoning import instruction
+
+    texte = instruction(episode.request, episode.research)
+    assert "visual_proofs" not in texte, "le gabarit JSON est de retour"
+    assert "_claim_text" not in texte
+    # Ce qui compte, lui, est bien là.
+    assert episode.request.topic in texte
+    for claim in episode.research.claims[:3]:
+        assert claim.id in texte

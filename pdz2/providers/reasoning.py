@@ -27,7 +27,7 @@ from pydantic import ValidationError
 
 from pdz2.contracts.direction import DirectorBrief
 from pdz2.contracts.research import ResearchState, TopicRequest
-from pdz2.engines.direction.ports import ReasonerUnavailable, brief_template
+from pdz2.engines.direction.ports import ReasonerUnavailable
 
 __all__ = [
     "DECIDED_BY_THE_REASONER",
@@ -64,6 +64,15 @@ JSON du contrat. Cette liste ne dit que « qui décide quoi »."""
 # --------------------------------------------------------------------- schéma
 
 
+_BRUIT = frozenset({"default", "title"})
+"""Clés retirées du schéma envoyé.
+
+`default` parce que le modèle doit trancher, et non hériter d'une valeur.
+`title` parce que pydantic le fabrique depuis le nom du champ — que le modèle
+lit déjà juste à côté. Deux cent soixante-cinq jetons de redite, sur un
+plafond qui en compte huit mille."""
+
+
 def _strict(node: Any) -> Any:
     """Rend un fragment de schéma acceptable par un *structured output*.
 
@@ -77,7 +86,7 @@ def _strict(node: Any) -> Any:
     if not isinstance(node, dict):
         return node
 
-    clean = {key: _strict(value) for key, value in node.items() if key != "default"}
+    clean = {key: _strict(value) for key, value in node.items() if key not in _BRUIT}
     if clean.get("type") == "object" and "properties" in clean:
         clean["required"] = sorted(clean["properties"])
         clean["additionalProperties"] = False
@@ -190,11 +199,16 @@ Règles dures :
 - Écris dans la langue de l'épisode, indiquée avec la commande."""
 
 
-def instruction(
-    request: TopicRequest,
-    research: ResearchState,
-    gabarit: dict[str, Any],
-) -> str:
+def instruction(request: TopicRequest, research: ResearchState) -> str:
+    """La demande adressée au modèle : le sujet, et les faits établis.
+
+    Elle ne contient **pas** de gabarit de brief. Il y en a eu un, recopié en
+    JSON dans le message, et c'était une redondance coûteuse : le schéma
+    envoyé décrit déjà la forme attendue, plus strictement qu'un exemple, et
+    les affirmations que le gabarit rappelait sont dans le relevé ci-dessous.
+    Mille jetons pour redire deux fois la même chose — mesuré, puis retiré
+    quand un fournisseur au palier gratuit a refusé la requête.
+    """
     return (
         f"SUJET : {request.topic}\n"
         f"LANGUE DE L'ÉPISODE : {request.language}\n"
@@ -204,9 +218,6 @@ def instruction(
         f"COUVERTURE MESURÉE : {research.coverage:.2f}\n\n"
         "AFFIRMATIONS ÉTABLIES (classées par démontrabilité mesurée) :\n"
         f"{_research_digest(research)}\n\n"
-        "GABARIT DE RÉFÉRENCE — il rappelle la forme attendue ; les clés « _ » "
-        "sont des annotations et ne doivent pas apparaître dans ta réponse :\n"
-        f"{json.dumps(gabarit, ensure_ascii=False, indent=2)}\n\n"
         "Rends la décision de réalisation. Retiens entre trois et six "
         "affirmations, celles qui se démontrent le mieux à l'image."
     )
@@ -251,7 +262,7 @@ def draft_with(
     ici, et il appartient au contrat.
     """
     echanges: list[dict[str, Any]] = [
-        {"role": "user", "content": instruction(request, research, brief_template(request, research))}
+        {"role": "user", "content": instruction(request, research)}
     ]
     refus = ""
 
