@@ -90,6 +90,9 @@ class RenderSpecCompiler:
                     resolution=resolution,
                     fps=self.fps,
                     requested_camera=camera.move,
+                    # Recopie, jamais décision : ce qui s'affiche à l'écran a
+                    # été tranché par le compilateur de plans.
+                    text_overlay=shot.text_overlay,
                     preferred_strategy=None,
                     identity_lock_required=shot.render_constraints.requires_identity_lock,
                     allow_ai_video=shot.render_constraints.allow_ai_video,

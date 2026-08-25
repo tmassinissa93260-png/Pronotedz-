@@ -27,12 +27,14 @@ from pdz2.contracts.observation import Measurement, ObservationReport
 from pdz2.contracts.render import RenderArtifact, RenderSpecExecutable
 from pdz2.contracts.visual import VisualBible
 from pdz2.qa.measures import (
+    BAND_BY_POSITION,
     black_frame_ratio,
     colour_distance_to_palette,
     decode_frames,
     first_to_last_difference,
     frozen_frame_ratio,
     mean_absolute_difference,
+    region_change_at,
     sharpness,
 )
 from pdz2.renderers.ffmpeg import EncodingFailed, probe_video
@@ -166,6 +168,7 @@ class DeterministicObserver:
         frozen = frozen_frame_ratio(sequence)
         crispness = sharpness(sequence)
         palette_distance = colour_distance_to_palette(path, bible.color.palette)
+        overlay_change = _overlay_change(sequence, executable)
 
         measurements = [
             Measurement(
@@ -229,7 +232,7 @@ class DeterministicObserver:
 
         checks = self._checks(
             executable, motion, probe, displacement, black, frozen,
-            crispness, palette_distance,
+            crispness, palette_distance, overlay_change,
         )
         blocking_failed = any(
             check.severity is Severity.BLOCKING and not check.passed
@@ -258,8 +261,10 @@ class DeterministicObserver:
         frozen,
         crispness,
         palette_distance,
+        overlay_change=0.0,
     ) -> list[QaCheck]:
         checks = [
+            *_overlay_checks(executable, overlay_change),
             QaCheck(
                 check_id="duration",
                 name="durée conforme à la demande",
@@ -369,3 +374,55 @@ class DeterministicObserver:
                 detail="des images identiques d'affilée signalent un rendu bloqué",
             ),
         ]
+
+
+OVERLAY_MIN_CHANGE = 0.01
+"""Écart minimal, dans la bande de l'incrustation, entre avant et pendant.
+
+Mesuré sur un rendu réel : dessiner un cartouche de texte sur un plan
+1080×1920 déplace la moyenne de la bande de plusieurs centièmes, là où le seul
+mouvement de caméra sur la même bande en déplace moins d'un millième. Le seuil
+est posé une décade au-dessus du bruit de caméra.
+"""
+
+
+def _overlay_change(sequence, executable) -> float:
+    """Écart mesuré dans la bande de l'incrustation, ou 0 s'il n'y en a pas."""
+    overlay = executable.text_overlay
+    if overlay is None:
+        return 0.0
+    bande = BAND_BY_POSITION.get(overlay.position.value, (0.0, 1.0))
+    milieu = overlay.at_s + overlay.duration_s / 2
+    avant = max(0.0, overlay.at_s - 0.2)
+    return round(
+        region_change_at(sequence, band=bande, before_s=avant, during_s=milieu), 6
+    )
+
+
+def _overlay_checks(executable, overlay_change: float) -> list[QaCheck]:
+    """Une incrustation demandée doit se voir à l'écran.
+
+    Le contrat `ShotSpec.text_overlay` était produit, validé, compté — et
+    jamais dessiné. Rien ne l'aurait signalé, puisque rien ne le mesurait. Ce
+    contrôle ferme la boucle : ce que le compilateur de plans a décidé
+    d'afficher doit être constatable sur les pixels rendus.
+    """
+    overlay = executable.text_overlay
+    if overlay is None:
+        return []
+    return [
+        QaCheck(
+            check_id="overlay_rendered",
+            name="l'incrustation demandée est visible",
+            passed=overlay_change >= OVERLAY_MIN_CHANGE,
+            observed=round(overlay_change, 6),
+            expected=OVERLAY_MIN_CHANGE,
+            severity=Severity.MAJOR,
+            detail=(
+                f"« {overlay.text} » attendue de {overlay.at_s:.2f}s à "
+                f"{overlay.at_s + overlay.duration_s:.2f}s en "
+                f"{overlay.position.value} ; écart mesuré dans cette bande "
+                "entre l'instant qui précède et le milieu de la fenêtre"
+            ),
+        )
+    ]

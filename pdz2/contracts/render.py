@@ -16,7 +16,7 @@ from typing import Self
 from pydantic import Field, model_validator
 
 from pdz2.contracts.base import Contract, Element, contract
-from pdz2.contracts.common import Resolution
+from pdz2.contracts.common import Resolution, TextOverlay
 from pdz2.contracts.enums import ArtifactKind
 from pdz2.contracts.motion import CameraMove
 
@@ -104,9 +104,11 @@ class RequestedEcho(Element):
     duration_s: float = Field(gt=0.0)
     resolution: Resolution
     fps: int = Field(gt=0)
+    text_overlay: TextOverlay | None = None
+    """Incrustation demandée. Ajouté en 1.1.0 ; absente des documents 1.0.0."""
 
 
-@contract("render_spec_requested", "1.0.0")
+@contract("render_spec_requested", "1.1.0")
 class RenderSpecRequested(Contract):
     """Ce que la réalisation demande. Aucun fournisseur, aucun modèle."""
 
@@ -118,6 +120,14 @@ class RenderSpecRequested(Contract):
     duration_s: float = Field(gt=0.0)
     resolution: Resolution
     fps: int = Field(gt=0, le=120)
+    text_overlay: TextOverlay | None = None
+    """Incrustation de texte à dessiner sur le plan.
+
+    Recopiée depuis `ShotSpec.text_overlay`, jamais décidée ici : le
+    compilateur de plans est seul juge de ce qui s'affiche à l'écran. Ce champ
+    la transporte jusqu'à l'exécutant, qui la dessine sans savoir pourquoi
+    elle existe."""
+
     requested_camera: CameraMove = CameraMove.LOCK
     preferred_strategy: RenderStrategy | None = None
     """Préférence, pas décision : le routeur tranche."""
@@ -146,10 +156,11 @@ class RenderSpecRequested(Contract):
             duration_s=self.duration_s,
             resolution=self.resolution,
             fps=self.fps,
+            text_overlay=self.text_overlay,
         )
 
 
-@contract("render_spec_executable", "1.0.0")
+@contract("render_spec_executable", "1.1.0")
 class RenderSpecExecutable(Contract):
     """Ce que l'infrastructure exécutera réellement."""
 
@@ -159,6 +170,9 @@ class RenderSpecExecutable(Contract):
 
     strategy: RenderStrategy
     execution_camera: CameraMove
+    text_overlay: TextOverlay | None = None
+    """Incrustation réellement dessinée. Un écart avec la demande se déclare."""
+
     duration_s: float = Field(gt=0.0)
     resolution: Resolution
     fps: int = Field(gt=0, le=120)
@@ -190,6 +204,8 @@ class RenderSpecExecutable(Contract):
             and self.strategy is not self.requested.strategy
         ):
             divergences.append("strategy")
+        if self.text_overlay != self.requested.text_overlay:
+            divergences.append("text_overlay")
 
         undeclared = [field for field in divergences if field not in declared]
         if undeclared:

@@ -34,7 +34,7 @@ from pdz2.contracts.render import (
     RenderSpecExecutable,
     RenderStrategy,
 )
-from pdz2.contracts.visual import LayerRole
+from pdz2.contracts.visual import LayerRole, Typography
 from pdz2.engines.imagery.renderer import RenderedImage
 from pdz2.renderers.ffmpeg import (
     EncodingFailed,
@@ -43,6 +43,7 @@ from pdz2.renderers.ffmpeg import (
     ffmpeg_capability,
     probe_video,
 )
+from pdz2.renderers.graphics import draw_text_overlay
 from pdz2.renderers.motion_paths import sample_trajectory
 
 __all__ = [
@@ -54,7 +55,15 @@ __all__ = [
     "RENDERER_VERSION",
 ]
 
-RENDERER_VERSION = "1.0.0"
+RENDERER_VERSION = "1.1.0"
+"""1.1.0 : les incrustations de texte sont réellement dessinées."""
+
+_DEFAULT_TYPOGRAPHY = Typography(family="DejaVu Sans", weight=700, uppercase=False)
+"""Réglage de repli quand la bible n'est pas fournie au renderer.
+
+Ne pas dessiner du tout serait pire : le compilateur de plans a décidé qu'une
+grandeur chiffrée devait apparaître, et la casse ne justifie pas de l'effacer.
+"""
 
 SUPPORTED_STRATEGIES = frozenset(
     {
@@ -122,7 +131,14 @@ class DeterministicRenderer:
         motion_programs: list[MotionProgram],
         images: list[RenderedImage],
         into: Path,
+        typography: Typography | None = None,
     ) -> RenderOutcome:
+        """Rend chaque plan. `typography` vient de la bible visuelle.
+
+        Sans elle, les incrustations sont dessinées avec un réglage par
+        défaut plutôt que sautées : une grandeur chiffrée décidée par le
+        compilateur de plans doit apparaître, la casse est un détail de style.
+        """
         capability = self.get_capabilities()
         if not capability.usable:
             raise FfmpegUnavailable(
@@ -149,7 +165,9 @@ class DeterministicRenderer:
                     f"{executable.shot_id} : aucune image de départ"
                 )
             motion = self._motion_for(executable, motions)
-            render, artifact = self._render_one(executable, motion, image, directory)
+            render, artifact = self._render_one(
+                executable, motion, image, directory, typography
+            )
             renders.append(render)
             artifacts.append(artifact)
 
@@ -179,6 +197,7 @@ class DeterministicRenderer:
         motion: MotionProgram | None,
         image: RenderedImage,
         directory: Path,
+        typography: Typography | None = None,
     ) -> tuple[ShotRender, RenderArtifact]:
         started = time.monotonic()
         width = executable.resolution.width
@@ -193,6 +212,13 @@ class DeterministicRenderer:
                 composed = self._compose(
                     executable, motion, layers, t, width, height
                 )
+                if executable.text_overlay is not None:
+                    composed = draw_text_overlay(
+                        composed,
+                        executable.text_overlay,
+                        typography or _DEFAULT_TYPOGRAPHY,
+                        t * executable.duration_s,
+                    )
                 if self.keep_frames:
                     debug = directory / f"frames-{executable.shot_id}"
                     debug.mkdir(parents=True, exist_ok=True)

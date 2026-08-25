@@ -128,6 +128,17 @@
             }
           ],
           "default": null
+        },
+        "text_overlay": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextOverlay"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [
@@ -159,9 +170,58 @@
       ],
       "title": "Resolution",
       "type": "object"
+    },
+    "ScreenPosition": {
+      "enum": [
+        "top",
+        "upper_third",
+        "center",
+        "lower_third",
+        "bottom",
+        "left",
+        "right"
+      ],
+      "title": "ScreenPosition",
+      "type": "string"
+    },
+    "TextOverlay": {
+      "additionalProperties": false,
+      "properties": {
+        "at_s": {
+          "minimum": 0.0,
+          "title": "At S",
+          "type": "number"
+        },
+        "duration_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "emphasis": {
+          "default": false,
+          "title": "Emphasis",
+          "type": "boolean"
+        },
+        "position": {
+          "$ref": "#/$defs/ScreenPosition",
+          "default": "lower_third"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "at_s",
+        "duration_s"
+      ],
+      "title": "TextOverlay",
+      "type": "object"
     }
   },
-  "$id": "pdz2:render_spec_executable/1.0.0",
+  "$id": "pdz2:render_spec_executable/1.1.0",
   "additionalProperties": false,
   "description": "Ce que l'infrastructure exécutera réellement.",
   "properties": {
@@ -275,6 +335,17 @@
     },
     "strategy": {
       "$ref": "#/$defs/RenderStrategy"
+    },
+    "text_overlay": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TextOverlay"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "version": {
       "title": "Version",

@@ -24,6 +24,8 @@ import numpy as np
 from pdz2.renderers.ffmpeg import EncodingFailed, probe_video
 
 __all__ = [
+    "region_change_at",
+    "BAND_BY_POSITION",
     "FrameSequence",
     "decode_frames",
     "mean_absolute_difference",
@@ -236,3 +238,58 @@ def colour_distance_to_palette(
     distances = np.linalg.norm(pixels[:, None, :] - reference[None, :, :], axis=2)
     nearest = distances.min(axis=1)
     return float(nearest.mean() / (255.0 * np.sqrt(3)))
+
+
+def region_change_at(
+    sequence: FrameSequence,
+    *,
+    band: tuple[float, float],
+    before_s: float,
+    during_s: float,
+) -> float:
+    """Écart moyen dans une bande horizontale, entre deux instants.
+
+    Sert à constater qu'une incrustation a réellement été dessinée : la
+    demande dit qu'un texte doit apparaître entre deux secondes, cette mesure
+    dit si les pixels de cette zone ont effectivement changé à ce moment-là.
+
+    `band` borne la zone en fractions de hauteur, `(haut, bas)`. Mesurer le
+    cadre entier noierait un cartouche de texte dans le mouvement de caméra ;
+    mesurer la seule bande concernée rend le constat exploitable.
+
+    Rend 0.0 quand la séquence ne couvre pas les deux instants — une absence
+    de mesure, jamais un échec déguisé en réussite.
+    """
+    if sequence.count < 2 or sequence.fps <= 0:
+        return 0.0
+    haut = max(0, min(sequence.frames.shape[1] - 1, int(band[0] * sequence.frames.shape[1])))
+    bas = max(haut + 1, min(sequence.frames.shape[1], int(band[1] * sequence.frames.shape[1])))
+
+    def _index(seconde: float) -> int | None:
+        position = int(round(seconde * sequence.fps))
+        if position < 0 or position >= sequence.count:
+            return None
+        return position
+
+    avant, pendant = _index(before_s), _index(during_s)
+    if avant is None or pendant is None or avant == pendant:
+        return 0.0
+    zone_avant = sequence.frames[avant, haut:bas, :]
+    zone_pendant = sequence.frames[pendant, haut:bas, :]
+    return float(np.abs(zone_pendant - zone_avant).mean())
+
+
+BAND_BY_POSITION: dict[str, tuple[float, float]] = {
+    "top": (0.0, 0.20),
+    "upper_third": (0.22, 0.45),
+    "center": (0.40, 0.60),
+    "lower_third": (0.55, 0.78),
+    "bottom": (0.80, 1.0),
+    "left": (0.35, 0.65),
+    "right": (0.35, 0.65),
+}
+"""Bande de l'écran occupée par chaque position d'incrustation.
+
+Volontairement large : le cartouche est centré sur la position, et une bande
+trop serrée manquerait son ombre portée ou son trait de soulignement.
+"""

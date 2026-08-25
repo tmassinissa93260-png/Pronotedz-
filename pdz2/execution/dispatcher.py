@@ -44,6 +44,7 @@ from pdz2.contracts.render import (
     RenderSpecExecutable,
     RenderStrategy,
 )
+from pdz2.contracts.visual import Typography
 from pdz2.engines.imagery.renderer import RenderedImage
 from pdz2.engines.routing.router import STRATEGY_LADDER
 from pdz2.providers.video import (
@@ -157,6 +158,7 @@ class ExecutionDispatcher:
         images: list[RenderedImage],
         into: Path,
         plan: ExecutionPlan | None = None,
+        typography: Typography | None = None,
     ) -> ExecutionOutcome:
         """Exécute les plans, en suivant le plan d'exécution s'il est fourni.
 
@@ -202,6 +204,7 @@ class ExecutionDispatcher:
 
         if a_rendre_localement:
             local = self.renderer.render(
+                typography=typography,
                 executables=a_rendre_localement,
                 motion_programs=motion_programs,
                 images=[

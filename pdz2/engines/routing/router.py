@@ -281,6 +281,7 @@ class RenderRouter:
             requested=spec.echo(),
             strategy=chosen,
             execution_camera=camera,
+            text_overlay=spec.text_overlay,
             duration_s=spec.duration_s,
             resolution=spec.resolution,
             fps=spec.fps,

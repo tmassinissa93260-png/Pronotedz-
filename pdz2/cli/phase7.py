@@ -14,7 +14,7 @@ from pathlib import Path
 
 from pdz2.contracts.pipeline import Stage
 from pdz2.contracts.render import RenderSpecExecutable
-from pdz2.contracts.visual import ImageSpec, LayerRole
+from pdz2.contracts.visual import ImageSpec, LayerRole, VisualBible
 from pdz2.engines.imagery.renderer import RenderedImage
 from pdz2.execution import ExecutionDispatcher
 from pdz2.execution.dispatcher import DispatchRejected
@@ -105,6 +105,7 @@ def cmd_render(args: argparse.Namespace) -> int:
             images=images,
             into=store.root / RENDERS_DIR,
             plan=plans[0] if plans else None,
+            typography=store.load_as(VisualBible).typography,
         )
     except (RenderFailed, FfmpegUnavailable, DispatchRejected) as failure:
         machine.fail(Stage.RENDER, reason=str(failure))
