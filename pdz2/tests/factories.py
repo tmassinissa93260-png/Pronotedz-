@@ -313,7 +313,12 @@ def render_spec_executable(
         "resolution": requested.resolution,
         "fps": requested.fps,
     }
-    return RenderSpecExecutable(**(payload | overrides))
+    fusion = payload | overrides
+    # Nommer un fournisseur exige de montrer sur quoi on s'est fondé : les
+    # fabriques qui en posent un fournissent donc un instantané.
+    if fusion.get("provider") and not fusion.get("capability_snapshot_id"):
+        fusion["capability_snapshot_id"] = "capability_matrix-fabrique"
+    return RenderSpecExecutable(**fusion)
 
 
 def camera_degradation(**overrides) -> Degradation:

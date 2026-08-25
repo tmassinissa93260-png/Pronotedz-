@@ -42,7 +42,9 @@ def cmd_route(args: argparse.Namespace) -> int:
 
     request = store.load_as(TopicRequest)
     try:
-        outcome = RenderRouter().route(
+        outcome = RenderRouter(
+            capability_matrix=store.latest("capability_matrix"),
+        ).route(
             episode_id=store.root.name,
             requested=requested,
             motion_programs=store.load_collection("motion_program"),

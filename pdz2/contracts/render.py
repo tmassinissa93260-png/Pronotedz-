@@ -182,10 +182,25 @@ class RenderSpecExecutable(Contract):
 
     model: str | None = None
     capability_snapshot_id: str | None = None
-    """Mesure de capacité sur laquelle ce choix s'appuie (phase 11)."""
+    """Instantané de capacités sur lequel ce choix s'appuie (phase 11).
+
+    Il répond, après coup, à : « quelles capacités mesurées ou connues ont
+    servi à décider que ce plan était exécutable ? ». Obligatoire dès qu'un
+    fournisseur est nommé — affirmer qu'un moteur sait faire quelque chose
+    sans pouvoir montrer sur quoi on se fondait n'est pas une décision, c'est
+    un pari."""
 
     degradations: list[Degradation] = Field(default_factory=list)
     estimated_cost_usd: float = Field(default=0.0, ge=0.0)
+
+    @model_validator(mode="after")
+    def _naming_a_provider_requires_its_evidence(self) -> Self:
+        if self.provider and not self.capability_snapshot_id:
+            raise ValueError(
+                f"{self.shot_id} : fournisseur « {self.provider} » retenu sans "
+                "instantané de capacités — la décision n'est pas traçable"
+            )
+        return self
 
     @model_validator(mode="after")
     def _every_divergence_is_declared(self) -> Self:

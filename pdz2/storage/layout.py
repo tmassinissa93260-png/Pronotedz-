@@ -27,7 +27,6 @@ SINGLETON_FILES: dict[str, str] = {
     "edit_timeline": "edit_timeline.json",
     "validation_report": "validation_report.json",
     "production_journal": "production_log.json",
-    "capability_matrix": "capability_matrix.json",
     "cost_ledger": "cost_ledger.json",
     "master_artifact": "master.json",
     "episode_snapshot": "state.json",
@@ -35,6 +34,7 @@ SINGLETON_FILES: dict[str, str] = {
 """Contrats dont il n'existe qu'un exemplaire par épisode."""
 
 COLLECTION_DIRS: dict[str, str] = {
+    "capability_matrix": "capabilities",
     "render_spec_requested": "render_specs",
     "render_spec_executable": "render_specs",
     "execution_plan": "execution_plans",

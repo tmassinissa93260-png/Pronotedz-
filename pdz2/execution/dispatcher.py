@@ -29,6 +29,7 @@ Ce qu'il garantit :
 from __future__ import annotations
 
 import hashlib
+import threading
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -40,6 +41,7 @@ from pdz2.contracts.render import (
     Degradation,
     DegradationSeverity,
     ExecutionPlan,
+    ExecutionStepKind,
     RenderArtifact,
     RenderSpecExecutable,
     RenderStrategy,
@@ -110,6 +112,39 @@ class ExecutionOutcome:
         return counts
 
 
+def _sous_delai(provider: VideoProvider, job: VideoJob, delai_s: float | None):
+    """Appelle le fournisseur sous un délai, ou lève `TimeoutError`.
+
+    Python ne sait pas interrompre du code arbitraire. L'appel part donc dans
+    un fil que l'on cesse d'attendre au bout du délai : le fil peut survivre —
+    il est marqué `daemon` pour ne pas retenir le processus — mais l'épisode,
+    lui, repart. Un fournisseur qui ne rend jamais la main ne doit pas
+    immobiliser une production entière.
+
+    Sans délai déclaré, l'appel est direct : on n'ajoute pas un fil pour rien.
+    """
+    if delai_s is None:
+        return provider.generate(job)
+
+    resultat: list = []
+    panne: list[BaseException] = []
+
+    def _travail() -> None:
+        try:
+            resultat.append(provider.generate(job))
+        except BaseException as erreur:  # noqa: BLE001 — relayée telle quelle
+            panne.append(erreur)
+
+    fil = threading.Thread(target=_travail, daemon=True)
+    fil.start()
+    fil.join(delai_s)
+    if fil.is_alive():
+        raise TimeoutError(f"dépassement de {delai_s:g}s")
+    if panne:
+        raise panne[0]
+    return resultat[0]
+
+
 def _local_fallback(strategy: RenderStrategy) -> RenderStrategy:
     """La stratégie locale la plus proche en deçà du barreau demandé.
 
@@ -124,6 +159,23 @@ def _local_fallback(strategy: RenderStrategy) -> RenderStrategy:
         if en_dessous:
             return en_dessous[-1]
     return RenderStrategy.STILL
+
+
+def _delais(plan: ExecutionPlan | None) -> dict[str, float]:
+    """Budget de temps par exécutable, tel que le plan le déclare.
+
+    L'aiguilleur est le **seul** à appliquer un délai, et il ne l'invente pas :
+    il vient de `ExecutionStep.timeout_s`, que le routeur a dérivé de
+    `RenderSpecRequested.deadline_s`. Une seule chaîne d'autorité, de
+    l'intention au temps réellement appliqué.
+    """
+    if plan is None:
+        return {}
+    return {
+        step.spec_id: step.timeout_s
+        for step in plan.steps
+        if step.spec_id is not None and step.kind is not ExecutionStepKind.OBSERVE
+    }
 
 
 def _budgets(plan: ExecutionPlan | None) -> dict[str, int]:
@@ -188,6 +240,7 @@ class ExecutionDispatcher:
         """
         outcome = ExecutionOutcome()
         budgets = _budgets(plan)
+        delais = _delais(plan)
         par_image = {image.shot_id: image for image in images}
         a_rendre_localement: list[RenderSpecExecutable] = []
 
@@ -218,6 +271,7 @@ class ExecutionDispatcher:
                 into,
                 outcome,
                 budget=budgets.get(executable.id, 1),
+                delai_s=delais.get(executable.id),
             )
             if rendu is None:
                 a_rendre_localement.append(self._degrade(executable, outcome))
@@ -277,6 +331,7 @@ class ExecutionDispatcher:
         into: Path,
         outcome: ExecutionOutcome,
         budget: int = 1,
+        delai_s: float | None = None,
     ) -> RenderArtifact | None:
         """Tente, dans la limite du budget **déclaré** par le plan d'exécution.
 
@@ -287,23 +342,43 @@ class ExecutionDispatcher:
         """
         into.mkdir(parents=True, exist_ok=True)
         debut = time.monotonic()
+        job = VideoJob(
+            executable=executable,
+            start_image=image.composite_path,
+            reference_images=tuple(
+                image.layer_paths[role]
+                for role in sorted(image.layer_paths, key=lambda r: r.value)
+            ),
+        )
         resultat = None
         aboutie = 1
         for tentative in range(1, max(1, budget) + 1):
             aboutie = tentative
             try:
-                resultat = provider.generate(
-                    VideoJob(
-                        executable=executable,
-                        start_image=image.composite_path,
-                        reference_images=tuple(
-                            image.layer_paths[role] for role in sorted(
-                                image.layer_paths, key=lambda r: r.value
-                            )
+                resultat = _sous_delai(provider, job, delai_s)
+                break
+            except TimeoutError:
+                outcome.notes.append(
+                    f"{executable.shot_id} : {provider.name} n'a pas rendu la "
+                    f"main en {delai_s:g}s (tentative {tentative}/"
+                    f"{max(1, budget)}) — délai dépassé"
+                )
+                outcome.degradations.append(
+                    Degradation(
+                        field="retry_strategy",
+                        requested=f"génération sous {delai_s:g}s",
+                        executed="abandon du fournisseur",
+                        reason=(
+                            f"{provider.name} a dépassé le budget de temps "
+                            f"déclaré par le plan d'exécution ({delai_s:g}s)"
                         ),
+                        description=(
+                            "le plan repart en local : un fournisseur qui ne "
+                            "rend pas la main ne doit pas bloquer l'épisode"
+                        ),
+                        severity=DegradationSeverity.PERCEPTUAL,
                     )
                 )
-                break
             except (ProviderUnavailable, OSError) as panne:
                 outcome.notes.append(
                     f"{executable.shot_id} : {provider.name} a échoué "

@@ -138,7 +138,15 @@ class JournalBuilder:
                     stage="routing",
                     subject_id=executable.shot_id,
                     summary=f"stratégie « {executable.strategy.value} »",
-                    detail=f"caméra {executable.execution_camera.value}",
+                    detail=(
+                        f"caméra {executable.execution_camera.value}"
+                        + (
+                            f" ; capacités consultées : "
+                            f"{executable.capability_snapshot_id}"
+                            if executable.capability_snapshot_id
+                            else " ; aucun instantané de capacités consulté"
+                        )
+                    ),
                 )
             )
         return entries

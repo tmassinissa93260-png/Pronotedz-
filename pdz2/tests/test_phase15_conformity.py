@@ -182,6 +182,7 @@ def test_a_provider_is_retried_exactly_as_the_plan_allows(tmp_path):
         resolution=Resolution(width=64, height=64),
         fps=24,
         provider="atelier-en-panne",
+        capability_snapshot_id="capability_matrix-essai",
         degradations=[],
     )
     plan = ExecutionPlan(

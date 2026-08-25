@@ -26,6 +26,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from pdz2.contracts.capacity import CapabilityMatrix
 from pdz2.contracts.motion import CameraMove, MotionProgram
 from pdz2.contracts.render import (
     AI_VIDEO_STRATEGIES,
@@ -83,6 +84,26 @@ fait qu'en l'absence de fournisseur, l'échelle se réduit exactement à
 `HYBRID` s'y trouve au-dessus du procédural et en dessous de l'I2V : il
 combine une base générative et un traitement local, donc il demande un
 fournisseur, mais il en demande moins qu'un plan entièrement généré.
+"""
+
+DEFAULT_TIMEOUT_S: dict[str, float] = {
+    "render": 300.0,
+    "observe": 120.0,
+    "assemble": 600.0,
+}
+"""Budget d'exécution par nature d'étape, quand aucune échéance n'est posée.
+
+Une seule autorité pour le temps, en deux étages qui ne se contredisent pas :
+
+    deadline_s   sur RenderSpecRequested   l'INTENTION : « ce plan ne doit pas
+                                           coûter plus de N secondes à produire »
+    timeout_s    sur ExecutionStep         le BUDGET DÉRIVÉ, appliqué par
+                                           l'aiguilleur
+
+Le routeur est le seul à faire la dérivation, l'aiguilleur est le seul à
+appliquer. Sans échéance, ces valeurs par défaut s'appliquent ; avec une
+échéance, elle plafonne le budget — un budget ne peut jamais dépasser
+l'intention qui le borne.
 """
 
 _NEEDS_PROVIDER: frozenset[RenderStrategy] = AI_VIDEO_STRATEGIES | {
@@ -143,6 +164,18 @@ Aucune ligne n'y est annoncée sans code derrière.
 """
 
 
+def _budget(deadline_s: float | None, nature: str) -> float:
+    """Budget d'exécution d'une étape, dérivé de l'échéance quand il y en a une.
+
+    L'échéance est l'intention ; le budget en découle et ne peut pas la
+    dépasser. Sans échéance, la valeur par défaut de la nature d'étape.
+    """
+    defaut = DEFAULT_TIMEOUT_S[nature]
+    if deadline_s is None:
+        return defaut
+    return round(min(defaut, deadline_s), 3)
+
+
 class RoutingRejected(ValueError):
     """Aucune stratégie ne peut satisfaire cette demande, pas même un repli."""
 
@@ -169,6 +202,12 @@ class RenderRouter:
     """Choisit une stratégie par plan et enregistre chaque écart."""
 
     video_capabilities: list[VideoCapability] = field(default_factory=list)
+    capability_matrix: CapabilityMatrix | None = None
+    """Instantané des capacités connues au moment du routage.
+
+    Son identifiant est estampillé sur chaque exécutable produit : c'est ce
+    qui permet de retrouver, six mois plus tard, sur quelles capacités
+    mesurées ou inconnues la décision s'appuyait."""
     local_strategies: frozenset[RenderStrategy] = LOCAL_CAPABILITY
     previous_failures: dict[str, set[RenderStrategy]] = field(default_factory=dict)
     """Stratégies déjà mises en échec sur un plan. Alimenté par la réparation."""
@@ -184,6 +223,7 @@ class RenderRouter:
     ) -> RoutingOutcome:
         motions = {program.id: program for program in motion_programs}
         images = {spec.id: spec for spec in image_specs}
+        par_demande = {spec.id: spec.deadline_s for spec in requested}
         executables: list[RenderSpecExecutable] = []
 
         for spec in requested:
@@ -198,7 +238,17 @@ class RenderRouter:
             )
             executables.append(self._route_one(spec, motion, layers))
 
-        plan = self._plan(episode_id, executables, budget_cap_usd)
+        plan = self._plan(
+            episode_id,
+            executables,
+            budget_cap_usd,
+            # L'échéance de la demande borne le budget de l'étape : une seule
+            # chaîne d'autorité, de l'intention au temps réellement appliqué.
+            deadlines={
+                executable.id: par_demande.get(executable.requested_spec_id)
+                for executable in executables
+            },
+        )
         return RoutingOutcome(
             executables=executables,
             plan=plan,
@@ -285,6 +335,9 @@ class RenderRouter:
             duration_s=spec.duration_s,
             resolution=spec.resolution,
             fps=spec.fps,
+            capability_snapshot_id=(
+                self.capability_matrix.id if self.capability_matrix else None
+            ),
             provider=retenu.capability.provider if retenu else None,
             model=(retenu.model or None) if retenu else None,
             degradations=degradations,
@@ -371,6 +424,28 @@ class RenderRouter:
             for capability in self.video_capabilities
             if capability.usable
         ]
+        if spec.allow_ai_video and reachable and self.capability_matrix is None:
+            # Un fournisseur qu'on ne peut pas justifier ne sera pas retenu.
+            # Le contrat refuserait l'exécutable, et il aurait raison : décider
+            # qu'un moteur sait faire quelque chose sans pouvoir montrer sur
+            # quoi on se fondait n'est pas une décision.
+            degradations.append(
+                Degradation(
+                    field="provider_availability",
+                    requested="génération vidéo par IA",
+                    executed="stratégie déterministe locale",
+                    reason=(
+                        "aucun instantané de capacités fourni au routeur : le "
+                        "choix d'un fournisseur ne serait pas traçable"
+                    ),
+                    description=(
+                        "le plan est rendu localement ; sonder les capacités "
+                        "(`pdz2 capabilities`) rend les fournisseurs éligibles"
+                    ),
+                    severity=DegradationSeverity.PERCEPTUAL,
+                )
+            )
+            reachable = []
         if spec.allow_ai_video:
             if reachable:
                 for capability in reachable:
@@ -528,7 +603,9 @@ class RenderRouter:
         episode_id: str,
         executables: list[RenderSpecExecutable],
         budget_cap_usd: float | None,
+        deadlines: dict[str, float | None] | None = None,
     ) -> ExecutionPlan:
+        deadlines = deadlines or {}
         steps: list[ExecutionStep] = []
         for executable in executables:
             kind = (
@@ -545,7 +622,7 @@ class RenderRouter:
                     kind=kind,
                     spec_id=executable.id,
                     retry_budget=1,
-                    timeout_s=300.0,
+                    timeout_s=_budget(deadlines.get(executable.id), "render"),
                     estimated_cost_usd=executable.estimated_cost_usd,
                 )
             )
@@ -556,7 +633,7 @@ class RenderRouter:
                     spec_id=executable.id,
                     depends_on=[render_id],
                     retry_budget=0,
-                    timeout_s=120.0,
+                    timeout_s=_budget(deadlines.get(executable.id), "observe"),
                     estimated_cost_usd=0.0,
                 )
             )
@@ -566,7 +643,7 @@ class RenderRouter:
                 kind=ExecutionStepKind.ASSEMBLE,
                 depends_on=[f"observe-{e.shot_id}" for e in executables],
                 retry_budget=1,
-                timeout_s=600.0,
+                timeout_s=DEFAULT_TIMEOUT_S["assemble"],
                 estimated_cost_usd=0.0,
             )
         )

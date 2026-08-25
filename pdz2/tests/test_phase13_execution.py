@@ -17,6 +17,7 @@ from __future__ import annotations
 import pytest
 
 from pdz2.contracts.capability import CapabilityState
+from pdz2.contracts.capacity import CapabilityMatrix
 from pdz2.contracts.enums import Pacing
 from pdz2.contracts.render import RenderStrategy
 from pdz2.execution import ExecutionDispatcher, Executor
@@ -78,7 +79,11 @@ def _executables(episode, providers=()):
     from pdz2.engines.routing import RenderRouter
 
     capabilities = [p.get_capabilities() for p in providers]
-    return RenderRouter(video_capabilities=capabilities).route(
+    # Retenir un fournisseur exige de montrer sur quoi on s'est fondé.
+    return RenderRouter(
+        video_capabilities=capabilities,
+        capability_matrix=CapabilityMatrix() if providers else None,
+    ).route(
         episode_id="ep",
         requested=episode.render_specs,
         motion_programs=episode.motion_programs,

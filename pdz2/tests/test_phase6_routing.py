@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 import pytest
 
 from pdz2.contracts.capability import CapabilityState, ProviderCapability
+from pdz2.contracts.capacity import CapabilityMatrix
 from pdz2.contracts.motion import CameraMove
 from pdz2.contracts.render import (
     AI_VIDEO_STRATEGIES,
@@ -173,7 +174,12 @@ class TestStrategyChoice:
         assert "un seul calque" in motion_notes[0].reason
 
     def test_a_reachable_provider_unlocks_its_strategies(self, episode) -> None:
-        router = RenderRouter(video_capabilities=[_reachable_capability()])
+        # Un instantané de capacités est requis pour retenir un fournisseur :
+        # le contrat refuse un choix qu'on ne peut pas justifier.
+        router = RenderRouter(
+            video_capabilities=[_reachable_capability()],
+            capability_matrix=CapabilityMatrix(),
+        )
         lively = [
             program.model_copy(
                 update={
@@ -187,6 +193,27 @@ class TestStrategyChoice:
         outcome = _route(episode, router=router, motion_programs=lively)
         fields = {d.field for d in outcome.degradations}
         assert "provider_availability" not in fields
+
+    def test_a_provider_without_a_capability_snapshot_is_set_aside(
+        self, episode
+    ) -> None:
+        """Sans instantané, le fournisseur n'est pas retenu — et c'est déclaré."""
+        router = RenderRouter(video_capabilities=[_reachable_capability()])
+        outcome = _route(episode, router=router)
+        assert all(e.provider is None for e in outcome.executables)
+        raisons = " ".join(d.reason for d in outcome.degradations)
+        assert "instantané de capacités" in raisons
+
+    def test_the_snapshot_identifier_reaches_every_executable(
+        self, episode
+    ) -> None:
+        matrice = CapabilityMatrix()
+        outcome = _route(
+            episode, router=RenderRouter(capability_matrix=matrice)
+        )
+        assert all(
+            e.capability_snapshot_id == matrice.id for e in outcome.executables
+        )
 
     def test_previous_failures_push_the_shot_to_a_guaranteed_fallback(
         self, episode

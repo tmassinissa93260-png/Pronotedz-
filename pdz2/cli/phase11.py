@@ -91,7 +91,9 @@ def cmd_capabilities(args: argparse.Namespace) -> int:
         store = EpisodeStore(args.episode)
         store.initialise()
         store.save(outcome.matrix)
-        print(f"\nécrit : {store.path_for('capability_matrix')}")
+        print(
+            f"\nécrit : {store.path_for('capability_matrix', outcome.matrix.id)}"
+        )
     return 0
 
 
@@ -103,9 +105,7 @@ def cmd_costs(args: argparse.Namespace) -> int:
     ledger = ledger_from_snapshot(snapshot)
     store.save(ledger)
 
-    matrix: CapabilityMatrix | None = None
-    if store.exists("capability_matrix"):
-        matrix = store.load_as(CapabilityMatrix)
+    matrix: CapabilityMatrix | None = store.latest("capability_matrix")
     governor = CostGovernor(ledger=ledger, matrix=matrix)
 
     cap = (

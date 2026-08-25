@@ -89,6 +89,18 @@ class EpisodeStore:
     def load_snapshot(self) -> EpisodeSnapshot:
         return self.load_as(EpisodeSnapshot)
 
+    def latest(self, contract_type: str):
+        """Le plus récent d'une collection, ou `None` si elle est vide.
+
+        Les matrices de capacités s'accumulent : un instantané qu'on écrase
+        n'en est plus un, et l'identifiant qu'un exécutable porte doit rester
+        résoluble longtemps après la décision qu'il justifie.
+        """
+        items = self.load_collection(contract_type)
+        if not items:
+            return None
+        return max(items, key=lambda item: item.created_at)
+
     def has_snapshot(self) -> bool:
         return self.exists("episode_snapshot")
 

@@ -143,7 +143,8 @@ class TestCli:
         from pdz2.storage import EpisodeStore
 
         assert main(["capabilities", "--episode", str(tmp_path / "ep")]) == 0
-        assert EpisodeStore(tmp_path / "ep").exists("capability_matrix")
+        # Les matrices s'accumulent : un instantané qu'on écrase n'en est plus un.
+        assert EpisodeStore(tmp_path / "ep").latest("capability_matrix") is not None
 
     def test_costs_refuses_an_unmeasured_spend(self, tmp_path, capsys) -> None:
         from pdz2.contracts import Stage
