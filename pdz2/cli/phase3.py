@@ -12,6 +12,8 @@ from __future__ import annotations
 import argparse
 import sys
 
+from pydantic import ValidationError
+
 from pdz2.contracts.direction import DirectorBrief, DirectorState
 from pdz2.contracts.pipeline import Stage
 from pdz2.contracts.research import ResearchState, TopicRequest
@@ -55,7 +57,14 @@ def cmd_bible(args: argparse.Namespace) -> int:
         outcome = VisualBibleCompiler().compile(
             director_state=director_state, brief=brief
         )
-    except VisualBibleRejected as failure:
+    except (VisualBibleRejected, ValidationError) as failure:
+        # `ValidationError` est ici parce qu'elle y est déjà arrivée : un brief
+        # portant « bleu électrique » au lieu de « #101820 » a fait tomber la
+        # compilation avec une trace d'exécution brute, illisible dans un
+        # journal d'intégration continue. La contrainte est désormais posée sur
+        # le contrat du brief, donc ce chemin ne devrait plus servir — mais
+        # « ne devrait plus » n'est pas « ne peut plus », et une incompatibilité
+        # résiduelle mérite un refus nommé plutôt qu'une pile d'appels.
         machine.fail(Stage.VISUAL_BIBLE, reason=str(failure))
         store.save_snapshot(machine.snapshot)
         print(f"bible refusée : {failure}", file=sys.stderr)

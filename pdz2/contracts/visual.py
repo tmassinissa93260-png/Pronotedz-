@@ -14,7 +14,7 @@ from typing import Self
 from pydantic import Field, model_validator
 
 from pdz2.contracts.base import Contract, Element, contract
-from pdz2.contracts.common import Composition, Resolution
+from pdz2.contracts.common import Composition, HexColour, Resolution
 from pdz2.contracts.enums import AspectRatio
 
 __all__ = [
@@ -30,20 +30,13 @@ _HEX = re.compile(r"^#[0-9a-fA-F]{6}$")
 
 
 class ColorScheme(Element):
-    palette: list[str] = Field(min_length=2)
-    """Couleurs en hexadécimal, la première est la dominante."""
+    palette: list[HexColour] = Field(min_length=2)
+    """La première est la dominante. La forme est tenue par le type lui-même."""
 
     contrast: float = Field(default=0.5, ge=0.0, le=1.0)
     saturation: float = Field(default=0.5, ge=0.0, le=1.0)
     temperature: float = Field(default=0.0, ge=-1.0, le=1.0)
     """-1 froid, +1 chaud."""
-
-    @model_validator(mode="after")
-    def _hex_only(self) -> Self:
-        bad = [colour for colour in self.palette if not _HEX.match(colour)]
-        if bad:
-            raise ValueError(f"couleurs non hexadécimales : {bad}")
-        return self
 
 
 class Typography(Element):

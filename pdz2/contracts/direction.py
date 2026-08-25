@@ -14,7 +14,7 @@ from typing import Self
 from pydantic import Field, model_validator
 
 from pdz2.contracts.base import Contract, Element, contract
-from pdz2.contracts.common import Curve
+from pdz2.contracts.common import Curve, HexColour
 from pdz2.contracts.enums import NarrativeFunction, Pacing, Tone
 
 __all__ = [
@@ -243,8 +243,12 @@ class VisualStyleDecision(Element):
 
     style: str = Field(min_length=1)
     lighting: str = Field(min_length=1)
-    palette: list[str] = Field(min_length=2)
-    """Couleurs en hexadécimal, la première dominante."""
+    palette: list[HexColour] = Field(min_length=2)
+    """La première est la dominante. La forme est tenue par le type lui-même.
+
+    Elle ne l'était pas : un raisonneur a rendu « bleu électrique, gris acier,
+    blanc pur », le brief a été accepté, et la compilation visuelle est tombée
+    trois étapes plus loin. Le refus appartient à la porte d'entrée."""
 
     lens_language: str = Field(min_length=1)
     materials: list[str] = Field(default_factory=list)
