@@ -1,0 +1,371 @@
+{
+  "$defs": {
+    "CameraMove": {
+      "enum": [
+        "lock",
+        "pan",
+        "tilt",
+        "dolly",
+        "push_in",
+        "pull_out",
+        "track",
+        "orbit",
+        "parallax",
+        "handheld"
+      ],
+      "title": "CameraMove",
+      "type": "string"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Degradation": {
+      "additionalProperties": false,
+      "description": "Trace explicite d'un écart entre la demande et l'exécution.",
+      "properties": {
+        "description": {
+          "minLength": 1,
+          "title": "Description",
+          "type": "string"
+        },
+        "executed": {
+          "minLength": 1,
+          "title": "Executed",
+          "type": "string"
+        },
+        "field": {
+          "minLength": 1,
+          "title": "Field",
+          "type": "string"
+        },
+        "reason": {
+          "minLength": 1,
+          "title": "Reason",
+          "type": "string"
+        },
+        "requested": {
+          "minLength": 1,
+          "title": "Requested",
+          "type": "string"
+        },
+        "severity": {
+          "$ref": "#/$defs/DegradationSeverity",
+          "default": "perceptual"
+        }
+      },
+      "required": [
+        "field",
+        "requested",
+        "executed",
+        "reason",
+        "description"
+      ],
+      "title": "Degradation",
+      "type": "object"
+    },
+    "DegradationSeverity": {
+      "enum": [
+        "cosmetic",
+        "perceptual",
+        "narrative"
+      ],
+      "title": "DegradationSeverity",
+      "type": "string"
+    },
+    "RenderStrategy": {
+      "enum": [
+        "direct_i2v",
+        "controlled_i2v",
+        "video_editing",
+        "vace_style_conditioning",
+        "parallax_2_5d",
+        "procedural",
+        "3d",
+        "hybrid",
+        "ken_burns",
+        "still"
+      ],
+      "title": "RenderStrategy",
+      "type": "string"
+    },
+    "RequestedEcho": {
+      "additionalProperties": false,
+      "description": "Copie des champs demandés, pour rendre l'écart vérifiable localement.",
+      "properties": {
+        "camera": {
+          "$ref": "#/$defs/CameraMove"
+        },
+        "duration_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "fps": {
+          "exclusiveMinimum": 0,
+          "title": "Fps",
+          "type": "integer"
+        },
+        "resolution": {
+          "$ref": "#/$defs/Resolution"
+        },
+        "strategy": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/RenderStrategy"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "text_overlay": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextOverlay"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "camera",
+        "duration_s",
+        "resolution",
+        "fps"
+      ],
+      "title": "RequestedEcho",
+      "type": "object"
+    },
+    "Resolution": {
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "integer"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "width",
+        "height"
+      ],
+      "title": "Resolution",
+      "type": "object"
+    },
+    "ScreenPosition": {
+      "enum": [
+        "top",
+        "upper_third",
+        "center",
+        "lower_third",
+        "bottom",
+        "left",
+        "right"
+      ],
+      "title": "ScreenPosition",
+      "type": "string"
+    },
+    "TextOverlay": {
+      "additionalProperties": false,
+      "properties": {
+        "at_s": {
+          "minimum": 0.0,
+          "title": "At S",
+          "type": "number"
+        },
+        "duration_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "emphasis": {
+          "default": false,
+          "title": "Emphasis",
+          "type": "boolean"
+        },
+        "position": {
+          "$ref": "#/$defs/ScreenPosition",
+          "default": "lower_third"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "at_s",
+        "duration_s"
+      ],
+      "title": "TextOverlay",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:render_spec_executable/1.1.0",
+  "additionalProperties": false,
+  "description": "Ce que l'infrastructure exécutera réellement.",
+  "properties": {
+    "capability_snapshot_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Capability Snapshot Id"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "degradations": {
+      "items": {
+        "$ref": "#/$defs/Degradation"
+      },
+      "title": "Degradations",
+      "type": "array"
+    },
+    "duration_s": {
+      "exclusiveMinimum": 0.0,
+      "title": "Duration S",
+      "type": "number"
+    },
+    "estimated_cost_usd": {
+      "default": 0.0,
+      "minimum": 0.0,
+      "title": "Estimated Cost Usd",
+      "type": "number"
+    },
+    "execution_camera": {
+      "$ref": "#/$defs/CameraMove"
+    },
+    "fps": {
+      "exclusiveMinimum": 0,
+      "maximum": 120,
+      "title": "Fps",
+      "type": "integer"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "model": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Model"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "provider": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Provider"
+    },
+    "requested": {
+      "$ref": "#/$defs/RequestedEcho"
+    },
+    "requested_spec_id": {
+      "minLength": 1,
+      "title": "Requested Spec Id",
+      "type": "string"
+    },
+    "resolution": {
+      "$ref": "#/$defs/Resolution"
+    },
+    "shot_id": {
+      "minLength": 1,
+      "title": "Shot Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "strategy": {
+      "$ref": "#/$defs/RenderStrategy"
+    },
+    "text_overlay": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TextOverlay"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "requested_spec_id",
+    "shot_id",
+    "requested",
+    "strategy",
+    "execution_camera",
+    "duration_s",
+    "resolution",
+    "fps"
+  ],
+  "title": "RenderSpecExecutable",
+  "type": "object"
+}

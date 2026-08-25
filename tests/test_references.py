@@ -8,8 +8,6 @@ contenu vidéo.
 
 from __future__ import annotations
 
-import os
-
 from pdz.analyse.references import dossier_references, lister_references
 
 

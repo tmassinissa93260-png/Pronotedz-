@@ -1,0 +1,234 @@
+{
+  "$defs": {
+    "CapabilityEntry": {
+      "additionalProperties": false,
+      "description": "Ce qu'un couple fournisseur/modèle sait faire, ligne par ligne.",
+      "properties": {
+        "contract_type": {
+          "title": "Contract Type",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "model": {
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "notes": {
+          "default": "",
+          "title": "Notes",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "provider": {
+          "minLength": 1,
+          "title": "Provider",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/ContractStatus",
+          "default": "draft"
+        },
+        "strategies": {
+          "items": {
+            "$ref": "#/$defs/RenderStrategy"
+          },
+          "title": "Strategies",
+          "type": "array"
+        },
+        "values": {
+          "items": {
+            "$ref": "#/$defs/CapacityValue"
+          },
+          "title": "Values",
+          "type": "array"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_type",
+        "version",
+        "id",
+        "created_at",
+        "provider",
+        "model"
+      ],
+      "title": "CapabilityEntry",
+      "type": "object"
+    },
+    "CapacityValue": {
+      "additionalProperties": false,
+      "description": "Une capacité chiffrée, avec d'où elle vient.",
+      "properties": {
+        "measured_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Measured At"
+        },
+        "method": {
+          "default": "",
+          "title": "Method",
+          "type": "string"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "unit": {
+          "default": "",
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "name",
+        "provenance"
+      ],
+      "title": "CapacityValue",
+      "type": "object"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Provenance": {
+      "enum": [
+        "announced",
+        "measured",
+        "unknown"
+      ],
+      "title": "Provenance",
+      "type": "string"
+    },
+    "RenderStrategy": {
+      "enum": [
+        "direct_i2v",
+        "controlled_i2v",
+        "video_editing",
+        "vace_style_conditioning",
+        "parallax_2_5d",
+        "procedural",
+        "3d",
+        "hybrid",
+        "ken_burns",
+        "still"
+      ],
+      "title": "RenderStrategy",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:capability_matrix/1.0.0",
+  "additionalProperties": false,
+  "description": "L'ensemble de ce qu'on croit savoir, et de ce qu'on sait vraiment.",
+  "properties": {
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/CapabilityEntry"
+      },
+      "title": "Entries",
+      "type": "array"
+    },
+    "freshness_days": {
+      "default": 30,
+      "exclusiveMinimum": 0,
+      "title": "Freshness Days",
+      "type": "integer"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at"
+  ],
+  "title": "CapabilityMatrix",
+  "type": "object"
+}

@@ -1,0 +1,399 @@
+{
+  "$defs": {
+    "AnchorDraft": {
+      "additionalProperties": false,
+      "description": "Une ancre de continuité, telle que la réalisation la conçoit.",
+      "properties": {
+        "canonical_description": {
+          "minLength": 1,
+          "title": "Canonical Description",
+          "type": "string"
+        },
+        "identity": {
+          "items": {
+            "$ref": "#/$defs/IdentityAttribute"
+          },
+          "minItems": 1,
+          "title": "Identity",
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/AnchorKind"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "kind",
+        "canonical_description",
+        "identity"
+      ],
+      "title": "AnchorDraft",
+      "type": "object"
+    },
+    "AnchorKind": {
+      "enum": [
+        "person",
+        "vehicle",
+        "object",
+        "building",
+        "machine",
+        "environment"
+      ],
+      "title": "AnchorKind",
+      "type": "string"
+    },
+    "AttributeBinding": {
+      "enum": [
+        "fixed",
+        "soft"
+      ],
+      "title": "AttributeBinding",
+      "type": "string"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "IdentityAttribute": {
+      "additionalProperties": false,
+      "description": "Un trait d'identité nommé, pas une chaîne libre.\n\nLa continuité est représentée dans les données : on ne demande jamais à un\nmodèle de « se souvenir » d'un objet.",
+      "properties": {
+        "binding": {
+          "$ref": "#/$defs/AttributeBinding",
+          "default": "fixed"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "IdentityAttribute",
+      "type": "object"
+    },
+    "Pacing": {
+      "enum": [
+        "slow",
+        "measured",
+        "brisk",
+        "rapid"
+      ],
+      "title": "Pacing",
+      "type": "string"
+    },
+    "Tone": {
+      "enum": [
+        "documentary",
+        "explanatory",
+        "cinematic",
+        "urgent",
+        "contemplative",
+        "playful"
+      ],
+      "title": "Tone",
+      "type": "string"
+    },
+    "VisualLanguage": {
+      "additionalProperties": false,
+      "description": "Intention visuelle, au niveau narratif. La VisualBible la spécifie.",
+      "properties": {
+        "forbidden_imagery": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Forbidden Imagery",
+          "type": "array"
+        },
+        "metaphors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Metaphors",
+          "type": "array"
+        },
+        "recurring_motifs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Recurring Motifs",
+          "type": "array"
+        },
+        "visual_register": {
+          "minLength": 1,
+          "title": "Visual Register",
+          "type": "string"
+        }
+      },
+      "required": [
+        "visual_register"
+      ],
+      "title": "VisualLanguage",
+      "type": "object"
+    },
+    "VisualProofDraft": {
+      "additionalProperties": false,
+      "description": "La réponse à « qu'est-ce que le spectateur doit physiquement voir ? ».",
+      "properties": {
+        "acknowledged_dispute": {
+          "default": false,
+          "title": "Acknowledged Dispute",
+          "type": "boolean"
+        },
+        "anchor_names": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Anchor Names",
+          "type": "array"
+        },
+        "causal_mechanism": {
+          "minLength": 1,
+          "title": "Causal Mechanism",
+          "type": "string"
+        },
+        "claim_id": {
+          "minLength": 1,
+          "title": "Claim Id",
+          "type": "string"
+        },
+        "evidence_required": {
+          "minLength": 1,
+          "title": "Evidence Required",
+          "type": "string"
+        },
+        "visual_proof": {
+          "minLength": 1,
+          "title": "Visual Proof",
+          "type": "string"
+        }
+      },
+      "required": [
+        "claim_id",
+        "causal_mechanism",
+        "evidence_required",
+        "visual_proof"
+      ],
+      "title": "VisualProofDraft",
+      "type": "object"
+    },
+    "VisualStyleDecision": {
+      "additionalProperties": false,
+      "description": "Le parti pris visuel, décidé une fois, comme le reste du brief.\n\nCe sont les seuls champs de la `VisualBible` qu'aucun calcul ne peut\nproduire : un choix de matière, de lumière et de couleur. Tout le reste de\nla bible s'en déduit — densité visuelle depuis la densité d'information,\ninterdits depuis l'imagerie proscrite, langage caméra depuis le rythme.",
+      "properties": {
+        "environment": {
+          "minLength": 1,
+          "title": "Environment",
+          "type": "string"
+        },
+        "graphics": {
+          "minLength": 1,
+          "title": "Graphics",
+          "type": "string"
+        },
+        "lens_language": {
+          "minLength": 1,
+          "title": "Lens Language",
+          "type": "string"
+        },
+        "lighting": {
+          "minLength": 1,
+          "title": "Lighting",
+          "type": "string"
+        },
+        "materials": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Materials",
+          "type": "array"
+        },
+        "palette": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "title": "Palette",
+          "type": "array"
+        },
+        "style": {
+          "minLength": 1,
+          "title": "Style",
+          "type": "string"
+        },
+        "texture": {
+          "minLength": 1,
+          "title": "Texture",
+          "type": "string"
+        },
+        "typography_family": {
+          "default": "Inter",
+          "minLength": 1,
+          "title": "Typography Family",
+          "type": "string"
+        }
+      },
+      "required": [
+        "style",
+        "lighting",
+        "palette",
+        "lens_language",
+        "texture",
+        "environment",
+        "graphics"
+      ],
+      "title": "VisualStyleDecision",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:director_brief/1.1.0",
+  "additionalProperties": false,
+  "description": "Décision de réalisation. Aucune donnée de rendu, aucun fournisseur.",
+  "properties": {
+    "anchors": {
+      "items": {
+        "$ref": "#/$defs/AnchorDraft"
+      },
+      "title": "Anchors",
+      "type": "array"
+    },
+    "audience": {
+      "minLength": 1,
+      "title": "Audience",
+      "type": "string"
+    },
+    "author": {
+      "default": "human",
+      "minLength": 1,
+      "title": "Author",
+      "type": "string"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "ending_payoff": {
+      "minLength": 1,
+      "title": "Ending Payoff",
+      "type": "string"
+    },
+    "excluded_claim_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Excluded Claim Ids",
+      "type": "array"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "pacing": {
+      "$ref": "#/$defs/Pacing"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "research_state_id": {
+      "minLength": 1,
+      "title": "Research State Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "thesis": {
+      "minLength": 1,
+      "title": "Thesis",
+      "type": "string"
+    },
+    "tone": {
+      "$ref": "#/$defs/Tone"
+    },
+    "topic_request_id": {
+      "minLength": 1,
+      "title": "Topic Request Id",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "visual_language": {
+      "$ref": "#/$defs/VisualLanguage"
+    },
+    "visual_proofs": {
+      "items": {
+        "$ref": "#/$defs/VisualProofDraft"
+      },
+      "minItems": 1,
+      "title": "Visual Proofs",
+      "type": "array"
+    },
+    "visual_style": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/VisualStyleDecision"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "topic_request_id",
+    "research_state_id",
+    "thesis",
+    "audience",
+    "tone",
+    "pacing",
+    "ending_payoff",
+    "visual_language",
+    "visual_proofs"
+  ],
+  "title": "DirectorBrief",
+  "type": "object"
+}

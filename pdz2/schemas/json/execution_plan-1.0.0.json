@@ -1,0 +1,168 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "ExecutionStep": {
+      "additionalProperties": false,
+      "properties": {
+        "depends_on": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "estimated_cost_usd": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Estimated Cost Usd",
+          "type": "number"
+        },
+        "kind": {
+          "$ref": "#/$defs/ExecutionStepKind"
+        },
+        "retry_budget": {
+          "default": 1,
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Retry Budget",
+          "type": "integer"
+        },
+        "spec_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Spec Id"
+        },
+        "step_id": {
+          "minLength": 1,
+          "title": "Step Id",
+          "type": "string"
+        },
+        "timeout_s": {
+          "default": 600.0,
+          "exclusiveMinimum": 0.0,
+          "title": "Timeout S",
+          "type": "number"
+        }
+      },
+      "required": [
+        "step_id",
+        "kind"
+      ],
+      "title": "ExecutionStep",
+      "type": "object"
+    },
+    "ExecutionStepKind": {
+      "enum": [
+        "generate_image",
+        "generate_video",
+        "compose_2_5d",
+        "render_procedural",
+        "synthesise_voice",
+        "observe",
+        "assemble",
+        "master_audio"
+      ],
+      "title": "ExecutionStepKind",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:execution_plan/1.0.0",
+  "additionalProperties": false,
+  "description": "Ordonnancement des étapes exécutables et de leur coût.",
+  "properties": {
+    "budget_cap_usd": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Budget Cap Usd"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "episode_id": {
+      "minLength": 1,
+      "title": "Episode Id",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/ExecutionStep"
+      },
+      "minItems": 1,
+      "title": "Steps",
+      "type": "array"
+    },
+    "total_estimated_cost_usd": {
+      "minimum": 0.0,
+      "title": "Total Estimated Cost Usd",
+      "type": "number"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "episode_id",
+    "steps",
+    "total_estimated_cost_usd"
+  ],
+  "title": "ExecutionPlan",
+  "type": "object"
+}

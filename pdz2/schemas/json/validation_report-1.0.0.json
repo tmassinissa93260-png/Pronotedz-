@@ -1,0 +1,163 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Severity": {
+      "enum": [
+        "info",
+        "minor",
+        "major",
+        "blocking"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "ValidationIssue": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "minLength": 1,
+          "title": "Detail",
+          "type": "string"
+        },
+        "remedy": {
+          "default": "",
+          "title": "Remedy",
+          "type": "string"
+        },
+        "rule": {
+          "$ref": "#/$defs/ValidationRule"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "subject_id": {
+          "minLength": 1,
+          "title": "Subject Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "rule",
+        "severity",
+        "subject_id",
+        "detail"
+      ],
+      "title": "ValidationIssue",
+      "type": "object"
+    },
+    "ValidationRule": {
+      "description": "Les règles du §13, une par une.",
+      "enum": [
+        "schema",
+        "contract_version",
+        "required_field",
+        "logical_contradiction",
+        "camera_constraint",
+        "duration_feasibility",
+        "provider_capability",
+        "budget",
+        "fallback_availability",
+        "continuity",
+        "evidence_link",
+        "resolution_format"
+      ],
+      "title": "ValidationRule",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:validation_report/1.0.0",
+  "additionalProperties": false,
+  "description": "Verdict du validateur statique sur un lot de demandes de rendu.",
+  "properties": {
+    "accepted": {
+      "title": "Accepted",
+      "type": "boolean"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "episode_id": {
+      "minLength": 1,
+      "title": "Episode Id",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "issues": {
+      "items": {
+        "$ref": "#/$defs/ValidationIssue"
+      },
+      "title": "Issues",
+      "type": "array"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "requested_spec_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Requested Spec Ids",
+      "type": "array"
+    },
+    "shot_graph_id": {
+      "minLength": 1,
+      "title": "Shot Graph Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "validator_version": {
+      "minLength": 1,
+      "title": "Validator Version",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "episode_id",
+    "shot_graph_id",
+    "validator_version",
+    "accepted"
+  ],
+  "title": "ValidationReport",
+  "type": "object"
+}

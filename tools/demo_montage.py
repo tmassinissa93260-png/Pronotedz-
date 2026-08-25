@@ -58,7 +58,7 @@ def fabriquer_image(perso: str, texte: str, chemin: Path) -> Path:
         t = y / H
         d.line(
             [(0, y), (L, y)],
-            fill=tuple(round(h + (b - h) * t) for h, b in zip(haut, bas)),
+            fill=tuple(round(h + (b - h) * t) for h, b in zip(haut, bas, strict=True)),
         )
     d.ellipse([L * 0.22, H * 0.29, L * 0.78, H * 0.60], outline=(255, 255, 255), width=10)
     d.text((90, 180), perso.upper(), fill=(255, 255, 255))

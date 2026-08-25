@@ -11,6 +11,38 @@ sur ma machine.
 > 👉 **[Comment l'installer sur ta machine](./INSTALLER.md)**
 > 📱 **[Pas d'ordinateur ? Le faire tourner depuis ton téléphone](./TELEPHONE.md)**
 
+## PDZ 2 — reconstruction terminée
+
+Une reconstruction complète et indépendante du système vit dans
+[`pdz2/`](./pdz2/) : un **compilateur audiovisuel** modulaire, observable,
+provider-agnostic, capable de fonctionner avec ou sans génération vidéo IA.
+
+PDZ 2 ne migre pas et ne répare pas le système ci-dessous — il est écrit à
+part et les deux paquets cohabitent.
+
+* **Les douze phases sont implémentées.** `pdz2 phases` donne l'état réel.
+* Architecture et décisions : [`pdz2/architecture/`](./pdz2/architecture/)
+* De bout en bout, en une commande :
+
+  ```
+  pdz2 create --episode ep/ --topic "..." --corpus docs/ --brief brief.json
+  ```
+
+  La chaîne s'arrête volontairement une fois si le brief manque : la thèse, le
+  ton et le public sont des décisions humaines, et le compilateur ne les
+  invente pas.
+* Ce qui sort : un **MP4 réel** — H.264 1080×1920, AAC 48 kHz, sous-titres,
+  audio normalisé EBU R128, chaque contrôle final mesuré sur le fichier.
+* Toutes les durées viennent de l'**audio réellement synthétisé et mesuré**,
+  jamais d'une estimation.
+* Dépendances système : `espeak-ng` (voix) et `ffmpeg` (image, son, mesure).
+  Absentes, elles sont déclarées `UNAVAILABLE` — rien ne fait semblant de
+  fonctionner. `pdz2 capabilities --measure` dit ce qui est réellement là.
+* Ce qui n'est **pas** branché, et qui est déclaré plutôt que simulé : aucun
+  raisonneur (LLM), aucun adaptateur de génération vidéo, aucune recherche en
+  ligne. `pdz2 journal` liste, pour chaque épisode, tout ce que la chaîne a dû
+  accepter.
+
 ## Ce qu'il sait faire
 
 **Plusieurs formats, un seul système.** Un univers par niche, autant que je veux.

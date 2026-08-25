@@ -12,7 +12,7 @@ détecte.
 from pathlib import Path
 
 import pdz.agents.ecriture.script as script_module
-from pdz.cli import avant_apres, _resume_empreinte, references
+from pdz.cli import _resume_empreinte, avant_apres, references
 from pdz.univers import (
     ChampInterprete,
     EmpreinteCreative,
@@ -25,7 +25,10 @@ from pdz.univers import (
 
 
 def _empreinte_complete() -> EmpreinteCreative:
-    champ = lambda v, c=0.8: ChampInterprete(valeur=v, confiance=c, observation="vu dans la référence")
+    def champ(v, c=0.8):
+        return ChampInterprete(valeur=v, confiance=c,
+                               observation="vu dans la référence")
+
     return EmpreinteCreative(
         hook=EmpreinteHook(type=champ("question impossible")),
         narrative=EmpreinteNarrative(structure=champ("mise en place"), fin=champ("révélation ouverte")),
@@ -50,7 +53,9 @@ FRUITS = Path(__file__).resolve().parent.parent / "univers" / "fruit-island.yaml
 
 
 def _empreinte_distincte(suffixe: str) -> EmpreinteCreative:
-    champ = lambda v, c=0.8: ChampInterprete(valeur=v, confiance=c, observation="vu")
+    def champ(v, c=0.8):
+        return ChampInterprete(valeur=v, confiance=c, observation="vu")
+
     return EmpreinteCreative(
         hook=EmpreinteHook(type=champ(f"hook-{suffixe}")),
         narrative=EmpreinteNarrative(structure=champ(f"structure-{suffixe}"), fin=champ(f"fin-{suffixe}")),

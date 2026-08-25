@@ -1,0 +1,685 @@
+{
+  "$defs": {
+    "AudioEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "at_s": {
+          "minimum": 0.0,
+          "title": "At S",
+          "type": "number"
+        },
+        "duration_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "gain_db": {
+          "default": 0.0,
+          "maximum": 12.0,
+          "minimum": -60.0,
+          "title": "Gain Db",
+          "type": "number"
+        },
+        "hint": {
+          "default": "",
+          "title": "Hint",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/AudioEventKind"
+        }
+      },
+      "required": [
+        "kind",
+        "at_s",
+        "duration_s"
+      ],
+      "title": "AudioEvent",
+      "type": "object"
+    },
+    "AudioEventKind": {
+      "enum": [
+        "sfx",
+        "impact",
+        "whoosh",
+        "ambience",
+        "music_cue",
+        "silence"
+      ],
+      "title": "AudioEventKind",
+      "type": "string"
+    },
+    "CameraAngle": {
+      "enum": [
+        "eye",
+        "low",
+        "high",
+        "top_down",
+        "dutch",
+        "isometric",
+        "cross_section"
+      ],
+      "title": "CameraAngle",
+      "type": "string"
+    },
+    "Composition": {
+      "additionalProperties": false,
+      "description": "Cadrage d'un plan. Intention de mise en image, pas d'exécution.",
+      "properties": {
+        "angle": {
+          "$ref": "#/$defs/CameraAngle",
+          "default": "eye"
+        },
+        "framing": {
+          "$ref": "#/$defs/Framing"
+        },
+        "headroom": {
+          "default": 0.1,
+          "maximum": 0.5,
+          "minimum": 0.0,
+          "title": "Headroom",
+          "type": "number"
+        },
+        "negative_space": {
+          "default": 0.3,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Negative Space",
+          "type": "number"
+        },
+        "safe_area_pct": {
+          "default": 0.9,
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "title": "Safe Area Pct",
+          "type": "number"
+        },
+        "subject_position": {
+          "$ref": "#/$defs/ScreenPosition",
+          "default": "center"
+        }
+      },
+      "required": [
+        "framing"
+      ],
+      "title": "Composition",
+      "type": "object"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Easing": {
+      "enum": [
+        "linear",
+        "ease_in",
+        "ease_out",
+        "ease_in_out",
+        "spring"
+      ],
+      "title": "Easing",
+      "type": "string"
+    },
+    "Framing": {
+      "enum": [
+        "extreme_wide",
+        "wide",
+        "medium_wide",
+        "medium",
+        "medium_close",
+        "close",
+        "extreme_close",
+        "macro",
+        "cutaway_diagram"
+      ],
+      "title": "Framing",
+      "type": "string"
+    },
+    "MotionDescriptor": {
+      "additionalProperties": false,
+      "description": "Mouvement d'un sujet ou d'un environnement.",
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "direction": {
+          "$ref": "#/$defs/Vec3"
+        },
+        "magnitude": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Magnitude",
+          "type": "number"
+        },
+        "primitive": {
+          "$ref": "#/$defs/MotionPrimitive",
+          "default": "static"
+        },
+        "trajectory": {
+          "$ref": "#/$defs/Trajectory"
+        }
+      },
+      "title": "MotionDescriptor",
+      "type": "object"
+    },
+    "MotionPrimitive": {
+      "description": "Primitives de la grammaire de mouvement, chacune paramétrable.",
+      "enum": [
+        "static",
+        "linear",
+        "arc",
+        "orbit",
+        "oscillate",
+        "spiral",
+        "rotate",
+        "scale",
+        "flow",
+        "jitter"
+      ],
+      "title": "MotionPrimitive",
+      "type": "string"
+    },
+    "NarrativeFunction": {
+      "description": "Rôle d'une réplique ou d'un plan dans la démonstration.",
+      "enum": [
+        "hook",
+        "setup",
+        "question",
+        "mechanism",
+        "evidence",
+        "contrast",
+        "consequence",
+        "payoff",
+        "transition",
+        "cta"
+      ],
+      "title": "NarrativeFunction",
+      "type": "string"
+    },
+    "RenderConstraints": {
+      "additionalProperties": false,
+      "description": "Limites que l'exécution doit respecter. Aucun fournisseur nommé.",
+      "properties": {
+        "allow_ai_video": {
+          "default": true,
+          "title": "Allow Ai Video",
+          "type": "boolean"
+        },
+        "deterministic_only": {
+          "default": false,
+          "title": "Deterministic Only",
+          "type": "boolean"
+        },
+        "max_attempts": {
+          "default": 2,
+          "maximum": 10,
+          "minimum": 1,
+          "title": "Max Attempts",
+          "type": "integer"
+        },
+        "max_cost_usd": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Cost Usd"
+        },
+        "min_resolution": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Resolution"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "requires_identity_lock": {
+          "default": false,
+          "title": "Requires Identity Lock",
+          "type": "boolean"
+        }
+      },
+      "title": "RenderConstraints",
+      "type": "object"
+    },
+    "Resolution": {
+      "additionalProperties": false,
+      "properties": {
+        "height": {
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "integer"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "width",
+        "height"
+      ],
+      "title": "Resolution",
+      "type": "object"
+    },
+    "ScreenPosition": {
+      "enum": [
+        "top",
+        "upper_third",
+        "center",
+        "lower_third",
+        "bottom",
+        "left",
+        "right"
+      ],
+      "title": "ScreenPosition",
+      "type": "string"
+    },
+    "ShotEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "carried_anchor_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Carried Anchor Ids",
+          "type": "array"
+        },
+        "from_shot_id": {
+          "minLength": 1,
+          "title": "From Shot Id",
+          "type": "string"
+        },
+        "to_shot_id": {
+          "minLength": 1,
+          "title": "To Shot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from_shot_id",
+        "to_shot_id"
+      ],
+      "title": "ShotEdge",
+      "type": "object"
+    },
+    "ShotSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "audio_events": {
+          "items": {
+            "$ref": "#/$defs/AudioEvent"
+          },
+          "title": "Audio Events",
+          "type": "array"
+        },
+        "camera_program_id": {
+          "minLength": 1,
+          "title": "Camera Program Id",
+          "type": "string"
+        },
+        "claim_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Claim Id"
+        },
+        "composition": {
+          "$ref": "#/$defs/Composition"
+        },
+        "continuity_dependencies": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Continuity Dependencies",
+          "type": "array"
+        },
+        "contract_type": {
+          "title": "Contract Type",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "duration_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "environment_motion": {
+          "$ref": "#/$defs/MotionDescriptor"
+        },
+        "evidence_required": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Required"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "narrative_function": {
+          "$ref": "#/$defs/NarrativeFunction"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "render_constraints": {
+          "$ref": "#/$defs/RenderConstraints"
+        },
+        "shot_id": {
+          "minLength": 1,
+          "title": "Shot Id",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/ContractStatus",
+          "default": "draft"
+        },
+        "subject_motion": {
+          "$ref": "#/$defs/MotionDescriptor"
+        },
+        "text_overlay": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextOverlay"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "transition_in": {
+          "$ref": "#/$defs/Transition"
+        },
+        "transition_out": {
+          "$ref": "#/$defs/Transition"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "visual_subject": {
+          "minLength": 1,
+          "title": "Visual Subject",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_type",
+        "version",
+        "id",
+        "created_at",
+        "shot_id",
+        "duration_s",
+        "narrative_function",
+        "visual_subject",
+        "composition",
+        "camera_program_id"
+      ],
+      "title": "ShotSpec",
+      "type": "object"
+    },
+    "TextOverlay": {
+      "additionalProperties": false,
+      "properties": {
+        "at_s": {
+          "minimum": 0.0,
+          "title": "At S",
+          "type": "number"
+        },
+        "duration_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "emphasis": {
+          "default": false,
+          "title": "Emphasis",
+          "type": "boolean"
+        },
+        "position": {
+          "$ref": "#/$defs/ScreenPosition",
+          "default": "lower_third"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "at_s",
+        "duration_s"
+      ],
+      "title": "TextOverlay",
+      "type": "object"
+    },
+    "Trajectory": {
+      "additionalProperties": false,
+      "description": "Trajectoire paramétrée. Représentation numérique, pas textuelle.",
+      "properties": {
+        "amplitude": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Amplitude",
+          "type": "number"
+        },
+        "axis": {
+          "$ref": "#/$defs/Vec3"
+        },
+        "control_points": {
+          "items": {
+            "$ref": "#/$defs/Vec3"
+          },
+          "title": "Control Points",
+          "type": "array"
+        },
+        "easing": {
+          "$ref": "#/$defs/Easing",
+          "default": "linear"
+        },
+        "frequency_hz": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Frequency Hz",
+          "type": "number"
+        },
+        "loop": {
+          "default": false,
+          "title": "Loop",
+          "type": "boolean"
+        },
+        "primitive": {
+          "$ref": "#/$defs/MotionPrimitive",
+          "default": "static"
+        }
+      },
+      "title": "Trajectory",
+      "type": "object"
+    },
+    "Transition": {
+      "additionalProperties": false,
+      "properties": {
+        "duration_s": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Duration S",
+          "type": "number"
+        },
+        "kind": {
+          "$ref": "#/$defs/TransitionKind",
+          "default": "cut"
+        }
+      },
+      "title": "Transition",
+      "type": "object"
+    },
+    "TransitionKind": {
+      "enum": [
+        "cut",
+        "dissolve",
+        "fade_in",
+        "fade_out",
+        "match_cut",
+        "whip",
+        "wipe"
+      ],
+      "title": "TransitionKind",
+      "type": "string"
+    },
+    "Vec3": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "default": 0.0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "default": 0.0,
+          "title": "Y",
+          "type": "number"
+        },
+        "z": {
+          "default": 0.0,
+          "title": "Z",
+          "type": "number"
+        }
+      },
+      "title": "Vec3",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:shot_graph/1.0.0",
+  "additionalProperties": false,
+  "properties": {
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "director_state_id": {
+      "minLength": 1,
+      "title": "Director State Id",
+      "type": "string"
+    },
+    "edges": {
+      "items": {
+        "$ref": "#/$defs/ShotEdge"
+      },
+      "title": "Edges",
+      "type": "array"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "shots": {
+      "items": {
+        "$ref": "#/$defs/ShotSpec"
+      },
+      "minItems": 1,
+      "title": "Shots",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "total_duration_s": {
+      "exclusiveMinimum": 0.0,
+      "title": "Total Duration S",
+      "type": "number"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "visual_bible_id": {
+      "minLength": 1,
+      "title": "Visual Bible Id",
+      "type": "string"
+    },
+    "voice_timeline_id": {
+      "minLength": 1,
+      "title": "Voice Timeline Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "director_state_id",
+    "voice_timeline_id",
+    "visual_bible_id",
+    "shots",
+    "total_duration_s"
+  ],
+  "title": "ShotGraph",
+  "type": "object"
+}

@@ -1,0 +1,185 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "FailureFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "evidence_measurements": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Measurements",
+          "type": "array"
+        },
+        "explanation": {
+          "minLength": 1,
+          "title": "Explanation",
+          "type": "string"
+        },
+        "failed_check_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Failed Check Ids",
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/FailureKind"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity",
+          "default": "major"
+        }
+      },
+      "required": [
+        "kind",
+        "explanation",
+        "evidence_measurements",
+        "confidence"
+      ],
+      "title": "FailureFinding",
+      "type": "object"
+    },
+    "FailureKind": {
+      "enum": [
+        "no_motion",
+        "wrong_motion",
+        "excessive_motion",
+        "identity_drift",
+        "geometry_break",
+        "temporal_drift",
+        "duration_mismatch",
+        "black_frames",
+        "artifacting",
+        "style_drift",
+        "visual_repetition",
+        "audio_desync",
+        "loudness_out_of_range",
+        "subtitle_desync",
+        "missing_visual_proof",
+        "provider_error",
+        "budget_exceeded",
+        "capability_missing"
+      ],
+      "title": "FailureKind",
+      "type": "string"
+    },
+    "Severity": {
+      "enum": [
+        "info",
+        "minor",
+        "major",
+        "blocking"
+      ],
+      "title": "Severity",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:failure_diagnosis/1.0.0",
+  "additionalProperties": false,
+  "description": "Explication d'un échec, adossée aux mesures.",
+  "properties": {
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "explanation": {
+      "minLength": 1,
+      "title": "Explanation",
+      "type": "string"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/FailureFinding"
+      },
+      "minItems": 1,
+      "title": "Findings",
+      "type": "array"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "observation_id": {
+      "minLength": 1,
+      "title": "Observation Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "recoverable": {
+      "default": true,
+      "title": "Recoverable",
+      "type": "boolean"
+    },
+    "root_cause": {
+      "$ref": "#/$defs/FailureKind"
+    },
+    "shot_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Shot Id"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "observation_id",
+    "findings",
+    "root_cause",
+    "explanation"
+  ],
+  "title": "FailureDiagnosis",
+  "type": "object"
+}

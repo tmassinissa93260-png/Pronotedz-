@@ -29,7 +29,7 @@ def _clip_anime(destination: Path, *, duree_s: float = 2.0) -> None:
     """Motif animé — un vrai déplacement d'une frame à l'autre."""
     subprocess.run([
         "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
-        "-f", "lavfi", "-t", str(duree_s), "-i", f"testsrc=size=64x64:rate=10",
+        "-f", "lavfi", "-t", str(duree_s), "-i", "testsrc=size=64x64:rate=10",
         "-c:v", "libx264", "-preset", "ultrafast", "-pix_fmt", "yuv420p",
         str(destination),
     ], check=True, capture_output=True)

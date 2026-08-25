@@ -58,7 +58,7 @@ def point_de_coupe(mots_replique: list[Mot], duree_ms: float,
 
     meilleure_pause_ms = -1.0
     position_ms = None
-    for avant, apres in zip(mots_replique, mots_replique[1:]):
+    for avant, apres in zip(mots_replique, mots_replique[1:], strict=False):
         pause_ms = apres.debut_ms - avant.fin_ms
         if pause_ms <= 0:
             continue

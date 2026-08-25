@@ -1,0 +1,604 @@
+{
+  "$defs": {
+    "CausalEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "explanation": {
+          "default": "",
+          "title": "Explanation",
+          "type": "string"
+        },
+        "from_claim_id": {
+          "minLength": 1,
+          "title": "From Claim Id",
+          "type": "string"
+        },
+        "relation": {
+          "$ref": "#/$defs/CausalRelation",
+          "default": "causes"
+        },
+        "to_claim_id": {
+          "minLength": 1,
+          "title": "To Claim Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from_claim_id",
+        "to_claim_id"
+      ],
+      "title": "CausalEdge",
+      "type": "object"
+    },
+    "CausalRelation": {
+      "enum": [
+        "causes",
+        "enables",
+        "requires",
+        "contrasts_with",
+        "quantifies"
+      ],
+      "title": "CausalRelation",
+      "type": "string"
+    },
+    "Claim": {
+      "additionalProperties": false,
+      "description": "Une affirmation, ses preuves, et ce qu'il faut montrer pour la prouver.",
+      "properties": {
+        "causal_mechanism": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Causal Mechanism"
+        },
+        "confidence": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "contract_type": {
+          "title": "Contract Type",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "demonstrability": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Demonstrability",
+          "type": "number"
+        },
+        "depends_on": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Depends On",
+          "type": "array"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "evidence_required": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Required"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/ClaimKind",
+          "default": "fact"
+        },
+        "load_bearing": {
+          "default": false,
+          "title": "Load Bearing",
+          "type": "boolean"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "status": {
+          "$ref": "#/$defs/ContractStatus",
+          "default": "draft"
+        },
+        "text": {
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "verification": {
+          "$ref": "#/$defs/VerificationStatus",
+          "default": "unverified"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "visual_proof": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Visual Proof"
+        },
+        "visually_demonstrable": {
+          "default": false,
+          "title": "Visually Demonstrable",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "contract_type",
+        "version",
+        "id",
+        "created_at",
+        "text"
+      ],
+      "title": "Claim",
+      "type": "object"
+    },
+    "ClaimKind": {
+      "enum": [
+        "fact",
+        "mechanism",
+        "quantity",
+        "definition",
+        "consequence",
+        "comparison"
+      ],
+      "title": "ClaimKind",
+      "type": "string"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Evidence": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_type": {
+          "title": "Contract Type",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "locator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Locator"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "quote": {
+          "minLength": 1,
+          "title": "Quote",
+          "type": "string"
+        },
+        "source_id": {
+          "minLength": 1,
+          "title": "Source Id",
+          "type": "string"
+        },
+        "stance": {
+          "$ref": "#/$defs/EvidenceStance"
+        },
+        "status": {
+          "$ref": "#/$defs/ContractStatus",
+          "default": "draft"
+        },
+        "strength": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Strength",
+          "type": "number"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_type",
+        "version",
+        "id",
+        "created_at",
+        "source_id",
+        "stance",
+        "quote",
+        "strength"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "EvidenceStance": {
+      "enum": [
+        "supports",
+        "contradicts",
+        "qualifies",
+        "unclear"
+      ],
+      "title": "EvidenceStance",
+      "type": "string"
+    },
+    "FactGraph": {
+      "additionalProperties": false,
+      "description": "Graphe causal des affirmations. Acyclique par construction.",
+      "properties": {
+        "claim_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Claim Ids",
+          "type": "array"
+        },
+        "contract_type": {
+          "title": "Contract Type",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "edges": {
+          "items": {
+            "$ref": "#/$defs/CausalEdge"
+          },
+          "title": "Edges",
+          "type": "array"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "status": {
+          "$ref": "#/$defs/ContractStatus",
+          "default": "draft"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_type",
+        "version",
+        "id",
+        "created_at"
+      ],
+      "title": "FactGraph",
+      "type": "object"
+    },
+    "SourceKind": {
+      "enum": [
+        "paper",
+        "encyclopedia",
+        "documentation",
+        "news",
+        "book",
+        "dataset",
+        "standard",
+        "expert",
+        "unknown"
+      ],
+      "title": "SourceKind",
+      "type": "string"
+    },
+    "SourceReference": {
+      "additionalProperties": false,
+      "properties": {
+        "authority": {
+          "default": 0.5,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Authority",
+          "type": "number"
+        },
+        "contract_type": {
+          "title": "Contract Type",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "excerpt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Excerpt"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/SourceKind",
+          "default": "unknown"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "published_on": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Published On"
+        },
+        "publisher": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Publisher"
+        },
+        "retrieved_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retrieved At"
+        },
+        "status": {
+          "$ref": "#/$defs/ContractStatus",
+          "default": "draft"
+        },
+        "title": {
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_type",
+        "version",
+        "id",
+        "created_at",
+        "title"
+      ],
+      "title": "SourceReference",
+      "type": "object"
+    },
+    "VerificationStatus": {
+      "enum": [
+        "unverified",
+        "corroborated",
+        "disputed",
+        "refuted"
+      ],
+      "title": "VerificationStatus",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:research_state/1.0.0",
+  "additionalProperties": false,
+  "description": "Sortie complète du moteur de recherche, refermée sur elle-même.",
+  "properties": {
+    "claims": {
+      "items": {
+        "$ref": "#/$defs/Claim"
+      },
+      "title": "Claims",
+      "type": "array"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "coverage": {
+      "default": 0.0,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Coverage",
+      "type": "number"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "fact_graph": {
+      "$ref": "#/$defs/FactGraph"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "open_questions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Open Questions",
+      "type": "array"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "question": {
+      "minLength": 1,
+      "title": "Question",
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/SourceReference"
+      },
+      "title": "Sources",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "topic_request_id": {
+      "minLength": 1,
+      "title": "Topic Request Id",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "topic_request_id",
+    "question",
+    "fact_graph"
+  ],
+  "title": "ResearchState",
+  "type": "object"
+}

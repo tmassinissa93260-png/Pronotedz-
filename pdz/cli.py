@@ -582,8 +582,8 @@ def avant_apres(
     _journal(verbeux)
     from pdz.agents.base import texte_empreinte
     from pdz.agents.ecriture.script import ScriptWriter
-    from pdz.analyse.references import dossier_references, lister_references
     from pdz.analyse.rapport_transfert import PlanRapporte, RapportTransfert, construire_rapport
+    from pdz.analyse.references import dossier_references, lister_references
     from pdz.moteur.pipeline import Contexte, executer_avec_relance
     from pdz.production import images, storyboard
 

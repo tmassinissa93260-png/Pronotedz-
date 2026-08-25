@@ -9,6 +9,7 @@ rendait impossible de répondre à « qu'est-ce que ce plan VOULAIT faire ? »
 autrement qu'en relisant un prompt.
 """
 
+import dataclasses
 from pathlib import Path
 
 import pytest
@@ -186,7 +187,9 @@ def test_le_programme_est_immuable(fruits):
     """Un programme est un constat, pas un brouillon : le muter en aval
     ferait mentir le diagnostic sur ce qui avait été demandé."""
     p = motion_program.depuis_plan(PLAN_COMPLET, fruits)
-    with pytest.raises(Exception):
+    # `Exception` tout court passerait aussi si la construction échouait, ou
+    # sur n'importe quelle autre erreur : c'est le gel qu'on vérifie ici.
+    with pytest.raises(dataclasses.FrozenInstanceError):
         p.action = "autre chose"        # type: ignore[misc]
 
 

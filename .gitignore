@@ -17,3 +17,9 @@ build/
 
 # OS
 .DS_Store
+
+# Couverture : régénérée à chaque `pytest --cov`, jamais versionnée.
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml

@@ -1,0 +1,144 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Stage": {
+      "description": "Étapes du compilateur, de l'idée au MP4.",
+      "enum": [
+        "research",
+        "direction",
+        "script",
+        "voice",
+        "timeline",
+        "visual_bible",
+        "shot_graph",
+        "motion",
+        "render_spec",
+        "static_validation",
+        "routing",
+        "assets",
+        "render",
+        "observation",
+        "diagnosis",
+        "repair",
+        "edit",
+        "audio_master",
+        "subtitles",
+        "final_qa",
+        "delivery"
+      ],
+      "title": "Stage",
+      "type": "string"
+    },
+    "StageStatus": {
+      "enum": [
+        "pending",
+        "running",
+        "done",
+        "failed",
+        "skipped"
+      ],
+      "title": "StageStatus",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:state_transition/1.0.0",
+  "additionalProperties": false,
+  "description": "Une ligne du journal d'états. Immuable une fois écrite.",
+  "properties": {
+    "actor": {
+      "default": "system",
+      "minLength": 1,
+      "title": "Actor",
+      "type": "string"
+    },
+    "at": {
+      "format": "date-time",
+      "title": "At",
+      "type": "string"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "cost_usd": {
+      "default": 0.0,
+      "minimum": 0.0,
+      "title": "Cost Usd",
+      "type": "number"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "episode_id": {
+      "minLength": 1,
+      "title": "Episode Id",
+      "type": "string"
+    },
+    "from_status": {
+      "$ref": "#/$defs/StageStatus"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "reason": {
+      "minLength": 1,
+      "title": "Reason",
+      "type": "string"
+    },
+    "stage": {
+      "$ref": "#/$defs/Stage"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "to_status": {
+      "$ref": "#/$defs/StageStatus"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "episode_id",
+    "stage",
+    "from_status",
+    "to_status",
+    "at",
+    "reason"
+  ],
+  "title": "StateTransition",
+  "type": "object"
+}

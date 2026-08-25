@@ -1,0 +1,472 @@
+"""Tests d'architecture.
+
+Ces tests ne vérifient pas un comportement mais une frontière. Ils échouent
+le jour où quelqu'un mélange les trois couches, ou fait entrer un nom de
+fournisseur dans le cœur du système.
+"""
+
+from __future__ import annotations
+
+import ast
+from pathlib import Path
+
+import pytest
+
+from pdz2.contracts import DirectorState, RenderSpecExecutable, RenderSpecRequested, registry
+
+PACKAGE_ROOT = Path(__file__).resolve().parents[1]
+
+EXECUTION_ONLY_PACKAGES = {
+    "pdz2.execution",
+    "pdz2.providers",
+    "pdz2.renderers",
+    "pdz2.engines",
+    "pdz2.qa",
+    "pdz2.repair",
+    "pdz2.audio",
+    "pdz2.editing",
+    "pdz2.cli",
+    "pdz2.storage",
+    "pdz2.state",
+}
+
+# Marques et noms commerciaux qui n'ont rien à faire dans le cœur : ils
+# n'apparaissent, plus tard, que dans les adaptateurs et la matrice de
+# capacités mesurées.
+PROVIDER_BRANDS = (
+    "openai",
+    "anthropic",
+    "runway",
+    "pika",
+    "luma",
+    "kling",
+    "veo",
+    "sora",
+    "elevenlabs",
+    "groq",
+    "replicate",
+    "fal.ai",
+    "falai",
+    "stability",
+    "midjourney",
+    "comfyui",
+)
+
+
+def _imports_of(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    modules: set[str] = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            modules.update(alias.name for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
+            modules.add(node.module)
+    return modules
+
+
+def _python_files(package: str) -> list[Path]:
+    directory = PACKAGE_ROOT / package
+    return sorted(p for p in directory.rglob("*.py"))
+
+
+class TestContractsStayIndependent:
+    def test_contracts_import_nothing_from_the_execution_layers(self) -> None:
+        offenders: list[str] = []
+        for path in _python_files("contracts"):
+            for module in _imports_of(path):
+                for forbidden in EXECUTION_ONLY_PACKAGES:
+                    if module == forbidden or module.startswith(f"{forbidden}."):
+                        offenders.append(f"{path.name} importe {module}")
+        assert not offenders, offenders
+
+    def test_the_state_machine_only_knows_contracts(self) -> None:
+        allowed_prefixes = ("pdz2.contracts", "pdz2.state")
+        offenders: list[str] = []
+        for path in _python_files("state"):
+            for module in _imports_of(path):
+                if module.startswith("pdz2.") and not module.startswith(allowed_prefixes):
+                    offenders.append(f"{path.name} importe {module}")
+        assert not offenders, offenders
+
+    @pytest.mark.parametrize(
+        "package", ["contracts", "state", "storage", "schemas", "engines"]
+    )
+    def test_no_provider_brand_in_the_core(self, package: str) -> None:
+        offenders: list[str] = []
+        for path in _python_files(package):
+            lowered = path.read_text(encoding="utf-8").lower()
+            for brand in PROVIDER_BRANDS:
+                if brand in lowered:
+                    offenders.append(f"{path.name} mentionne {brand!r}")
+        assert not offenders, offenders
+
+
+class TestLayerPurity:
+    """NARRATIVE INTENT, RENDER SPECIFICATION et EXECUTION ne se mélangent pas."""
+
+    RENDER_WORDS = {
+        "provider",
+        "model",
+        "strategy",
+        "fps",
+        "resolution",
+        "seed",
+        "cost",
+        "endpoint",
+        "api",
+    }
+
+    def test_director_state_carries_no_render_field(self) -> None:
+        leaked = [
+            name
+            for name in DirectorState.model_fields
+            if any(word in name for word in self.RENDER_WORDS)
+        ]
+        assert not leaked, f"fuite d'exécution dans DirectorState : {leaked}"
+
+    def test_shot_intent_carries_no_render_field(self) -> None:
+        from pdz2.contracts import ShotIntent
+
+        leaked = [
+            name
+            for name in ShotIntent.model_fields
+            if any(word in name for word in self.RENDER_WORDS)
+        ]
+        assert not leaked, f"fuite d'exécution dans ShotIntent : {leaked}"
+
+    def test_requested_spec_names_no_provider(self) -> None:
+        fields = set(RenderSpecRequested.model_fields)
+        assert "provider" not in fields
+        assert "model" not in fields
+
+    def test_executable_spec_is_the_only_side_that_names_a_provider(self) -> None:
+        assert "provider" in RenderSpecExecutable.model_fields
+        assert "model" in RenderSpecExecutable.model_fields
+
+    def test_executable_spec_carries_no_narrative_field(self) -> None:
+        narrative = {"thesis", "claim_id", "narrative_function", "audience", "tone"}
+        leaked = narrative & set(RenderSpecExecutable.model_fields)
+        assert not leaked, f"fuite narrative dans RenderSpecExecutable : {leaked}"
+
+
+class TestNoArbitraryDictionaries:
+    """Aucun dictionnaire libre ne remplace un contrat central."""
+
+    def test_no_contract_exposes_a_raw_dict_field(self) -> None:
+        offenders: list[str] = []
+        for contract_type in registry.types():
+            for name, field in contract_type.model_fields.items():
+                annotation = str(field.annotation)
+                if "dict[" in annotation.lower() or annotation.startswith("<class 'dict'"):
+                    offenders.append(f"{contract_type.CONTRACT_NAME}.{name}: {annotation}")
+        assert not offenders, offenders
+
+    def test_every_contract_forbids_unknown_fields(self) -> None:
+        offenders = [
+            contract_type.CONTRACT_NAME
+            for contract_type in registry.types()
+            if contract_type.model_config.get("extra") != "forbid"
+        ]
+        assert not offenders, offenders
+
+
+class TestAudioCoreStaysEngineAgnostic:
+    """Un seul module de la chaîne audio a le droit de nommer un moteur.
+
+    Le port, la mesure, l'assemblage et la timeline doivent survivre au
+    remplacement du moteur de synthèse sans une ligne de changement.
+    """
+
+    ADAPTERS = {"espeak.py", "__init__.py"}
+    """L'adaptateur nomme son moteur, et la façade du paquet le ré-exporte.
+
+    Partout ailleurs — port, mesure, assemblage, timeline — le nom d'un moteur
+    est une fuite d'exécution dans une couche qui doit l'ignorer."""
+
+    def test_only_the_adapter_names_its_engine(self) -> None:
+        offenders: list[str] = []
+        for path in _python_files("audio"):
+            if path.name in self.ADAPTERS:
+                continue
+            lowered = path.read_text(encoding="utf-8").lower()
+            for brand in ("espeak", *PROVIDER_BRANDS):
+                if brand in lowered:
+                    offenders.append(f"{path.name} mentionne {brand!r}")
+        assert not offenders, offenders
+
+    def test_the_timeline_builder_knows_no_engine_at_all(self) -> None:
+        from pdz2.audio import timeline
+
+        source = Path(timeline.__file__).read_text(encoding="utf-8").lower()
+        assert "espeak" not in source
+        assert "subprocess" not in source
+
+
+class TestPhaseHonesty:
+    """Les paquets des phases suivantes restent vides, sans faux moteur."""
+
+    UNIMPLEMENTED: tuple[str, ...] = ()
+    """Paquets dont la phase n'est pas faite.
+
+    `engines` en est sorti en phase 1, `audio` en phase 2, `providers` en
+    phase 6 — où il ne porte encore que des ports, sans adaptateur — et
+    `renderers` en phase 7, `qa` en phase 8, `repair` en phase 9,
+    `editing` en phase 10."""
+
+    def test_every_package_of_the_target_tree_now_carries_code(self) -> None:
+        """Les douze phases sont passées : plus aucun paquet n'est vide.
+
+        Ce test remplace l'ancien contrôle des paquets non implémentés. Il
+        échouerait si un paquet du livrable attendu redevenait une coquille.
+        """
+        expected = (
+            "architecture", "contracts", "schemas", "providers", "renderers",
+            "engines", "qa", "repair", "audio", "editing", "storage", "cli",
+            "execution", "tests",
+        )
+        for package in expected:
+            directory = PACKAGE_ROOT / package
+            assert directory.is_dir(), package
+            assert any(directory.rglob("*.py")) or any(
+                directory.rglob("*.md")
+            ), package
+
+    def test_the_engines_actually_shipped_are_the_ones_announced(self) -> None:
+        """Un moteur annoncé dans `engines/__init__` doit exister, et inversement."""
+        directory = PACKAGE_ROOT / "engines"
+        present = sorted(
+            path.name
+            for path in directory.iterdir()
+            if path.is_dir() and (path / "__init__.py").exists()
+        )
+        assert present == [
+            "direction",
+            "governance",
+            "imagery",
+            "journal",
+            "motion",
+            "renderspec",
+            "research",
+            "routing",
+            "script",
+            "shots",
+            "sound",
+            "temporal",
+            "validation",
+            "visual",
+        ]
+
+    PORTS = {"__init__.py", "image.py", "video.py"}
+    """Fichiers de `providers/` qui ne définissent qu'un port, sans adaptateur."""
+
+    ADAPTERS = {"elevenlabs.py", "fal.py", "reasoner.py"}
+    """Adaptateurs distants. Chacun nomme sa marque — c'est leur seul droit.
+
+    Ce test a longtemps affirmé l'inverse : « aucun adaptateur n'existe ». Il
+    a changé de camp le jour où ils sont arrivés, et il garde la même
+    exigence, retournée : un adaptateur présent doit être *déclaré actif sur
+    condition*, jamais supposé joignable.
+    """
+
+    PLUMBING = {"prompting.py", "registry.py"}
+    """Ni port ni adaptateur : la compilation contrat→prompt et l'inventaire."""
+
+    def test_the_providers_package_holds_exactly_what_is_announced(self) -> None:
+        present = {path.name for path in _python_files("providers")}
+        assert present == self.PORTS | self.ADAPTERS | self.PLUMBING
+
+    def test_no_adapter_is_active_without_its_credential(self) -> None:
+        """Un adaptateur *existe* ; il n'est *actif* que si sa clé est là.
+
+        C'est la garantie qui remplace « aucun adaptateur n'existe » : le
+        dépôt peut contenir un client distant sans jamais prétendre pouvoir
+        l'appeler.
+        """
+        from pdz2.providers.registry import CREDENTIAL_ENV, active_providers
+
+        nu = active_providers({})
+        assert nu.video == ()
+        assert nu.reasoners == ()
+        assert [p.name for p in nu.image] == ["procedural-image"]
+        assert [p.name for p in nu.speech] == ["espeak-ng"]
+
+        complet = active_providers({name: "x" for name in CREDENTIAL_ENV.values()})
+        assert len(complet.video) == 1
+        assert len(complet.reasoners) == 1
+        assert [p.name for p in complet.image][-1] == "procedural-image"
+        assert [p.name for p in complet.speech][-1] == "espeak-ng"
+
+    def test_the_local_fallback_is_never_dropped_from_a_family(self) -> None:
+        """Le repli local ferme toujours la liste, quoi qu'il y ait devant."""
+        from pdz2.providers.registry import CREDENTIAL_ENV, active_providers
+
+        for cle in [{}, *({name: "x"} for name in CREDENTIAL_ENV.values())]:
+            actifs = active_providers(cle)
+            assert actifs.image[-1].name == "procedural-image", cle
+            assert actifs.speech[-1].name == "espeak-ng", cle
+
+    def test_the_reasoner_asks_the_model_exactly_what_the_contract_leaves_open(
+        self,
+    ) -> None:
+        """La surface de décision suit le contrat, elle n'est pas recopiée."""
+        from pdz2.contracts.direction import DirectorBrief
+        from pdz2.providers.reasoner import _DECIDED_BY_THE_REASONER, decision_schema
+
+        connus = set(DirectorBrief.model_fields)
+        assert set(_DECIDED_BY_THE_REASONER) <= connus
+
+        # Ce que le modèle ne doit jamais choisir : l'identité du dossier, la
+        # lignée du contrat, et la signature de son propre travail.
+        interdits = {
+            "topic_request_id", "research_state_id", "author",
+            "id", "parent_id", "contract_type", "version", "created_at", "status",
+        }
+        assert not interdits & set(_DECIDED_BY_THE_REASONER)
+
+        schema = decision_schema()
+        assert schema["additionalProperties"] is False
+        assert set(schema["required"]) == set(_DECIDED_BY_THE_REASONER)
+
+    def test_the_renderers_only_ship_deterministic_strategies(self) -> None:
+        """Aucun renderer génératif : ce sont des ports, pas des moteurs."""
+        from pdz2.contracts.render import AI_VIDEO_STRATEGIES
+        from pdz2.renderers import SUPPORTED_STRATEGIES
+
+        assert not SUPPORTED_STRATEGIES & AI_VIDEO_STRATEGIES
+
+    def test_the_video_port_declares_that_nothing_implements_it(self) -> None:
+        from pdz2.providers import NO_VIDEO_PROVIDERS
+
+        assert NO_VIDEO_PROVIDERS == ()
+
+
+class TestIndependenceFromPdz1:
+    """PDZ 2 ne doit rien à l'ancien système.
+
+    L'ancien paquet `pdz/` vit dans le même dépôt. Ce test échoue au moindre
+    emprunt : import, chemin en dur, ou lecture d'un de ses fichiers de
+    configuration. « PDZ 1 peut exister à côté, PDZ 2 ne lui doit rien » est
+    ainsi une propriété vérifiée, pas une intention.
+    """
+
+    FORBIDDEN_MODULE_PREFIXES = ("pdz.", "pdz2.tests.doubles_pdz1")
+    FORBIDDEN_PATHS = ("pdz/", "modeles.yaml", "univers/", "donnees/")
+
+    def test_no_module_of_pdz2_imports_the_old_package(self) -> None:
+        offenders: list[str] = []
+        for path in PACKAGE_ROOT.rglob("*.py"):
+            for module in _imports_of(path):
+                if module == "pdz" or module.startswith(self.FORBIDDEN_MODULE_PREFIXES):
+                    offenders.append(f"{path.relative_to(PACKAGE_ROOT)} importe {module}")
+        assert not offenders, offenders
+
+    def test_no_module_of_pdz2_reaches_into_the_old_tree(self) -> None:
+        offenders: list[str] = []
+        for path in PACKAGE_ROOT.rglob("*.py"):
+            if path == Path(__file__):  # ce fichier cite les motifs interdits
+                continue
+            text = path.read_text(encoding="utf-8")
+            for needle in self.FORBIDDEN_PATHS:
+                for quote in ('"', "'"):
+                    if f"{quote}{needle}" in text or f"{quote}./{needle}" in text:
+                        offenders.append(
+                            f"{path.relative_to(PACKAGE_ROOT)} référence {needle!r}"
+                        )
+        assert not offenders, offenders
+
+    def test_pdz2_is_importable_without_the_old_package(self) -> None:
+        """Le paquet se charge même si `pdz` est introuvable."""
+        import subprocess
+        import sys
+
+        script = (
+            "import sys;"
+            "sys.modules['pdz'] = None;"
+            "import pdz2.contracts, pdz2.state, pdz2.storage, pdz2.cli;"
+            "print('ok')"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            capture_output=True,
+            text=True,
+            cwd=PACKAGE_ROOT.parent,
+        )
+        assert result.returncode == 0, result.stderr
+        assert "ok" in result.stdout
+
+    def test_the_packaging_of_pdz2_stands_on_its_own(self) -> None:
+        """Rien de ce dont PDZ 2 a besoin dans `pyproject.toml` ne cite PDZ 1.
+
+        L'indépendance du code ne suffit pas : si l'empaquetage de PDZ 2
+        dépendait de `pdz`, supprimer l'ancien paquet casserait l'installation
+        du nouveau. Les entrées qui nomment `pdz` doivent toutes être des
+        entrées **de PDZ 1**, retirables d'un bloc — c'est la procédure écrite
+        dans `architecture/README.md`.
+        """
+        import tomllib
+
+        config = tomllib.loads(
+            (PACKAGE_ROOT.parent / "pyproject.toml").read_text(encoding="utf-8")
+        )
+        scripts = config["project"]["scripts"]
+        assert scripts["pdz2"].startswith("pdz2."), scripts["pdz2"]
+        packages = config["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"]
+        assert "pdz2" in packages
+        # Les seules mentions de l'ancien paquet sont ses propres entrées.
+        assert {k for k, v in scripts.items() if v.startswith("pdz.")} == {"pdz"}
+        assert [p for p in packages if p != "pdz2"] in ([], ["pdz"])
+
+    def test_the_removal_procedure_is_written_down(self) -> None:
+        """Une propriété vérifiée qui n'est pas écrite se perd au prochain tri."""
+        readme = (PACKAGE_ROOT / "architecture" / "README.md").read_text(
+            encoding="utf-8"
+        )
+        assert "Supprimer PDZ 1" in readme
+        for etape in ("rm -rf pdz/", "rm -rf tests/", "testpaths"):
+            assert etape in readme, etape
+
+
+class TestContractRegistryIsComplete:
+    """Importer `pdz2.contracts` doit suffire à connaître tous les contrats.
+
+    Un contrat déclaré ailleurs — dans un moteur, un adaptateur — resterait
+    invisible du registre tant que ce module n'est pas importé : les schémas
+    seraient incomplets, et la relecture d'un épisode échouerait sur un
+    `contrat inconnu`. Ce test ferme cette porte.
+    """
+
+    def test_no_contract_is_declared_outside_the_contracts_package(self) -> None:
+        offenders: list[str] = []
+        for path in PACKAGE_ROOT.rglob("*.py"):
+            if path.parts[-2] == "contracts" or "tests" in path.parts:
+                continue
+            text = path.read_text(encoding="utf-8")
+            if "@contract(" in text:
+                offenders.append(str(path.relative_to(PACKAGE_ROOT)))
+        assert not offenders, (
+            f"contrats déclarés hors de `contracts/` : {offenders} — "
+            "ils échapperaient au registre et aux schémas"
+        )
+
+    def test_importing_contracts_alone_registers_everything(self) -> None:
+        import subprocess
+        import sys
+
+        script = (
+            "import pdz2.contracts as c;"
+            "print(len(c.registry.names()));"
+            "import pdz2.engines.research, pdz2.engines.direction, pdz2.cli.main;"
+            "print(len(c.registry.names()))"
+        )
+        result = subprocess.run(
+            [sys.executable, "-c", script],
+            capture_output=True,
+            text=True,
+            cwd=PACKAGE_ROOT.parent,
+        )
+        assert result.returncode == 0, result.stderr
+        before, after = result.stdout.split()
+        assert before == after, (
+            f"{int(after) - int(before)} contrat(s) apparaissent seulement "
+            "après l'import d'un moteur"
+        )

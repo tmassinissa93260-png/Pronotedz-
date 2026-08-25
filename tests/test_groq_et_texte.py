@@ -10,6 +10,7 @@ alias résolu vers le bon fournisseur sans qu'aucun agent n'ait à le savoir.
 from __future__ import annotations
 
 import json
+from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -368,7 +369,21 @@ def test_pas_plus_de_cinq_images(tmp_path):
 
 # ── Le dispatcher : chaque alias va au bon fournisseur ───────────────────
 
-def test_le_profil_par_defaut_va_chez_anthropic(monkeypatch):
+def test_le_dispatcher_suit_le_fournisseur_que_le_registre_designe(monkeypatch):
+    """L'appel part chez le fournisseur du modèle résolu, quel qu'il soit.
+
+    Ce test visait autrefois Anthropic en dur. La note « ⚠️ TEMPORAIRE » de
+    `modeles.yaml` ayant retiré Anthropic des alias texte, l'assertion en dur
+    ne testait plus le dispatcher : elle testait la table d'alias. On
+    interroge donc le registre pour savoir où l'appel *doit* partir, puis on
+    vérifie qu'il y part bien.
+    """
+    from pdz.ia.registre import registre as registre_modeles
+
+    # Mêmes paramètres que le dispatcher, sinon les deux résolutions
+    # pourraient diverger selon les clés présentes dans l'environnement.
+    attendu = registre_modeles().resoudre(
+        "qualite", repli_si_cle_absente=True).modele.fournisseur
     appele = {}
 
     async def faux_claude(**kwargs):
@@ -380,6 +395,39 @@ def test_le_profil_par_defaut_va_chez_anthropic(monkeypatch):
         return "reponse-groq"
 
     monkeypatch.setattr(texte, "ADAPTATEURS", {"anthropic": faux_claude, "groq": faux_groq})
+
+    import asyncio
+    resultat = asyncio.run(texte.appeler(
+        alias="qualite", systeme_stable="x", message="y", schema_sortie={},
+    ))
+    assert appele["fournisseur"] == attendu
+    assert resultat == f"reponse-{'claude' if attendu == 'anthropic' else 'groq'}"
+
+
+def test_le_dispatcher_sait_encore_atteindre_anthropic(monkeypatch):
+    """Aucun alias ne désigne Claude aujourd'hui : la branche reste couverte.
+
+    Le retrait d'Anthropic des alias texte a rendu ce chemin inatteignable par
+    la configuration. Le laisser sans test reviendrait à le perdre en silence
+    d'ici le jour où on remettra `claude-sonnet-5` dans `modeles.yaml`.
+    """
+    from pdz.ia.registre import Resolution
+    from pdz.ia.registre import registre as registre_modeles
+
+    claude = registre_modeles().modeles["claude-sonnet-5"]
+    monkeypatch.setattr(
+        texte, "registre",
+        lambda *a, **k: SimpleNamespace(
+            resoudre=lambda *a, **k: Resolution(modele=claude, alias="qualite"),
+        ),
+    )
+    appele = {}
+
+    async def faux_claude(**kwargs):
+        appele["fournisseur"] = "anthropic"
+        return "reponse-claude"
+
+    monkeypatch.setattr(texte, "ADAPTATEURS", {"anthropic": faux_claude})
 
     import asyncio
     resultat = asyncio.run(texte.appeler(

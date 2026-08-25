@@ -11,6 +11,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+import yaml
 
 from pdz.agents import base as agents_base
 from pdz.agents.base import (
@@ -23,7 +24,8 @@ from pdz.agents.base import (
     texte_empreinte,
 )
 from pdz.agents.ecriture.script import ScriptWriter, _normaliser_emotion
-from pdz.ia.registre import registre
+from pdz.config import RACINE
+from pdz.ia.registre import Registre, registre
 from pdz.moteur.erreurs import ErreurConfig, ErreurValidation
 from pdz.moteur.pipeline import Contexte
 from pdz.prompts import charger
@@ -57,10 +59,62 @@ def test_le_profil_change_le_modele_dimages():
     assert eco.modele.prix.par_image < premium.modele.prix.par_image
 
 
+# ── Mécanismes du registre, indépendamment de ce que les alias désignent ──
+#
+# La table d'alias de production est volontairement en mouvement : la note
+# « ⚠️ TEMPORAIRE » en tête de `modeles.yaml` a retiré Anthropic des alias
+# texte, sur demande explicite, après un script trop court produit par le
+# repli. Les mécanismes du registre — règle de budget, repli de clé,
+# substitution de capacité — doivent rester testés quoi qu'il arrive à cette
+# table. Ces tests fixent donc leur propre table d'alias ; les modèles, eux,
+# restent ceux du fichier réel, avec leurs vraies capacités et leurs vrais
+# prix.
+
+
+def _registre_avec(alias: dict, profils: dict | None = None,
+                   regles: list | None = None) -> Registre:
+    brut = dict(yaml.safe_load((RACINE / "modeles.yaml").read_text(encoding="utf-8")))
+    brut["alias"] = alias
+    brut["profils"] = profils if profils is not None else {"equilibre": {}}
+    brut["regles"] = regles if regles is not None else []
+    return Registre(brut)
+
+
+def _registre_texte_chez_claude(**extra) -> Registre:
+    """« qualite » désigne Claude, « rapide » un modèle Groq de même métier."""
+    return _registre_avec(
+        alias={
+            "qualite": {"principal": "claude-sonnet-5"},
+            "rapide": {"principal": "openai/gpt-oss-120b"},
+            "voix": {"principal": "eleven_turbo_v2_5"},
+        },
+        **extra,
+    )
+
+
 def test_un_budget_bas_bascule_sur_le_modele_moins_cher():
-    normal = registre().resoudre("qualite", budget_restant_pct=100)
-    serre = registre().resoudre("qualite", budget_restant_pct=10)
+    r = _registre_texte_chez_claude(
+        regles=[{"si": {"budget_restant_pourcent": "<20"},
+                 "alors": {"qualite": "openai/gpt-oss-120b"}}],
+    )
+    normal = r.resoudre("qualite", budget_restant_pct=100)
+    serre = r.resoudre("qualite", budget_restant_pct=10)
     assert serre.modele.id != normal.modele.id
+    assert "budget" in serre.raison
+    assert serre.modele.cout_texte(entree=4000, sortie=1500) < \
+        normal.modele.cout_texte(entree=4000, sortie=1500)
+
+
+def test_la_regle_de_budget_se_declenche_sur_la_configuration_reelle():
+    """La règle s'applique, même si elle ne change rien aujourd'hui.
+
+    `modeles.yaml` fait pointer « qualite » et la règle « budget bas » sur le
+    même modèle Groq : le basculement est donc sans effet observable sur le
+    modèle retenu. Ce qui doit rester vrai, c'est que la règle **se
+    déclenche** — la raison le dit, et c'est elle qui apparaîtra dans les
+    journaux le jour où les alias repointeront ailleurs.
+    """
+    serre = registre().resoudre("qualite", budget_restant_pct=10)
     assert "budget" in serre.raison
 
 
@@ -99,8 +153,8 @@ def _sans_anthropic(monkeypatch):
 
 def test_une_cle_absente_ne_bloque_pas_si_un_equivalent_existe(monkeypatch):
     _sans_anthropic(monkeypatch)
-    res = registre().resoudre("qualite", profil="equilibre",
-                              repli_si_cle_absente=True)
+    res = _registre_texte_chez_claude().resoudre(
+        "qualite", profil="equilibre", repli_si_cle_absente=True)
     assert res.modele.fournisseur == "groq"
     assert "absente" in res.raison
 
@@ -108,8 +162,8 @@ def test_une_cle_absente_ne_bloque_pas_si_un_equivalent_existe(monkeypatch):
 def test_le_repli_garde_la_meme_capacite(monkeypatch):
     """Le repli passe par `fait` : jamais une voix là où il faut du texte."""
     _sans_anthropic(monkeypatch)
-    res = registre().resoudre("qualite", profil="equilibre",
-                              repli_si_cle_absente=True)
+    res = _registre_texte_chez_claude().resoudre(
+        "qualite", profil="equilibre", repli_si_cle_absente=True)
     assert "ecriture" in res.modele.fait
 
 
@@ -118,7 +172,7 @@ def test_la_resolution_reste_pure_sans_le_drapeau(monkeypatch):
     pas dépendre des clés présentes — sinon `pdz modeles` mentirait sur la
     configuration réelle."""
     _sans_anthropic(monkeypatch)
-    res = registre().resoudre("qualite", profil="equilibre")
+    res = _registre_texte_chez_claude().resoudre("qualite", profil="equilibre")
     assert res.modele.fournisseur == "anthropic"
 
 
@@ -154,9 +208,9 @@ def test_la_capacite_survit_au_repli_de_cle(monkeypatch):
     pas sur celle qu'on exige. Appliqué après le contrôle de capacité, il
     ramenait `equilibre` sans clé Anthropic vers un modèle sans vision."""
     _sans_anthropic(monkeypatch)
-    res = registre().resoudre("qualite", profil="equilibre",
-                              repli_si_cle_absente=True,
-                              capacite_requise="vision")
+    res = _registre_texte_chez_claude().resoudre(
+        "qualite", profil="equilibre", repli_si_cle_absente=True,
+        capacite_requise="vision")
     assert "vision" in res.modele.fait, f"{res.modele.id} ne fait pas de vision"
 
 
@@ -164,9 +218,9 @@ def test_avec_une_cle_anthropic_la_vision_reste_chez_claude(monkeypatch):
     """Le modèle gratuit de vision est un dépannage, pas une rétrogradation
     imposée à qui a payé."""
     _config_avec(monkeypatch, anthropic_api_key="sk-ant-x", groq_api_key="gsk_x")
-    res = registre().resoudre("qualite", profil="equilibre",
-                              repli_si_cle_absente=True,
-                              capacite_requise="vision")
+    res = _registre_texte_chez_claude().resoudre(
+        "qualite", profil="equilibre", repli_si_cle_absente=True,
+        capacite_requise="vision")
     assert res.modele.fournisseur == "anthropic"
 
 
@@ -181,10 +235,27 @@ def test_sans_aucun_modele_capable_le_message_est_explicite(monkeypatch):
 
 def test_une_capacite_deja_presente_ne_change_rien():
     """`claude-sonnet-5` fait déjà de la vision : aucune substitution."""
-    sans = registre().resoudre("qualite", profil="equilibre")
-    avec = registre().resoudre("qualite", profil="equilibre",
-                               capacite_requise="vision")
-    assert sans.modele.id == avec.modele.id
+    r = _registre_texte_chez_claude()
+    sans = r.resoudre("qualite", profil="equilibre")
+    avec = r.resoudre("qualite", profil="equilibre", capacite_requise="vision")
+    assert sans.modele.id == avec.modele.id == "claude-sonnet-5"
+    # Le modèle identique ne suffit pas : une substitution qui retomberait
+    # par hasard sur le même modèle passerait inaperçue. La raison dit si
+    # elle a eu lieu.
+    assert avec.raison == sans.raison
+    assert "requise" not in avec.raison
+
+
+def test_la_capacite_manquante_substitue_sur_la_configuration_reelle():
+    """Aujourd'hui « qualite » désigne un modèle sans vision.
+
+    C'est la conséquence directe du retrait d'Anthropic des alias texte : un
+    agent qui envoie des images sous cet alias est rerouté vers un modèle qui
+    sait regarder, au lieu d'aller échouer chez le fournisseur.
+    """
+    res = registre().resoudre("qualite", profil="equilibre",
+                              capacite_requise="vision")
+    assert "vision" in res.modele.fait
 
 
 def test_le_cache_reduit_le_cout():
@@ -230,7 +301,7 @@ def test_les_positions_de_relance_respectent_lintervalle_de_15_a_20s():
     duree, repliques = 90, nb_repliques_pour(90)
     duree_par_replique = duree / repliques
     positions = positions_relance_par_defaut(duree, repliques)
-    ecarts = [b - a for a, b in zip(positions, positions[1:])]
+    ecarts = [b - a for a, b in zip(positions, positions[1:], strict=False)]
     for ecart in ecarts:
         assert 15 <= ecart * duree_par_replique <= 20
 
@@ -594,8 +665,10 @@ def test_les_variables_du_prompt_sont_calculees_depuis_lunivers():
 # ── Empreinte créative : direction, jamais une contrainte chiffrée ───────
 
 def _empreinte():
-    champ = lambda v, c=0.8: ChampInterprete(valeur=v, confiance=c,
-                                             observation="vu dans la référence")
+    def champ(v, c=0.8):
+        return ChampInterprete(valeur=v, confiance=c,
+                               observation="vu dans la référence")
+
     return EmpreinteCreative(
         hook=EmpreinteHook(type=champ("question impossible"),
                            mecanisme=champ("hypothèse personnelle"),

@@ -1,0 +1,118 @@
+{
+  "$defs": {
+    "CausalEdge": {
+      "additionalProperties": false,
+      "properties": {
+        "explanation": {
+          "default": "",
+          "title": "Explanation",
+          "type": "string"
+        },
+        "from_claim_id": {
+          "minLength": 1,
+          "title": "From Claim Id",
+          "type": "string"
+        },
+        "relation": {
+          "$ref": "#/$defs/CausalRelation",
+          "default": "causes"
+        },
+        "to_claim_id": {
+          "minLength": 1,
+          "title": "To Claim Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from_claim_id",
+        "to_claim_id"
+      ],
+      "title": "CausalEdge",
+      "type": "object"
+    },
+    "CausalRelation": {
+      "enum": [
+        "causes",
+        "enables",
+        "requires",
+        "contrasts_with",
+        "quantifies"
+      ],
+      "title": "CausalRelation",
+      "type": "string"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:fact_graph/1.0.0",
+  "additionalProperties": false,
+  "description": "Graphe causal des affirmations. Acyclique par construction.",
+  "properties": {
+    "claim_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Claim Ids",
+      "type": "array"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "edges": {
+      "items": {
+        "$ref": "#/$defs/CausalEdge"
+      },
+      "title": "Edges",
+      "type": "array"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at"
+  ],
+  "title": "FactGraph",
+  "type": "object"
+}

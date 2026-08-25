@@ -1,0 +1,335 @@
+"""Contrats versionnés de PDZ 2.
+
+Importer ce paquet enregistre tous les contrats connus dans
+`pdz2.contracts.versioning.registry`. Aucun module de ce paquet ne dépend
+d'un moteur, d'un renderer ou d'un fournisseur : les contrats sont la seule
+chose que les trois couches ont le droit de partager.
+"""
+
+from __future__ import annotations
+
+from pdz2.contracts.base import Contract, ContractStatus, Element, contract
+from pdz2.contracts.capability import CapabilityState, ProviderCapability
+from pdz2.contracts.capacity import (
+    CapabilityEntry,
+    CapabilityMatrix,
+    CapacityValue,
+    CostLedger,
+    Provenance,
+    SpendRecord,
+)
+from pdz2.contracts.common import (
+    Composition,
+    CostEstimate,
+    Curve,
+    CurvePoint,
+    QaCheck,
+    Resolution,
+    TextOverlay,
+    Transition,
+    Vec3,
+)
+from pdz2.contracts.delivery import (
+    Clip,
+    EditTimeline,
+    LoudnessMeasurement,
+    MasterArtifact,
+    SubtitleCue,
+    SubtitleTrack,
+    Track,
+    TrackKind,
+)
+from pdz2.contracts.direction import (
+    AnchorDraft,
+    AnchorKind,
+    AnchorSpec,
+    AttributeBinding,
+    DirectorBrief,
+    DirectorState,
+    IdentityAttribute,
+    ShotIntent,
+    VisualEvidencePlan,
+    VisualLanguage,
+    VisualProofDraft,
+    VisualStyleDecision,
+)
+from pdz2.contracts.enums import (
+    ArtifactKind,
+    AspectRatio,
+    AudioEventKind,
+    CameraAngle,
+    Emotion,
+    Framing,
+    NarrativeFunction,
+    Pacing,
+    Platform,
+    ScreenPosition,
+    Severity,
+    Tone,
+    TransitionKind,
+)
+from pdz2.contracts.identity import deterministic_ids, new_id
+from pdz2.contracts.journal import (
+    JournalEntry,
+    JournalEntryKind,
+    ProductionJournal,
+)
+from pdz2.contracts.motion import (
+    CameraMove,
+    CameraProgram,
+    DepthOfField,
+    Easing,
+    MotionDescriptor,
+    MotionPrimitive,
+    MotionProgram,
+    PerceptualTarget,
+    Trajectory,
+)
+from pdz2.contracts.observation import (
+    GUARANTEED_FALLBACKS,
+    FailureDiagnosis,
+    FailureFinding,
+    FailureKind,
+    Measurement,
+    ObservationReport,
+    RepairAction,
+    RepairPlan,
+    RepairStep,
+)
+from pdz2.contracts.pipeline import (
+    EpisodeSnapshot,
+    EpisodeStatus,
+    Stage,
+    StageState,
+    StageStatus,
+    StateTransition,
+)
+from pdz2.contracts.render import (
+    AI_VIDEO_STRATEGIES,
+    DETERMINISTIC_STRATEGIES,
+    Degradation,
+    DegradationSeverity,
+    ExecutionPlan,
+    ExecutionStep,
+    ExecutionStepKind,
+    RenderArtifact,
+    RenderSpecExecutable,
+    RenderSpecRequested,
+    RenderStrategy,
+    RequestedEcho,
+)
+from pdz2.contracts.research import (
+    CausalEdge,
+    CausalRelation,
+    Claim,
+    ClaimKind,
+    Evidence,
+    EvidenceStance,
+    FactGraph,
+    ResearchState,
+    SourceKind,
+    SourceReference,
+    TopicRequest,
+    VerificationStatus,
+)
+from pdz2.contracts.script import (
+    ScriptLine,
+    ScriptState,
+    TimingSource,
+    VoiceSegment,
+    VoiceTimeline,
+    WordTiming,
+)
+from pdz2.contracts.shots import (
+    AudioEvent,
+    RenderConstraints,
+    ShotEdge,
+    ShotGraph,
+    ShotSpec,
+)
+from pdz2.contracts.sound import AudioCue, AudioDesign, CueState
+from pdz2.contracts.temporal import (
+    RhythmFinding,
+    RhythmFindingKind,
+    ShotSlot,
+    SlotOrigin,
+    TemporalPlan,
+)
+from pdz2.contracts.validation import (
+    ValidationIssue,
+    ValidationReport,
+    ValidationRule,
+)
+from pdz2.contracts.versioning import (
+    ContractRegistry,
+    IncompatibleVersion,
+    UnknownContract,
+    Version,
+    registry,
+)
+from pdz2.contracts.visual import (
+    ColorScheme,
+    ImageSpec,
+    LayerRole,
+    LayerSpec,
+    Typography,
+    VisualBible,
+)
+
+__all__ = [
+    "AudioCue",
+    "AudioDesign",
+    "CueState",
+    # socle
+    "Contract",
+    "ContractStatus",
+    "Element",
+    "contract",
+    "registry",
+    "ContractRegistry",
+    "Version",
+    "UnknownContract",
+    "IncompatibleVersion",
+    "new_id",
+    "deterministic_ids",
+    # vocabulaire
+    "AspectRatio",
+    "Platform",
+    "Tone",
+    "Pacing",
+    "NarrativeFunction",
+    "Emotion",
+    "TransitionKind",
+    "Framing",
+    "CameraAngle",
+    "ScreenPosition",
+    "AudioEventKind",
+    "ArtifactKind",
+    "Severity",
+    # objets de valeur
+    "Vec3",
+    "Resolution",
+    "Composition",
+    "Transition",
+    "TextOverlay",
+    "Curve",
+    "CurvePoint",
+    "CostEstimate",
+    "QaCheck",
+    "CapabilityState",
+    "ProviderCapability",
+    "Provenance",
+    "CapacityValue",
+    "CapabilityEntry",
+    "CapabilityMatrix",
+    "SpendRecord",
+    "CostLedger",
+    "ProductionJournal",
+    "JournalEntry",
+    "JournalEntryKind",
+    # recherche
+    "TopicRequest",
+    "SourceReference",
+    "SourceKind",
+    "Evidence",
+    "EvidenceStance",
+    "Claim",
+    "ClaimKind",
+    "VerificationStatus",
+    "CausalEdge",
+    "CausalRelation",
+    "FactGraph",
+    "ResearchState",
+    # réalisation
+    "AnchorKind",
+    "AttributeBinding",
+    "IdentityAttribute",
+    "AnchorSpec",
+    "VisualEvidencePlan",
+    "VisualLanguage",
+    "ShotIntent",
+    "DirectorState",
+    "AnchorDraft",
+    "VisualProofDraft",
+    "DirectorBrief",
+    "VisualStyleDecision",
+    # script et voix
+    "ScriptLine",
+    "ScriptState",
+    "TimingSource",
+    "WordTiming",
+    "VoiceSegment",
+    "VoiceTimeline",
+    # image
+    "ColorScheme",
+    "Typography",
+    "VisualBible",
+    "LayerRole",
+    "LayerSpec",
+    "ImageSpec",
+    # mouvement
+    "CameraMove",
+    "MotionPrimitive",
+    "Easing",
+    "Trajectory",
+    "DepthOfField",
+    "CameraProgram",
+    "MotionDescriptor",
+    "PerceptualTarget",
+    "MotionProgram",
+    # plans
+    "AudioEvent",
+    "RenderConstraints",
+    "ShotSpec",
+    "ShotEdge",
+    "ShotGraph",
+    # plan temporel
+    "TemporalPlan",
+    "ShotSlot",
+    "SlotOrigin",
+    "RhythmFinding",
+    "RhythmFindingKind",
+    # validation
+    "ValidationReport",
+    "ValidationIssue",
+    "ValidationRule",
+    # ABI de rendu
+    "RenderStrategy",
+    "AI_VIDEO_STRATEGIES",
+    "DETERMINISTIC_STRATEGIES",
+    "DegradationSeverity",
+    "Degradation",
+    "RequestedEcho",
+    "RenderSpecRequested",
+    "RenderSpecExecutable",
+    "ExecutionStepKind",
+    "ExecutionStep",
+    "ExecutionPlan",
+    "RenderArtifact",
+    # observation et réparation
+    "Measurement",
+    "ObservationReport",
+    "FailureKind",
+    "FailureFinding",
+    "FailureDiagnosis",
+    "RepairAction",
+    "RepairStep",
+    "RepairPlan",
+    "GUARANTEED_FALLBACKS",
+    # montage et livraison
+    "TrackKind",
+    "Clip",
+    "Track",
+    "EditTimeline",
+    "SubtitleCue",
+    "SubtitleTrack",
+    "LoudnessMeasurement",
+    "MasterArtifact",
+    # machine à états
+    "Stage",
+    "StageStatus",
+    "EpisodeStatus",
+    "StageState",
+    "StateTransition",
+    "EpisodeSnapshot",
+]

@@ -1,0 +1,539 @@
+{
+  "$defs": {
+    "AnchorKind": {
+      "enum": [
+        "person",
+        "vehicle",
+        "object",
+        "building",
+        "machine",
+        "environment"
+      ],
+      "title": "AnchorKind",
+      "type": "string"
+    },
+    "AnchorSpec": {
+      "additionalProperties": false,
+      "description": "Ancre de continuité : une entité qui doit rester elle-même.",
+      "properties": {
+        "canonical_description": {
+          "minLength": 1,
+          "title": "Canonical Description",
+          "type": "string"
+        },
+        "contract_type": {
+          "title": "Contract Type",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "identity": {
+          "items": {
+            "$ref": "#/$defs/IdentityAttribute"
+          },
+          "minItems": 1,
+          "title": "Identity",
+          "type": "array"
+        },
+        "kind": {
+          "$ref": "#/$defs/AnchorKind"
+        },
+        "must_persist_across_shots": {
+          "default": true,
+          "title": "Must Persist Across Shots",
+          "type": "boolean"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "reference_asset_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reference Asset Ids",
+          "type": "array"
+        },
+        "status": {
+          "$ref": "#/$defs/ContractStatus",
+          "default": "draft"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_type",
+        "version",
+        "id",
+        "created_at",
+        "name",
+        "kind",
+        "canonical_description",
+        "identity"
+      ],
+      "title": "AnchorSpec",
+      "type": "object"
+    },
+    "AttributeBinding": {
+      "enum": [
+        "fixed",
+        "soft"
+      ],
+      "title": "AttributeBinding",
+      "type": "string"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Curve": {
+      "additionalProperties": false,
+      "description": "Courbe perceptive normalisée sur [0, 1] x [0, 1].",
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/CurvePoint"
+          },
+          "minItems": 2,
+          "title": "Points",
+          "type": "array"
+        }
+      },
+      "required": [
+        "name",
+        "points"
+      ],
+      "title": "Curve",
+      "type": "object"
+    },
+    "CurvePoint": {
+      "additionalProperties": false,
+      "properties": {
+        "t": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "T",
+          "type": "number"
+        },
+        "value": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "t",
+        "value"
+      ],
+      "title": "CurvePoint",
+      "type": "object"
+    },
+    "IdentityAttribute": {
+      "additionalProperties": false,
+      "description": "Un trait d'identité nommé, pas une chaîne libre.\n\nLa continuité est représentée dans les données : on ne demande jamais à un\nmodèle de « se souvenir » d'un objet.",
+      "properties": {
+        "binding": {
+          "$ref": "#/$defs/AttributeBinding",
+          "default": "fixed"
+        },
+        "name": {
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "minLength": 1,
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "IdentityAttribute",
+      "type": "object"
+    },
+    "NarrativeFunction": {
+      "description": "Rôle d'une réplique ou d'un plan dans la démonstration.",
+      "enum": [
+        "hook",
+        "setup",
+        "question",
+        "mechanism",
+        "evidence",
+        "contrast",
+        "consequence",
+        "payoff",
+        "transition",
+        "cta"
+      ],
+      "title": "NarrativeFunction",
+      "type": "string"
+    },
+    "Pacing": {
+      "enum": [
+        "slow",
+        "measured",
+        "brisk",
+        "rapid"
+      ],
+      "title": "Pacing",
+      "type": "string"
+    },
+    "ShotIntent": {
+      "additionalProperties": false,
+      "description": "Ce qu'un plan doit accomplir. Aucune donnée de rendu ici.",
+      "properties": {
+        "anchor_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Anchor Ids",
+          "type": "array"
+        },
+        "claim_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Claim Id"
+        },
+        "contract_type": {
+          "title": "Contract Type",
+          "type": "string"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "narrative_function": {
+          "$ref": "#/$defs/NarrativeFunction"
+        },
+        "order": {
+          "minimum": 0,
+          "title": "Order",
+          "type": "integer"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Parent Id"
+        },
+        "status": {
+          "$ref": "#/$defs/ContractStatus",
+          "default": "draft"
+        },
+        "target_duration_s": {
+          "exclusiveMinimum": 0.0,
+          "title": "Target Duration S",
+          "type": "number"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "what_the_viewer_must_see": {
+          "minLength": 1,
+          "title": "What The Viewer Must See",
+          "type": "string"
+        },
+        "what_the_viewer_must_understand": {
+          "minLength": 1,
+          "title": "What The Viewer Must Understand",
+          "type": "string"
+        }
+      },
+      "required": [
+        "contract_type",
+        "version",
+        "id",
+        "created_at",
+        "order",
+        "narrative_function",
+        "what_the_viewer_must_understand",
+        "what_the_viewer_must_see",
+        "target_duration_s"
+      ],
+      "title": "ShotIntent",
+      "type": "object"
+    },
+    "Tone": {
+      "enum": [
+        "documentary",
+        "explanatory",
+        "cinematic",
+        "urgent",
+        "contemplative",
+        "playful"
+      ],
+      "title": "Tone",
+      "type": "string"
+    },
+    "VisualEvidencePlan": {
+      "additionalProperties": false,
+      "description": "Réponse à : que doit physiquement voir le spectateur ?",
+      "properties": {
+        "causal_mechanism": {
+          "minLength": 1,
+          "title": "Causal Mechanism",
+          "type": "string"
+        },
+        "claim_id": {
+          "minLength": 1,
+          "title": "Claim Id",
+          "type": "string"
+        },
+        "evidence_required": {
+          "minLength": 1,
+          "title": "Evidence Required",
+          "type": "string"
+        },
+        "visual_proof": {
+          "minLength": 1,
+          "title": "Visual Proof",
+          "type": "string"
+        }
+      },
+      "required": [
+        "claim_id",
+        "causal_mechanism",
+        "evidence_required",
+        "visual_proof"
+      ],
+      "title": "VisualEvidencePlan",
+      "type": "object"
+    },
+    "VisualLanguage": {
+      "additionalProperties": false,
+      "description": "Intention visuelle, au niveau narratif. La VisualBible la spécifie.",
+      "properties": {
+        "forbidden_imagery": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Forbidden Imagery",
+          "type": "array"
+        },
+        "metaphors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Metaphors",
+          "type": "array"
+        },
+        "recurring_motifs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Recurring Motifs",
+          "type": "array"
+        },
+        "visual_register": {
+          "minLength": 1,
+          "title": "Visual Register",
+          "type": "string"
+        }
+      },
+      "required": [
+        "visual_register"
+      ],
+      "title": "VisualLanguage",
+      "type": "object"
+    }
+  },
+  "$id": "pdz2:director_state/1.0.0",
+  "additionalProperties": false,
+  "description": "Décision conceptuelle unique, ensuite compilée de façon déterministe.",
+  "properties": {
+    "audience": {
+      "minLength": 1,
+      "title": "Audience",
+      "type": "string"
+    },
+    "causal_chain": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Causal Chain",
+      "type": "array"
+    },
+    "claim_ids": {
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Claim Ids",
+      "type": "array"
+    },
+    "continuity_anchors": {
+      "items": {
+        "$ref": "#/$defs/AnchorSpec"
+      },
+      "title": "Continuity Anchors",
+      "type": "array"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "emotional_curve": {
+      "$ref": "#/$defs/Curve"
+    },
+    "ending_payoff": {
+      "minLength": 1,
+      "title": "Ending Payoff",
+      "type": "string"
+    },
+    "evidence_plan": {
+      "items": {
+        "$ref": "#/$defs/VisualEvidencePlan"
+      },
+      "title": "Evidence Plan",
+      "type": "array"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "information_density": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Information Density",
+      "type": "number"
+    },
+    "pacing": {
+      "$ref": "#/$defs/Pacing"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "research_state_id": {
+      "minLength": 1,
+      "title": "Research State Id",
+      "type": "string"
+    },
+    "shot_intents": {
+      "items": {
+        "$ref": "#/$defs/ShotIntent"
+      },
+      "minItems": 1,
+      "title": "Shot Intents",
+      "type": "array"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "thesis": {
+      "minLength": 1,
+      "title": "Thesis",
+      "type": "string"
+    },
+    "tone": {
+      "$ref": "#/$defs/Tone"
+    },
+    "topic_request_id": {
+      "minLength": 1,
+      "title": "Topic Request Id",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    },
+    "visual_language": {
+      "$ref": "#/$defs/VisualLanguage"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "research_state_id",
+    "topic_request_id",
+    "thesis",
+    "audience",
+    "tone",
+    "pacing",
+    "causal_chain",
+    "claim_ids",
+    "visual_language",
+    "shot_intents",
+    "emotional_curve",
+    "information_density",
+    "ending_payoff"
+  ],
+  "title": "DirectorState",
+  "type": "object"
+}

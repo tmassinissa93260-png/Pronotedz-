@@ -1,0 +1,163 @@
+{
+  "$defs": {
+    "AspectRatio": {
+      "enum": [
+        "9:16",
+        "16:9",
+        "1:1",
+        "4:5"
+      ],
+      "title": "AspectRatio",
+      "type": "string"
+    },
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "Platform": {
+      "enum": [
+        "tiktok",
+        "shorts",
+        "reels",
+        "youtube",
+        "generic"
+      ],
+      "title": "Platform",
+      "type": "string"
+    },
+    "Tone": {
+      "enum": [
+        "documentary",
+        "explanatory",
+        "cinematic",
+        "urgent",
+        "contemplative",
+        "playful"
+      ],
+      "title": "Tone",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:topic_request/1.0.0",
+  "additionalProperties": false,
+  "description": "Entrée du compilateur : une idée, un format, un budget.",
+  "properties": {
+    "allow_ai_video": {
+      "default": true,
+      "title": "Allow Ai Video",
+      "type": "boolean"
+    },
+    "aspect_ratio": {
+      "$ref": "#/$defs/AspectRatio",
+      "default": "9:16"
+    },
+    "audience": {
+      "default": "grand public curieux",
+      "title": "Audience",
+      "type": "string"
+    },
+    "budget_cap_usd": {
+      "anyOf": [
+        {
+          "minimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Budget Cap Usd"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "language": {
+      "default": "fr",
+      "maxLength": 8,
+      "minLength": 2,
+      "title": "Language",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "platform": {
+      "$ref": "#/$defs/Platform",
+      "default": "tiktok"
+    },
+    "seed": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Seed"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "target_duration_s": {
+      "exclusiveMinimum": 0.0,
+      "maximum": 600.0,
+      "title": "Target Duration S",
+      "type": "number"
+    },
+    "tone": {
+      "$ref": "#/$defs/Tone",
+      "default": "documentary"
+    },
+    "topic": {
+      "minLength": 1,
+      "title": "Topic",
+      "type": "string"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "topic",
+    "target_duration_s"
+  ],
+  "title": "TopicRequest",
+  "type": "object"
+}

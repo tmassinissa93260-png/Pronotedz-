@@ -1,0 +1,135 @@
+{
+  "$defs": {
+    "ContractStatus": {
+      "description": "Cycle de vie commun à tous les contrats.",
+      "enum": [
+        "draft",
+        "validated",
+        "rejected",
+        "executed",
+        "superseded",
+        "failed"
+      ],
+      "title": "ContractStatus",
+      "type": "string"
+    },
+    "DurationDecision": {
+      "description": "Ce que le compilateur a décidé face à la durée commandée.",
+      "enum": [
+        "no_target",
+        "on_target",
+        "rate_adjusted",
+        "content_too_short",
+        "content_too_long"
+      ],
+      "title": "DurationDecision",
+      "type": "string"
+    }
+  },
+  "$id": "pdz2:duration_policy/1.0.0",
+  "additionalProperties": false,
+  "description": "Décision de compilation sur la durée, adossée à une mesure réelle.\n\nQuatre grandeurs que rien ne doit confondre, et que ce contrat sépare :\n\n    requested_s    ce qui a été commandé          — une intention\n    calibrated_s   ce que ce texte dure vraiment  — une MESURE\n    tolerance      l'écart acceptable             — une règle\n    decision       ce que le compilateur en fait  — un choix assumé\n\nLa durée estimée du script n'apparaît pas ici, et c'est délibéré : elle\nn'entre dans aucune décision. `calibrated_s` sort d'une synthèse réellement\nexécutée au débit de référence, puis mesurée sur les trames du WAV. Le\ndébit retenu s'en déduit, et la durée officielle restera celle que\n`VoiceTimeline` mesurera sur l'audio définitif.\n\nCe contrat existe parce que l'incohérence était silencieuse : un épisode\ncommandé à 40 s en livrait 27,4 sans qu'aucune décision ne soit prise ni\ninscrite nulle part.",
+  "properties": {
+    "calibrated_s": {
+      "exclusiveMinimum": 0.0,
+      "title": "Calibrated S",
+      "type": "number"
+    },
+    "calibration_rate_wpm": {
+      "exclusiveMinimum": 0,
+      "title": "Calibration Rate Wpm",
+      "type": "integer"
+    },
+    "chosen_rate_wpm": {
+      "exclusiveMinimum": 0,
+      "title": "Chosen Rate Wpm",
+      "type": "integer"
+    },
+    "contract_type": {
+      "title": "Contract Type",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "decision": {
+      "$ref": "#/$defs/DurationDecision"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "parent_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parent Id"
+    },
+    "projected_s": {
+      "exclusiveMinimum": 0.0,
+      "title": "Projected S",
+      "type": "number"
+    },
+    "rationale": {
+      "minLength": 1,
+      "title": "Rationale",
+      "type": "string"
+    },
+    "requested_s": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Requested S"
+    },
+    "script_state_id": {
+      "minLength": 1,
+      "title": "Script State Id",
+      "type": "string"
+    },
+    "status": {
+      "$ref": "#/$defs/ContractStatus",
+      "default": "draft"
+    },
+    "tolerance": {
+      "default": 0.15,
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Tolerance",
+      "type": "number"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "contract_type",
+    "version",
+    "id",
+    "created_at",
+    "script_state_id",
+    "calibrated_s",
+    "calibration_rate_wpm",
+    "chosen_rate_wpm",
+    "decision",
+    "rationale",
+    "projected_s"
+  ],
+  "title": "DurationPolicy",
+  "type": "object"
+}
