@@ -74,6 +74,35 @@ production par l'ancien système, que cet adaptateur consigne :
   périmé n'est rattrapable par aucun repli. La sonde vérifie donc que le
   modèle est encore au catalogue, et le dit s'il n'y est plus.
 
+### Ce que le premier appel réel a appris
+
+Le 25/08/2026, la première requête vraiment partie s'est fait refuser :
+
+    413 — Request too large … tokens per minute (TPM):
+    Limit 8000, Requested 18813
+
+Le texte envoyé ne pesait que 2 800 jetons. Les 16 000 autres étaient la
+**sortie réservée** : Groq la compte dans son plafond avant qu'un seul mot ne
+soit écrit. Réserver largement « au cas où » brûlait donc deux fois le budget
+pour rien.
+
+Trois corrections, dont deux profitent aussi à l'autre raisonneur :
+
+* **Le gabarit recopié dans la demande a disparu** (−1 050 jetons). Il redisait
+  ce que le schéma décrit déjà, plus strictement, et les affirmations qu'il
+  rappelait sont dans le relevé de recherche.
+* **Les `title` fabriqués par pydantic ne sont plus envoyés** (−265 jetons) :
+  le modèle lit déjà le nom du champ juste à côté.
+* **La sortie n'est plus réservée en aveugle.** Elle est calculée : ce que le
+  plafond laisse une fois la question payée, avec 8 % de réserve pour absorber
+  l'écart d'estimation. En dessous de 1 500 jetons pour écrire, l'adaptateur
+  refuse en le disant plutôt que de rendre une décision tronquée.
+
+Et la reprise du contrat, qui renvoie une seconde requête quelques secondes
+après la première, **attend le tour de la fenêtre** au lieu de se cogner à un
+plafond qu'on savait atteindre. La requête réelle est passée de 18 813 jetons
+demandés à 7 360, pour 8 000 permis.
+
 ## LE RAISONNEUR NE REÇOIT PAS UN FORMULAIRE RECOPIÉ
 
 La surface de décision — ce qu'aucun calcul ne peut produire — est **dérivée

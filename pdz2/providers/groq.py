@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import json
 import os
+import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any
@@ -48,11 +49,30 @@ from pdz2.contracts.research import ResearchState, TopicRequest
 from pdz2.engines.direction.ports import ReasonerUnavailable
 from pdz2.providers.reasoning import SYSTEM, decision_schema, draft_with
 
-__all__ = ["GroqReasoner", "GROQ_KEY_ENV", "GROQ_MODEL_ENV", "DEFAULT_MODEL"]
+__all__ = [
+    "GroqReasoner",
+    "GROQ_KEY_ENV",
+    "GROQ_MODEL_ENV",
+    "GROQ_TPM_ENV",
+    "DEFAULT_MODEL",
+    "DEFAULT_TPM",
+]
 
 GROQ_KEY_ENV = "GROQ_API_KEY"
 GROQ_MODEL_ENV = "GROQ_MODEL"
+GROQ_TPM_ENV = "GROQ_TPM"
 BASE_URL = "https://api.groq.com/openai/v1"
+
+DEFAULT_TPM = 8000
+"""Jetons par minute du palier gratuit, **mesuré** le 25/08/2026 :
+
+    413 — Request too large for `openai/gpt-oss-120b` … service tier
+    `on_demand` on tokens per minute (TPM): Limit 8000, Requested 18813
+
+Le piège tient dans ce « Requested » : il ne compte pas ce qu'on envoie, mais
+ce qu'on envoie **plus la sortie qu'on réserve**. Une demande de 16 000 jetons
+de sortie brûle donc deux fois le plafond avant d'avoir écrit un mot. Un
+compte payant relève cette limite : `GROQ_TPM` permet de le déclarer."""
 
 DEFAULT_MODEL = "openai/gpt-oss-120b"
 """Écriture, sans vision, sorties structurées. Voir l'en-tête pour la date."""
@@ -60,8 +80,30 @@ DEFAULT_MODEL = "openai/gpt-oss-120b"
 _TOOL_NAME = "decision_de_realisation"
 _PROBE_TIMEOUT_S = 20.0
 _DECISION_TIMEOUT_S = 300.0
-_MAX_TOKENS = 16000
 _TEMPERATURE = 0.4
+
+_CARACTERES_PAR_JETON = 3.4
+"""Estimation, volontairement pessimiste, pour du JSON en français.
+
+On ne compte pas les jetons exactement : il faudrait le tokeniseur du modèle,
+qui n'est pas là. Sous-estimer coûterait un refus, alors on surestime — et
+`_MARGE` absorbe le reste."""
+
+_MARGE_JETONS = 400
+_SORTIE_MINIMALE = 1500
+"""En dessous, une décision de six preuves visuelles ne tient pas. Mieux vaut
+refuser en le disant que rendre un brief tronqué."""
+
+_SORTIE_MAXIMALE = 8000
+_FENETRE_S = 60.0
+
+_FRACTION_UTILISABLE = 0.92
+"""On ne vise pas le plafond, on vise en dessous.
+
+Le compte de jetons est estimé ici et exact chez Groq ; viser la limite au
+jeton près, c'est transformer chaque écart d'estimation en refus. Huit pour
+cent de réserve coûtent quelques centaines de jetons de sortie et évitent de
+rejouer un épisode entier pour une virgule."""
 
 _VRAI = {"true", "vrai", "oui", "yes", "1"}
 
@@ -104,6 +146,12 @@ def _rend_leur_type(valeur: Any, schema: Any, defs: dict[str, Any]) -> Any:
     return valeur
 
 
+def _jetons(charge: Any) -> int:
+    """Taille estimée d'un fragment de requête, en jetons."""
+    texte = charge if isinstance(charge, str) else json.dumps(charge, ensure_ascii=False)
+    return int(len(texte) / _CARACTERES_PAR_JETON) + 1
+
+
 # ------------------------------------------------------------- adaptateur
 
 
@@ -114,7 +162,13 @@ class GroqReasoner:
     name: str = "groq"
     model: str = field(default_factory=lambda: _modele_demande())
     temperature: float = _TEMPERATURE
+    tpm: int = field(default_factory=lambda: _plafond_declare())
+    """Jetons par minute autorisés. Voir `DEFAULT_TPM` pour d'où vient le chiffre."""
+
+    notes: list[str] = field(default_factory=list)
     _last_usage: dict[str, int] = field(default_factory=dict, repr=False)
+    _fenetre_ouverte_a: float = field(default=0.0, repr=False)
+    _consomme: int = field(default=0, repr=False)
 
     # ------------------------------------------------------------- sonde
 
@@ -180,21 +234,25 @@ class GroqReasoner:
 
     def _decide(self, echanges: list[dict[str, Any]]) -> dict[str, Any]:
         schema = decision_schema()
+        outil = {
+            "type": "function",
+            "function": {
+                "name": _TOOL_NAME,
+                "description": "Rend la décision de réalisation demandée.",
+                "parameters": _accepte_aussi_une_chaine(schema),
+            },
+        }
+        messages = [{"role": "system", "content": SYSTEM}, *echanges]
+        entree = _jetons(messages) + _jetons(outil) + _MARGE_JETONS
+        sortie = self._sortie_possible(entree)
+        self._attendre_la_fenetre(entree + sortie)
+
         charge = {
             "model": self.model,
-            "max_tokens": _MAX_TOKENS,
+            "max_tokens": sortie,
             "temperature": self.temperature,
-            "messages": [{"role": "system", "content": SYSTEM}, *echanges],
-            "tools": [
-                {
-                    "type": "function",
-                    "function": {
-                        "name": _TOOL_NAME,
-                        "description": "Rend la décision de réalisation demandée.",
-                        "parameters": _accepte_aussi_une_chaine(schema),
-                    },
-                }
-            ],
+            "messages": messages,
+            "tools": [outil],
             "tool_choice": {"type": "function", "function": {"name": _TOOL_NAME}},
         }
         try:
@@ -223,9 +281,60 @@ class GroqReasoner:
         brut = _arguments_de_l_outil(charge_rendue, self.name)
         return _rend_leur_type(brut, schema, schema.get("$defs", {}))
 
+    # ------------------------------------------------------- le plafond
+
+    def _sortie_possible(self, entree: int) -> int:
+        """Ce qu'il reste pour écrire, une fois la question payée.
+
+        Le plafond porte sur l'envoi **et** la sortie réservée. Réserver
+        largement « au cas où » consomme donc le budget avant le premier mot :
+        c'est ce qui a fait échouer le premier appel réel, à 18 813 jetons
+        demandés pour 8 000 permis, dont 16 000 de sortie jamais écrite.
+        """
+        utilisable = int(self.tpm * _FRACTION_UTILISABLE)
+        reste = utilisable - entree
+        if reste < _SORTIE_MINIMALE:
+            raise ReasonerUnavailable(
+                f"{self.name} : le plafond de {self.tpm} jetons/minute ne laisse "
+                f"que {max(reste, 0)} jetons pour écrire, il en faut au moins "
+                f"{_SORTIE_MINIMALE}. Relever {GROQ_TPM_ENV} si le compte le permet."
+            )
+        return min(reste, _SORTIE_MAXIMALE)
+
+    def _attendre_la_fenetre(self, demande: int) -> None:
+        """Patiente si cette minute est déjà pleine, au lieu de se faire refuser.
+
+        La reprise du contrat renvoie une seconde requête quelques secondes
+        après la première : sur un plafond par minute, les deux s'additionnent.
+        Attendre le tour de la fenêtre est plus honnête qu'échouer sur une
+        limite qu'on savait atteindre.
+        """
+        maintenant = time.monotonic()
+        if maintenant - self._fenetre_ouverte_a >= _FENETRE_S:
+            self._fenetre_ouverte_a = maintenant
+            self._consomme = 0
+        elif self._consomme + demande > self.tpm:
+            repos = _FENETRE_S - (maintenant - self._fenetre_ouverte_a)
+            self.notes.append(
+                f"plafond de {self.tpm} jetons/minute atteint après "
+                f"{self._consomme} : attente de {repos:.0f}s avant la suite"
+            )
+            time.sleep(max(repos, 0.0))
+            self._fenetre_ouverte_a = time.monotonic()
+            self._consomme = 0
+        self._consomme += demande
+
 
 def _modele_demande() -> str:
     return os.environ.get(GROQ_MODEL_ENV, "").strip() or DEFAULT_MODEL
+
+
+def _plafond_declare() -> int:
+    """Le plafond déclaré par l'environnement, ou celui du palier gratuit."""
+    brut = os.environ.get(GROQ_TPM_ENV, "").strip()
+    if not brut.isdigit() or int(brut) <= 0:
+        return DEFAULT_TPM
+    return int(brut)
 
 
 def _motif(reponse: httpx.Response) -> str:
