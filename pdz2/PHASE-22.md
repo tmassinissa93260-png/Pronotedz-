@@ -313,3 +313,73 @@ pédagogique, un texte inventé se lit comme une donnée, et il est faux.
 Un plancher d'artefacts — texte, lettres, chiffres, légende, filigrane, logo,
 signature — s'ajoute désormais **après** les interdits décidés. Il ne décide
 rien : il écarte un mode de défaillance du générateur.
+
+---
+
+# Quatrième passe — du crédit sur le compte, et un trou à fermer d'abord
+
+L'auteur a déposé du crédit chez le fournisseur. Ça change ce qui est
+possible ; ça ne change pas ce qui est prudent.
+
+## Ce que j'avais dit de faux
+
+J'avais écrit que le gouverneur de coût refusait l'animation générative pour
+`UNMEASURED_COST`. Il la refuserait — **si on le lui demandait**. Le
+répartiteur ne l'interroge jamais avant un appel vidéo : `may_spend` n'est
+appelé nulle part sur ce chemin. La vraie situation était donc pire que
+décrite : rien n'empêchait une dépense, sinon un seuil d'énergie qui n'était
+jamais franchi.
+
+Avec un compte vide, c'est théorique. Avec du crédit dessus, c'est un trou.
+
+## Un plafond en plans, pas en dollars
+
+Le tarif du modèle vidéo n'est pas mesuré, et son interface ne renvoie aucune
+information de facturation : le coût réel ne se lit que sur le tableau de bord
+du compte. Annoncer un plafond en dollars sur un prix inconnu serait une
+garantie fausse — exactement ce que le §14 interdit.
+
+Un plafond en **plans** se tient avec certitude quel que soit le tarif : au
+plus N appels partent, et le journal dit lesquels. C'est une borne
+d'exposition, et elle ne prétend rien d'autre.
+
+`TopicRequest.animated_shots_max`, contrat 1.1.0, **zéro par défaut**. Deux
+verrous indépendants l'appliquent :
+
+1. **Le routeur** n'inscrit pas plus de N plans génératifs à l'échelle, et
+   déclare la dégradation `animated_shots_max` sur les autres — un champ
+   distinct de `provider_availability`, parce que le fournisseur est
+   joignable : c'est une autorisation qui manque, pas une panne.
+2. **Le répartiteur** refuse un appel génératif de plus, quelle qu'en soit la
+   provenance — un plan rejoué, une réparation, un contrat écrit à la main. Le
+   routeur planifie ; celui-ci exécute, et il ne fait pas confiance sur parole
+   à ce qu'il reçoit quand la conséquence est une facture.
+
+## Le seuil d'énergie était le mauvais critère
+
+`_GENERATIVE_ABOVE = 0.80` mesure l'énergie de **caméra**. Il n'a jamais été
+franchi en production — le maximum observé est 0,70 — ce qui rendait
+l'animation littéralement inatteignable.
+
+Et c'était le mauvais critère de toute façon. Un mécanisme qui doit tourner
+justifie le génératif quelle que soit la vitesse de l'appareil : c'est le
+sujet qu'on veut voir bouger, pas la caméra. Le relèvement vise donc
+maintenant `CONTROLLED_I2V` dès que le mouvement de sujet est mécanique et
+qu'un fournisseur autorisé est joignable ; il retombe sur le procédural sinon.
+
+Une garantie a été remplacée par une autre, et la nouvelle est plus forte :
+« une narration posée ne paie jamais » devient « **rien n'est payé sans
+autorisation** ». La première reposait sur un seuil ; la seconde sur un
+nombre que quelqu'un a écrit.
+
+## Comment mesurer le coût, puisque personne ne le renvoie
+
+Relever le solde du compte avant et après un run à N plans animés. Le delta
+divisé par les secondes générées donne le coût par seconde, qui s'inscrit à la
+matrice de capacités avec sa méthode de mesure. À partir de là,
+`budget_cap_usd` reprend son office et le plafond en plans n'a plus lieu
+d'être resserré à la main.
+
+C'est ce que le cahier des charges appelle une **calibration**, et c'est la
+seule façon honnête de sortir du cercle : on ne peut pas mesurer un coût sans
+l'engager une fois.

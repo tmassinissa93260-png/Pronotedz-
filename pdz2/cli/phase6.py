@@ -57,6 +57,7 @@ def cmd_route(args: argparse.Namespace) -> int:
         outcome = RenderRouter(
             video_capabilities=capacites,
             capability_matrix=store.latest("capability_matrix"),
+            animated_shots_max=request.animated_shots_max,
         ).route(
             episode_id=store.root.name,
             requested=requested,

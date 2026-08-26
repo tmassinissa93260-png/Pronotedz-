@@ -56,6 +56,7 @@ def cmd_research(args: argparse.Namespace) -> int:
             topic=args.topic,
             target_duration_s=args.duration,
             language=args.language,
+            animated_shots_max=getattr(args, "animated_shots", 0),
         )
         store.save(request)
 
@@ -238,6 +239,17 @@ def register(subparsers) -> None:
     research.add_argument("--corpus", required=True, help="dossier de documents sourcés")
     research.add_argument("--duration", type=float, default=45.0)
     research.add_argument("--language", default="fr")
+    research.add_argument(
+        "--animated-shots",
+        type=int,
+        default=0,
+        dest="animated_shots",
+        help=(
+            "combien de plans, au plus, peuvent être animés par un modèle "
+            "payant. Zéro par défaut : aucune dépense. Le plafond compte des "
+            "plans et non des dollars, le tarif n'étant pas mesuré."
+        ),
+    )
     research.set_defaults(func=cmd_research)
 
     template = subparsers.add_parser(

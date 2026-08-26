@@ -288,6 +288,17 @@ class RenderRouter:
     local_strategies: frozenset[RenderStrategy] = LOCAL_CAPABILITY
     previous_failures: dict[str, set[RenderStrategy]] = field(default_factory=dict)
     """Stratégies déjà mises en échec sur un plan. Alimenté par la réparation."""
+    animated_shots_max: int = 0
+    """Combien de plans, au plus, partent chez un modèle payant.
+
+    Zéro par défaut : aucun. Le plafond compte des plans et non des dollars,
+    parce que le tarif du modèle vidéo n'est pas mesuré et que son interface
+    ne renvoie rien sur la facturation. Voir `TopicRequest.animated_shots_max`.
+
+    Il se consomme dans l'ordre des plans. Ce n'est pas le meilleur ordre
+    possible — un plan de mécanisme mérite l'animation plus qu'une ouverture —
+    mais c'est un ordre **prévisible**, et le relèvement vers le génératif ne
+    vise déjà que les plans dont le sujet doit exécuter un mécanisme."""
 
     def route(
         self,
@@ -304,6 +315,7 @@ class RenderRouter:
         executables: list[RenderSpecExecutable] = []
         releves: list[str] = []
 
+        restant = self.animated_shots_max
         for spec in requested:
             motion = motions.get(spec.motion_program_id)
             if motion is None:
@@ -314,7 +326,10 @@ class RenderRouter:
                 (len(images[ref].layers) for ref in spec.image_spec_ids if ref in images),
                 default=1,
             )
-            executables.append(self._route_one(spec, motion, layers, releves))
+            execute = self._route_one(spec, motion, layers, releves, restant)
+            if execute.strategy in AI_VIDEO_STRATEGIES:
+                restant -= 1
+            executables.append(execute)
 
         plan = self._plan(
             episode_id,
@@ -341,9 +356,33 @@ class RenderRouter:
         motion: MotionProgram,
         layer_count: int,
         releves: list[str] | None = None,
+        animes_restants: int = 0,
     ) -> RenderSpecExecutable:
         degradations: list[Degradation] = []
         available = self._available(spec, degradations)
+        if animes_restants <= 0:
+            # Plafond d'animation atteint, ou jamais ouvert. Les barreaux
+            # génératifs sortent de l'échelle pour ce plan — et le dire vaut
+            # mieux que de laisser croire qu'aucun n'était joignable.
+            genératifs = [s for s in available if s in AI_VIDEO_STRATEGIES]
+            if genératifs:
+                available = [s for s in available if s not in AI_VIDEO_STRATEGIES]
+                degradations.append(
+                    Degradation(
+                        field="animated_shots_max",
+                        requested="animation par modèle génératif",
+                        executed="stratégie déterministe locale",
+                        reason=(
+                            "plafond de plans animés épuisé ou nul "
+                            f"({self.animated_shots_max} déclaré{'s' if self.animated_shots_max > 1 else ''})"
+                        ),
+                        description=(
+                            "le sujet ne bougera pas dans le cadre sur ce plan ; "
+                            "relever `animated_shots_max` engage une dépense"
+                        ),
+                        severity=DegradationSeverity.PERCEPTUAL,
+                    )
+                )
         failed = self.previous_failures.get(spec.shot_id, set())
         usable = [s for s in available if s not in failed]
         if failed and not usable:
@@ -365,7 +404,7 @@ class RenderRouter:
         energy = motion.perceptual_target.motion_energy
         wanted = spec.preferred_strategy or self._aim(energy, available)
         if spec.preferred_strategy is None:
-            releve = self._aim_for_subject(wanted, motion)
+            releve = self._aim_for_subject(wanted, motion, available)
             if releve is not wanted:
                 # Ce n'est pas une dégradation — le plan reçoit PLUS que ce que
                 # l'énergie seule lui donnait. Mais un choix qui ne se lit
@@ -606,7 +645,9 @@ class RenderRouter:
 
     @staticmethod
     def _aim_for_subject(
-        wanted: RenderStrategy, motion: MotionProgram
+        wanted: RenderStrategy,
+        motion: MotionProgram,
+        disponibles: list[RenderStrategy] | None = None,
     ) -> RenderStrategy:
         """Relève la visée quand le SUJET doit bouger, pas seulement la caméra.
 
@@ -642,6 +683,7 @@ class RenderRouter:
         de tout plan qui n'affirme pas un mécanisme — relevait les huit plans
         de l'épisode.
         """
+        disponibles = disponibles or []
         if wanted not in _UPGRADABLE_FOR_SUBJECT:
             return wanted
         demande = motion.subject_motion.primitive
@@ -651,6 +693,13 @@ class RenderRouter:
             return wanted
         if demande in _SUBJECT_MOTION_BY_STRATEGY.get(wanted, frozenset()):
             return wanted
+        # Un mécanisme qui doit tourner justifie le génératif à lui seul,
+        # quelle que soit l'énergie de caméra. `_GENERATIVE_ABOVE` ne regarde
+        # que le déplacement de l'appareil, et il n'a jamais été franchi : le
+        # maximum observé sur un épisode réel est 0,70 pour un seuil à 0,80.
+        # Or c'est le sujet qu'on veut voir bouger, pas la caméra.
+        if RenderStrategy.CONTROLLED_I2V in disponibles:
+            return RenderStrategy.CONTROLLED_I2V
         if demande in _SUBJECT_MOTION_BY_STRATEGY[RenderStrategy.PROCEDURAL]:
             return RenderStrategy.PROCEDURAL
         return wanted

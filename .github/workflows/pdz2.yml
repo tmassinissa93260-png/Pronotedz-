@@ -50,6 +50,17 @@ on:
           - groq
           - anthropic
           - ""
+      plans_animes:
+        description: >-
+          Combien de plans, AU PLUS, sont animés par le modèle vidéo payant
+          (fal kling). Zéro = aucune dépense vidéo. C'est un plafond en
+          PLANS, pas en dollars : le tarif de kling n'est pas mesuré et
+          l'API de fal ne renvoie rien sur la facturation, donc un plafond
+          en dollars serait une garantie fausse. Relever le solde du compte
+          avant et après le run donne le coût réel.
+        required: true
+        default: "0"
+        type: string
 
 
 permissions:
@@ -115,7 +126,8 @@ jobs:
             --episode episode \
             --topic "${{ inputs.sujet }}" \
             --corpus "${{ inputs.corpus }}" \
-            --duration "${{ inputs.duree }}"
+            --duration "${{ inputs.duree }}" \
+            --animated-shots "${{ inputs.plans_animes }}"
           code=$?
           set -e
           # 3 n'est pas une panne : c'est l'arrêt volontaire devant le brief,

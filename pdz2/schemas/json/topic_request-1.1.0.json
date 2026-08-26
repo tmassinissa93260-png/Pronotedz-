@@ -47,7 +47,7 @@
       "type": "string"
     }
   },
-  "$id": "pdz2:topic_request/1.0.0",
+  "$id": "pdz2:topic_request/1.1.0",
   "additionalProperties": false,
   "description": "Entrée du compilateur : une idée, un format, un budget.",
   "properties": {
@@ -55,6 +55,12 @@
       "default": true,
       "title": "Allow Ai Video",
       "type": "boolean"
+    },
+    "animated_shots_max": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Animated Shots Max",
+      "type": "integer"
     },
     "aspect_ratio": {
       "$ref": "#/$defs/AspectRatio",
