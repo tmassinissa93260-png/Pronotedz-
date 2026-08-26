@@ -44,6 +44,7 @@ from pdz2.renderers.ffmpeg import (
     probe_video,
 )
 from pdz2.renderers.graphics import draw_text_overlay
+from pdz2.renderers.mechanism import draw_mechanism
 from pdz2.renderers.motion_paths import sample_trajectory
 
 __all__ = [
@@ -126,6 +127,22 @@ Tous les calques suivent maintenant la caméra ; seule une fraction du
 mouvement dépend de la profondeur. C'est ce que fait un travelling réel : le
 lointain défile moins vite que le proche, il ne reste pas cloué."""
 
+_DRAWS_SUBJECT_MOTION = frozenset({RenderStrategy.PROCEDURAL})
+"""Stratégies qui dessinent le mouvement du sujet dans le cadre.
+
+Une seule, et c'est cohérent avec ce que le routeur déclare : Ken Burns et le
+parallaxe déplacent la caméra sur une image fixe, et cette limite est
+désormais inscrite comme dégradation plutôt que passée sous silence."""
+
+_DEFAULT_PALETTE: list[tuple[int, int, int]] = [
+    (16, 24, 32), (60, 76, 92), (226, 168, 68), (232, 236, 240)
+]
+"""Palette de secours quand l'appelant n'en fournit pas.
+
+Déclarée plutôt que devinée : un indicateur dessiné dans une couleur tirée de
+l'image se confondrait avec elle, et un rendu sans palette doit rester lisible
+plutôt que joli."""
+
 _OVERSCAN = 1.45
 """Marge de sécurité autour du cadre, pour que le mouvement ne révèle pas de bord.
 
@@ -180,6 +197,7 @@ class DeterministicRenderer:
         images: list[RenderedImage],
         into: Path,
         typography: Typography | None = None,
+        palette: list[tuple[int, int, int]] | None = None,
     ) -> RenderOutcome:
         """Rend chaque plan. `typography` vient de la bible visuelle.
 
@@ -214,7 +232,7 @@ class DeterministicRenderer:
                 )
             motion = self._motion_for(executable, motions)
             render, artifact = self._render_one(
-                executable, motion, image, directory, typography
+                executable, motion, image, directory, typography, palette
             )
             renders.append(render)
             artifacts.append(artifact)
@@ -246,6 +264,7 @@ class DeterministicRenderer:
         image: RenderedImage,
         directory: Path,
         typography: Typography | None = None,
+        palette: list[tuple[int, int, int]] | None = None,
     ) -> tuple[ShotRender, RenderArtifact]:
         started = time.monotonic()
         width = executable.resolution.width
@@ -260,6 +279,18 @@ class DeterministicRenderer:
                 composed = self._compose(
                     executable, motion, layers, t, width, height
                 )
+                # Le mouvement du sujet se dessine DANS le cadre, là où le
+                # recadrage et le parallaxe ne font que déplacer la caméra.
+                # Après la composition — il commente l'image, il ne se cache
+                # pas derrière un calque — et avant l'incrustation, qui reste
+                # la couche la plus haute.
+                if (
+                    motion is not None
+                    and executable.strategy in _DRAWS_SUBJECT_MOTION
+                ):
+                    composed = draw_mechanism(
+                        composed, motion, t, palette=palette or _DEFAULT_PALETTE
+                    )
                 if executable.text_overlay is not None:
                     composed = draw_text_overlay(
                         composed,

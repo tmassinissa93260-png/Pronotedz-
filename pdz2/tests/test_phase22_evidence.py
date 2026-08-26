@@ -315,8 +315,58 @@ class TestLeMouvementDuSujet:
                 assert declare[0].requested == demande.value
                 assert declare[0].executed == "static"
 
-    def test_the_episode_no_longer_looks_flawless(self, tmp_path) -> None:
-        """Un épisode aux huit plans immobiles ne doit pas se dire irréprochable."""
+    def test_a_subject_that_must_move_is_routed_where_it_can(self, tmp_path) -> None:
+        """Ce test affirmait l'inverse, et il avait raison de le faire.
+
+        Il vérifiait qu'un épisode aux plans immobiles cessait de se présenter
+        comme irréprochable — à une époque où AUCUNE stratégie locale ne savait
+        animer un sujet. La grammaire de mouvement dessinée a changé ce fait :
+        le procédural exécute désormais les neuf primitives animables.
+
+        L'invariant utile n'est donc plus « la lacune est déclarée » mais « le
+        mouvement demandé est exécuté, ou déclaré ». Le premier cas est
+        vérifié ici, le second par le test précédent.
+        """
+        from pdz2.contracts.motion import MotionPrimitive
+        from pdz2.engines.routing import RenderRouter
+        from pdz2.engines.routing.router import _SUBJECT_MOTION_BY_STRATEGY
+        from pdz2.tests import pipeline
+
+        episode = pipeline.build_episode(tmp_path, through_render_spec=True)
+        sortie = RenderRouter().route(
+            episode_id="preuve",
+            requested=episode.render_specs,
+            motion_programs=episode.motion_programs,
+            image_specs=episode.image_specs,
+        )
+        par_plan = {m.shot_id: m for m in episode.motion_programs}
+
+        mobiles = 0
+        for executable in sortie.executables:
+            demande = par_plan[executable.shot_id].subject_motion.primitive
+            if demande is MotionPrimitive.STATIC:
+                continue
+            mobiles += 1
+            tenable = demande in _SUBJECT_MOTION_BY_STRATEGY.get(
+                executable.strategy, frozenset()
+            )
+            declare = any(
+                d.field == "subject_motion" for d in executable.degradations
+            )
+            assert tenable or declare, (
+                f"{executable.shot_id} exige « {demande.value} », reçoit "
+                f"{executable.strategy.value} qui ne l'exécute pas, et ne le "
+                "déclare pas"
+            )
+
+        assert mobiles, "l'épisode de référence ne demande aucun mouvement de sujet"
+
+    def test_the_upgrade_is_visible_in_the_routing_notes(self, tmp_path) -> None:
+        """Un choix qu'on ne lit nulle part est un choix qu'on ne peut pas discuter.
+
+        Relever la visée n'est pas une dégradation — le plan reçoit plus que
+        ce que l'énergie seule lui donnait — donc rien ne l'inscrivait.
+        """
         from pdz2.engines.routing import RenderRouter
         from pdz2.tests import pipeline
 
@@ -327,13 +377,6 @@ class TestLeMouvementDuSujet:
             motion_programs=episode.motion_programs,
             image_specs=episode.image_specs,
         )
-        declarees = [
-            d
-            for e in sortie.executables
-            for d in e.degradations
-            if d.field == "subject_motion"
-        ]
-        assert declarees, (
-            "aucun plan ne déclare que son sujet restera immobile, alors "
-            "qu'aucune stratégie locale ne sait animer un sujet"
-        )
+        releves = [n for n in sortie.notes if "le sujet doit exécuter" in n]
+        assert releves, "aucun relèvement de visée n'apparaît dans les notes"
+        assert any("procedural" in n for n in releves)

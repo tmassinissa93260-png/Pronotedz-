@@ -157,12 +157,18 @@ class TestStrategyChoice:
             spec.model_copy(update={"layers": spec.layers[:1]})
             for spec in episode.image_specs
         ]
+        # Sujet immobile : ce test porte sur la règle des calques, et un
+        # mouvement de sujet relèverait la visée vers le procédural avant
+        # qu'elle ne s'applique. Le relèvement a son propre test.
+        from pdz2.contracts.motion import MotionDescriptor
+
         mid = [
             program.model_copy(
                 update={
                     "perceptual_target": program.perceptual_target.model_copy(
                         update={"motion_energy": 0.55}
-                    )
+                    ),
+                    "subject_motion": MotionDescriptor(),
                 }
             )
             for program in episode.motion_programs
