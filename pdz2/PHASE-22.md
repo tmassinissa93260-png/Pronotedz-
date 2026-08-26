@@ -267,3 +267,49 @@ Le second n'est pas contournable par du code, et ne doit pas l'être : c'est la
 règle « ne jamais dépenser avant validation », posée au cahier des charges.
 Pour mesurer un coût il faut l'engager une fois. C'est une décision qui engage
 de l'argent, donc elle appartient à celui qui paie, pas au compilateur.
+
+## Troisième passe — la commande était noyée dans son style
+
+Le calque opaque expliquait pourquoi l'image gardée était un avant-plan. Il
+n'expliquait pas pourquoi *aucune* des quatre ne montrait une voiture. La
+mesure du prompt le dit :
+
+```
+LONGUEUR TOTALE : 904 caractères
+  sujet nommé   :  66 car.   7,3 %
+  style / bible : 488 car.  54,0 %
+  décor déclaré : « atelier de fabrication et laboratoire »
+  interdits     : (vide)
+```
+
+Sept contre un en faveur du style, et le seul substantif concret qui pesait
+était le décor. Poser le sujet en tête ne suffit pas quand il occupe un
+quatorzième de la phrase.
+
+**Règle posée** : ce qui doit être visible — sujet de l'épisode, exigence de
+preuve, sujet du plan, contenu du calque — reçoit au moins la moitié de la
+commande. Si la bible déborde, c'est l'esthétique qui est coupée, jamais le
+sujet, et la coupe se termine par un signe visible.
+
+Mesuré après : **51 %**, et 904 caractères tombent à 566 sur le plan
+d'ouverture. Le décor reste transmis mais passe en dernier — c'est lui qui a
+produit les entrepôts, il n'entre plus qu'après tout le reste. L'optique et la
+profondeur de champ sortent du prompt : elles se lisent bien pour un humain et
+n'apprennent presque rien à un moteur de diffusion.
+
+INFÉRENCE D'INGÉNIERIE : la moitié n'est pas un seuil calibré, c'est le
+partage le plus simple qui renverse un rapport de sept contre un. Un rendu
+mesuré peut le contredire ; le rapport qu'il remplace n'avait, lui, aucune
+justification.
+
+### Le prompt négatif était vide
+
+Ni la bible ni la spécification ne remplissaient `forbidden`, donc rien ne
+disait au moteur ce qu'il ne devait pas faire. Deux plans du run #8 portent du
+faux texte inventé : « MITSUBAMOX 197 » sur le flanc d'un moteur,
+« 66 kWh / 360am / BP-001 » sur l'afficheur d'un boîtier. Sur une image
+pédagogique, un texte inventé se lit comme une donnée, et il est faux.
+
+Un plancher d'artefacts — texte, lettres, chiffres, légende, filigrane, logo,
+signature — s'ajoute désormais **après** les interdits décidés. Il ne décide
+rien : il écarte un mode de défaillance du générateur.

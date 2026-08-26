@@ -710,3 +710,81 @@ class TestEmpilerDesImagesOpaquesNEstPasComposer:
             assert min(dessus.split()[3].tobytes()) == 255, "alpha non opaque"
             fond.paste(dessus, (0, 0), dessus)
         assert fond.getpixel((0, 0)) == couleurs[-1]
+
+
+class TestLaCommandeEstDominéeParSonSujet:
+    """7,3 % du run #8 nommaient le sujet. 54 % décrivaient le style.
+
+    Sur les 904 caractères réellement envoyés, 66 nommaient le sujet et 488
+    récitaient la bible — un rapport de sept contre un. Le seul substantif
+    concret qui pesait était le décor décidé par la bible : « atelier de
+    fabrication et laboratoire ». Le fournisseur a rendu des ateliers, et il
+    avait raison de le faire.
+    """
+
+    def test_what_must_be_visible_weighs_at_least_as_much_as_style(
+        self, tmp_path
+    ) -> None:
+        from pdz2.providers.prompting import image_prompt
+        from pdz2.tests import pipeline
+
+        episode = pipeline.build_episode(tmp_path, through_render_spec=True)
+        for spec in episode.image_specs:
+            for calque in spec.layers:
+                prompt = image_prompt(spec, episode.bible, calque)
+                coupure = prompt.find("Cadrage :")
+                assert coupure > 0, "la partie esthétique a disparu entièrement"
+                assert coupure >= len(prompt) - coupure, (
+                    f"{spec.shot_id}/{calque.role.value} : le style pèse "
+                    f"{len(prompt) - coupure} car. contre {coupure} au sujet"
+                )
+
+    def test_the_decor_comes_last_since_it_is_what_misled_the_engine(
+        self, tmp_path
+    ) -> None:
+        """Il reste transmis — il passe simplement après tout le reste."""
+        from pdz2.providers.prompting import _style
+        from pdz2.tests import pipeline
+
+        episode = pipeline.build_episode(tmp_path, through_render_spec=True)
+        style = _style(episode.image_specs[0], episode.bible)
+        assert episode.bible.environment in style
+        assert style.index(episode.bible.environment) > style.index(
+            episode.bible.style
+        )
+
+    def test_the_style_is_cut_rather_than_the_subject(self) -> None:
+        from pdz2.providers.prompting import _tenir_le_budget
+
+        quoi = ["a" * 100]
+        garde = _tenir_le_budget(quoi, ["b" * 300])
+        assert garde and len(garde[0]) <= 100
+        assert garde[0].endswith("…"), "une coupe muette est une coupe cachée"
+
+    def test_invented_text_is_refused(self, tmp_path) -> None:
+        """Le run #8 a rendu « MITSUBAMOX 197 » et « 66 kWh / 360am / BP-001 ».
+
+        Le prompt négatif y était vide : ni la bible ni la spécification ne
+        remplissaient `forbidden`. Un texte inventé sur une image pédagogique
+        se lit comme une donnée, et il est faux.
+        """
+        from pdz2.providers.prompting import negative_prompt
+        from pdz2.tests import pipeline
+
+        episode = pipeline.build_episode(tmp_path, through_render_spec=True)
+        for spec in episode.image_specs:
+            interdits = negative_prompt(spec, episode.bible)
+            assert interdits.strip(), f"{spec.shot_id} : aucun interdit transmis"
+            for terme in ("texte", "filigrane", "logo"):
+                assert terme in interdits
+
+    def test_the_decided_forbiddens_still_come_first(self, tmp_path) -> None:
+        """Le plancher technique ne prend la place d'aucune décision."""
+        from pdz2.providers.prompting import _ARTEFACTS, negative_prompt
+        from pdz2.tests import pipeline
+
+        episode = pipeline.build_episode(tmp_path, through_render_spec=True)
+        spec = episode.image_specs[0].model_copy(update={"forbidden": ["une chose"]})
+        interdits = negative_prompt(spec, episode.bible)
+        assert interdits.startswith("une chose")
+        assert interdits.index("une chose") < interdits.index(_ARTEFACTS[0])
