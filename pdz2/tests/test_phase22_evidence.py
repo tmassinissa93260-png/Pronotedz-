@@ -164,3 +164,82 @@ class TestLePromptNeSeRepetePlus:
         assert prompt.startswith("L'image doit rendre visible")
         assert spec.evidence_required.rstrip(".") in prompt
 
+
+
+# ------------------------------------------- le mouvement demandé doit se voir
+
+
+class TestLesAmplitudesDeMouvement:
+    """Un mouvement trop lent n'est pas un mouvement discret : c'est une image fixe.
+
+    Le run #7 a été décrit par son auteur comme dépourvu d'animation, alors que
+    sept plans sur huit avaient une caméra en mouvement et que l'observateur les
+    déclarait conformes. Le calcul le confirmait : un panoramique parcourait
+    trente-quatre pixels sur un plan de cinq secondes, soit 0,2 pixel par image.
+
+    Deux causes, toutes deux dans le renderer :
+
+    * l'amplitude de **parallaxe** servait d'amplitude de **caméra**, alors
+      qu'un écart de 9 % entre calques est important quand un déplacement de
+      caméra de 9 % ne l'est pas ;
+    * le décalage valait `offset × depth`, donc le calque de profondeur 0,0
+      restait strictement immobile.
+    """
+
+    def test_camera_travel_is_not_the_parallax_amplitude(self) -> None:
+        """Deux grandeurs différentes, deux constantes différentes."""
+        from pdz2.renderers.deterministic import MAX_CAMERA_TRAVEL, MAX_PARALLAX_SHIFT
+
+        assert MAX_CAMERA_TRAVEL > MAX_PARALLAX_SHIFT * 2, (
+            "le parcours caméra est de nouveau confondu avec l'écart de parallaxe"
+        )
+
+    def test_a_pan_crosses_enough_of_the_frame_to_be_seen(self) -> None:
+        """Le critère est géométrique, pas photométrique : des pixels, par image.
+
+        Une différence de pixels dépend du contenu — un dégradé lisse absorbe
+        un mouvement qu'une photographie révèle. Le parcours, lui, ne dépend
+        que de la caméra, et c'est donc lui qu'on contraint.
+        """
+        from pdz2.renderers.deterministic import MAX_CAMERA_TRAVEL
+
+        largeur, images = 1080, 5.0 * 30  # un plan de cinq secondes à 30 i/s
+        for energie in (0.35, 0.70):
+            par_image = MAX_CAMERA_TRAVEL * energie * largeur / images
+            assert par_image >= 0.5, (
+                f"énergie {energie} : {par_image:.2f} pixel par image — sous le "
+                "demi-pixel, un déplacement continu se confond avec du bruit"
+            )
+
+    def test_no_layer_is_nailed_to_the_frame(self) -> None:
+        """Le fond suit la caméra, plus lentement. Il ne reste pas cloué.
+
+        Un fond parfaitement immobile derrière un sujet qui glisse ne produit
+        pas du relief : il produit l'impression d'une image fixe avec un
+        élément qui dérive.
+        """
+        from pdz2.renderers.deterministic import PARALLAX_SPREAD
+
+        for depth in (0.0, 0.25, 0.6, 0.9):
+            facteur = (1.0 - PARALLAX_SPREAD) + PARALLAX_SPREAD * depth
+            assert facteur > 0.4, f"profondeur {depth} : facteur {facteur:.2f}"
+
+        proche = (1.0 - PARALLAX_SPREAD) + PARALLAX_SPREAD * 0.9
+        loin = (1.0 - PARALLAX_SPREAD) + PARALLAX_SPREAD * 0.0
+        assert proche > loin * 1.3, "sans écart entre les calques, plus de relief"
+
+    def test_the_overscan_does_not_clip_the_travel_it_allows(self) -> None:
+        """La marge plafonnait le parcours avant l'amplitude elle-même.
+
+        Mesuré avant correction : un panoramique rendait exactement le même
+        déplacement à énergie 0,5 et à énergie 1,0 — la marge saturait, et
+        relever l'amplitude n'aurait rien changé au-delà de la moitié de
+        l'échelle.
+        """
+        from pdz2.renderers.deterministic import _OVERSCAN, MAX_CAMERA_TRAVEL
+
+        marge = _OVERSCAN - 1.0
+        assert marge >= MAX_CAMERA_TRAVEL, (
+            f"marge {marge:.2f} inférieure au parcours maximal "
+            f"{MAX_CAMERA_TRAVEL:.2f} : le mouvement sature avant son amplitude"
+        )
