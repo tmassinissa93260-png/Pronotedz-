@@ -28,7 +28,7 @@ from PIL import Image
 
 from pdz2.contracts.capability import ProviderCapability
 from pdz2.contracts.enums import ArtifactKind
-from pdz2.contracts.motion import CameraMove, MotionPrimitive, MotionProgram
+from pdz2.contracts.motion import CameraMove, MotionProgram
 from pdz2.contracts.render import (
     RenderArtifact,
     RenderSpecExecutable,
@@ -459,12 +459,34 @@ class DeterministicRenderer:
 
     @staticmethod
     def _spin(layer: Image.Image, motion: MotionProgram, t: float) -> Image.Image:
-        """Rotation du sujet, quand le mouvement du sujet en demande une."""
-        primitive = motion.subject_motion.primitive
-        if primitive not in {MotionPrimitive.ROTATE, MotionPrimitive.ORBIT}:
-            return layer
-        degrees = motion.subject_motion.trajectory.amplitude * t
-        return layer.rotate(degrees, resample=Image.BILINEAR, center=None)
+        """Retiré. Faire tourner le calque entier n'est pas faire tourner le sujet.
+
+        Cette fonction appliquait `Image.rotate` au calque du sujet, d'un
+        angle allant jusqu'à `120° × énergie` au fil du plan. Deux torts, et
+        le second se voit à l'image :
+
+        1. **Ce n'est pas le mécanisme qui tourne, c'est la photographie.**
+           C'est précisément la fausse animation que `renderers.mechanism` a
+           été écrit pour remplacer — son propre en-tête la nommait déjà comme
+           un défaut, pendant qu'elle continuait de tourner ici.
+        2. **Elle ouvrait des coins vides.** `rotate` sans `expand` laisse les
+           angles hors du rectangle source transparents. Sur un cadrage plat —
+           macro, gros plan, coupe technique — `layers_for` ne rend qu'un seul
+           calque : il n'y a rien dessous, et le vide est le noir de la toile.
+           Mesuré sur le run #8 : S03 33 % de pixels quasi noirs en moyenne et
+           jusqu'à 40 %, S04 16 %, S05 11 % — les trois plans à cadrage plat,
+           et eux seuls.
+
+        Le mouvement de rotation n'est pas perdu : `draw_mechanism` le dessine
+        comme un mécanisme, en repères qui tournent, sans toucher aux pixels
+        de l'image ni à ses bords.
+
+        La fonction est conservée en une ligne inerte plutôt que supprimée du
+        graphe d'appel : son point d'appel reste le seul endroit où la
+        question « le sujet tourne-t-il ? » se pose dans ce renderer, et le
+        prochain moteur qui saurait vraiment y répondre s'y branchera.
+        """
+        return layer
 
 
 _DEPTH: dict[LayerRole, float] = {

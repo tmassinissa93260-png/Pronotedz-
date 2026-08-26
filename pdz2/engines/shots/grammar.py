@@ -166,11 +166,37 @@ def subject_motion_for(
 
         cible < LOCK_BELOW           → sujet immobile
         affirmation de mécanisme     → rotation (un mécanisme se démontre en tournant)
+        affirmation de conséquence   → flux (une cause se démontre en se propageant)
         sinon                        → translation linéaire
+
+    La ligne du flux manquait, et le spectateur du run #8 a nommé ce trou
+    exactement : « moteur qui tourne, **électricité qui bouge** ». Le moteur
+    avait sa rotation ; le courant n'avait rien. Une affirmation de
+    conséquence — la batterie alimente le moteur, le couple entraîne la roue —
+    décrit quelque chose qui **passe** d'un point à un autre, et
+    `renderers.mechanism` sait déjà dessiner ce passage. Elle recevait
+    `LINEAR`, qui ne veut rien dire de plus que « ça se déplace un peu ».
+
+    `LINEAR` reste le cas par défaut, et il reste indessinable : le routeur ne
+    relève plus un plan vers le procédural pour lui, et inscrit la
+    dégradation. C'est une absence déclarée, pas une animation inventée.
     """
     if motion_target < LOCK_BELOW:
         return MotionDescriptor()
     magnitude = round(motion_target, 4)
+    if claim_kind is ClaimKind.CONSEQUENCE:
+        return MotionDescriptor(
+            primitive=MotionPrimitive.FLOW,
+            direction=Vec3(x=1.0),
+            magnitude=magnitude,
+            trajectory=Trajectory(
+                primitive=MotionPrimitive.FLOW,
+                amplitude=magnitude,
+                control_points=[Vec3(), Vec3(x=magnitude)],
+                easing=Easing.LINEAR,
+            ),
+            description="flux traversant le sujet, démontrant la conséquence",
+        )
     if claim_kind is ClaimKind.MECHANISM:
         return MotionDescriptor(
             primitive=MotionPrimitive.ROTATE,

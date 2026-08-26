@@ -151,6 +151,7 @@ class ImageSpecCompiler:
                     anchor_ids=list(shot.continuity_dependencies),
                     claim_id=shot.claim_id,
                     evidence_required=shot.evidence_required,
+                    subject_matter=request.topic,
                     subject=shot.visual_subject,
                     composition=shot.composition.model_copy(deep=True),
                     resolution=resolution,
@@ -172,6 +173,7 @@ class ImageSpecCompiler:
                 f"{sum(len(s.layers) for s in specs)} calques au total",
                 f"{sum(1 for s in specs if s.evidence_required)} image(s) "
                 "portent une exigence de preuve",
+                f"sujet de l'épisode transmis à chaque image : {request.topic}",
             ],
         )
 

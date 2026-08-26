@@ -26,6 +26,16 @@ def image_prompt(spec: ImageSpec, bible: VisualBible, layer=None) -> str:
     l'esthétique. Un moteur qui lit d'abord trois lignes de style et de
     matières traite le mécanisme comme un détail de fin de phrase.
 
+    En tête vient le **sujet de la séquence**. Il n'y était pas, et le run #8
+    montre ce que ça donne : sur un épisode consacré à la voiture électrique,
+    le prompt complet d'un plan large disait « Ouverture dans le registre
+    décidé : technical. Cadrage : wide […] Décor : atelier de fabrication et
+    laboratoire. Palette : #1A73E8, #FFFFFF, #000000. » Pas un mot du sujet.
+    Le seul substantif concret étant le décor, le fournisseur a rendu des
+    ateliers — un entrepôt de cartons, un garage vide, un couloir de centre
+    commercial. Ce n'était pas un mauvais fournisseur : c'était une commande
+    qui ne demandait rien.
+
     Cette fonction récitait la bible une seconde fois — registre, lumière,
     matières, graphisme — alors que `spec.intent` la porte déjà en entier.
     Mesuré sur un plan réel : le registre visuel apparaissait quatre fois
@@ -34,8 +44,12 @@ def image_prompt(spec: ImageSpec, bible: VisualBible, layer=None) -> str:
     consigne diluée.
     """
     morceaux = []
+    if spec.subject_matter:
+        # Le domaine, avant tout le reste. Sans lui la phrase ne nomme rien
+        # que le fournisseur puisse reconnaître : il complète avec le décor.
+        morceaux.append(f"Sujet de la séquence : {spec.subject_matter}")
     if spec.evidence_required:
-        # La raison d'être de l'image, en premier et dite comme telle.
+        # La raison d'être de l'image, dite comme telle.
         morceaux.append(f"L'image doit rendre visible : {spec.evidence_required}")
     morceaux.append(spec.intent)
     if layer is not None:

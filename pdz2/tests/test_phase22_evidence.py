@@ -161,8 +161,15 @@ class TestLePromptNeSeRepetePlus:
         spec = next(s for s in episode.image_specs if s.evidence_required)
         prompt = image_prompt(spec, episode.bible)
 
-        assert prompt.startswith("L'image doit rendre visible")
+        # Le sujet de l'épisode passe devant depuis le run #8 : sans lui, la
+        # phrase ne nomme aucun domaine et le fournisseur complète avec le
+        # décor de la bible. La preuve vient immédiatement après, et toujours
+        # avant l'esthétique.
+        assert prompt.startswith("Sujet de la séquence")
+        position_preuve = prompt.index("L'image doit rendre visible")
+        assert position_preuve < prompt.index("Style :")
         assert spec.evidence_required.rstrip(".") in prompt
+        assert spec.subject_matter and spec.subject_matter in prompt
 
 
 
@@ -380,3 +387,231 @@ class TestLeMouvementDuSujet:
         releves = [n for n in sortie.notes if "le sujet doit exécuter" in n]
         assert releves, "aucun relèvement de visée n'apparaît dans les notes"
         assert any("procedural" in n for n in releves)
+
+
+# ---------------------------------------------- ce que le run #8 a mis à nu
+
+
+class TestLeSujetDeLEpisodeAtteintLeFournisseur:
+    """La commande doit nommer le domaine, sinon le décor le remplace.
+
+    Le run #8 a produit huit plans sur « Comment fonctionne une voiture
+    électrique ? ». Le prompt intégral d'un plan large, relu par
+    `pdz2 prompts`, disait ceci — et rien de plus :
+
+        Ouverture dans le registre décidé : technical. Cadrage : wide, angle
+        low, sujet center. Style : technical — clean high-tech. Lumière :
+        lumière froide, néons bleus. […] Décor : atelier de fabrication et
+        laboratoire. Palette : #1A73E8, #FFFFFF, #000000.
+
+    Ni voiture, ni moteur, ni batterie. Le seul substantif concret de la
+    phrase était le décor décidé par la bible, et le fournisseur l'a rendu :
+    un entrepôt de cartons, un garage vide, un couloir de centre commercial,
+    un homme de dos dans une embrasure. Quatre plans sur huit sans rapport
+    avec le sujet.
+    """
+
+    def test_the_image_contract_carries_the_topic(self, tmp_path) -> None:
+        from pdz2.tests import pipeline
+
+        episode = pipeline.build_episode(tmp_path, through_render_spec=True)
+        for spec in episode.image_specs:
+            assert spec.subject_matter, f"{spec.shot_id} ne sait pas de quoi on parle"
+
+    def test_every_layer_prompt_names_the_topic(self, tmp_path) -> None:
+        """Un appel par calque : aucun ne doit partir sans le domaine."""
+        from pdz2.providers.prompting import image_prompt
+        from pdz2.tests import pipeline
+
+        episode = pipeline.build_episode(tmp_path, through_render_spec=True)
+        for spec in episode.image_specs:
+            for calque in spec.layers:
+                prompt = image_prompt(spec, episode.bible, calque)
+                assert spec.subject_matter in prompt, (
+                    f"{spec.shot_id}/{calque.role.value} : commande sans domaine"
+                )
+
+    def test_framing_shots_no_longer_ask_for_a_register_name(self, tmp_path) -> None:
+        """« Ouverture dans le registre décidé : technical » n'est pas une image."""
+        from pdz2.tests import pipeline
+
+        episode = pipeline.build_episode(tmp_path, through_render_spec=True)
+        for shot in episode.graph.shots:
+            assert "registre décidé" not in shot.visual_subject, (
+                f"{shot.shot_id} commande une étiquette de style, pas une scène"
+            )
+
+
+class TestLeProceduralNeSAppliquePasPartout:
+    """Le relèvement vers le procédural doit répondre à un mécanisme réel.
+
+    Les huit plans du run #8 ont été routés en `procedural`. La cause est dans
+    `subject_motion_for` : elle rend `LINEAR` — « déplacement du sujet dans le
+    cadre » — pour tout plan dont l'énergie dépasse le seuil de verrouillage
+    et qui ne porte pas d'affirmation de mécanisme, c'est-à-dire presque tous.
+    `_aim_for_subject` voyait une primitive animable et relevait.
+
+    À l'écran : des pointes de flux estampillées sur un entrepôt de cartons et
+    sur un homme de dos. Une dérive du sujet n'est pas un mécanisme ; il n'y a
+    rien de vrai à en dessiner.
+    """
+
+    def test_a_plain_drift_does_not_reach_the_procedural(self) -> None:
+        from pdz2.contracts.motion import MotionPrimitive
+        from pdz2.contracts.render import RenderStrategy
+        from pdz2.engines.routing.router import _MECHANICAL, RenderRouter
+
+        for primitive in (MotionPrimitive.LINEAR, MotionPrimitive.SCALE,
+                          MotionPrimitive.JITTER, MotionPrimitive.STATIC):
+            assert primitive not in _MECHANICAL
+        programme = _programme(MotionPrimitive.LINEAR)
+        for visee in (RenderStrategy.KEN_BURNS, RenderStrategy.PARALLAX_2_5D):
+            assert RenderRouter._aim_for_subject(visee, programme) is visee
+
+    def test_a_mechanism_still_reaches_the_procedural(self) -> None:
+        from pdz2.contracts.motion import MotionPrimitive
+        from pdz2.contracts.render import RenderStrategy
+        from pdz2.engines.routing.router import RenderRouter
+
+        for primitive in (MotionPrimitive.ROTATE, MotionPrimitive.FLOW,
+                          MotionPrimitive.OSCILLATE):
+            releve = RenderRouter._aim_for_subject(
+                RenderStrategy.KEN_BURNS, _programme(primitive)
+            )
+            assert releve is RenderStrategy.PROCEDURAL, primitive
+
+    def test_a_consequence_claim_now_asks_for_a_flow(self) -> None:
+        """« Électricité qui bouge » n'avait aucun chemin : tout tombait en LINEAR."""
+        from pdz2.contracts.motion import MotionPrimitive
+        from pdz2.contracts.research import ClaimKind
+        from pdz2.engines.shots.grammar import subject_motion_for
+
+        flux = subject_motion_for(motion_target=0.6, claim_kind=ClaimKind.CONSEQUENCE)
+        assert flux.primitive is MotionPrimitive.FLOW
+        rotation = subject_motion_for(motion_target=0.6, claim_kind=ClaimKind.MECHANISM)
+        assert rotation.primitive is MotionPrimitive.ROTATE
+        reste = subject_motion_for(motion_target=0.6, claim_kind=ClaimKind.FACT)
+        assert reste.primitive is MotionPrimitive.LINEAR
+
+
+class TestLesIndicateursSeVoient:
+    """Ils étaient peints en noir opaque sur des photographies sombres.
+
+    `_teintes` prenait `palette[2]` pour l'accent et `palette[3]` pour le
+    rappel, en supposant une palette ordonnée dominante d'abord. Le
+    raisonneur du run #8 a rendu `#1A73E8, #FFFFFF, #000000` : les deux
+    indices tombaient sur le noir. Les vingt-et-une pointes du plan large se
+    lisaient comme de la poussière sur l'objectif.
+    """
+
+    PALETTE_DU_RUN_8 = [(0x1A, 0x73, 0xE8), (255, 255, 255), (0, 0, 0)]
+
+    def test_the_accent_is_chosen_against_the_measured_background(self) -> None:
+        from pdz2.renderers.mechanism import _luminance, _teintes
+
+        for fond in (0.05, 0.37, 0.5, 0.95):
+            accent, rappel = _teintes(self.PALETTE_DU_RUN_8, fond)
+            for couleur in (accent, rappel):
+                assert abs(_luminance(couleur) - fond) >= 0.25, (
+                    f"fond {fond} : {couleur} ne se détache pas"
+                )
+
+    def test_both_tones_sit_on_the_same_side_of_the_background(self) -> None:
+        """Un liseré unique ne peut pas cerner un trait clair et un trait sombre."""
+        from pdz2.renderers.mechanism import _luminance, _teintes
+
+        for fond in (0.1, 0.37, 0.6, 0.9):
+            accent, rappel = _teintes(self.PALETTE_DU_RUN_8, fond)
+            assert (_luminance(accent) > fond) is (_luminance(rappel) > fond)
+
+    def test_an_unusable_palette_falls_back_rather_than_hiding(self) -> None:
+        from pdz2.renderers.mechanism import _luminance, _teintes
+
+        gris = [(120, 120, 120), (130, 130, 130)]
+        accent, _ = _teintes(gris, 0.5)
+        assert abs(_luminance(accent) - 0.5) >= 0.25
+
+    def test_the_indicators_actually_change_the_pixels(self) -> None:
+        """Sur une photographie réelle, et pas seulement sur un aplat."""
+        from PIL import Image
+
+        from pdz2.contracts.motion import MotionPrimitive
+        from pdz2.renderers.mechanism import draw_mechanism
+
+        fond = Image.new("RGB", (216, 384), (60, 62, 70))
+        rendu = draw_mechanism(
+            fond, _programme(MotionPrimitive.ROTATE), 0.35,
+            palette=self.PALETTE_DU_RUN_8,
+        )
+        differents = sum(
+            1 for a, b in zip(fond.tobytes(), rendu.tobytes(), strict=True) if a != b
+        )
+        assert differents > 0, "aucun pixel n'a bougé"
+
+
+class TestLaRotationNOuvrePlusDeCoinsNoirs:
+    """Faire tourner le calque entier n'est pas faire tourner le sujet.
+
+    `_spin` appliquait `Image.rotate` au calque du sujet, jusqu'à
+    `120° × énergie`. Sur un cadrage plat, `layers_for` ne rend qu'un calque :
+    il n'y a rien sous les coins découverts, et le vide est le noir de la
+    toile. Mesuré sur le run #8 — S03 33 % de pixels quasi noirs en moyenne,
+    jusqu'à 40 % ; S04 16 % ; S05 11 %. Les trois plans à cadrage plat, et eux
+    seuls.
+    """
+
+    def test_the_subject_layer_is_returned_untouched(self) -> None:
+        from PIL import Image
+
+        from pdz2.contracts.motion import MotionPrimitive
+        from pdz2.renderers.deterministic import DeterministicRenderer
+
+        calque = Image.new("RGBA", (64, 128), (200, 60, 40, 255))
+        rendu = DeterministicRenderer._spin(
+            calque, _programme(MotionPrimitive.ROTATE), 1.0
+        )
+        assert rendu.tobytes() == calque.tobytes(), (
+            "le calque a été transformé : les coins redeviendront noirs"
+        )
+
+
+def _programme(primitive):
+    """Un `MotionProgram` minimal portant le mouvement de sujet demandé."""
+    from pdz2.contracts.common import Vec3
+    from pdz2.contracts.motion import (
+        MotionDescriptor,
+        MotionPrimitive,
+        MotionProgram,
+        PerceptualTarget,
+        Trajectory,
+    )
+
+    # Chaque primitive a ses paramètres obligatoires : le contrat les exige,
+    # et un helper de test qui les contournerait ne testerait pas grand-chose.
+    parametres: dict = {"primitive": primitive, "amplitude": 90.0, "axis": Vec3(y=1.0)}
+    if primitive in {MotionPrimitive.LINEAR, MotionPrimitive.FLOW}:
+        parametres["control_points"] = [Vec3(), Vec3(x=0.6)]
+    elif primitive in {MotionPrimitive.ARC, MotionPrimitive.SPIRAL}:
+        parametres["control_points"] = [Vec3(), Vec3(x=0.3), Vec3(x=0.6)]
+    elif primitive in {MotionPrimitive.OSCILLATE, MotionPrimitive.JITTER}:
+        parametres["frequency_hz"] = 1.5
+    if primitive is MotionPrimitive.STATIC:
+        parametres = {}
+    trajectoire = Trajectory(**parametres)
+    return MotionProgram(
+        shot_id="S00",
+        camera_program_id="cam",
+        intensity=0.6,
+        subject_motion=MotionDescriptor(
+            primitive=primitive,
+            direction=Vec3(x=1.0),
+            magnitude=0.6,
+            trajectory=trajectoire,
+        )
+        if primitive is not MotionPrimitive.STATIC
+        else MotionDescriptor(),
+        trajectory=trajectoire,
+        perceptual_target=PerceptualTarget(
+            motion_energy=0.5, visual_novelty=0.5, readability=0.6
+        ),
+    )

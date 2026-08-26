@@ -195,6 +195,41 @@ désormais déclaré, plan par plan.
 """
 
 
+_MECHANICAL: frozenset[MotionPrimitive] = frozenset(
+    {
+        MotionPrimitive.ROTATE,
+        MotionPrimitive.ORBIT,
+        MotionPrimitive.FLOW,
+        MotionPrimitive.OSCILLATE,
+        MotionPrimitive.SPIRAL,
+        MotionPrimitive.ARC,
+    }
+)
+"""Mouvements de sujet qui décrivent un **mécanisme en marche**.
+
+À distinguer de ce que `mechanism` sait dessiner, qui est plus large : un
+renderer déclare une capacité, un routeur décide quand elle est justifiée.
+
+`LINEAR` en est absent, et c'est le correctif central du run #8.
+`subject_motion_for` rend `LINEAR` — « déplacement du sujet dans le cadre » —
+pour **tout** plan dont l'énergie dépasse le seuil de verrouillage et qui ne
+porte pas une affirmation de mécanisme. C'est-à-dire presque tous. Le
+relèvement se déclenchait donc partout : les huit plans du run #8 sont passés
+en procédural, y compris une ouverture et une chute qui ne démontrent rien.
+Résultat à l'écran, des indicateurs de flux estampillés sur un entrepôt de
+cartons et sur un homme de dos dans une embrasure de porte.
+
+Une dérive du sujet dans le cadre n'est pas un mécanisme : il n'y a rien à en
+dessiner qui soit vrai. Le plan garde alors sa stratégie de caméra, et le
+routeur inscrit la dégradation — elle est réelle, et la taire serait pire que
+de la subir.
+
+`SCALE` et `JITTER` n'en sont pas non plus : la grammaire de plans ne les
+produit jamais aujourd'hui, et les inscrire ici laisserait croire à une
+décision qui n'a jamais lieu.
+"""
+
+
 _UPGRADABLE_FOR_SUBJECT: frozenset[RenderStrategy] = frozenset(
     {RenderStrategy.KEN_BURNS, RenderStrategy.PARALLAX_2_5D}
 )
@@ -600,11 +635,19 @@ class RenderRouter:
         * **les stratégies génératives** — rabattre une visée I2V vers le
           procédural aurait interdit à tout jamais la vidéo générative, qui
           est précisément ce qui saurait animer un sujet le mieux.
+
+        Une troisième condition manquait, et le run #8 l'a payée : le
+        mouvement demandé doit décrire un **mécanisme** (`_MECHANICAL`), pas
+        une dérive quelconque. Sans elle, `LINEAR` — le mouvement par défaut
+        de tout plan qui n'affirme pas un mécanisme — relevait les huit plans
+        de l'épisode.
         """
         if wanted not in _UPGRADABLE_FOR_SUBJECT:
             return wanted
         demande = motion.subject_motion.primitive
-        if demande is MotionPrimitive.STATIC:
+        if demande not in _MECHANICAL:
+            # Dérive du sujet, pas mécanisme : rien de vrai à dessiner. La
+            # dégradation reste inscrite par `_subject_motion`.
             return wanted
         if demande in _SUBJECT_MOTION_BY_STRATEGY.get(wanted, frozenset()):
             return wanted
