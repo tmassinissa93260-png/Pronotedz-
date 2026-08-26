@@ -120,6 +120,11 @@ class ProceduralImageRenderer:
 
     name = "procedural-image"
 
+    supports_alpha_layers = True
+    """Ce moteur dessine sur fond transparent : ses calques se superposent
+    vraiment. C'est ce qui a caché deux runs durant le défaut de l'adaptateur
+    distant, dont les images opaques s'écrasent au lieu de se composer."""
+
     def get_capabilities(self) -> ProviderCapability:
         """Sonde la seule dépendance de ce moteur : la bibliothèque d'images.
 

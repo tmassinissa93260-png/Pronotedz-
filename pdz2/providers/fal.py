@@ -138,8 +138,44 @@ class FalImageProvider:
     model: str = "fal-ai/flux/schnell"
     steps: int = 4
 
+    supports_alpha_layers: bool = False
+    """Ce moteur sait-il rendre un calque à fond transparent ?
+
+    Non, et ce n'est pas un réglage : `flux` est un moteur texte-vers-image
+    qui rend un PNG **opaque**, sans canal alpha utile. Mesuré sur les
+    fichiers du run #8 — alpha = 255 sur la totalité des pixels des vingt-deux
+    calques rendus.
+
+    La conséquence est fatale et elle est restée invisible deux runs de suite.
+    `LayerSpec.must_be_separable` est une exigence du contrat ; empiler des
+    images opaques n'est pas composer, c'est écraser. Au run #7 le tri était
+    descendant et le calque le plus lointain recouvrait tout ; j'ai corrigé le
+    tri, et au run #8 c'est le plus **proche** qui recouvrait tout — le même
+    défaut par l'autre bout. Sur un plan large à quatre calques, trois images
+    générées sont jetées et celle qui reste est celle dont la commande dit
+    « éléments de premier plan de la scène, cadre partiel » : précisément la
+    moins susceptible de montrer le sujet.
+
+    C'est ce qu'on voit à l'écran du run #8 : des cartons au premier plan d'un
+    entrepôt, un anneau de néon dans un couloir, un homme de dos dans une
+    embrasure. Des avant-plans, quatre fois payés, sans leur scène.
+    """
+
     def get_capabilities(self) -> ProviderCapability:
         return _sonder(self.name)
+
+    @staticmethod
+    def _calque_porteur(spec: ImageSpec):
+        """Le calque à rendre quand on ne peut en rendre qu'un.
+
+        Celui qui porte le sujet, puisque c'est le sujet qu'on veut voir. À
+        défaut, le plus proche — un cadrage plat n'a de toute façon qu'un
+        calque, et il est déjà le bon.
+        """
+        for calque in spec.layers:
+            if calque.role is LayerRole.SUBJECT:
+                return calque
+        return max(spec.layers, key=lambda item: item.depth) if spec.layers else None
 
     def render(
         self, *, specs: list[ImageSpec], visual_bible: VisualBible, into: Path
@@ -159,7 +195,16 @@ class FalImageProvider:
                     f"{spec.shot_id} : l'image ne descend pas de cette bible"
                 )
             calques: dict[LayerRole, Path] = {}
-            for calque in spec.layers:
+            # Un moteur qui ne sait pas rendre de transparence ne rend pas des
+            # calques : il rend une image. En demander quatre coûte quatre
+            # appels pour n'en garder qu'un, et celui qu'on garde n'est même
+            # pas celui du sujet.
+            if self.supports_alpha_layers:
+                demandes = list(spec.layers)
+            else:
+                porteur = self._calque_porteur(spec)
+                demandes = [porteur] if porteur is not None else []
+            for calque in demandes:
                 cible = dossier / f"{spec.shot_id}-{calque.role.value}.png"
                 sortie = _appeler(
                     self.model,
@@ -187,7 +232,14 @@ class FalImageProvider:
                 )
 
             composite = dossier / f"{spec.shot_id}.png"
-            _composer(calques, composite, spec)
+            if self.supports_alpha_layers:
+                _composer(calques, composite, spec)
+            else:
+                # Un seul calque : le composite EST ce calque. Passer par
+                # `_composer` donnerait le même octet pour un aller-retour
+                # disque, et laisserait croire qu'une composition a eu lieu.
+                seul = next(iter(calques.values()))
+                composite.write_bytes(seul.read_bytes())
             images.append(
                 RenderedImage(
                     spec_id=spec.id,
@@ -205,6 +257,16 @@ class FalImageProvider:
             notes=[
                 f"{len(images)} image(s) générées par {self.name}/{self.model}",
                 "adaptateur jamais vérifié hors CI : lire les journaux du run",
+                *(
+                    []
+                    if self.supports_alpha_layers
+                    else [
+                        f"{self.name} rend des images opaques : un seul calque "
+                        "demandé par plan, celui du sujet. Le parallaxe 2.5D "
+                        "n'est pas disponible sur ces images — le routeur le "
+                        "constate et le déclare."
+                    ]
+                ),
             ],
         )
 
@@ -244,6 +306,15 @@ def _composer(calques: dict, cible: Path, spec: ImageSpec) -> None:
 
     C'est une des causes des images génériques du run #7, et elle ne pouvait
     apparaître qu'en branchant un vrai fournisseur.
+
+    Corriger le tri n'a pas suffi, et le run #8 l'a montré : quand tous les
+    calques sont opaques, peindre du fond vers l'avant fait gagner le plus
+    proche au lieu du plus lointain. Le même défaut par l'autre bout. Empiler
+    des images opaques n'est pas composer, c'est écraser.
+
+    Cette fonction ne s'appelle donc plus que sur un moteur qui déclare savoir
+    rendre de la transparence. Pour les autres, un seul calque est demandé, et
+    il n'y a rien à composer.
     """
     from PIL import Image
 

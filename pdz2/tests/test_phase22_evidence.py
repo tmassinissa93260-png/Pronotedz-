@@ -615,3 +615,98 @@ def _programme(primitive):
             motion_energy=0.5, visual_novelty=0.5, readability=0.6
         ),
     )
+
+
+class TestEmpilerDesImagesOpaquesNEstPasComposer:
+    """Le défaut le plus coûteux des runs #7 et #8, par ses deux bouts.
+
+    `flux`, chez fal, rend un PNG **opaque** : alpha = 255 partout. Empiler
+    quatre images opaques ne compose rien — chacune remplace la précédente, et
+    le composite est exactement la dernière peinte.
+
+    * Run #7, tri descendant : la dernière peinte était la plus **lointaine**.
+      Le composite valait la génération demandée pour « fond lointain ».
+    * Run #8, tri corrigé en croissant : la dernière peinte est la plus
+      **proche**. Le composite vaut la génération demandée pour « éléments de
+      premier plan de la scène, cadre partiel » — la moins susceptible de
+      montrer le sujet. Des cartons au premier plan d'un entrepôt, un anneau
+      de néon dans un couloir, un homme de dos dans une embrasure.
+
+    Trois images sur quatre payées et jetées, à chaque plan large.
+
+    Le tri n'était pas le problème. Le problème est qu'on demandait des
+    calques à un moteur qui n'en sait pas rendre.
+    """
+
+    def test_the_remote_engine_says_it_cannot_separate_layers(self) -> None:
+        from pdz2.providers.fal import FalImageProvider
+
+        assert FalImageProvider().supports_alpha_layers is False
+
+    def test_the_local_engine_says_it_can(self) -> None:
+        from pdz2.engines.imagery.renderer import ProceduralImageRenderer
+
+        assert ProceduralImageRenderer.supports_alpha_layers is True
+
+    def test_a_non_separable_engine_is_asked_for_one_layer(self) -> None:
+        """Et ce calque porte la scène entière, pas un avant-plan partiel."""
+        from pdz2.contracts.enums import Framing
+        from pdz2.contracts.visual import LayerRole
+
+        for framing in (Framing.WIDE, Framing.MEDIUM, Framing.CUTAWAY_DIAGRAM):
+            calques = layers_for(framing, "un rotor dans son stator", separable=False)
+            assert len(calques) == 1, f"{framing.value} : {len(calques)} calques"
+            assert calques[0].role is LayerRole.SUBJECT
+            assert calques[0].must_be_separable is False
+            assert "sujet exclu" not in calques[0].description
+            assert "cadre partiel" not in calques[0].description
+
+    def test_a_separable_engine_keeps_its_depth(self) -> None:
+        from pdz2.contracts.enums import Framing
+
+        assert len(layers_for(Framing.WIDE, "x", separable=True)) == 4
+
+    def test_the_compiler_follows_the_engine(self, tmp_path) -> None:
+        from pdz2.contracts.direction import DirectorState
+        from pdz2.contracts.research import TopicRequest
+        from pdz2.contracts.shots import ShotGraph
+        from pdz2.contracts.visual import VisualBible
+        from pdz2.engines.imagery import ImageSpecCompiler
+        from pdz2.tests import pipeline
+
+        episode = pipeline.build_episode(tmp_path, through_render_spec=True)
+        commun: dict = {
+            "shot_graph": episode.graph,
+            "visual_bible": episode.bible,
+            "director_state": episode.director_state,
+            "request": episode.request,
+        }
+        assert isinstance(commun["shot_graph"], ShotGraph)
+        assert isinstance(commun["visual_bible"], VisualBible)
+        assert isinstance(commun["director_state"], DirectorState)
+        assert isinstance(commun["request"], TopicRequest)
+
+        opaque = ImageSpecCompiler(separable_layers=False).compile(**commun)
+        assert all(len(spec.layers) == 1 for spec in opaque.specs)
+        assert any("calques non séparables" in note for note in opaque.notes)
+
+        alpha = ImageSpecCompiler(separable_layers=True).compile(**commun)
+        assert max(len(spec.layers) for spec in alpha.specs) > 1
+
+    def test_stacking_opaque_layers_keeps_only_the_last(self) -> None:
+        """La mesure qui établit le défaut, pour qu'il ne revienne pas.
+
+        Ce n'est pas un test de régression sur `_composer` : c'est la preuve
+        que l'empilement d'images opaques ne peut pas fonctionner, quelle que
+        soit la direction du tri. La conclusion est qu'on ne doit pas
+        l'employer, pas qu'on doit le trier autrement.
+        """
+        from PIL import Image
+
+        fond = Image.new("RGB", (4, 4), (0, 0, 0))
+        couleurs = [(10, 20, 30), (70, 20, 30), (130, 20, 30), (190, 20, 30)]
+        for couleur in couleurs:
+            dessus = Image.new("RGB", (4, 4), couleur).convert("RGBA")
+            assert min(dessus.split()[3].tobytes()) == 255, "alpha non opaque"
+            fond.paste(dessus, (0, 0), dessus)
+        assert fond.getpixel((0, 0)) == couleurs[-1]

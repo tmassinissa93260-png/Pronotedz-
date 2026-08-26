@@ -172,3 +172,98 @@ permettre de recompiler autrement que l'adaptateur.
   ne mesure pas ce qu'on croit qu'il mesure est pire qu'une absence de
   contrôle.
 * La recherche lit un corpus local : le sujet demandé doit y correspondre.
+
+---
+
+# Deuxième passe — pourquoi il n'y avait toujours pas de voiture
+
+Verdict de l'auteur du run #8, après la première passe de correctifs :
+« L'animation elle ne marche pas. Et y a pas de voiture ni rien. »
+
+Les correctifs de la première passe n'avaient pas encore tourné. Mais en les
+relisant, un défaut plus grave est apparu, et il ne se serait pas corrigé tout
+seul.
+
+## Empiler des images opaques n'est pas composer
+
+`flux`, chez fal, est un moteur texte-vers-image : il rend un PNG **opaque**,
+alpha = 255 sur la totalité des pixels. `_composer` empile les calques avec
+`paste(image, (0, 0), image)` — le masque étant l'alpha de l'image elle-même.
+Avec un alpha plein, **chaque calque remplace intégralement le précédent**. Le
+composite est exactement le dernier peint.
+
+Mesuré :
+
+```
+sky          alpha min=255
+background   alpha min=255
+subject      alpha min=255
+foreground   alpha min=255
+composite final : (190, 20, 30)      ← la couleur du seul foreground
+```
+
+Le même défaut a donc frappé deux fois, par ses deux bouts :
+
+| run | tri | dernier peint | ce qu'on voyait |
+|-----|-----|---------------|-----------------|
+| #7  | descendant | le plus **lointain** | « fond lointain de la scène » |
+| #8  | croissant (corrigé) | le plus **proche** | « éléments de premier plan, cadre partiel » |
+
+Corriger le tri était juste et insuffisant. Sur un plan large à quatre
+calques, trois images générées sont payées puis jetées, et celle qui survit
+est celle dont la commande dit explicitement « **sujet exclu** » ou « cadre
+partiel » — précisément la moins susceptible de montrer une voiture.
+
+C'est exactement ce que montre le run #8 : des cartons au premier plan d'un
+entrepôt, un anneau de néon dans un couloir de centre commercial, un homme de
+dos dans une embrasure de porte. Des avant-plans sans leur scène.
+
+## La correction n'est pas un troisième tri
+
+`LayerSpec.must_be_separable` est une exigence du contrat. Un moteur qui rend
+des images opaques ne peut pas la satisfaire — il faut donc qu'il le **dise**,
+et que le compilateur en tienne compte, au lieu de lui commander quatre fois
+ce qu'il ne sait pas faire.
+
+* `ImageProvider` déclare `supports_alpha_layers`, sans valeur par défaut :
+  un adaptateur muet sur la question refait le défaut.
+* `FalImageProvider` : `False`, mesuré sur les fichiers du run #8.
+  `ProceduralImageRenderer` : `True` — il dessine sur fond transparent, et
+  c'est ce qui a caché le défaut pendant tout le développement.
+* `layers_for(..., separable=False)` rend **un** calque, décrit comme
+  « scène entière, sujet compris — ⟨le sujet⟩ ». Ni « sujet exclu », ni
+  « cadre partiel ».
+* `ImageSpecCompiler` reçoit la capacité, et la phase 4 l'interroge auprès du
+  fournisseur d'images prioritaire.
+* `_composer` ne s'appelle plus que sur un moteur qui déclare la transparence.
+
+Effet secondaire : quatre appels d'image par plan large deviennent un. Le
+parallaxe 2.5D n'a plus de profondeur à décaler sur ces images, et
+`_respect_layers` le constate et le déclare — ce qui est la vérité, et non une
+perte.
+
+## Ce qui, honnêtement, n'animera toujours pas
+
+Aucune stratégie locale n'anime le contenu d'une photographie :
+
+| stratégie | ce qu'elle fait | un moteur y tourne-t-il ? |
+|-----------|-----------------|---------------------------|
+| `still` | rien | non |
+| `ken_burns` | recadre une image fixe | non |
+| `parallax_2_5d` | fait glisser des calques | non |
+| `procedural` | dessine des repères **sur** une image fixe | non |
+
+Seul l'image-vers-vidéo anime réellement ce qui est dans le cadre.
+`FalVideoProvider` est écrit, complet, et appelle vraiment
+`kling-video/v2.1/standard/image-to-video`. Deux verrous le retiennent :
+
+1. `_GENERATIVE_ABOVE = 0.80` — jamais franchi ; l'énergie observée plafonne à
+   0,70.
+2. `cost_per_second_usd = None` → le gouverneur refuse pour `UNMEASURED_COST`.
+   Et il refuse aussi un tarif seulement `ANNOUNCED` : « une brochure n'est pas
+   une mesure ».
+
+Le second n'est pas contournable par du code, et ne doit pas l'être : c'est la
+règle « ne jamais dépenser avant validation », posée au cahier des charges.
+Pour mesurer un coût il faut l'engager une fois. C'est une décision qui engage
+de l'argent, donc elle appartient à celui qui paie, pas au compilateur.
