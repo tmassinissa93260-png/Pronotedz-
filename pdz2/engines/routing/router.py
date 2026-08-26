@@ -27,7 +27,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from pdz2.contracts.capacity import CapabilityMatrix
-from pdz2.contracts.motion import CameraMove, MotionProgram
+from pdz2.contracts.motion import CameraMove, MotionPrimitive, MotionProgram
 from pdz2.contracts.render import (
     AI_VIDEO_STRATEGIES,
     DETERMINISTIC_STRATEGIES,
@@ -161,6 +161,33 @@ _CAMERA_BY_STRATEGY: dict[RenderStrategy, frozenset[CameraMove]] = {
 
 Mesuré au sens strict : c'est ce que les renderers de la phase 7 implémentent.
 Aucune ligne n'y est annoncée sans code derrière.
+"""
+
+
+_SUBJECT_MOTION_BY_STRATEGY: dict[RenderStrategy, frozenset[MotionPrimitive]] = {
+    RenderStrategy.STILL: frozenset(),
+    RenderStrategy.KEN_BURNS: frozenset(),
+    RenderStrategy.PARALLAX_2_5D: frozenset(),
+    RenderStrategy.PROCEDURAL: frozenset(
+        {MotionPrimitive.ROTATE, MotionPrimitive.ORBIT}
+    ),
+}
+"""Mouvements **du sujet** que chaque stratégie locale sait exécuter.
+
+La table est presque vide, et c'est la vérité : recadrer une image fixe ou
+faire glisser des calques déplace la **caméra**, jamais ce qui est dans le
+cadre. Un moteur ne tourne pas, un courant ne circule pas. Seul le moteur
+procédural dessine, et il ne sait faire tourner qu'un calque.
+
+Cette table manquait entièrement. Le routeur enregistrait des dégradations
+pour la caméra, l'identité, le fournisseur — jamais pour le mouvement du
+sujet, alors que `MotionProgram.subject_motion` est déclaré source de vérité
+du mouvement. Un plan exigeant « rotation du sujet démontrant le mécanisme »
+recevait un panoramique, et le journal annonçait zéro dégradation.
+
+C'est exactement la dégradation silencieuse que le cahier des charges
+interdit. La table la rend visible : ce que la stratégie ne sait pas faire est
+désormais déclaré, plan par plan.
 """
 
 
@@ -313,6 +340,7 @@ class RenderRouter:
 
         retenu = self._porteur(chosen)
         camera = self._camera(spec, chosen, degradations)
+        self._subject_motion(motion, chosen, degradations)
         if spec.identity_lock_required and chosen in AI_VIDEO_STRATEGIES:
             degradations.append(
                 Degradation(
@@ -595,6 +623,42 @@ class RenderRouter:
             )
         )
         return fallback
+
+    @staticmethod
+    def _subject_motion(
+        motion: MotionProgram,
+        strategy: RenderStrategy,
+        degradations: list[Degradation],
+    ) -> None:
+        """Le sujet bougera-t-il vraiment, ou seulement la caméra ?
+
+        Ne change rien à l'exécution — la stratégie est déjà choisie et aucune
+        approximation ne remplace un moteur qui tourne. Le rôle de ce contrôle
+        est d'inscrire ce qui ne sera pas fait, pour qu'un épisode livré avec
+        huit plans immobiles ne se présente plus comme irréprochable.
+        """
+        demande = motion.subject_motion.primitive
+        if demande is MotionPrimitive.STATIC:
+            return
+        tenables = _SUBJECT_MOTION_BY_STRATEGY.get(strategy, frozenset())
+        if demande in tenables:
+            return
+        degradations.append(
+            Degradation(
+                field="subject_motion",
+                requested=demande.value,
+                executed=MotionPrimitive.STATIC.value,
+                reason=(
+                    f"la stratégie {strategy.value} déplace la caméra, pas le "
+                    f"sujet : elle n'exécute pas « {demande.value} »"
+                ),
+                description=(
+                    f"{motion.subject_motion.description or demande.value} — "
+                    "le plan montrera une image fixe parcourue par la caméra"
+                ),
+                severity=DegradationSeverity.PERCEPTUAL,
+            )
+        )
 
     # ------------------------------------------------------------------- plan
 

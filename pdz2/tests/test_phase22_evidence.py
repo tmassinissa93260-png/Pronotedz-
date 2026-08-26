@@ -243,3 +243,97 @@ class TestLesAmplitudesDeMouvement:
             f"marge {marge:.2f} inférieure au parcours maximal "
             f"{MAX_CAMERA_TRAVEL:.2f} : le mouvement sature avant son amplitude"
         )
+
+
+# ------------------------- le sujet doit bouger, ou son immobilité se déclarer
+
+
+class TestLeMouvementDuSujet:
+    """« Le moteur qui tourne, l'électricité qui bouge. »
+
+    Recadrer une image fixe ou faire glisser des calques déplace la CAMÉRA.
+    Rien ne bouge jamais dans le cadre. Le cahier des charges prévoit pourtant
+    `MotionProgram.subject_motion` et le déclare source de vérité du mouvement.
+
+    Le routeur enregistrait des dégradations pour la caméra, l'identité et le
+    fournisseur — jamais pour le sujet. Un plan exigeant « rotation du sujet
+    démontrant le mécanisme » recevait un panoramique, et le journal annonçait
+    zéro dégradation. C'est la dégradation silencieuse que le §12 interdit.
+    """
+
+    def test_the_capability_table_tells_the_truth_about_the_strategies(self) -> None:
+        """Aucune ligne annoncée sans code derrière — la règle du dépôt."""
+        from pdz2.contracts.motion import MotionPrimitive
+        from pdz2.contracts.render import RenderStrategy
+        from pdz2.engines.routing.router import _SUBJECT_MOTION_BY_STRATEGY
+
+        # Recadrer et faire glisser n'anime pas un sujet. La table doit le dire.
+        assert _SUBJECT_MOTION_BY_STRATEGY[RenderStrategy.KEN_BURNS] == frozenset()
+        assert _SUBJECT_MOTION_BY_STRATEGY[RenderStrategy.PARALLAX_2_5D] == frozenset()
+        assert _SUBJECT_MOTION_BY_STRATEGY[RenderStrategy.STILL] == frozenset()
+
+        # Le moteur procédural dessine, et sait faire tourner un calque.
+        procedural = _SUBJECT_MOTION_BY_STRATEGY[RenderStrategy.PROCEDURAL]
+        assert MotionPrimitive.ROTATE in procedural
+
+    def test_a_subject_that_will_not_move_is_declared(self, tmp_path) -> None:
+        from pdz2.engines.routing import RenderRouter
+        from pdz2.tests import pipeline
+
+        episode = pipeline.build_episode(tmp_path, through_render_spec=True)
+        sortie = RenderRouter().route(
+            episode_id="preuve",
+            requested=episode.render_specs,
+            motion_programs=episode.motion_programs,
+            image_specs=episode.image_specs,
+        )
+        par_plan = {m.shot_id: m for m in episode.motion_programs}
+
+        for executable in sortie.executables:
+            programme = par_plan[executable.shot_id]
+            demande = programme.subject_motion.primitive
+            declare = [
+                d for d in executable.degradations if d.field == "subject_motion"
+            ]
+            from pdz2.contracts.motion import MotionPrimitive
+            from pdz2.engines.routing.router import _SUBJECT_MOTION_BY_STRATEGY
+
+            tenable = demande in _SUBJECT_MOTION_BY_STRATEGY.get(
+                executable.strategy, frozenset()
+            )
+            if demande is MotionPrimitive.STATIC or tenable:
+                assert not declare, (
+                    f"{executable.shot_id} : dégradation déclarée pour un "
+                    "mouvement qui sera pourtant exécuté"
+                )
+            else:
+                assert declare, (
+                    f"{executable.shot_id} exige « {demande.value} » et reçoit "
+                    f"{executable.strategy.value}, qui ne l'exécute pas — "
+                    "aucune dégradation inscrite"
+                )
+                assert declare[0].requested == demande.value
+                assert declare[0].executed == "static"
+
+    def test_the_episode_no_longer_looks_flawless(self, tmp_path) -> None:
+        """Un épisode aux huit plans immobiles ne doit pas se dire irréprochable."""
+        from pdz2.engines.routing import RenderRouter
+        from pdz2.tests import pipeline
+
+        episode = pipeline.build_episode(tmp_path, through_render_spec=True)
+        sortie = RenderRouter().route(
+            episode_id="preuve",
+            requested=episode.render_specs,
+            motion_programs=episode.motion_programs,
+            image_specs=episode.image_specs,
+        )
+        declarees = [
+            d
+            for e in sortie.executables
+            for d in e.degradations
+            if d.field == "subject_motion"
+        ]
+        assert declarees, (
+            "aucun plan ne déclare que son sujet restera immobile, alors "
+            "qu'aucune stratégie locale ne sait animer un sujet"
+        )
