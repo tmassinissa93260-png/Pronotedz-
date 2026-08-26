@@ -164,8 +164,7 @@ class FalImageProvider:
                 sortie = _appeler(
                     self.model,
                     {
-                        "prompt": f"{image_prompt(spec, visual_bible)}. "
-                                  f"Plan {calque.role.value} : {calque.description}",
+                        "prompt": image_prompt(spec, visual_bible, calque),
                         "negative_prompt": negative_prompt(spec, visual_bible),
                         "image_size": {
                             "width": spec.resolution.width,
@@ -229,10 +228,26 @@ def _artefact_image(chemin: Path, spec: ImageSpec, fournisseur: str, modele: str
 
 
 def _composer(calques: dict, cible: Path, spec: ImageSpec) -> None:
-    """Empile les calques dans l'ordre de profondeur, du fond vers l'avant."""
+    """Empile les calques du fond vers l'avant.
+
+    La convention de profondeur du système est fixée par le renderer 2.5D :
+    **une profondeur haute est un calque proche**, puisque c'est lui qui se
+    décale le plus en parallaxe. Peindre du fond vers l'avant impose donc un
+    tri **croissant**.
+
+    Ce tri était descendant, et le défaut est resté invisible pendant tout le
+    développement : le moteur local dessine des calques **transparents**, sur
+    lesquels l'ordre ne change presque rien. Un moteur génératif rend des
+    images **opaques** — le calque le plus lointain était donc peint en
+    dernier, et recouvrait tout le reste. Sur un plan large à quatre calques,
+    l'image finale n'était que la génération demandée pour « fond lointain ».
+
+    C'est une des causes des images génériques du run #7, et elle ne pouvait
+    apparaître qu'en branchant un vrai fournisseur.
+    """
     from PIL import Image
 
-    ordre = sorted(spec.layers, key=lambda item: -item.depth)
+    ordre = sorted(spec.layers, key=lambda item: item.depth)
     fond = Image.new("RGB", (spec.resolution.width, spec.resolution.height), (0, 0, 0))
     for calque in ordre:
         chemin = calques.get(calque.role)

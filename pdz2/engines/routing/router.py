@@ -27,7 +27,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from pdz2.contracts.capacity import CapabilityMatrix
-from pdz2.contracts.motion import CameraMove, MotionProgram
+from pdz2.contracts.motion import CameraMove, MotionPrimitive, MotionProgram
 from pdz2.contracts.render import (
     AI_VIDEO_STRATEGIES,
     DETERMINISTIC_STRATEGIES,
@@ -42,6 +42,7 @@ from pdz2.contracts.render import (
 )
 from pdz2.contracts.visual import ImageSpec
 from pdz2.providers.video import VideoCapability
+from pdz2.renderers.mechanism import ANIMATED_PRIMITIVES
 
 __all__ = [
     "RenderRouter",
@@ -164,6 +165,47 @@ Aucune ligne n'y est annoncée sans code derrière.
 """
 
 
+_SUBJECT_MOTION_BY_STRATEGY: dict[RenderStrategy, frozenset[MotionPrimitive]] = {
+    RenderStrategy.STILL: frozenset(),
+    RenderStrategy.KEN_BURNS: frozenset(),
+    RenderStrategy.PARALLAX_2_5D: frozenset(),
+    RenderStrategy.PROCEDURAL: ANIMATED_PRIMITIVES,
+}
+"""Mouvements **du sujet** que chaque stratégie locale sait exécuter.
+
+Trois lignes vides, et c'est la vérité : recadrer une image fixe ou faire
+glisser des calques déplace la **caméra**, jamais ce qui est dans le cadre. Un
+moteur ne tourne pas, un courant ne circule pas.
+
+La ligne du procédural n'est pas écrite ici : elle **est** l'ensemble des
+primitives que `pdz2.renderers.mechanism` sait réellement dessiner. Recopier
+cette liste l'aurait fait diverger au premier ajout — et une table de
+capacités qui ment sur ce qu'un renderer sait faire est pire qu'une absence de
+table, puisqu'on s'y fie.
+
+Cette table manquait entièrement. Le routeur enregistrait des dégradations
+pour la caméra, l'identité, le fournisseur — jamais pour le mouvement du
+sujet, alors que `MotionProgram.subject_motion` est déclaré source de vérité
+du mouvement. Un plan exigeant « rotation du sujet démontrant le mécanisme »
+recevait un panoramique, et le journal annonçait zéro dégradation.
+
+C'est exactement la dégradation silencieuse que le cahier des charges
+interdit. La table la rend visible : ce que la stratégie ne sait pas faire est
+désormais déclaré, plan par plan.
+"""
+
+
+_UPGRADABLE_FOR_SUBJECT: frozenset[RenderStrategy] = frozenset(
+    {RenderStrategy.KEN_BURNS, RenderStrategy.PARALLAX_2_5D}
+)
+"""Visées qu'un mouvement de sujet peut relever vers le procédural.
+
+Les deux stratégies qui déplacent la caméra sur une image fixe, et elles
+seules. `STILL` en est exclu — l'énergie garde son veto — et les stratégies
+génératives aussi : les rabattre reviendrait à interdire la vidéo par IA, qui
+est ce qui animerait le mieux un sujet."""
+
+
 def _budget(deadline_s: float | None, nature: str) -> float:
     """Budget d'exécution d'une étape, dérivé de l'échéance quand il y en a une.
 
@@ -225,6 +267,7 @@ class RenderRouter:
         images = {spec.id: spec for spec in image_specs}
         par_demande = {spec.id: spec.deadline_s for spec in requested}
         executables: list[RenderSpecExecutable] = []
+        releves: list[str] = []
 
         for spec in requested:
             motion = motions.get(spec.motion_program_id)
@@ -236,7 +279,7 @@ class RenderRouter:
                 (len(images[ref].layers) for ref in spec.image_spec_ids if ref in images),
                 default=1,
             )
-            executables.append(self._route_one(spec, motion, layers))
+            executables.append(self._route_one(spec, motion, layers, releves))
 
         plan = self._plan(
             episode_id,
@@ -252,7 +295,7 @@ class RenderRouter:
         return RoutingOutcome(
             executables=executables,
             plan=plan,
-            notes=self._notes(executables, plan),
+            notes=[*releves, *self._notes(executables, plan)],
         )
 
     # ------------------------------------------------------------------ choix
@@ -262,6 +305,7 @@ class RenderRouter:
         spec: RenderSpecRequested,
         motion: MotionProgram,
         layer_count: int,
+        releves: list[str] | None = None,
     ) -> RenderSpecExecutable:
         degradations: list[Degradation] = []
         available = self._available(spec, degradations)
@@ -285,6 +329,19 @@ class RenderRouter:
 
         energy = motion.perceptual_target.motion_energy
         wanted = spec.preferred_strategy or self._aim(energy, available)
+        if spec.preferred_strategy is None:
+            releve = self._aim_for_subject(wanted, motion)
+            if releve is not wanted:
+                # Ce n'est pas une dégradation — le plan reçoit PLUS que ce que
+                # l'énergie seule lui donnait. Mais un choix qui ne se lit
+                # nulle part est un choix qu'on ne peut pas discuter.
+                if releves is not None:
+                    releves.append(
+                        f"{spec.shot_id} : {wanted.value} → {releve.value}, "
+                        f"le sujet doit exécuter "
+                        f"« {motion.subject_motion.primitive.value} »"
+                    )
+            wanted = releve
         wanted = self._respect_layers(wanted, layer_count, degradations)
         chosen = self._best(wanted, usable)
 
@@ -313,6 +370,7 @@ class RenderRouter:
 
         retenu = self._porteur(chosen)
         camera = self._camera(spec, chosen, degradations)
+        self._subject_motion(motion, chosen, degradations)
         if spec.identity_lock_required and chosen in AI_VIDEO_STRATEGIES:
             degradations.append(
                 Degradation(
@@ -512,6 +570,49 @@ class RenderRouter:
         return RenderStrategy.PROCEDURAL
 
     @staticmethod
+    def _aim_for_subject(
+        wanted: RenderStrategy, motion: MotionProgram
+    ) -> RenderStrategy:
+        """Relève la visée quand le SUJET doit bouger, pas seulement la caméra.
+
+        La visée ne dépendait que de l'énergie de mouvement. Or le §18 fonde
+        le choix sur la *complexité du mouvement*, et un mouvement de sujet en
+        est une : une rotation demandée pour démontrer un mécanisme n'est pas
+        la même chose qu'un déplacement de caméra de même énergie.
+
+        Un plan d'énergie moyenne recevait donc un Ken Burns — qui recadre une
+        image fixe — alors que son programme exigeait « rotation du sujet
+        démontrant le mécanisme ». La stratégie était choisie sans regarder ce
+        qu'on lui demandait d'exécuter.
+
+        On ne relève que d'un cran, et seulement vers le procédural : c'est la
+        seule stratégie locale qui dessine dans le cadre. Si elle n'est pas
+        mobilisable, le choix redescend par le chemin habituel et la
+        dégradation s'inscrit.
+
+        Deux visées sont hors de portée de ce relèvement, et la suite de tests
+        l'a établi avant qu'un épisode n'en souffre :
+
+        * **STILL** — l'énergie garde son droit de veto. Un plan voulu calme à
+          0,02 doit rester calme, même si son programme nomme une rotation.
+          L'énergie dit *s'il y a du mouvement*, le mouvement de sujet dit
+          *lequel* ; le second ne renverse pas le premier.
+        * **les stratégies génératives** — rabattre une visée I2V vers le
+          procédural aurait interdit à tout jamais la vidéo générative, qui
+          est précisément ce qui saurait animer un sujet le mieux.
+        """
+        if wanted not in _UPGRADABLE_FOR_SUBJECT:
+            return wanted
+        demande = motion.subject_motion.primitive
+        if demande is MotionPrimitive.STATIC:
+            return wanted
+        if demande in _SUBJECT_MOTION_BY_STRATEGY.get(wanted, frozenset()):
+            return wanted
+        if demande in _SUBJECT_MOTION_BY_STRATEGY[RenderStrategy.PROCEDURAL]:
+            return RenderStrategy.PROCEDURAL
+        return wanted
+
+    @staticmethod
     def _respect_layers(
         wanted: RenderStrategy,
         layer_count: int,
@@ -595,6 +696,42 @@ class RenderRouter:
             )
         )
         return fallback
+
+    @staticmethod
+    def _subject_motion(
+        motion: MotionProgram,
+        strategy: RenderStrategy,
+        degradations: list[Degradation],
+    ) -> None:
+        """Le sujet bougera-t-il vraiment, ou seulement la caméra ?
+
+        Ne change rien à l'exécution — la stratégie est déjà choisie et aucune
+        approximation ne remplace un moteur qui tourne. Le rôle de ce contrôle
+        est d'inscrire ce qui ne sera pas fait, pour qu'un épisode livré avec
+        huit plans immobiles ne se présente plus comme irréprochable.
+        """
+        demande = motion.subject_motion.primitive
+        if demande is MotionPrimitive.STATIC:
+            return
+        tenables = _SUBJECT_MOTION_BY_STRATEGY.get(strategy, frozenset())
+        if demande in tenables:
+            return
+        degradations.append(
+            Degradation(
+                field="subject_motion",
+                requested=demande.value,
+                executed=MotionPrimitive.STATIC.value,
+                reason=(
+                    f"la stratégie {strategy.value} déplace la caméra, pas le "
+                    f"sujet : elle n'exécute pas « {demande.value} »"
+                ),
+                description=(
+                    f"{motion.subject_motion.description or demande.value} — "
+                    "le plan montrera une image fixe parcourue par la caméra"
+                ),
+                severity=DegradationSeverity.PERCEPTUAL,
+            )
+        )
 
     # ------------------------------------------------------------------- plan
 

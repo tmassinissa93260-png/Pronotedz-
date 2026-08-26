@@ -44,6 +44,7 @@ from pdz2.renderers.ffmpeg import (
     probe_video,
 )
 from pdz2.renderers.graphics import draw_text_overlay
+from pdz2.renderers.mechanism import draw_mechanism
 from pdz2.renderers.motion_paths import sample_trajectory
 
 __all__ = [
@@ -74,17 +75,81 @@ SUPPORTED_STRATEGIES = frozenset(
     }
 )
 
-MAX_ZOOM = 0.18
+MAX_ZOOM = 0.30
 """Amplitude maximale d'un recadrage, en fraction de cadre.
 
 Au-delà, le recadrage se voit comme un zoom numérique — ce qu'il est.
-"""
+
+Cette amplitude gouverne cinq plans sur huit, Ken Burns étant la stratégie que
+le routeur choisit le plus souvent. À 0,18 elle donnait 165 pixels de parcours
+sur un plan de cinq secondes, soit 1,1 pixel par image : un mouvement réel,
+mais si lent que le spectateur du run #7 a décrit la vidéo comme dépourvue
+d'animation. À 0,30 le même plan parcourt 249 pixels, soit 1,7 pixel par
+image.
+
+DÉCISION D'INGÉNIERIE. Le compromis est explicite : un recadrage plus ample
+perd de la définition, puisqu'il lit une zone plus petite de l'image source.
+Sur du 1080×1920, 30 % de recadrage lit encore 756 pixels de large — au-dessus
+de la définition de livraison d'une bonne partie des plateformes."""
 
 MAX_PARALLAX_SHIFT = 0.09
-"""Décalage maximal du calque le plus proche, en fraction de largeur."""
+"""Écart maximal **entre** le calque le plus proche et le plus lointain.
 
-_OVERSCAN = 1.30
-"""Marge de sécurité autour du cadre, pour que le mouvement ne révèle pas de bord."""
+C'est une amplitude de parallaxe : elle dit de combien les plans se
+désolidarisent, pas de combien la caméra se déplace. Les deux étaient
+confondues, et la caméra héritait de cette valeur — un panoramique parcourait
+donc 9 % de la largeur au mieux, 3 % à énergie moyenne. Sur un plan de cinq
+secondes : trente-quatre pixels en tout, soit 0,2 pixel par image. Le
+spectateur voyait une image fixe, ce qu'il a dit."""
+
+MAX_CAMERA_TRAVEL = 0.34
+"""Parcours de la caméra sur toute la durée d'un plan, à énergie 1,0.
+
+DÉCISION D'INGÉNIERIE, pas un seuil perceptif mesuré — et il faut le dire
+ainsi. Ce qu'on peut établir sans se tromper est arithmétique : à énergie 0,35
+sur un plan de cinq secondes, cette valeur donne 129 pixels de parcours, soit
+0,85 pixel par image, contre 0,2 auparavant. Un mouvement continu de cet ordre
+se lit ; en dessous du demi-pixel par image, il se confond avec du bruit
+d'encodage.
+
+Le chiffre reste à confronter à un œil humain sur plusieurs épisodes. Il est
+volontairement isolé ici pour être réglé d'un seul endroit."""
+
+PARALLAX_SPREAD = 0.45
+"""Part du parcours qui différencie les calques entre eux.
+
+Le décalage valait `offset × depth` : le calque de profondeur 0,0 — le fond
+lointain — ne bougeait donc **jamais**. Un fond parfaitement immobile derrière
+un sujet qui glisse ne produit pas du relief, il produit l'impression d'une
+image fixe avec un élément qui dérive.
+
+Tous les calques suivent maintenant la caméra ; seule une fraction du
+mouvement dépend de la profondeur. C'est ce que fait un travelling réel : le
+lointain défile moins vite que le proche, il ne reste pas cloué."""
+
+_DRAWS_SUBJECT_MOTION = frozenset({RenderStrategy.PROCEDURAL})
+"""Stratégies qui dessinent le mouvement du sujet dans le cadre.
+
+Une seule, et c'est cohérent avec ce que le routeur déclare : Ken Burns et le
+parallaxe déplacent la caméra sur une image fixe, et cette limite est
+désormais inscrite comme dégradation plutôt que passée sous silence."""
+
+_DEFAULT_PALETTE: list[tuple[int, int, int]] = [
+    (16, 24, 32), (60, 76, 92), (226, 168, 68), (232, 236, 240)
+]
+"""Palette de secours quand l'appelant n'en fournit pas.
+
+Déclarée plutôt que devinée : un indicateur dessiné dans une couleur tirée de
+l'image se confondrait avec elle, et un rendu sans palette doit rester lisible
+plutôt que joli."""
+
+_OVERSCAN = 1.45
+"""Marge de sécurité autour du cadre, pour que le mouvement ne révèle pas de bord.
+
+Elle plafonnait le parcours caméra avant lui : à 1,30, un panoramique saturait
+dès l'énergie 0,5 — mesuré, le déplacement était identique à 0,5 et à 1,0.
+Augmenter l'amplitude sans desserrer cette marge n'aurait donc rien changé au
+delà de la moitié de l'échelle d'énergie."""
 
 
 class RenderFailed(RuntimeError):
@@ -132,6 +197,7 @@ class DeterministicRenderer:
         images: list[RenderedImage],
         into: Path,
         typography: Typography | None = None,
+        palette: list[tuple[int, int, int]] | None = None,
     ) -> RenderOutcome:
         """Rend chaque plan. `typography` vient de la bible visuelle.
 
@@ -166,7 +232,7 @@ class DeterministicRenderer:
                 )
             motion = self._motion_for(executable, motions)
             render, artifact = self._render_one(
-                executable, motion, image, directory, typography
+                executable, motion, image, directory, typography, palette
             )
             renders.append(render)
             artifacts.append(artifact)
@@ -198,6 +264,7 @@ class DeterministicRenderer:
         image: RenderedImage,
         directory: Path,
         typography: Typography | None = None,
+        palette: list[tuple[int, int, int]] | None = None,
     ) -> tuple[ShotRender, RenderArtifact]:
         started = time.monotonic()
         width = executable.resolution.width
@@ -212,6 +279,18 @@ class DeterministicRenderer:
                 composed = self._compose(
                     executable, motion, layers, t, width, height
                 )
+                # Le mouvement du sujet se dessine DANS le cadre, là où le
+                # recadrage et le parallaxe ne font que déplacer la caméra.
+                # Après la composition — il commente l'image, il ne se cache
+                # pas derrière un calque — et avant l'incrustation, qui reste
+                # la couche la plus haute.
+                if (
+                    motion is not None
+                    and executable.strategy in _DRAWS_SUBJECT_MOTION
+                ):
+                    composed = draw_mechanism(
+                        composed, motion, t, palette=palette or _DEFAULT_PALETTE
+                    )
                 if executable.text_overlay is not None:
                     composed = draw_text_overlay(
                         composed,
@@ -305,10 +384,16 @@ class DeterministicRenderer:
         canvas = Image.new("RGB", (width, height), (0, 0, 0))
         for depth, layer in layers:
             # Un calque proche se décale davantage : c'est tout le parallaxe.
-            factor = depth if strategy in {
-                RenderStrategy.PARALLAX_2_5D,
-                RenderStrategy.PROCEDURAL,
-            } else 1.0
+            # Mais tous suivent la caméra — un fond cloué au cadre pendant que
+            # le sujet glisse ne fait pas du relief, il fait une image fixe.
+            factor = (
+                (1.0 - PARALLAX_SPREAD) + PARALLAX_SPREAD * depth
+                if strategy in {
+                    RenderStrategy.PARALLAX_2_5D,
+                    RenderStrategy.PROCEDURAL,
+                }
+                else 1.0
+            )
             shift_x = offset[0] * factor * width
             shift_y = offset[1] * factor * height
 
@@ -345,7 +430,7 @@ class DeterministicRenderer:
         if move is CameraMove.LOCK:
             return (0.0, 0.0)
         sample = sample_trajectory(motion.trajectory, t)
-        amplitude = MAX_PARALLAX_SHIFT * motion.perceptual_target.motion_energy
+        amplitude = MAX_CAMERA_TRAVEL * motion.perceptual_target.motion_energy
         if move in {CameraMove.PAN, CameraMove.TRACK, CameraMove.PARALLAX}:
             return (sample.x * amplitude, 0.0)
         if move is CameraMove.TILT:

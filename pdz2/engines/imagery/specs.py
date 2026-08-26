@@ -49,37 +49,70 @@ _FLAT_FRAMINGS = {
 }
 
 
-def layers_for(framing: Framing) -> list[LayerSpec]:
+def layers_for(framing: Framing, subject: str = "") -> list[LayerSpec]:
     """Calques séparables, choisis sur la profondeur qu'admet le cadrage.
 
     Le moteur 2.5D a besoin de plans distincts pour créer du parallaxe. Un
     cadrage large en offre plusieurs ; une coupe technique n'en a qu'un, et
     prétendre le contraire donnerait un parallaxe sur du vide.
+
+    **Chaque calque porte le sujet.** Il ne le portait pas : les descriptions
+    étaient des constantes — « fond lointain », « décor d'arrière-plan »,
+    « sujet principal », « éléments de premier plan ». Un fournisseur d'images
+    reçoit un appel par calque ; sur un plan large, trois des quatre demandes
+    ne contenaient donc aucune matière. Les images étaient génériques parce
+    que la commande l'était.
+
+    Le rôle reste ce qui distingue les calques entre eux — sans quoi quatre
+    appels rendraient quatre fois la même image et le parallaxe n'aurait plus
+    de profondeur à animer.
     """
+    scene = subject.strip()
+    de_la_scene = f" de la scène : {scene}" if scene else ""
+    du_sujet = f" — {scene}" if scene else ""
+
     if framing in _FLAT_FRAMINGS:
         return [
             LayerSpec(
                 role=LayerRole.SUBJECT,
                 depth=0.5,
-                description="sujet unique, occupant le cadre",
+                description=f"sujet unique, occupant le cadre{du_sujet}",
             )
         ]
     if framing in _DEEP_FRAMINGS:
         return [
-            LayerSpec(role=LayerRole.SKY, depth=0.0, description="fond lointain"),
             LayerSpec(
-                role=LayerRole.BACKGROUND, depth=0.25, description="décor d'arrière-plan"
+                role=LayerRole.SKY,
+                depth=0.0,
+                description=f"fond lointain{de_la_scene}, sans le sujet lui-même",
             ),
-            LayerSpec(role=LayerRole.SUBJECT, depth=0.6, description="sujet principal"),
+            LayerSpec(
+                role=LayerRole.BACKGROUND,
+                depth=0.25,
+                description=f"décor d'arrière-plan{de_la_scene}, sujet exclu",
+            ),
+            LayerSpec(
+                role=LayerRole.SUBJECT,
+                depth=0.6,
+                description=f"sujet principal, isolé sur fond neutre{du_sujet}",
+            ),
             LayerSpec(
                 role=LayerRole.FOREGROUND,
                 depth=0.9,
-                description="éléments de premier plan",
+                description=f"éléments de premier plan{de_la_scene}, cadre partiel",
             ),
         ]
     return [
-        LayerSpec(role=LayerRole.BACKGROUND, depth=0.2, description="fond"),
-        LayerSpec(role=LayerRole.SUBJECT, depth=0.7, description="sujet principal"),
+        LayerSpec(
+            role=LayerRole.BACKGROUND,
+            depth=0.2,
+            description=f"fond{de_la_scene}, sujet exclu",
+        ),
+        LayerSpec(
+            role=LayerRole.SUBJECT,
+            depth=0.7,
+            description=f"sujet principal, isolé sur fond neutre{du_sujet}",
+        ),
     ]
 
 
@@ -116,13 +149,17 @@ class ImageSpecCompiler:
                     shot_id=shot.shot_id,
                     visual_bible_id=visual_bible.id,
                     anchor_ids=list(shot.continuity_dependencies),
+                    claim_id=shot.claim_id,
+                    evidence_required=shot.evidence_required,
                     subject=shot.visual_subject,
                     composition=shot.composition.model_copy(deep=True),
                     resolution=resolution,
                     aspect_ratio=request.aspect_ratio,
                     intent=self._intent(shot, visual_bible, shot_anchors),
                     forbidden=list(visual_bible.forbidden),
-                    layers=layers_for(shot.composition.framing),
+                    layers=layers_for(
+                        shot.composition.framing, shot.visual_subject
+                    ),
                     seed=self._seed(request, shot),
                     parent_id=shot.id,
                 )
@@ -133,6 +170,8 @@ class ImageSpecCompiler:
                 f"{len(specs)} spécifications d'image en "
                 f"{resolution.width}×{resolution.height} ({request.aspect_ratio.value})",
                 f"{sum(len(s.layers) for s in specs)} calques au total",
+                f"{sum(1 for s in specs if s.evidence_required)} image(s) "
+                "portent une exigence de preuve",
             ],
         )
 

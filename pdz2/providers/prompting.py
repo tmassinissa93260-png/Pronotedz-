@@ -19,27 +19,34 @@ from pdz2.contracts.visual import ImageSpec, VisualBible
 __all__ = ["image_prompt", "negative_prompt", "animation_prompt"]
 
 
-def image_prompt(spec: ImageSpec, bible: VisualBible) -> str:
-    """Traduit une demande d'image en une phrase pour un moteur génératif."""
-    morceaux = [
-        spec.subject,
-        spec.intent,
-        f"registre visuel : {bible.style}",
-        f"cadrage {spec.composition.framing.value}",
-        f"lumière {bible.lighting}",
-        f"matières {bible.materials}",
-        f"graphisme {bible.graphics}",
-    ]
-    calques = [
-        f"{layer.role.value} : {layer.description}"
-        for layer in sorted(spec.layers, key=lambda item: item.depth)
-    ]
-    if calques:
-        morceaux.append("plans successifs — " + " ; ".join(calques))
+def image_prompt(spec: ImageSpec, bible: VisualBible, layer=None) -> str:
+    """Traduit une demande d'image en une phrase pour un moteur génératif.
+
+    L'ordre compte : ce que l'image doit **prouver** vient en tête, avant
+    l'esthétique. Un moteur qui lit d'abord trois lignes de style et de
+    matières traite le mécanisme comme un détail de fin de phrase.
+
+    Cette fonction récitait la bible une seconde fois — registre, lumière,
+    matières, graphisme — alors que `spec.intent` la porte déjà en entier.
+    Mesuré sur un plan réel : le registre visuel apparaissait quatre fois
+    dans un prompt de 1 187 caractères, la lumière et les matières deux fois
+    chacune. Une consigne répétée n'est pas une consigne appuyée : c'est une
+    consigne diluée.
+    """
+    morceaux = []
+    if spec.evidence_required:
+        # La raison d'être de l'image, en premier et dite comme telle.
+        morceaux.append(f"L'image doit rendre visible : {spec.evidence_required}")
+    morceaux.append(spec.intent)
+    if layer is not None:
+        morceaux.append(f"Plan {layer.role.value} : {layer.description}")
+    # `intent` ne porte ni le graphisme ni la palette : eux seuls s'ajoutent.
+    if bible.graphics:
+        morceaux.append(f"Graphisme : {bible.graphics}")
     palette = ", ".join(bible.color.palette[:4])
     if palette:
-        morceaux.append(f"palette {palette}")
-    return ". ".join(part for part in morceaux if part).strip()
+        morceaux.append(f"Palette : {palette}")
+    return ". ".join(part.strip().rstrip(".") for part in morceaux if part) + "."
 
 
 def negative_prompt(spec: ImageSpec, bible: VisualBible) -> str:

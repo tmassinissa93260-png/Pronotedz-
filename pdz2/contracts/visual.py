@@ -91,13 +91,28 @@ class LayerSpec(Element):
     must_be_separable: bool = True
 
 
-@contract("image_spec", "1.0.0")
+@contract("image_spec", "1.1.0")
 class ImageSpec(Contract):
     """Ce qu'une image doit contenir. Pas le prompt final d'un fournisseur."""
 
     shot_id: str = Field(min_length=1)
     visual_bible_id: str = Field(min_length=1)
     anchor_ids: list[str] = Field(default_factory=list)
+
+    claim_id: str | None = None
+    """Affirmation que cette image doit démontrer. Ajouté en 1.1.0."""
+
+    evidence_required: str | None = None
+    """Ce qui doit être visible pour que l'image compte comme preuve.
+
+    Ces deux champs manquaient, et leur absence est une des causes des images
+    génériques du run #7. Le `ShotSpec` portait fidèlement `claim_id` et
+    `evidence_required`, recopiés du brief — puis le compilateur d'images les
+    laissait tomber. Le générateur recevait un **sujet**, jamais une
+    **preuve** : on lui demandait de représenter un thème, et il le faisait.
+
+    Une ouverture ou une chute ne démontre rien : les deux champs y valent
+    `None`, et c'est une réponse, pas un oubli."""
 
     subject: str = Field(min_length=1)
     composition: Composition

@@ -135,6 +135,10 @@ jobs:
           GROQ_MODEL: ${{ vars.GROQ_MODEL }}
           PDZ2_REASONER: ${{ inputs.raisonneur }}
 
+      - name: Ce qui a été dit aux fournisseurs
+        if: always()
+        run: pdz2 prompts --episode episode --animation || true
+
       - name: Journal de production
         if: always()
         run: pdz2 journal --episode episode || true

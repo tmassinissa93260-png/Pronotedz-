@@ -231,6 +231,7 @@ class ExecutionDispatcher:
         into: Path,
         plan: ExecutionPlan | None = None,
         typography: Typography | None = None,
+        palette: list[tuple[int, int, int]] | None = None,
     ) -> ExecutionOutcome:
         """Exécute les plans, en suivant le plan d'exécution s'il est fourni.
 
@@ -279,6 +280,7 @@ class ExecutionDispatcher:
         if a_rendre_localement:
             local = self.renderer.render(
                 typography=typography,
+                palette=palette,
                 executables=a_rendre_localement,
                 motion_programs=motion_programs,
                 images=[

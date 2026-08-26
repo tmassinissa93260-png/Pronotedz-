@@ -23,6 +23,21 @@ from pdz2.renderers import DeterministicRenderer, FfmpegUnavailable, RenderFaile
 from pdz2.state import EpisodeStateMachine, TransitionRefused
 from pdz2.storage import EpisodeStore
 
+
+def _palette(bible: VisualBible) -> list[tuple[int, int, int]]:
+    """Palette de la bible, en RGB, pour les indicateurs de mouvement.
+
+    Le renderer dessine le mouvement du sujet dans les couleurs décidées par
+    la réalisation, comme il écrit les incrustations dans sa typographie. Sans
+    ce passage, il retomberait sur une palette de secours et l'épisode aurait
+    deux chartes de couleur.
+    """
+    return [
+        tuple(int(couleur.lstrip("#")[i : i + 2], 16) for i in (0, 2, 4))
+        for couleur in bible.color.palette
+    ]
+
+
 __all__ = ["register", "cmd_render"]
 
 RENDERS_DIR = "renders"
@@ -101,6 +116,7 @@ def cmd_render(args: argparse.Namespace) -> int:
         print(f"étape refusée : {refusal}", file=sys.stderr)
         return 1
 
+    bible = store.load_as(VisualBible)
     try:
         images = _rebuild_images(store)
         plans = store.load_collection("execution_plan")
@@ -110,7 +126,8 @@ def cmd_render(args: argparse.Namespace) -> int:
             images=images,
             into=store.root / RENDERS_DIR,
             plan=plans[0] if plans else None,
-            typography=store.load_as(VisualBible).typography,
+            typography=bible.typography,
+            palette=_palette(bible),
         )
     except (RenderFailed, FfmpegUnavailable, DispatchRejected) as failure:
         machine.fail(Stage.RENDER, reason=str(failure))
