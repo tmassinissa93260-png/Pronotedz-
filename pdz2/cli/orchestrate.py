@@ -129,6 +129,7 @@ def cmd_create(args: argparse.Namespace) -> int:
             "--corpus", args.corpus,
             "--duration", str(args.duration),
             "--language", args.language,
+            "--animated-shots", str(args.animated_shots),
         ],
     )
     if code != 0:
@@ -192,4 +193,18 @@ def register(subparsers) -> None:
     )
     create.add_argument("--duration", type=float, default=45.0)
     create.add_argument("--language", default="fr")
+    # `create` enchaîne les phases : toute option que `research` accepte et qui
+    # décide de l'épisode doit exister ici aussi, sinon elle est inatteignable
+    # depuis le seul point d'entrée que le workflow emploie. Le run #9 est mort
+    # là-dessus en deux secondes — « unrecognized arguments: --animated-shots ».
+    create.add_argument(
+        "--animated-shots",
+        type=int,
+        default=0,
+        dest="animated_shots",
+        help=(
+            "combien de plans, au plus, peuvent être animés par un modèle "
+            "payant. Zéro par défaut : aucune dépense."
+        ),
+    )
     create.set_defaults(func=cmd_create)
