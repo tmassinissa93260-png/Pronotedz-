@@ -383,3 +383,33 @@ d'être resserré à la main.
 C'est ce que le cahier des charges appelle une **calibration**, et c'est la
 seule façon honnête de sortir du cercle : on ne peut pas mesurer un coût sans
 l'engager une fois.
+
+## Run #9 — mort en deux secondes sur une couture
+
+```
+pdz2: error: unrecognized arguments: --animated-shots 0
+```
+
+L'option avait bien été ajoutée — à la sous-commande `research`, alors que le
+workflow appelle `pdz2 create`, qui enchaîne les phases et possède son propre
+analyseur. Le plafond était inatteignable depuis le seul point d'entrée
+réellement employé.
+
+Rien dans la suite ne pouvait l'attraper : les tests exercent les fonctions, le
+workflow exerce la ligne de commande, et personne ne vérifiait que les deux
+parlaient de la même chose. Une couture non testée finit par lâcher, et
+celle-ci a coûté un aller-retour complet, fusion comprise.
+
+`pdz2/tests/test_workflow_invocations.py` lit le vrai fichier de workflow,
+remplace chaque `${{ inputs.x }}` par la valeur par défaut déclarée pour cette
+entrée, et donne la ligne entière à l'analyseur réel. Aucune commande n'est
+exécutée : seule l'acceptation des arguments est vérifiée.
+
+Vérifié comme un test de régression doit l'être : l'option retirée de `create`,
+les tests reproduisent l'erreur exacte du run #9 ; l'option remise, ils
+repassent au vert.
+
+Substituer la valeur par défaut plutôt qu'un mot quelconque n'est pas un
+détail : ça vérifie du même coup que les types concordent. Une entrée `duree`
+dont le défaut ne serait pas un nombre ferait échouer `--duration` au test
+exactement comme en production.
