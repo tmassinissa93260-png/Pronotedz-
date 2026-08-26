@@ -23,6 +23,7 @@ from pdz2.engines.imagery import ImageSpecCompiler
 from pdz2.engines.motion import MotionCompiler, MotionRejected
 from pdz2.engines.renderspec import RenderSpecCompiler, RenderSpecRejected
 from pdz2.engines.validation import StaticValidator
+from pdz2.providers import active_providers
 from pdz2.state import EpisodeStateMachine, TransitionRefused
 from pdz2.storage import EpisodeStore
 
@@ -112,7 +113,9 @@ def cmd_specs(args: argparse.Namespace) -> int:
 
     request = store.load_as(TopicRequest)
     try:
-        images = ImageSpecCompiler().compile(
+        images = ImageSpecCompiler(
+            separable_layers=_calques_separables()
+        ).compile(
             shot_graph=graph,
             visual_bible=store.load_as(VisualBible),
             director_state=store.load_as(DirectorState),
@@ -198,6 +201,23 @@ def cmd_validate(args: argparse.Namespace) -> int:
     store.save_snapshot(machine.snapshot)
     print("\nACCEPTÉ — la barrière de coût est levée.")
     return 0
+
+
+def _calques_separables() -> bool:
+    """Le moteur d'images qui rendra ces plans sait-il la transparence ?
+
+    On interroge le fournisseur prioritaire, celui que le répartiteur prendra
+    en premier. Le repli local sait toujours composer ; c'est le moteur
+    distant qui ne sait pas, et c'est donc lui qui décide du nombre de calques
+    qu'il est honnête de demander.
+
+    Un adaptateur muet sur la question est traité comme incapable : mieux vaut
+    demander un calque de trop peu qu'en payer trois qui seront écrasés.
+    """
+    moteurs = active_providers().image
+    if not moteurs:
+        return True
+    return bool(getattr(moteurs[0], "supports_alpha_layers", False))
 
 
 def register(subparsers) -> None:

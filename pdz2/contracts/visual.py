@@ -91,7 +91,7 @@ class LayerSpec(Element):
     must_be_separable: bool = True
 
 
-@contract("image_spec", "1.1.0")
+@contract("image_spec", "1.2.0")
 class ImageSpec(Contract):
     """Ce qu'une image doit contenir. Pas le prompt final d'un fournisseur."""
 
@@ -113,6 +113,23 @@ class ImageSpec(Contract):
 
     Une ouverture ou une chute ne démontre rien : les deux champs y valent
     `None`, et c'est une réponse, pas un oubli."""
+
+    subject_matter: str | None = None
+    """Le sujet de l'épisode, tel que la demande l'a écrit. Ajouté en 1.2.0.
+
+    Sans lui, aucun élément du prompt ne nommait ce dont l'épisode parle. Le
+    run #8 le prouve mot pour mot : pour un épisode « Comment fonctionne une
+    voiture électrique ? », la commande envoyée au fournisseur disait
+    « Ouverture dans le registre décidé : technical. […] Décor : atelier de
+    fabrication et laboratoire. » Le seul substantif concret de la phrase
+    était le décor décidé par la bible — et le fournisseur a rendu ce qu'on
+    lui demandait : des ateliers, des entrepôts, des garages vides. Ni
+    voiture, ni moteur, ni batterie.
+
+    `subject` porte le sujet **du plan**, `evidence_required` ce qu'il doit
+    prouver ; ni l'un ni l'autre ne porte le domaine. Un plan peut demander
+    « le rotor tourne dans le stator » sans que rien ne dise qu'il s'agit
+    d'une voiture. Ce champ le dit."""
 
     subject: str = Field(min_length=1)
     composition: Composition

@@ -232,6 +232,7 @@ class ExecutionDispatcher:
         plan: ExecutionPlan | None = None,
         typography: Typography | None = None,
         palette: list[tuple[int, int, int]] | None = None,
+        animated_shots_max: int | None = None,
     ) -> ExecutionOutcome:
         """Exécute les plans, en suivant le plan d'exécution s'il est fourni.
 
@@ -240,6 +241,7 @@ class ExecutionDispatcher:
         choix le plus prudent, jamais une reprise inventée.
         """
         outcome = ExecutionOutcome()
+        restant_anime = animated_shots_max
         budgets = _budgets(plan)
         delais = _delais(plan)
         par_image = {image.shot_id: image for image in images}
@@ -260,11 +262,27 @@ class ExecutionDispatcher:
                 )
                 continue
 
+            if restant_anime is not None and restant_anime <= 0:
+                # Deuxième verrou, indépendant du routeur. Un exécutable
+                # génératif de plus que le plafond ne part pas, quelle qu'en
+                # soit la provenance — un plan rejoué, une réparation, un
+                # contrat écrit à la main. Le routeur planifie ; celui-ci
+                # exécute, et il ne fait pas confiance sur parole à ce qu'il
+                # reçoit quand la conséquence est une facture.
+                a_rendre_localement.append(self._degrade(executable, outcome))
+                outcome.notes.append(
+                    f"{executable.shot_id} : appel génératif refusé, plafond de "
+                    f"plans animés atteint ({animated_shots_max})"
+                )
+                continue
+
             image = par_image.get(executable.shot_id)
             if image is None:
                 raise DispatchRejected(
                     f"{executable.shot_id} : aucune image de départ pour un plan génératif"
                 )
+            if restant_anime is not None:
+                restant_anime -= 1
             rendu = self._try_provider(
                 executable,
                 fournisseur,

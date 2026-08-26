@@ -14,6 +14,7 @@ from pathlib import Path
 
 from pdz2.contracts.pipeline import Stage
 from pdz2.contracts.render import RenderSpecExecutable
+from pdz2.contracts.research import TopicRequest
 from pdz2.contracts.visual import ImageSpec, LayerRole, VisualBible
 from pdz2.engines.imagery.renderer import RenderedImage
 from pdz2.execution import ExecutionDispatcher
@@ -128,6 +129,7 @@ def cmd_render(args: argparse.Namespace) -> int:
             plan=plans[0] if plans else None,
             typography=bible.typography,
             palette=_palette(bible),
+            animated_shots_max=store.load_as(TopicRequest).animated_shots_max,
         )
     except (RenderFailed, FfmpegUnavailable, DispatchRejected) as failure:
         machine.fail(Stage.RENDER, reason=str(failure))

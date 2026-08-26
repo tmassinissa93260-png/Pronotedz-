@@ -75,14 +75,18 @@ def rendu(episode, tmp_path_factory):
     )
 
 
-def _executables(episode, providers=()):
+def _executables(episode, providers=(), animes=8):
     from pdz2.engines.routing import RenderRouter
 
     capabilities = [p.get_capabilities() for p in providers]
-    # Retenir un fournisseur exige de montrer sur quoi on s'est fondé.
+    # Retenir un fournisseur exige de montrer sur quoi on s'est fondé — et,
+    # depuis que le compte porte du crédit, une autorisation de dépense :
+    # `animated_shots_max` vaut zéro par défaut, et zéro veut dire zéro appel
+    # payant. Ces tests l'ouvrent explicitement, comme le ferait un opérateur.
     return RenderRouter(
         video_capabilities=capabilities,
         capability_matrix=CapabilityMatrix() if providers else None,
+        animated_shots_max=animes,
     ).route(
         episode_id="ep",
         requested=episode.render_specs,
@@ -122,14 +126,56 @@ def test_a_reachable_provider_makes_a_generative_strategy_selectable(episode):
         assert executable.model == "double-1"
 
 
-def test_a_measured_pace_never_pays_for_a_provider(episode_pose):
-    """Une narration posée se rend entièrement en local, fournisseur ou non."""
-    avec = _executables(episode_pose, providers=(LocalVideoDouble(),))
+def test_nothing_is_paid_for_without_an_authorisation(episode_pose):
+    """Zéro plan animé autorisé : aucun appel payant, fournisseur ou non.
+
+    C'est la garantie qui a remplacé « une narration posée se rend entièrement
+    en local ». L'ancienne reposait sur `_GENERATIVE_ABOVE = 0.80`, un seuil
+    d'énergie de **caméra** — et c'était le mauvais critère : un mécanisme qui
+    doit tourner justifie le génératif quelle que soit la vitesse de
+    l'appareil. Le seuil n'a d'ailleurs jamais été franchi en production, ce
+    qui rendait l'animation inatteignable.
+
+    La borne n'est donc plus une énergie mais une **autorisation de dépense**,
+    et elle vaut zéro tant que personne n'a écrit un nombre.
+    """
+    avec = _executables(episode_pose, providers=(LocalVideoDouble(),), animes=0)
     assert all(e.provider is None for e in avec.executables)
     energies = [
         m.perceptual_target.motion_energy for m in episode_pose.motion_programs
     ]
     assert max(energies) <= 0.70
+
+
+def test_a_mechanism_reaches_the_generative_even_at_a_measured_pace(episode_pose):
+    """Ce que l'ancien seuil d'énergie interdisait, et qu'il ne devait pas.
+
+    Le spectateur du run #8 l'a dit en une phrase : « moteur qui tourne,
+    électricité qui bouge ». Un plan qui démontre un mécanisme a besoin que le
+    sujet bouge dans le cadre, et aucune stratégie locale ne sait le faire.
+    L'énergie de caméra n'a rien à dire là-dessus.
+    """
+    from pdz2.contracts.motion import MotionPrimitive
+    from pdz2.engines.routing.router import _MECHANICAL
+
+    mecaniques = {
+        motion.shot_id
+        for motion in episode_pose.motion_programs
+        if motion.subject_motion.primitive in _MECHANICAL
+    }
+    if not mecaniques:
+        pytest.skip("cette fixture ne démontre aucun mécanisme")
+
+    avec = _executables(episode_pose, providers=(LocalVideoDouble(),), animes=8)
+    animes = {e.shot_id for e in avec.executables if e.provider is not None}
+    assert animes & mecaniques, (
+        "aucun plan de mécanisme n'a atteint le génératif malgré l'autorisation"
+    )
+    assert MotionPrimitive.STATIC not in {
+        m.subject_motion.primitive
+        for m in episode_pose.motion_programs
+        if m.shot_id in animes
+    }, "un plan sans mouvement de sujet a été payé"
 
 
 def test_a_provider_that_cannot_hold_the_shot_is_set_aside(episode):
@@ -181,19 +227,54 @@ def test_a_generative_shot_is_executed_by_the_provider(episode, rendu, tmp_path)
 
 @needs_ffmpeg
 def test_local_and_provider_shots_coexist_in_one_run(episode, rendu, tmp_path):
-    """Le compilateur mélange les modes dans un même épisode."""
+    """Le compilateur mélange les modes dans un même épisode.
+
+    Le mélange vient désormais du **plafond** et non d'un seuil d'énergie :
+    deux plans animés autorisés sur un épisode qui en demanderait davantage,
+    et le reste se rend en local. C'est le cas nominal une fois du crédit
+    déposé — on paie ce qu'on a décidé de payer, pas ce que le rythme décide.
+    """
     fournisseur = LocalVideoDouble(into=tmp_path)
-    route = _executables(episode, providers=(fournisseur,))
+    route = _executables(episode, providers=(fournisseur,), animes=2)
     outcome = ExecutionDispatcher(providers=(fournisseur,)).execute(
         executables=route.executables,
         motion_programs=episode.motion_programs,
         images=rendu.images,
         into=tmp_path,
+        animated_shots_max=2,
     )
     comptes = outcome.by_executor
     assert comptes.get(Executor.PROVIDER, 0) >= 1
+    assert comptes.get(Executor.PROVIDER, 0) <= 2, "le plafond n'a pas été tenu"
     assert comptes.get(Executor.LOCAL, 0) >= 1
     assert len(outcome.artifacts) == len(route.executables)
+
+
+@needs_ffmpeg
+def test_the_dispatcher_holds_the_ceiling_even_if_the_plan_does_not(
+    episode, rendu, tmp_path
+):
+    """Deuxième verrou : un exécutable génératif de trop ne part pas.
+
+    Le routeur planifie, le répartiteur exécute — et il ne fait pas confiance
+    sur parole à ce qu'il reçoit quand la conséquence est une facture. Ici le
+    routage en autorise huit et le répartiteur n'en laisse passer qu'un.
+    """
+    fournisseur = LocalVideoDouble(into=tmp_path)
+    route = _executables(episode, providers=(fournisseur,), animes=8)
+    prevus = sum(1 for e in route.executables if e.provider is not None)
+    assert prevus > 1, "le routage n'a pas prévu assez de plans génératifs"
+
+    outcome = ExecutionDispatcher(providers=(fournisseur,)).execute(
+        executables=route.executables,
+        motion_programs=episode.motion_programs,
+        images=rendu.images,
+        into=tmp_path,
+        animated_shots_max=1,
+    )
+    assert outcome.by_executor.get(Executor.PROVIDER, 0) == 1
+    assert len(fournisseur.jobs) == 1, "un appel payant de trop est parti"
+    assert any("plafond de plans animés atteint" in n for n in outcome.notes)
 
 
 @needs_ffmpeg

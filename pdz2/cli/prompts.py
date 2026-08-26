@@ -44,7 +44,11 @@ def cmd_prompts(args: argparse.Namespace) -> int:
     executables = {
         item.shot_id: item for item in store.load_collection("render_spec_executable")
     }
-    motions = {item.id: item for item in store.load_collection("motion_program")}
+    # Indexés par plan, pas par identifiant : `RenderSpecExecutable.requested`
+    # est un `RequestedEcho` — une copie des champs demandés — et il ne porte
+    # pas `motion_program_id`. L'y chercher levait une `AttributeError` qui
+    # coupait la commande au premier plan, run #8 compris.
+    motions = {item.shot_id: item for item in store.load_collection("motion_program")}
 
     voulus = set(args.shot or [])
     retenus = [spec for spec in specs if not voulus or spec.shot_id in voulus]
@@ -67,7 +71,6 @@ def cmd_prompts(args: argparse.Namespace) -> int:
               f"  ·  graine {spec.seed}  ·  {len(spec.layers)} calque(s)")
         print("─" * 78)
 
-        commun = image_prompt(spec, bible)
         interdits = negative_prompt(spec, bible)
 
         # Un appel par calque : c'est ce que fait l'adaptateur d'images, pour
@@ -75,16 +78,17 @@ def cmd_prompts(args: argparse.Namespace) -> int:
         for calque in sorted(spec.layers, key=lambda item: item.depth):
             print()
             print(f"  ── calque « {calque.role.value} » (profondeur {calque.depth})")
-            print(f"  prompt : {commun}. Plan {calque.role.value} : {calque.description}")
+            # Le même appel que l'adaptateur, calque compris. Reconstruire la
+            # phrase à la main ici avait produit un ordre différent du réel :
+            # le calque arrivait après la palette au lieu de la précéder.
+            print(f"  prompt : {image_prompt(spec, bible, calque)}")
         if interdits:
             print()
             print(f"  interdits : {interdits}")
 
         executable = executables.get(spec.shot_id)
         if executable is not None and args.animation:
-            motion = motions.get(executable.requested.motion_program_id) if hasattr(
-                executable, "requested"
-            ) else None
+            motion = motions.get(spec.shot_id)
             print()
             print(f"  ── animation ({executable.strategy.value})")
             print(f"  prompt : {animation_prompt(executable, motion)}")

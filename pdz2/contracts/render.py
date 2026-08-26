@@ -271,6 +271,7 @@ _FREE_FORM_DEGRADATION_FIELDS = frozenset(
         "audio",
         "provider_availability",
         "retry_strategy",
+        "animated_shots_max",
     }
 )
 """Champs dont l'écart ne se déduit pas de l'écho : déclarés librement.
@@ -283,7 +284,12 @@ cadence, stratégie préférée. Le reste se déclare ici, à condition d'être 
 préférence, choisir une stratégie n'est pas une dégradation. Constater qu'un
 fournisseur autorisé est injoignable, ou qu'un plan a épuisé ses tentatives,
 en est une — et elle mérite son propre nom plutôt que de se déguiser en écart
-de stratégie."""
+de stratégie.
+
+`animated_shots_max` en est un troisième, et il se distingue des deux autres :
+le fournisseur est joignable, le plan n'a rien raté — c'est une **autorisation
+de dépense** qui manque. Le confondre avec une indisponibilité ferait chercher
+une panne là où il n'y a qu'un plafond à relever."""
 
 
 class ExecutionStepKind(str, Enum):

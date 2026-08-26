@@ -277,7 +277,7 @@ class FactGraph(Contract):
         return order
 
 
-@contract("topic_request", "1.0.0")
+@contract("topic_request", "1.1.0")
 class TopicRequest(Contract):
     """Entrée du compilateur : une idée, un format, un budget."""
 
@@ -292,6 +292,30 @@ class TopicRequest(Contract):
     budget_cap_usd: float | None = Field(default=None, ge=0.0)
     allow_ai_video: bool = True
     """Faux : l'épisode doit être produit sans génération vidéo par IA."""
+
+    animated_shots_max: int = Field(default=0, ge=0)
+    """Combien de plans, au plus, peuvent être animés par un modèle payant.
+
+    Ajouté en 1.1.0, et c'est un plafond en **plans**, pas en dollars. Ce
+    n'est pas une commodité : c'est la seule borne honnête quand le prix est
+    inconnu.
+
+    `budget_cap_usd` borne une dépense dont on connaît le tarif. Celui du
+    modèle vidéo employé ne l'est pas : sa capacité déclare un coût par
+    seconde vide, et son interface ne renvoie aucune information de
+    facturation dans sa réponse — le coût réel ne se lit que sur le tableau de
+    bord du compte. Annoncer un plafond en dollars sur un prix qu'on ignore
+    serait une garantie fausse.
+
+    Un plafond en plans, lui, se tient avec certitude quel que soit le tarif :
+    au plus N appels partent, et le journal dit lesquels. C'est une borne
+    d'**exposition**, et elle ne prétend rien d'autre.
+
+    Zéro par défaut. Aucune dépense ne s'engage sans que quelqu'un ait écrit
+    un nombre — ce que le cahier des charges appelle valider avant de
+    dépenser. Une fois le coût relevé sur le compte et inscrit à la matrice
+    de capacités comme MESURÉ, `budget_cap_usd` reprend son office et ce
+    plafond-ci n'a plus lieu d'être resserré à la main."""
 
     seed: int | None = None
     """Graine de reproductibilité, propagée jusqu'aux générateurs."""

@@ -78,23 +78,87 @@ _ALPHA = 216
 """Opacité des indicateurs. Assez présents pour se lire, assez discrets pour
 ne pas devenir le sujet."""
 
+_CONTRASTE_MINIMAL = 0.25
+"""Écart de luminance minimal entre un indicateur et le fond, sur [0, 1].
+
+HYPOTHÈSE À TESTER, pas un seuil de norme. La WCAG raisonne en rapport de
+contraste entre deux couleurs unies, ce qui ne s'applique pas tel quel à un
+trait posé sur une photographie. La valeur est fixée par jugement et vaut
+jusqu'à ce qu'un rendu mesuré la contredise ; ce qu'elle remplace — un choix
+de couleur par indice de position — n'avait, lui, aucune justification du
+tout."""
+
 
 def _rgba(couleur: tuple[int, int, int], alpha: int = _ALPHA) -> tuple[int, ...]:
     return (*couleur, alpha)
 
 
-def _teintes(palette: list[tuple[int, int, int]]) -> tuple[tuple, tuple]:
-    """Trait principal et rappel. L'accent de la bible passe devant.
+def _luminance(couleur: tuple[int, int, int]) -> float:
+    """Luminance relative approchée, sur [0, 1]. Coefficients Rec. 709."""
+    r, v, b = couleur
+    return (0.2126 * r + 0.7152 * v + 0.0722 * b) / 255.0
 
-    La palette est ordonnée : la dominante en tête. Un indicateur peint dans
-    la dominante disparaîtrait dans l'image ; on prend donc l'accent le plus
-    éloigné disponible.
+
+def _fond(frame: Image.Image) -> float:
+    """Clarté moyenne de l'image commentée, sur [0, 1].
+
+    Mesurée, pas supposée. Une réduction à 32×32 suffit : on cherche le
+    niveau général du fond, pas son détail, et le coût par image reste sous
+    la milliseconde."""
+    petit = frame.convert("L").resize((32, 32), Image.BILINEAR)
+    donnees = list(petit.tobytes())
+    return sum(donnees) / (len(donnees) * 255.0)
+
+
+def _teintes(
+    palette: list[tuple[int, int, int]], fond: float
+) -> tuple[tuple, tuple]:
+    """Trait principal et rappel, choisis sur le contraste **mesuré**.
+
+    Ils étaient choisis par position : `palette[2]` pour l'accent,
+    `palette[3]` pour le rappel, en supposant une palette ordonnée dominante
+    d'abord et accent ensuite. Rien ne garantit cet ordre — le raisonneur
+    rend trois à six couleurs, dans l'ordre qui lui convient.
+
+    Le run #8 a rendu `#1A73E8, #FFFFFF, #000000`. `palette[2]` valait donc
+    `#000000`, et `palette[min(3, 2)]` aussi : **les deux teintes étaient du
+    noir opaque**, peintes sur des photographies sombres. Les vingt-et-une
+    pointes de flux du plan large se lisaient comme de la poussière sur
+    l'objectif, et les repères de rotation comme des rayures.
+
+    On classe donc la palette par écart de luminance avec le fond réellement
+    mesuré, et on prend les deux extrêmes. La bible garde la main sur les
+    couleurs disponibles ; c'est le choix parmi elles qui cesse d'être un
+    pari.
     """
-    if not palette:
-        return ((255, 255, 255), (255, 255, 255))
-    accent = palette[min(2, len(palette) - 1)]
-    rappel = palette[min(3, len(palette) - 1)]
-    return (accent, rappel)
+    lisibles = [c for c in palette if abs(_luminance(c) - fond) >= _CONTRASTE_MINIMAL]
+    if not lisibles:
+        # Aucune couleur de la bible ne se détache du fond mesuré. Un
+        # indicateur peint dedans ne serait pas discret, il serait absent.
+        # On sort de la palette — c'est une couche d'annotation, pas un
+        # élément de la scène — et le blanc ou le noir tranche toujours.
+        neutre = (255, 255, 255) if fond < 0.5 else (0, 0, 0)
+        return (neutre, neutre)
+    classees = sorted(lisibles, key=lambda c: -abs(_luminance(c) - fond))
+    accent = classees[0]
+    # Le rappel ne se prend que du même côté du fond que l'accent : un liseré
+    # unique ne peut pas cerner à la fois un trait clair et un trait sombre.
+    cote = _luminance(accent) > fond
+    memes = [c for c in classees[1:] if (_luminance(c) > fond) is cote]
+    return (accent, memes[0] if memes else accent)
+
+
+def _lisere(accent: tuple[int, int, int]) -> tuple[int, int, int]:
+    """Contour posé sous les indicateurs, pour qu'ils tiennent sur un fond
+    quelconque.
+
+    INFÉRENCE D'INGÉNIERIE, pas une couleur de la bible : c'est la convention
+    du sous-titrage et de la surimpression technique — un trait clair cerné de
+    sombre, ou l'inverse — et elle ne dépend pas du sujet. Une image
+    photographique n'est uniforme nulle part ; un accent bien contrasté avec
+    la moyenne du cadre peut malgré tout croiser une zone qui l'avale.
+    """
+    return (0, 0, 0) if _luminance(accent) > 0.5 else (255, 255, 255)
 
 
 def draw_mechanism(
@@ -118,10 +182,41 @@ def draw_mechanism(
     largeur, hauteur = frame.size
     calque = Image.new("RGBA", (largeur, hauteur), (0, 0, 0, 0))
     dessin = ImageDraw.Draw(calque)
-    accent, rappel = _teintes(palette)
+    accent, rappel = _teintes(palette, _fond(frame))
+    lisere = _lisere(accent)
     trait = max(2, int(largeur * _STROKE))
     intensite = max(0.15, min(1.0, motion.subject_motion.magnitude or 0.5))
 
+    # Deux passes sur le même calque : le liseré d'abord, épais, puis les
+    # teintes par-dessus. `ImageDraw` écrit les pixels sans les fondre, donc
+    # la seconde passe recouvre le cœur du tracé et ne laisse du liseré que
+    # la frange. Dilater le canal alpha aurait donné le même résultat pour
+    # 147 ms par image, mesurées — soit 220 s de plus sur un épisode.
+    for couleur_a, couleur_b, epaisseur in (
+        (lisere, lisere, trait + max(2, trait // 2)),
+        (accent, rappel, trait),
+    ):
+        _tracer(
+            dessin,
+            primitive,
+            motion,
+            largeur,
+            hauteur,
+            t,
+            epaisseur,
+            couleur_a,
+            couleur_b,
+            intensite,
+        )
+
+    return Image.alpha_composite(frame.convert("RGBA"), calque).convert(frame.mode)
+
+
+def _tracer(
+    dessin, primitive, motion, largeur, hauteur, t, trait, accent, rappel, intensite
+) -> None:
+    """Aiguillage vers la primitive. Ne connaît ni les couleurs ni le liseré :
+    on l'appelle deux fois, avec des teintes et une épaisseur différentes."""
     if primitive in {MotionPrimitive.ROTATE, MotionPrimitive.ORBIT}:
         _rotation(dessin, largeur, hauteur, t, trait, accent, rappel, intensite,
                   motion.subject_motion.trajectory.amplitude)
@@ -136,8 +231,6 @@ def draw_mechanism(
         _spirale(dessin, largeur, hauteur, t, trait, accent, rappel, intensite)
     elif primitive is MotionPrimitive.JITTER:
         _tremblement(dessin, largeur, hauteur, t, trait, accent, intensite)
-
-    return Image.alpha_composite(frame.convert("RGBA"), calque).convert(frame.mode)
 
 
 # ------------------------------------------------------------- les primitives
@@ -183,11 +276,16 @@ def _flux(dessin, w, h, t, trait, accent, rappel, intensite, dx, dy) -> None:
 
     marge = min(w, h) * _INSET
     cx, cy = w / 2, h / 2
-    portee = (min(w, h) / 2 - marge) * 1.8
+    portee = (min(w, h) / 2 - marge) * 1.25
     perpendiculaire = (-dy, dx)
 
-    for voie in (-1, 0, 1):
-        decalage = voie * min(w, h) * 0.14
+    # Deux voies, resserrées, sur une portée courte : un faisceau qui traverse
+    # le sujet. Trois voies écartées de 0,14 sur une portée de 1,8 couvraient
+    # un tiers du cadre d'une grille de vingt-et-une pointes — c'est ce que le
+    # run #8 a mis à l'écran, et ça se lisait comme une salissure sur
+    # l'objectif plutôt que comme un courant.
+    for voie in (-1, 1):
+        decalage = voie * min(w, h) * 0.075
         ox = cx + perpendiculaire[0] * decalage
         oy = cy + perpendiculaire[1] * decalage
         for index in range(MARKERS):
@@ -205,7 +303,7 @@ def _flux(dessin, w, h, t, trait, accent, rappel, intensite, dx, dy) -> None:
                       y - dy * taille + perpendiculaire[1] * taille)
             droite = (x - dx * taille - perpendiculaire[0] * taille,
                       y - dy * taille - perpendiculaire[1] * taille)
-            couleur = accent if voie == 0 else rappel
+            couleur = accent if voie < 0 else rappel
             dessin.polygon([pointe, gauche, droite], fill=_rgba(couleur))
 
 

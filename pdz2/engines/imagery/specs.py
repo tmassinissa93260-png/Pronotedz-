@@ -49,7 +49,9 @@ _FLAT_FRAMINGS = {
 }
 
 
-def layers_for(framing: Framing, subject: str = "") -> list[LayerSpec]:
+def layers_for(
+    framing: Framing, subject: str = "", *, separable: bool = True
+) -> list[LayerSpec]:
     """Calques séparables, choisis sur la profondeur qu'admet le cadrage.
 
     Le moteur 2.5D a besoin de plans distincts pour créer du parallaxe. Un
@@ -70,6 +72,21 @@ def layers_for(framing: Framing, subject: str = "") -> list[LayerSpec]:
     scene = subject.strip()
     de_la_scene = f" de la scène : {scene}" if scene else ""
     du_sujet = f" — {scene}" if scene else ""
+
+    if not separable:
+        # Le moteur d'images retenu rend des images opaques. Demander quatre
+        # calques donnerait quatre images dont trois seraient écrasées à la
+        # composition — c'est ce qui est arrivé aux runs #7 et #8, par les deux
+        # bouts du tri. Un seul calque, celui du sujet, et le routeur constate
+        # qu'il n'y a pas de profondeur à décaler.
+        return [
+            LayerSpec(
+                role=LayerRole.SUBJECT,
+                depth=0.5,
+                description=f"scène entière, sujet compris{du_sujet}",
+                must_be_separable=False,
+            )
+        ]
 
     if framing in _FLAT_FRAMINGS:
         return [
@@ -130,6 +147,17 @@ class ImageSpecOutcome:
 
 @dataclass
 class ImageSpecCompiler:
+    separable_layers: bool = True
+    """Le moteur d'images qui rendra ces spécifications sait-il la transparence ?
+
+    Ce n'est pas une préférence esthétique : c'est une capacité du
+    fournisseur, et elle décide combien de calques ont un sens à demander.
+    Le moteur procédural local dessine sur fond transparent et en admet
+    plusieurs ; `flux`, chez fal, rend un PNG opaque et n'en admet qu'un.
+
+    La valeur par défaut vaut pour le moteur local, qui est le repli garanti.
+    L'appelant qui sait qu'un moteur distant prendra la main la renseigne."""
+
     def compile(
         self,
         *,
@@ -151,6 +179,7 @@ class ImageSpecCompiler:
                     anchor_ids=list(shot.continuity_dependencies),
                     claim_id=shot.claim_id,
                     evidence_required=shot.evidence_required,
+                    subject_matter=request.topic,
                     subject=shot.visual_subject,
                     composition=shot.composition.model_copy(deep=True),
                     resolution=resolution,
@@ -158,7 +187,9 @@ class ImageSpecCompiler:
                     intent=self._intent(shot, visual_bible, shot_anchors),
                     forbidden=list(visual_bible.forbidden),
                     layers=layers_for(
-                        shot.composition.framing, shot.visual_subject
+                        shot.composition.framing,
+                        shot.visual_subject,
+                        separable=self.separable_layers,
                     ),
                     seed=self._seed(request, shot),
                     parent_id=shot.id,
@@ -172,6 +203,15 @@ class ImageSpecCompiler:
                 f"{sum(len(s.layers) for s in specs)} calques au total",
                 f"{sum(1 for s in specs if s.evidence_required)} image(s) "
                 "portent une exigence de preuve",
+                f"sujet de l'épisode transmis à chaque image : {request.topic}",
+                *(
+                    []
+                    if self.separable_layers
+                    else [
+                        "calques non séparables : le moteur d'images retenu rend "
+                        "des images opaques, un seul calque par plan est demandé"
+                    ]
+                ),
             ],
         )
 

@@ -38,6 +38,14 @@ class ImageProvider(Protocol):
 
     name: str
 
+    supports_alpha_layers: bool
+    """Ce moteur rend-il des calques à fond transparent ?
+
+    Obligatoire, et sans valeur par défaut : un adaptateur qui ne répond pas à
+    cette question fera empiler des images opaques, ce qui n'est pas composer
+    mais écraser. Deux runs ont été perdus ainsi, une fois par chaque bout du
+    tri en profondeur."""
+
     def get_capabilities(self) -> ProviderCapability:
         """Sonde réellement le moteur. Ne jamais deviner son état."""
 

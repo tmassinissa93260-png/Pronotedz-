@@ -370,10 +370,24 @@ class DirectorCompiler:
     def _framing_shot_subject(function: NarrativeFunction, brief: DirectorBrief) -> str:
         """Sujet visuel des plans d'ouverture et de chute.
 
-        Ils ne démontrent pas une affirmation : ils encadrent. Leur sujet est
-        donc le registre visuel décidé dans le brief, pas une invention.
+        Ils ne démontrent aucune affirmation : ils encadrent. Mais encadrer
+        n'est pas ne rien montrer, et c'est l'erreur que faisait cette
+        fonction. Elle rendait « Ouverture dans le registre décidé :
+        technical » — le **nom** du registre, pas une image. Cette phrase
+        partait telle quelle au fournisseur, recopiée dans les quatre calques
+        du plan. Deux plans sur huit du run #8 ont ainsi été commandés sans
+        qu'aucun mot ne dise ce qu'il fallait voir ; le fournisseur a rendu un
+        entrepôt de cartons et un homme de dos dans une embrasure.
+
+        La thèse et la chute sont déjà décidées par le raisonneur, et elles
+        parlent du sujet. On les prend telles quelles — le compilateur
+        n'invente toujours rien, il cesse seulement de préférer une étiquette
+        de style à une phrase qui a du contenu.
+
+        Le registre reste transmis : `ImageSpecCompiler._intent` le pose déjà
+        en tête de la description, avec la lumière, les matières et le décor.
+        Le répéter ici ne l'appuyait pas, il évinçait le sujet.
         """
-        register = brief.visual_language.visual_register
         if function is NarrativeFunction.HOOK:
-            return f"Ouverture dans le registre décidé : {register}"
-        return f"Chute dans le registre décidé : {register}"
+            return brief.thesis
+        return brief.ending_payoff
