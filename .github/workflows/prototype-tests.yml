@@ -1,0 +1,67 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  Garde-fou du prototype : ce qui est vérifiable SANS compte ni réseau.
+#
+#  Ni OpenAI ni Meta AI ne sont appelés ici. On vérifie le code qu'on peut
+#  vérifier : validation du JSON, direction artistique, reprise, CLI,
+#  absence de clé en dur, et la mécanique de collage dans un vrai Chromium
+#  contre une fausse page de chat locale.
+# ═══════════════════════════════════════════════════════════════════════
+
+name: Prototype — tests
+
+on:
+  push:
+    paths:
+      - "prototype/**"
+      - ".github/workflows/prototype-tests.yml"
+  pull_request:
+    paths:
+      - "prototype/**"
+      - ".github/workflows/prototype-tests.yml"
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: prototype
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installer les dépendances
+        run: |
+          pip install -r app/requirements.txt
+          pip install ruff
+
+      - name: Ruff
+        run: ruff check app tests
+
+      - name: Vérifications hors ligne
+        run: python -m unittest discover -s tests -p "test_prototype.py" -v
+
+      - name: Client fal.ai (service simulé, aucun appel réel)
+        run: python -m unittest tests.test_fal -v
+
+      - name: Installer Chromium
+        run: python -m playwright install --with-deps chromium
+
+      - name: Collage dans un vrai navigateur (fausse page de chat locale)
+        run: python -m unittest tests.test_browser_paste -v
+
+      - name: Selfcheck sans clé (doit signaler la clé absente, pas planter)
+        run: |
+          set +e
+          HEADLESS=1 python -m app.main selfcheck
+          code=$?
+          set -e
+          if [ "$code" -ne 1 ]; then
+            echo "::error::selfcheck aurait dû sortir en 1 sans clé, il a rendu $code"
+            exit 1
+          fi
+          echo "selfcheck signale correctement la clé absente."
