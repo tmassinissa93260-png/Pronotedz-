@@ -2,14 +2,18 @@
 .env
 browser_profile/
 
-# Les resultats locaux restent locaux, SAUF le storyboard et la feuille de
-# prompts : le workflow GitHub les enregistre dans la branche pour que
-# l'etape suivante puisse les relire depuis un telephone.
+# Les resultats locaux restent locaux. Trois exceptions, que le workflow
+# enregistre dans la branche : le storyboard, et les images produites.
 app/output/*
 !app/output/project.json
 !app/output/shots/
-!app/output/shots/*/
-!app/output/shots/*/image.png
 !app/output/comparaison/
+
+# Dans ces deux dossiers, seules les images remontent : ni les prompts
+# intermediaires, ni les analyses, ni les videos.
+app/output/shots/*
+!app/output/shots/*/
+app/output/shots/*/*
+!app/output/shots/*/image.png
+app/output/comparaison/*
 !app/output/comparaison/*.png
-!app/output/prompts_a_coller.txt
