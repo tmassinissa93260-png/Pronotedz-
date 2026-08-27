@@ -1,0 +1,46 @@
+PROMPTS A COLLER DANS META AI
+Sujet  : Fonctionnement d'une voiture électrique
+Duree  : 16s en 4 plans
+Lien   : https://www.meta.ai/prompt/f1da6c85-fb08-433d-b203-04cc41e575c6
+
+Colle chaque bloc PROMPT PHOTO dans Meta AI, un par un.
+
+======================================================================
+SHOT 01  (4.0s)
+======================================================================
+
+VOIX : Voici la batterie, source d'énergie de l'auto électrique.
+
+--- PROMPT PHOTO -------------------------------------------------
+Side view of a white electric car, emphasized on the battery pack underneath. The car is positioned centrally in a dark studio with cinematic lighting, showcasing the sleek design and the underlying structured battery components. Photorealistic premium 3D engineering visualization, modern electric vehicle, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+------------------------------------------------------------------
+
+======================================================================
+SHOT 02  (4.0s)
+======================================================================
+
+VOIX : Le moteur électrique convertit l'énergie de la batterie en mouvement.
+
+--- PROMPT PHOTO -------------------------------------------------
+Close-up view of the electric motor in a white electric car, showing detailed copper windings and mechanical components. The motor is mounted near the front axle amidst the dark composite structure that frames the visible engineering. Photorealistic premium 3D engineering visualization, modern electric vehicle, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+------------------------------------------------------------------
+
+======================================================================
+SHOT 03  (4.0s)
+======================================================================
+
+VOIX : Les câbles haute tension assurent le transfert d'énergie.
+
+--- PROMPT PHOTO -------------------------------------------------
+Medium shot of high-voltage cables running between the battery and motor of a sleek white electric car. The cables are highlighted against the matte body, with brushed aluminium and dark composite materials visible around them. Photorealistic premium 3D engineering visualization, modern electric vehicle, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+------------------------------------------------------------------
+
+======================================================================
+SHOT 04  (4.0s)
+======================================================================
+
+VOIX : Le système de gestion optimise l'efficacité et la sécurité.
+
+--- PROMPT PHOTO -------------------------------------------------
+Detailed shot of the control module and circuit pathways inside a white electric car, emphasizing the advanced technology near the dashboard area. Subtle lighting effects highlight the interface components. Photorealistic premium 3D engineering visualization, modern electric vehicle, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+------------------------------------------------------------------
