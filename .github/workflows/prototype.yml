@@ -273,7 +273,8 @@ jobs:
         if: always() && (inputs.etape == 'produire' || inputs.etape == 'comparer')
         run: |
           shopt -s nullglob
-          fichiers=(app/output/shots/*/image.png app/output/comparaison/*.png)
+          fichiers=(app/output/shots/*/image.png app/output/shots/*/video.mp4
+                    app/output/shots/*/animation.json app/output/comparaison/*.png)
           if [ ${#fichiers[@]} -eq 0 ]; then
             echo "Aucune image produite, rien a enregistrer."
             exit 0

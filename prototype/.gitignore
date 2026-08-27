@@ -9,11 +9,14 @@ app/output/*
 !app/output/shots/
 !app/output/comparaison/
 
-# Dans ces deux dossiers, seules les images remontent : ni les prompts
-# intermediaires, ni les analyses, ni les videos.
+# Dans ces deux dossiers remontent les livrables — image, video, plan
+# d'animation — mais pas les fichiers de travail : ni les prompts recopies,
+# ni la voix, ni l'analyse brute.
 app/output/shots/*
 !app/output/shots/*/
 app/output/shots/*/*
 !app/output/shots/*/image.png
+!app/output/shots/*/video.mp4
+!app/output/shots/*/animation.json
 app/output/comparaison/*
 !app/output/comparaison/*.png
