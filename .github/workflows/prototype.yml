@@ -1,30 +1,24 @@
 # ═══════════════════════════════════════════════════════════════════════
-#  Prototype — préparer les prompts pour Meta AI, depuis le téléphone.
+#  Prototype — sujet → OpenAI → storyboard validé → images → animations.
 #
-#  Onglet « Actions » → « Prototype — prompts Meta AI » → « Run workflow ».
-#  La feuille de prompts attend en fin de page, dans les artefacts du run.
+#  Onglet « Actions » → « Prototype — produire une vidéo » → « Run workflow ».
+#  Le résultat attend en fin de page, dans les artefacts du run.
 #
-#  Deux façons de s'en servir :
+#  Trois étapes :
 #
-#    « produire »   → chaîne 100% automatique : OpenAI écrit, fal.ai fabrique
-#                     les images ET les animations. Rien à faire à la main.
-#                     ⚠️ fal.ai est payant, surtout la vidéo. Le plafond
-#                     « animations » borne la dépense d'un run.
+#    « produire »   → tout : storyboard validé, images fal.ai, et animations
+#                     si le plafond « animations » est levé.
+#                     ⚠️ fal.ai est payant, surtout la vidéo. Le plafond vaut
+#                     0 par défaut : aucune dépense vidéo.
 #
-#    « storyboard » → gratuit hors OpenAI : on prépare seulement les prompts,
-#                     et tu les colles toi-même dans Meta AI.
+#    « storyboard » → le cerveau seul. Gratuit hors OpenAI. C'est l'étape à
+#                     relancer pour juger la qualité de la narration.
 #
-#  ⚠️ CE WORKFLOW NE TOUCHE JAMAIS À META AI, ET C'EST VOULU.
+#    « analyser »   → une image qui existe → ce qui y est réellement visible,
+#                     puis le prompt d'animation adapté à CETTE image.
 #
-#  Meta AI exige une session connectée et un navigateur visible. Sur une
-#  machine GitHub il n'y a ni écran, ni personne pour se connecter, et les
-#  runners sortent par des IP de datacenter que Meta bloque. Y arriver
-#  demanderait soit de stocker la session dans un secret — un identifiant,
-#  donc — soit de contourner une protection. Les deux sont exclus.
-#
-#  Le partage du travail est donc :
-#     GitHub  →  OpenAI : storyboard, prompts photo, prompts d'animation
-#     Toi     →  le collage dans Meta AI, dans TON navigateur connecté
+#  Le storyboard n'est jamais accepté sur parole : validator.py applique dix
+#  vérifications, et ce qui échoue repart chez OpenAI pour correction.
 # ═══════════════════════════════════════════════════════════════════════
 
 name: Prototype — produire une vidéo
@@ -57,14 +51,14 @@ on:
         default: "4"
         type: string
       plan:
-        description: "Numéro du plan à animer (étape animation)"
+        description: "Numéro du plan à analyser (étape analyser uniquement)"
         required: false
         default: "1"
         type: string
       image:
         description: >-
-          L'image générée par Meta AI (étape animation) : URL directe de
-          l'image, ou chemin d'un fichier ajouté au dépôt.
+          L'image à analyser (étape analyser uniquement) : URL directe de
+          l'image, ou chemin d'un fichier ajouté au dépôt. Ignoré ailleurs.
         required: false
         default: ""
         type: string
@@ -80,7 +74,7 @@ on:
       enregistrer:
         description: >-
           Enregistrer le storyboard dans la branche, pour que l'étape
-          « animation » puisse le relire plus tard.
+          « analyser » puisse le relire plus tard.
         required: false
         default: true
         type: boolean
