@@ -99,8 +99,31 @@ class TestImage(FalCase):
         import json
         charge = json.loads(post.content)
         self.assertEqual(charge["prompt"], "un prompt photo")
-        self.assertEqual(charge["image_size"], {"width": 1080, "height": 1920})
+        self.assertEqual(charge["image_size"],
+                         {"width": config.IMAGE_WIDTH, "height": config.IMAGE_HEIGHT})
         self.assertEqual(charge["num_images"], 1)
+
+    def test_reste_sous_le_megapixel_ou_flux_est_entraine(self):
+        """1080x1920 valait 2,07 Mpx : hors du domaine de FLUX, d'ou les
+        geometries incoherentes et le texte halluciné observes en production."""
+        megapixels = config.IMAGE_WIDTH * config.IMAGE_HEIGHT / 1_000_000
+        self.assertLess(megapixels, 1.3)
+        self.assertAlmostEqual(config.IMAGE_HEIGHT / config.IMAGE_WIDTH, 16 / 9, places=1)
+
+    def test_guidance_envoyee_a_dev_pas_a_schnell(self):
+        import json
+
+        for modele, attendue in (("fal-ai/flux/dev", True),
+                                 ("fal-ai/flux/schnell", False)):
+            with self.subTest(modele=modele):
+                garde = config.FAL_IMAGE_MODEL
+                config.FAL_IMAGE_MODEL = modele
+                self.addCleanup(lambda g=garde: setattr(config, "FAL_IMAGE_MODEL", g))
+                faux = FauxFal(post_json={"images": [{"url": "https://fal.test/i.png"}]})
+                self.brancher(faux)
+                fal_client.generate_image("x", self.root / f"{modele[-6:]}.png")
+                charge = json.loads(faux.requests[0].content)
+                self.assertEqual("guidance_scale" in charge, attendue)
 
     def test_reponse_sans_image(self):
         self.brancher(FauxFal(post_json={"images": []}))

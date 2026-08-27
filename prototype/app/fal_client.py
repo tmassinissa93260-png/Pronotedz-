@@ -89,6 +89,9 @@ def generate_image(prompt: str, dest: Path) -> Path:
         "num_inference_steps": config.FAL_IMAGE_STEPS,
         "num_images": 1,
     }
+    # schnell ignore la guidance ; dev et pro s'en servent pour coller au prompt.
+    if "schnell" not in config.FAL_IMAGE_MODEL:
+        payload["guidance_scale"] = config.FAL_GUIDANCE
     out = _call(config.FAL_IMAGE_MODEL, payload, config.FAL_TIMEOUT)
 
     images = out.get("images") or []
