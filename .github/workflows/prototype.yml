@@ -27,7 +27,7 @@
 #     Toi     →  le collage dans Meta AI, dans TON navigateur connecté
 # ═══════════════════════════════════════════════════════════════════════
 
-name: Prototype — prompts Meta AI
+name: Prototype — produire une vidéo
 
 on:
   workflow_dispatch:
@@ -35,7 +35,7 @@ on:
       etape:
         description: "Ce que je veux faire"
         required: true
-        default: storyboard
+        default: produire
         type: choice
         options:
           - produire     # TOUT automatique : OpenAI + fal.ai → images + vidéos
@@ -129,8 +129,10 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL }}
           FAL_KEY: ${{ secrets.FAL_KEY }}
+          # Une variable de depot non definie vaut "" : ne la transmettre
+          # que si elle a reellement une valeur.
+          OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL || '' }}
         run: |
           if [ -z "$FAL_KEY" ]; then
             echo "::error::Le secret FAL_KEY n'est pas défini."
@@ -166,7 +168,6 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL }}
         run: |
           if [ -z "${{ inputs.image }}" ]; then
             echo "::error::L'étape « animation » a besoin du champ « image »."
@@ -187,7 +188,7 @@ jobs:
           {
             echo "## Prototype — étape \`${{ inputs.etape }}\`"
             echo
-            if [ -f app/output/prompts_a_coller.txt ]; then
+            if [ -f app/output/prompts_a_coller.txt ] && [ "${{ inputs.etape }}" != "produire" ]; then
               echo "### À coller dans Meta AI"
               echo
               echo '```'
@@ -212,8 +213,13 @@ jobs:
               echo '```'
             done
             echo
-            echo "> Le collage dans Meta AI se fait à la main, dans ton"
-            echo "> navigateur connecté : $(grep -o 'https://www.meta.ai/[^\"]*' app/config.py | head -1)"
+            if [ "${{ inputs.etape }}" = "produire" ]; then
+              echo "> Images et vidéos fabriquées par fal.ai. Rien à coller à la main."
+              echo "> Les fichiers sont dans l'artefact en haut de cette page."
+            else
+              echo "> Le collage se fait à la main dans ton navigateur connecté :"
+              echo "> $(grep -o 'https://www.meta.ai/[^\"]*' app/config.py | head -1)"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Déposer les fichiers en artefact

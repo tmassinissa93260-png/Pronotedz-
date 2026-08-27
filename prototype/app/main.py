@@ -359,6 +359,14 @@ def cmd_produire(args) -> int:
                     shot.image_prompt, directory / "image.png")
                 log("OK", f"Image {shot.id:02d}  -> {image_path}")
 
+            # Sans budget d'animation, l'analyse d'image ne sert a rien :
+            # on ne la paie pas, et elle n'exige donc aucun modele vision.
+            if animations_left <= 0:
+                status[key] = GENERATED
+                save_status(status)
+                log("OK", "image seule (aucun budget d'animation)")
+                continue
+
             # --- prompt d'animation, a partir de l'image REELLE ---
             animation_file = directory / "animation_prompt.txt"
             if animation_file.is_file() and not args.force:
@@ -366,12 +374,6 @@ def cmd_produire(args) -> int:
                 log("SKIP", "prompt d'animation deja present")
             else:
                 animation_prompt = do_animation_prompt(shot, image_path)
-
-            if animations_left <= 0:
-                status[key] = GENERATED
-                save_status(status)
-                log("STOP", "plafond d'animations atteint : image et prompt seulement")
-                continue
 
             # --- animation ---
             log("FAL", f"Animation {shot.id:02d}...")

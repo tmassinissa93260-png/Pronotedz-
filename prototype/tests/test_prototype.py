@@ -238,6 +238,41 @@ class TestCerveau(unittest.TestCase):
         self.addCleanup(restaurer)
         return importlib.reload(module)
 
+    def test_variable_vide_compte_comme_absente(self):
+        """Regression : GitHub Actions envoie "" pour une variable non definie.
+
+        os.getenv(nom, defaut) rend "" dans ce cas, donc le defaut n'etait
+        jamais applique et model="" partait a l'API — l'erreur 400
+        « you must provide a model parameter » vue en production.
+        """
+        c = self.config_avec(GROQ_API_KEY="gsk-x", OPENAI_VISION_MODEL="")
+        self.assertEqual(c.OPENAI_VISION_MODEL, "openai/gpt-oss-120b")
+        self.assertNotEqual(c.OPENAI_VISION_MODEL, "")
+
+    def test_variable_vide_sur_chaque_reglage(self):
+        c = self.config_avec(OPENAI_API_KEY="sk-a", OPENAI_MODEL="",
+                             OPENAI_BASE_URL="", GROQ_MODEL="")
+        self.assertEqual(c.OPENAI_MODEL, "gpt-4o")
+        self.assertIsNone(c.OPENAI_BASE_URL)
+
+    def test_env_ignore_les_espaces_seuls(self):
+        import os
+
+        from app import config as module
+        os.environ["OPENAI_MODEL"] = "   "
+        self.addCleanup(lambda: os.environ.pop("OPENAI_MODEL", None))
+        self.assertEqual(module.env("OPENAI_MODEL", "defaut"), "defaut")
+
+    def test_modele_vide_refuse_avant_l_appel(self):
+        self.config_avec(OPENAI_API_KEY="sk-a")
+        import importlib
+
+        from app import openai_client
+        importlib.reload(openai_client)
+        with self.assertRaises(openai_client.OpenAIError) as ctx:
+            openai_client._chat_json("", [{"role": "user", "content": "x"}])
+        self.assertIn("aucun modele nomme", str(ctx.exception))
+
     def test_openai_prioritaire_sur_groq(self):
         c = self.config_avec(OPENAI_API_KEY="sk-abc", GROQ_API_KEY="gsk-def")
         self.assertFalse(c.USING_GROQ)

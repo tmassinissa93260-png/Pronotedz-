@@ -36,6 +36,11 @@ def _client() -> openai.OpenAI:
 
 def _chat_json(model: str, messages: list[dict]) -> dict:
     """Un appel chat en mode JSON, avec les erreurs traduites en clair."""
+    if not model:
+        raise OpenAIError(
+            "aucun modele nomme pour cet appel.\n"
+            "  Renseigne OPENAI_MODEL, ou OPENAI_VISION_MODEL pour l'analyse d'image."
+        )
     try:
         response = _client().chat.completions.create(
             model=model,

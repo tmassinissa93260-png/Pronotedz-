@@ -7,6 +7,17 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+
+def env(name: str, default: str = "") -> str:
+    """Lit une variable d'environnement. Une valeur VIDE compte comme absente.
+
+    os.getenv(name, defaut) rend "" quand la variable existe mais est vide —
+    ce que fait GitHub Actions pour une variable de depot non definie. Le
+    defaut n'etait donc jamais applique, et un model="" partait a l'API.
+    """
+    return (os.getenv(name) or "").strip() or default
+
+
 APP_DIR = Path(__file__).resolve().parent
 ROOT_DIR = APP_DIR.parent
 
@@ -41,25 +52,25 @@ META_AI_URL = "https://www.meta.ai/prompt/f1da6c85-fb08-433d-b203-04cc41e575c6"
 # fournie mais qu'une cle Groq l'est, on bascule dessus automatiquement.
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 
-_openai_key = os.getenv("OPENAI_API_KEY", "").strip()
-_groq_key = os.getenv("GROQ_API_KEY", "").strip()
+_openai_key = env("OPENAI_API_KEY")
+_groq_key = env("GROQ_API_KEY")
 
 USING_GROQ = not _openai_key and bool(_groq_key)
 
 OPENAI_API_KEY = _openai_key or (_groq_key if USING_GROQ else "")
-OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "").strip() or (
+OPENAI_BASE_URL = env("OPENAI_BASE_URL") or (
     GROQ_BASE_URL if USING_GROQ else None
 )
 
-_default_model = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") if USING_GROQ else "gpt-4o"
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", _default_model).strip()
+_default_model = env("GROQ_MODEL", "openai/gpt-oss-120b") if USING_GROQ else "gpt-4o"
+OPENAI_MODEL = env("OPENAI_MODEL", _default_model)
 
 # L'analyse d'image exige un modele qui SAIT lire une image. Chez OpenAI
 # gpt-4o le fait ; chez Groq il faut nommer explicitement un modele vision,
 # sinon l'appel echouera — bruyamment, avec le message du service.
-OPENAI_VISION_MODEL = os.getenv("OPENAI_VISION_MODEL", OPENAI_MODEL).strip()
+OPENAI_VISION_MODEL = env("OPENAI_VISION_MODEL", OPENAI_MODEL)
 
-OPENAI_TIMEOUT = float(os.getenv("OPENAI_TIMEOUT", "120"))
+OPENAI_TIMEOUT = float(env("OPENAI_TIMEOUT", "120"))
 
 
 def cerveau() -> str:
@@ -76,23 +87,23 @@ def cerveau() -> str:
 # fal.ai - images et animation, quand on veut la chaine 100% automatique
 # ---------------------------------------------------------------------------
 
-FAL_KEY = os.getenv("FAL_KEY", "").strip()
-FAL_IMAGE_MODEL = os.getenv("FAL_IMAGE_MODEL", "fal-ai/flux/schnell").strip()
-FAL_VIDEO_MODEL = os.getenv(
+FAL_KEY = env("FAL_KEY")
+FAL_IMAGE_MODEL = env("FAL_IMAGE_MODEL", "fal-ai/flux/schnell")
+FAL_VIDEO_MODEL = env(
     "FAL_VIDEO_MODEL", "fal-ai/kling-video/v2.1/standard/image-to-video"
-).strip()
-FAL_IMAGE_STEPS = int(os.getenv("FAL_IMAGE_STEPS", "4"))
-FAL_TIMEOUT = float(os.getenv("FAL_TIMEOUT", "600"))
+)
+FAL_IMAGE_STEPS = int(env("FAL_IMAGE_STEPS", "4"))
+FAL_TIMEOUT = float(env("FAL_TIMEOUT", "600"))
 
 # 9:16 vertical, comme impose par la direction artistique.
-IMAGE_WIDTH = int(os.getenv("IMAGE_WIDTH", "1080"))
-IMAGE_HEIGHT = int(os.getenv("IMAGE_HEIGHT", "1920"))
+IMAGE_WIDTH = int(env("IMAGE_WIDTH", "1080"))
+IMAGE_HEIGHT = int(env("IMAGE_HEIGHT", "1920"))
 
 # ---------------------------------------------------------------------------
 # Arborescence locale
 # ---------------------------------------------------------------------------
 
-OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", APP_DIR / "output"))
+OUTPUT_DIR = Path(env("OUTPUT_DIR") or APP_DIR / "output")
 PROJECT_FILE = OUTPUT_DIR / "project.json"
 STATUS_FILE = OUTPUT_DIR / "status.json"
 PASTE_SHEET = OUTPUT_DIR / "prompts_a_coller.txt"
@@ -102,7 +113,7 @@ SCREENSHOT_DIR = OUTPUT_DIR / "screenshots"
 # Profil navigateur persistant : garde la session Meta entre deux lancements.
 # Il ne contient jamais d'identifiant ecrit par nous, seulement les cookies
 # que le navigateur pose lui-meme quand TU te connectes a la main.
-BROWSER_PROFILE_DIR = Path(os.getenv("BROWSER_PROFILE_DIR", ROOT_DIR / "browser_profile"))
+BROWSER_PROFILE_DIR = Path(env("BROWSER_PROFILE_DIR") or ROOT_DIR / "browser_profile")
 
 # ---------------------------------------------------------------------------
 # Navigateur
@@ -110,14 +121,14 @@ BROWSER_PROFILE_DIR = Path(os.getenv("BROWSER_PROFILE_DIR", ROOT_DIR / "browser_
 
 # Navigateur VISIBLE par defaut, comme demande. HEADLESS=1 sert uniquement
 # aux verifications automatiques (machine sans ecran).
-HEADLESS = os.getenv("HEADLESS", "0") == "1"
-CHROMIUM_PATH = os.getenv("CHROMIUM_PATH", "").strip() or None
+HEADLESS = env("HEADLESS", "0") == "1"
+CHROMIUM_PATH = env("CHROMIUM_PATH") or None
 
 # Quel navigateur ouvrir : vide = le Chromium installe par Playwright.
 # "chrome" ou "msedge" = TON navigateur, celui ou tu es deja connecte.
-BROWSER_CHANNEL = os.getenv("BROWSER_CHANNEL", "").strip() or None
-PAGE_TIMEOUT_MS = int(os.getenv("PAGE_TIMEOUT_MS", "60000"))
-GENERATION_TIMEOUT_S = int(os.getenv("GENERATION_TIMEOUT_S", "240"))
+BROWSER_CHANNEL = env("BROWSER_CHANNEL") or None
+PAGE_TIMEOUT_MS = int(env("PAGE_TIMEOUT_MS", "60000"))
+GENERATION_TIMEOUT_S = int(env("GENERATION_TIMEOUT_S", "240"))
 
 
 def shot_dir(shot_id: int) -> Path:
