@@ -110,6 +110,35 @@ class TestImage(FalCase):
         self.assertLess(megapixels, 1.3)
         self.assertAlmostEqual(config.IMAGE_HEIGHT / config.IMAGE_WIDTH, 16 / 9, places=1)
 
+    def test_charge_utile_adaptee_a_chaque_modele(self):
+        """Un champ inconnu fait rejeter l'appel : chaque famille a la sienne."""
+        from app.fal_client import build_payload
+
+        pro = build_payload("x", "fal-ai/flux-pro/v1.1")
+        self.assertIn("image_size", pro)
+        self.assertNotIn("num_inference_steps", pro)   # pro ne prend pas ce reglage
+
+        ultra = build_payload("x", "fal-ai/flux-pro/v1.1-ultra")
+        self.assertEqual(ultra["aspect_ratio"], "9:16")
+        self.assertNotIn("image_size", ultra)          # ultra raisonne en rapport
+
+        dev = build_payload("x", "fal-ai/flux/dev")
+        self.assertEqual(dev["num_inference_steps"], 28)
+        self.assertIn("guidance_scale", dev)
+
+        schnell = build_payload("x", "fal-ai/flux/schnell")
+        self.assertEqual(schnell["num_inference_steps"], 4)
+        self.assertNotIn("guidance_scale", schnell)    # schnell l'ignore
+
+    def test_modele_passe_en_argument_prime_sur_la_config(self):
+        import json
+
+        faux = FauxFal(post_json={"images": [{"url": "https://fal.test/i.png"}]})
+        self.brancher(faux)
+        fal_client.generate_image("x", self.root / "a.png", model="fal-ai/flux/schnell")
+        self.assertIn("fal-ai/flux/schnell", str(faux.requests[0].url))
+        self.assertNotIn("guidance_scale", json.loads(faux.requests[0].content))
+
     def test_guidance_envoyee_a_dev_pas_a_schnell(self):
         import json
 

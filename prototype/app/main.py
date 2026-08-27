@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 from pathlib import Path
 
 # Permet « python main.py » depuis app/, en plus de « python -m app.main ».
@@ -270,6 +271,58 @@ def cmd_produire(args) -> int:
     return 0
 
 
+def cmd_comparer(args) -> int:
+    """Le meme prompt photo envoye a plusieurs modeles, pour trancher sur pieces.
+
+    Un modele qu'on ne peut pas tester depuis le poste de developpement ne se
+    choisit pas sur parole : on regarde les images.
+    """
+    from . import fal_client
+
+    storyboard = Storyboard.load(config.PROJECT_FILE)
+    shot = storyboard.shot(args.shot)
+    modeles = args.modeles or config.FAL_COMPARE_MODELS
+
+    dossier = config.OUTPUT_DIR / "comparaison"
+    dossier.mkdir(parents=True, exist_ok=True)
+    (dossier / "prompt.txt").write_text(shot.image_prompt + "\n", encoding="utf-8")
+
+    print()
+    log("COMPARAISON", f"plan {shot.id:02d}, {len(modeles)} modele(s)")
+    print(f"  voix : {shot.voice}")
+    log("COUT", f"{len(modeles)} image(s) facturees par fal.ai")
+    print()
+
+    resultats, echecs = [], []
+    for modele in modeles:
+        nom = modele.replace("/", "_").replace("fal-ai_", "")
+        log("FAL", f"{modele}...")
+        debut = time.monotonic()
+        try:
+            chemin = fal_client.generate_image(shot.image_prompt, dossier / f"{nom}.png",
+                                               model=modele)
+        except fal_client.FalError as exc:
+            log("ERREUR", str(exc).splitlines()[0])
+            echecs.append((modele, str(exc)))
+            continue
+        secondes = time.monotonic() - debut
+        taille = chemin.stat().st_size // 1024
+        resultats.append((modele, chemin, secondes, taille))
+        log("OK", f"{chemin.name}  ({secondes:.0f}s, {taille} Ko)")
+
+    print()
+    if resultats:
+        print("  Modèle                              Temps    Poids   Fichier")
+        for modele, chemin, secondes, taille in resultats:
+            print(f"  {modele:35} {secondes:5.0f}s  {taille:5} Ko  {chemin.name}")
+        print()
+        print("  Compare-les dans l'artefact, puis fixe ton choix :")
+        print(f"      FAL_IMAGE_MODEL={resultats[0][0]}")
+    for modele, message in echecs:
+        print(f"  ! {modele} : {message.splitlines()[0]}")
+    return 0 if resultats else 7
+
+
 def cmd_valider(args) -> int:
     """Rejoue les 10 vérifications sur le project.json déjà sauvegardé."""
     storyboard = Storyboard.load(config.PROJECT_FILE)
@@ -341,6 +394,13 @@ def build_parser() -> argparse.ArgumentParser:
     p_prod.add_argument("--sans-video", dest="sans_video", action="store_true")
     p_prod.add_argument("--max-animations", type=int, default=config.SHOT_COUNT)
     p_prod.set_defaults(func=cmd_produire)
+
+    p_cmp = sub.add_parser(
+        "comparer", help="le même prompt sur plusieurs modèles d'image")
+    p_cmp.add_argument("--shot", type=int, default=1)
+    p_cmp.add_argument("--modeles", nargs="*", default=None,
+                       help="par défaut : ceux de FAL_COMPARE_MODELS")
+    p_cmp.set_defaults(func=cmd_comparer)
 
     p_val = common(sub.add_parser("valider", help="rejouer les 10 vérifications"))
     p_val.set_defaults(func=cmd_valider)

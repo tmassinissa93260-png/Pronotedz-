@@ -17,6 +17,10 @@
 #    « analyser »   → une image qui existe → ce qui y est réellement visible,
 #                     puis le prompt d'animation adapté à CETTE image.
 #
+#    « comparer »   → le même prompt photo envoyé à plusieurs modèles, pour
+#                     choisir sur pièces plutôt que sur parole. Une image
+#                     facturée par modèle.
+#
 #  Le storyboard n'est jamais accepté sur parole : validator.py applique dix
 #  vérifications, et ce qui échoue repart chez OpenAI pour correction.
 # ═══════════════════════════════════════════════════════════════════════
@@ -33,6 +37,7 @@ on:
         type: choice
         options:
           - produire     # TOUT automatique : OpenAI + fal.ai → images + vidéos
+          - comparer     # le même prompt sur plusieurs modèles, pour choisir
           - storyboard   # sujet → 4 plans + 4 prompts photo prêts à coller
           - analyser     # une image déjà générée → analyse + prompt d'animation
       sujet:
@@ -69,11 +74,12 @@ on:
           casse sur les prompts d'ingénierie ; « pro » est le meilleur et le
           plus cher.
         required: false
-        default: fal-ai/flux/dev
+        default: fal-ai/flux-pro/v1.1
         type: choice
         options:
-          - fal-ai/flux/dev
           - fal-ai/flux-pro/v1.1
+          - fal-ai/flux-pro/v1.1-ultra
+          - fal-ai/flux/dev
           - fal-ai/flux/schnell
       animations:
         description: >-
@@ -160,6 +166,23 @@ jobs:
             --max-animations "${{ inputs.animations }}" \
             $sans_video
 
+      - name: Comparer plusieurs modèles d'image
+        if: inputs.etape == 'comparer'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+        run: |
+          if [ -z "$FAL_KEY" ]; then
+            echo "::error::Le secret FAL_KEY n'est pas défini."
+            exit 1
+          fi
+          if [ ! -f app/output/project.json ]; then
+            echo "::error::app/output/project.json absent. Lance d'abord « storyboard »."
+            exit 1
+          fi
+          python -m app.main comparer --shot "${{ inputs.plan }}"
+
       - name: Générer le storyboard et les prompts photo
         if: inputs.etape == 'storyboard'
         env:
@@ -203,6 +226,10 @@ jobs:
               cat app/output/project.json
               echo '```'
             fi
+            for f in app/output/comparaison/*.png; do
+              [ -f "$f" ] || continue
+              echo "- \`$(basename "$f" .png)\` — $(du -h "$f" | cut -f1)"
+            done
             for f in app/output/shots/*/image.png; do
               [ -f "$f" ] || continue
               echo "- \`$f\` — $(du -h "$f" | cut -f1)"

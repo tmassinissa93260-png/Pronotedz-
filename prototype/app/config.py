@@ -86,16 +86,29 @@ def cerveau() -> str:
 # ---------------------------------------------------------------------------
 
 FAL_KEY = env("FAL_KEY")
-# schnell est le modele le plus RAPIDE de la famille, pas le meilleur : 4 pas
-# de debruitage, distille pour la vitesse. Sur un prompt d'ingenierie long il
-# rend des geometries incoherentes et hallucine du texte. dev prend ~28 pas et
-# tient la structure. pro est encore au dessus, et plus cher.
-FAL_IMAGE_MODEL = env("FAL_IMAGE_MODEL", "fal-ai/flux/dev")
+# Dans la famille FLUX, du plus faible au plus fort :
+#   flux/schnell     distille a 4 pas, fait pour la vitesse. Casse sur un
+#                    prompt d'ingenierie long : geometries incoherentes,
+#                    texte hallucine. C'etait le defaut, c'etait une erreur.
+#   flux/dev         ~28 pas, tient la structure. Correct.
+#   flux-pro/v1.1    le meilleur rapport tenue du prompt / coherence.
+#   flux-pro/v1.1-ultra  plus grand, plus cher, prend aspect_ratio.
+# La commande « comparer » sert a trancher sur pieces plutot que sur parole.
+FAL_IMAGE_MODEL = env("FAL_IMAGE_MODEL", "fal-ai/flux-pro/v1.1")
+
+# Les modeles compares par defaut par la commande « comparer ».
+FAL_COMPARE_MODELS = [
+    m.strip() for m in env(
+        "FAL_COMPARE_MODELS",
+        "fal-ai/flux-pro/v1.1,fal-ai/flux/dev,fal-ai/flux/schnell",
+    ).split(",") if m.strip()
+]
 FAL_VIDEO_MODEL = env(
     "FAL_VIDEO_MODEL", "fal-ai/kling-video/v2.1/standard/image-to-video"
 )
-# 4 pas pour schnell (il est distille pour ca), ~28 pour dev.
-FAL_IMAGE_STEPS = int(env("FAL_IMAGE_STEPS", "4" if "schnell" in FAL_IMAGE_MODEL else "28"))
+# 4 pas pour schnell (il est distille pour ca), ~28 pour dev. Les modeles pro
+# ne prennent pas ce reglage : on ne le leur envoie pas.
+FAL_IMAGE_STEPS = int(env("FAL_IMAGE_STEPS", "0"))
 
 # Guidance : ignoré par schnell, utile a dev pour coller au prompt.
 FAL_GUIDANCE = float(env("FAL_GUIDANCE", "3.5"))
