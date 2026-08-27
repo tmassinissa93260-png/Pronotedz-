@@ -1,233 +1,137 @@
-# Prototype — SUJET → OpenAI → prompts → navigateur → Meta AI
+# Prototype — sujet → OpenAI → storyboard validé → images → animations
 
-Petit programme local. Un sujet, une durée, un nombre de plans. OpenAI prépare
-le contenu, ton navigateur fait les copier-coller dans Meta AI.
+Petit programme local. Un sujet, une durée, un nombre de plans. OpenAI écrit,
+un validateur vérifie, et fait corriger OpenAI tant que ce n'est pas bon.
 
-Prototype **4 plans**. Indépendant : rien à voir avec `pdz`/`pdz2`, pas de
-plateforme web, pas de framework.
+Prototype **4 plans**. Indépendant : rien de `pdz`/`pdz2`, pas de plateforme
+web, pas de framework, pas de base de données.
 
 ```
 prototype/
   app/
-    main.py            orchestration + logs + reprise
-    config.py          les 3 valeurs d'entrée, l'URL Meta AI, les chemins
-    models.py          structure du storyboard + validation de la réponse OpenAI
-    prompts.py         direction artistique et prompts envoyés à OpenAI
-    openai_client.py   storyboard (texte) et prompt d'animation (vision)
-    browser.py         Chromium visible, profil persistant, pauses, captures
-    meta_ai.py         recherche du composer, collage, envoi, récupération
+    main.py             orchestration, logs, reprise
+    openai_client.py    generate_storyboard() + boucle de correction
+    prompts.py          les 10 conditions, la direction artistique
+    models.py           le contrat JSON
+    validator.py        les 10 vérifications
+    image_analyzer.py   analyze_image() puis generate_animation_prompt()
+    config.py           les 3 valeurs d'entrée, modèles, chemins
+    fal_client.py       point d'intégration images/vidéos
     requirements.txt
-    output/            project.json, status.json, shots/, screenshots/
-  browser_profile/     session Meta conservée entre deux lancements
+    output/             project.json, status.json, shots/
+  .env                  ta clé (jamais commité)
   tests/
 ```
 
 ---
 
-## 1. Comment installer
+## 1. Installer
 
 ```bash
 cd prototype
-python3 -m venv .venv && source .venv/bin/activate      # Windows : .venv\Scripts\activate
+python3 -m venv .venv && source .venv/bin/activate    # Windows : .venv\Scripts\activate
 pip install -r app/requirements.txt
-python -m playwright install chromium
 ```
 
-## 2. Comment configurer le cerveau (OpenAI **ou** Groq)
+## 2. Configurer la clé
 
 ```bash
 cp .env.example .env
 ```
 
-Puis dans `.env`, **une** de ces deux lignes :
+Puis **une** de ces lignes dans `.env` :
 
 ```
-OPENAI_API_KEY=sk-...      # OpenAI : payant, compte à créer
-GROQ_API_KEY=gsk_...       # Groq : gratuit
+OPENAI_API_KEY=sk-...      # OpenAI
+GROQ_API_KEY=gsk_...       # Groq — API compatible OpenAI, gratuite
 ```
 
-Groq expose une API **compatible OpenAI** (`https://api.groq.com/openai/v1`,
-comme dans `pdz2/providers/groq.py`). Si `OPENAI_API_KEY` est vide et
-`GROQ_API_KEY` remplie, le programme bascule tout seul : même code, même SDK,
-autre adresse.
+La clé n'est jamais dans le code (un test le vérifie). Sans clé, le programme
+affiche `OPENAI_API_KEY manquante dans .env` et sort proprement.
 
-⚠️ Avec Groq, l'**analyse d'image** (étape 6) exige un modèle qui sait lire une
-image. Nomme-le explicitement, sinon l'étape échouera :
+Le modèle se change dans `.env` : `OPENAI_MODEL`, `OPENAI_VISION_MODEL`.
 
-```
-OPENAI_VISION_MODEL=le-modele-vision-de-ton-choix
-```
-
-Ni espace, ni guillemets, pas de commentaire sur la même ligne. `.env` est dans
-`.gitignore` — la clé n'est **jamais** écrite dans le code.
-
-Vérifie :
+## 3. Lancer
 
 ```bash
-python -m app.main selfcheck
+cd app && python main.py           # le cerveau seul, TEST_MODE
 ```
 
-Ça contrôle la config, la présence de la clé et le démarrage de Chromium. Aucun
-appel réseau, aucun navigateur visible.
-
-## 3. Comment lancer
+ou, depuis `prototype/` :
 
 ```bash
-# OpenAI seul, sans jamais ouvrir le navigateur — pour vérifier le JSON d'abord
-python -m app.main storyboard
-
-# la boucle : navigateur visible + Meta AI
-python -m app.main run
-
-# où on en est
-python -m app.main status
+python -m app.main                              # idem
+python -m app.main valider                      # rejouer les 10 vérifications
+python -m app.main analyser --shot 1 --image X  # image → analyse → animation
+python -m app.main produire --sans-video        # images via fal.ai
+python -m app.main selfcheck                    # état de la config
 ```
 
-Autres options utiles :
-
-| Commande | Effet |
-| --- | --- |
-| `run --regenerate` | ignorer `project.json` et redemander le storyboard |
-| `run --force` | refaire un plan déjà marqué terminé |
-| `storyboard --subject "..." --duration 20 --shots 5` | override ponctuel |
-
-## 4. Ce que tu dois faire manuellement lors du premier test
-
-`TEST_MODE = True` : le programme s'arrête volontairement après le **SHOT 01**.
-
-```bash
-python -m app.main run
-```
-
-Déroulé :
-
-1. OpenAI génère le storyboard → `app/output/project.json` **(automatique)**
-2. Chromium s'ouvre, **visible**, sur l'URL Meta AI fixe **(automatique)**
-3. **À toi** : si Meta demande une connexion, le programme affiche
-   `Connexion Meta requise. Connecte-toi manuellement dans le navigateur puis appuie sur Entrée.`
-   Tu te connectes **toi-même** dans la fenêtre, puis tu appuies sur Entrée.
-   Le programme ne te demande jamais ton mot de passe ni ton code 2FA, et
-   ne les stocke nulle part.
-4. Le prompt photo du SHOT 01 est collé et envoyé **(automatique)**
-5. **À toi** : vérifier à l'écran que le prompt est bien dans la zone de saisie
-   et bien parti. Puis Entrée pour fermer.
-
-Grâce au profil persistant `browser_profile/`, la connexion de l'étape 3 n'est
-normalement à refaire qu'une fois.
-
-### Ne pas se reconnecter du tout
-
-Si tu es déjà connecté à Meta dans ton Chrome habituel, tu peux dire au
-programme d'utiliser **ce navigateur-là et ce profil-là**. Dans `.env` :
+Sortie de `python main.py` :
 
 ```
-BROWSER_CHANNEL=chrome
-BROWSER_PROFILE_DIR=/Users/TOI/Library/Application Support/Google/Chrome
+[INPUT]
+  Fonctionnement d'une voiture électrique
+  16 secondes
+  4 plans
+
+[OPENAI] Génération du script...
+[OPENAI] Génération du storyboard...
+[VALIDATION] Vérification... (tentative 1)
+[CORRECTION] 3 point(s) à corriger, renvoi à OpenAI
+  ! [DEBIT] shot_01 : 2 mots pour 4.0s (0.5 mot/s) : phrase trop courte
+[VALIDATION] Vérification... (tentative 2)
+[OK] 4 plans validés
+[OUTPUT] .../output/project.json
 ```
 
-Chemins du profil selon le système :
-
-| Système | `BROWSER_PROFILE_DIR` |
-| --- | --- |
-| macOS | `/Users/TOI/Library/Application Support/Google/Chrome` |
-| Windows | `C:\Users\TOI\AppData\Local\Google\Chrome\User Data` |
-| Linux | `/home/TOI/.config/google-chrome` |
-
-⚠️ **Ferme complètement Chrome avant de lancer le programme** — Chrome
-verrouille son profil, et deux processus ne peuvent pas l'ouvrir en même temps.
-Si tu préfères ne pas y toucher, laisse les réglages par défaut : tu te
-connectes une fois dans `browser_profile/` et c'est réglé pour de bon.
-
-Si un élément de l'interface est introuvable, le programme **ne plante pas en
-silence** : message explicite, capture d'écran + HTML dans
-`app/output/screenshots/`, pause, et tu reprends à la main.
-
-## 5. Comment passer de TEST_MODE=true à false
-
-Dans `app/config.py` :
-
-```python
-TEST_MODE = False
-```
-
-Ou sans toucher au fichier :
-
-```bash
-python -m app.main run --no-test-mode
-```
-
-Les 4 plans s'enchaînent alors : photo → analyse OpenAI → prompt d'animation →
-animation, plan après plan.
+Puis les 4 plans, avec leur voix, leur fonction et leur prompt photo.
 
 ---
 
-## Sur GitHub Actions
+## Les 10 conditions, et comment elles sont tenues
 
-Deux workflows, dans `.github/workflows/` :
+Chacune est **écrite dans le prompt** (`prompts.py`) *et* **vérifiée après coup**
+(`validator.py`). Une condition seulement demandée n'est pas une condition.
 
-| Workflow | Rôle |
-| --- | --- |
-| **Prototype — prompts Meta AI** | à la demande, trois étapes : `produire`, `storyboard`, `animation` |
-| **Prototype — tests** | à chaque push sur `prototype/` : ruff + tests hors ligne + client fal simulé + collage dans un vrai Chromium |
+| Condition | Dans le prompt | Vérifiée par |
+| --- | --- | --- |
+| 1 · chaîne causale | exemple de chaîne, interdiction de lister | `PROGRESSION` : deux plans ne peuvent dire la même chose |
+| 2 · durée | somme exacte, ~2,7 mots/seconde | `DUREE` + `DEBIT` : mots/seconde hors de [1.8, 4.0] rejeté |
+| 3 · fonction du plan | `educational_function` justifiée | `FONCTION` : trop vague, ou dupliquée |
+| 4 · visual bible | remplie avant les prompts, réinjectée partout | `CONTINUITE` : la bible doit se retrouver dans chaque prompt |
+| 5 · prompt spécifique | 11 points exigés | `PRECISION` : longueur + cadrage, caméra, position, lumière, matériaux |
+| 6 · dit = montré | score honnête, seuil 0,8 | `ALIGNEMENT` : composant nommé dans la voix cherché dans le prompt photo |
+| 7 · animation qui explique | facettes obligatoires, vocabulaire contrôlé | `AnimationPlan` : `motion_intent` hors liste rejeté |
+| 8 · animation après l'image | `analyze_image()` avant `generate_animation_prompt()` | l'ordre est imposé par le code |
+| 9 · physique plausible | stator fixe, pas de déformation, flux orienté | dans le prompt système |
+| 10 · pas de texte | direction artistique, `no text no labels` | `STYLE` : direction artistique absente = rejet |
 
-### Étape `produire` — tout automatique, avec fal.ai
+### La boucle de correction
 
-```bash
-python -m app.main produire                      # local
-python -m app.main produire --sans-video         # images seulement, zéro dépense vidéo
-python -m app.main produire --max-animations 1   # une seule animation payante
+Quand le validateur refuse, on ne rend pas la main : la liste exacte des
+manquements repart chez OpenAI, plan par plan.
+
+```
+Your previous JSON was rejected by an automatic validator.
+- shot_01: write about 10 words of narration, not 2. Say more about the causal link, do not pad.
+- shot_02: the image_prompt must explicitly state cadrage, camera, position, lumiere, materiaux.
+- shot_03: rework it until what the voice says is unmistakably the thing shown.
 ```
 
-Aucun navigateur. OpenAI écrit le storyboard, **fal.ai** fabrique les images
-(FLUX) puis les animations (Kling image-to-video), et OpenAI analyse chaque
-image réelle entre les deux pour écrire le prompt d'animation.
+`MAX_REPAIR_ATTEMPTS` (défaut 2) borne le nombre d'allers-retours. Ce qui reste
+non corrigé est affiché en `[ATTENTION]`, jamais masqué.
 
-C'est la seule voie 100 % automatique sur GitHub, parce que fal.ai a une vraie
-API — contrairement à Meta AI.
+### Vocabulaire d'animation
 
-Il te faut le secret `FAL_KEY` en plus de `OPENAI_API_KEY`.
+`motion_intent` doit valoir exactement une de ces valeurs :
 
-⚠️ **fal.ai est payant.** Les images sont bon marché, **la vidéo est le poste
-de dépense**. Le champ `animations` du workflow est un plafond **en plans**,
-pas en dollars : à `0` (défaut) rien n'est animé, aucune dépense vidéo. Relève
-ton solde fal.ai avant et après un run pour connaître le coût réel.
+`reveal` · `orbit` · `macro_travel` · `interaction` · `tracking` ·
+`energy_follow` · `mechanical_rotation` · `electromagnetic_rotation` ·
+`gear_rotation` · `drivetrain_follow` · `causal_traversal` · `acceleration` ·
+`deceleration` · `reverse_energy` · `energy_generation` · `energy_return`
 
-### Ce qui NE tourne pas sur GitHub, et pourquoi
-
-**Meta AI reste sur ta machine.** Ce n'est pas une limite à contourner :
-
-- il n'y a pas d'écran sur un runner, or le prototype exige un navigateur visible ;
-- il n'y a personne pour se connecter à ton compte Meta ni pour appuyer sur Entrée ;
-- la seule façon de s'en passer serait de mettre ta session Meta dans un secret
-  GitHub — c'est un identifiant, et le cahier des charges l'interdit ;
-- les runners sortent par des IP de datacenter que Meta bloque ; passer outre
-  serait un contournement de protection, également interdit.
-
-Le partage est donc : **GitHub fait OpenAI, toi tu fais le collage.**
-
-### Préparer
-
-Une seule fois : `Settings` → `Secrets and variables` → `Actions` →
-`New repository secret`, nom `OPENAI_API_KEY`, valeur `sk-...`.
-
-### Étape « storyboard »
-
-`Actions` → `Prototype — prompts Meta AI` → `Run workflow`, étape `storyboard`.
-
-En fin de page tu trouves les 4 prompts photo, lisibles et copiables depuis le
-téléphone, dans le récapitulatif du run **et** dans l'artefact
-`prompts_a_coller.txt`. Avec `enregistrer` coché, `project.json` est aussi
-commité dans la branche — c'est ce qui permet l'étape suivante.
-
-Tu colles ensuite chaque prompt dans Meta AI, à la main, dans ton navigateur
-connecté.
-
-### Étape « animation »
-
-Une fois qu'une image existe vraiment, relance le workflow en étape
-`animation`, avec le numéro du plan et l'image (URL directe de l'image, ou
-chemin d'un fichier que tu as ajouté au dépôt). OpenAI regarde l'image réelle
-et rend le prompt d'animation, affiché en fin de page.
+`zoom_in` n'y est pas, volontairement.
 
 ---
 
@@ -235,66 +139,51 @@ et rend le prompt d'animation, affiché en fin de page.
 
 ```
 app/output/
-  project.json          le storyboard complet, rejouable
-  status.json           {"shot_01": "completed", "shot_02": "pending", ...}
-  shots/
-    shot_01/
-      image_prompt.txt      prompt photo (aussi collable à la main)
-      voice.txt             narration du plan
-      image.png             si la récupération auto a marché
-      animation_prompt.txt  prompt d'animation généré à partir de l'image réelle
-      video.mp4             si la récupération auto a marché
-    shot_02/ shot_03/ shot_04/
-  screenshots/          captures de debug en cas de souci
+  project.json          storyboard validé, rejouable
+  status.json           {"shot_01": "completed", ...}
+  shots/shot_01/
+    voice.txt
+    image_prompt.txt
+    image.png             si fal.ai a tourné
+    image_analysis.json   ce qui est réellement visible
+    animation.json        prompt, intention, caméra, mécanique, énergie, préserver, interdit
+    animation_prompt.txt
+    video.mp4             si fal.ai a animé
 ```
 
-### Reprise
+## TEST_MODE
 
-`status.json` est écrit après chaque plan. Si le programme s'arrête après le
-SHOT 02, relancer `run` reprend au SHOT 03 — le storyboard est relu depuis
-`project.json`, pas redemandé à OpenAI. Une image déjà présente dans un dossier
-de plan est réutilisée telle quelle.
+`TEST_MODE = True` dans `app/config.py` : OpenAI, validation, `project.json`,
+affichage — **aucune image, aucune vidéo**. C'est le mode par défaut.
 
-### Direction artistique
+## Sur GitHub Actions
 
-`prompts.py` impose la phrase de style à OpenAI **et** la revérifie après coup :
-si un `image_prompt` ne la contient pas, `enforce_style()` l'ajoute. La
-continuité (même voiture blanche, même studio, mêmes matériaux, même lumière)
-est demandée explicitement et rappelée dans `visual_continuity`.
+`Actions` → **Prototype — produire une vidéo** → `Run workflow`.
 
-### Prompt d'animation
+| Étape | Ce qu'elle fait |
+| --- | --- |
+| `storyboard` | le cerveau seul, gratuit hors OpenAI |
+| `produire` | + images et vidéos via fal.ai (**payant**) |
+| `analyser` | une image → analyse → prompt d'animation |
 
-Il n'est **pas** écrit à l'aveugle : OpenAI reçoit l'image réellement générée
-et la narration du plan, puis doit dire ce qui bouge, comment, ce qui reste
-immobile, le mouvement de caméra, et interdire toute déformation. Le prompt
-système refuse explicitement un simple « zoom in », et le client rejette une
-réponse trop courte pour être pédagogique.
-
-## Sécurité
-
-- Aucun contournement de CAPTCHA, d'authentification ou de protection.
-- Le programme ne saisit jamais d'identifiant, de mot de passe ni de code.
-- `.env`, `browser_profile/` et `app/output/` sont hors de Git.
-- Le profil de navigateur ne contient que ce que Chromium y écrit quand **tu**
-  te connectes à la main.
+Secrets : `OPENAI_API_KEY` ou `GROQ_API_KEY`, et `FAL_KEY` pour `produire`.
+Le champ `animations` vaut **0 par défaut** : aucune dépense vidéo.
 
 ## Tests
 
 ```bash
-python -m unittest discover -s tests          # hors ligne : parsing, style, reprise, CLI
-python -m unittest tests.test_browser_paste   # vrai Chromium, fausse page de chat locale
+python -m unittest discover -s tests
 ```
 
-## Limites connues de ce prototype
+77 tests, aucun appel réseau : contrat JSON, les 10 vérifications une par une,
+conditions présentes dans le prompt, résolution du cerveau, reprise, CLI, et
+le client fal contre un service simulé.
 
-- **Les sélecteurs Meta AI ne sont pas vérifiés contre le vrai site.** Meta AI
-  demande un compte et une session ; ils sont écrits en cascade (rôle
-  `textbox`, puis placeholder, puis `contenteditable`, puis `textarea`) avec
-  capture d'écran et reprise manuelle en cas d'échec. C'est le point à valider
-  en premier sur ta machine.
-- La récupération automatique de l'image et de la vidéo est **best-effort** :
-  si l'interface ne l'expose pas, le programme te demande d'enregistrer le
-  fichier à la main plutôt que de bloquer.
-- Détection de fin de génération par comptage de `<img>` / `<video>` : simple,
-  suffisant pour un prototype, pas infaillible.
-- 4 plans. Ne pas monter à 20 avant que la boucle 4 plans tourne.
+## Limites assumées
+
+- Le point d'intégration images/vidéos est `fal_client.py`. Le premier vrai
+  appel se fait sur ta machine ou en CI, pas ici.
+- `ALIGNEMENT` compare des mots français de la voix à leurs équivalents
+  anglais attendus dans le prompt photo : c'est une heuristique, pas une
+  compréhension. Elle attrape les oublis francs, pas les subtils.
+- 4 plans. Ne pas monter à 20 avant que les 4 tiennent.

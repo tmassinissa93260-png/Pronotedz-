@@ -27,7 +27,7 @@
 #     Toi     →  le collage dans Meta AI, dans TON navigateur connecté
 # ═══════════════════════════════════════════════════════════════════════
 
-name: Prototype — prompts Meta AI
+name: Prototype — produire une vidéo
 
 on:
   workflow_dispatch:
@@ -35,12 +35,12 @@ on:
       etape:
         description: "Ce que je veux faire"
         required: true
-        default: storyboard
+        default: produire
         type: choice
         options:
           - produire     # TOUT automatique : OpenAI + fal.ai → images + vidéos
           - storyboard   # sujet → 4 plans + 4 prompts photo prêts à coller
-          - animation    # une image déjà générée → son prompt d'animation
+          - analyser     # une image déjà générée → analyse + prompt d'animation
       sujet:
         description: "Le sujet (étape storyboard)"
         required: false
@@ -129,8 +129,10 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL }}
           FAL_KEY: ${{ secrets.FAL_KEY }}
+          # Une variable de depot non definie vaut "" : ne la transmettre
+          # que si elle a reellement une valeur.
+          OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL || '' }}
         run: |
           if [ -z "$FAL_KEY" ]; then
             echo "::error::Le secret FAL_KEY n'est pas défini."
@@ -161,15 +163,14 @@ jobs:
             --duration "${{ inputs.duree }}" \
             --shots "${{ inputs.plans }}"
 
-      - name: Générer le prompt d'animation
-        if: inputs.etape == 'animation'
+      - name: Analyser l'image puis écrire le prompt d'animation
+        if: inputs.etape == 'analyser'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL }}
         run: |
           if [ -z "${{ inputs.image }}" ]; then
-            echo "::error::L'étape « animation » a besoin du champ « image »."
+            echo "::error::L'étape « analyser » a besoin du champ « image »."
             exit 1
           fi
           if [ ! -f app/output/project.json ]; then
@@ -177,7 +178,7 @@ jobs:
             echo "Lance d'abord l'étape « storyboard » avec « enregistrer » coché."
             exit 1
           fi
-          python -m app.main animation \
+          python -m app.main analyser \
             --shot "${{ inputs.plan }}" \
             --image "${{ inputs.image }}"
 
@@ -187,11 +188,11 @@ jobs:
           {
             echo "## Prototype — étape \`${{ inputs.etape }}\`"
             echo
-            if [ -f app/output/prompts_a_coller.txt ]; then
-              echo "### À coller dans Meta AI"
+            if [ -f app/output/project.json ]; then
+              echo "### Storyboard validé"
               echo
-              echo '```'
-              cat app/output/prompts_a_coller.txt
+              echo '```json'
+              cat app/output/project.json
               echo '```'
             fi
             for f in app/output/shots/*/image.png; do
@@ -203,17 +204,16 @@ jobs:
               echo "- \`$f\` — $(du -h "$f" | cut -f1)"
             done
             echo
-            for f in app/output/shots/*/animation_prompt.txt; do
+            for f in app/output/shots/*/animation.json; do
               [ -f "$f" ] || continue
-              echo "### $(basename "$(dirname "$f")") — prompt d'animation"
+              echo "### $(basename "$(dirname "$f")") — animation"
               echo
-              echo '```'
+              echo '```json'
               cat "$f"
               echo '```'
             done
             echo
-            echo "> Le collage dans Meta AI se fait à la main, dans ton"
-            echo "> navigateur connecté : $(grep -o 'https://www.meta.ai/[^\"]*' app/config.py | head -1)"
+            echo "> Les fichiers sont dans l'artefact, en haut de cette page."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Déposer les fichiers en artefact
@@ -229,7 +229,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f app/output/project.json app/output/prompts_a_coller.txt
+          git add -f app/output/project.json
           if git diff --cached --quiet; then
             echo "Storyboard identique au précédent, rien à enregistrer."
           else

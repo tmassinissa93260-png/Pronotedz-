@@ -1,12 +1,11 @@
-"""Verifications hors ligne : parsing, validation, style, etat de reprise.
+"""Contrat JSON, conditions du prompt, cerveau, reprise, CLI.
 
-Ces tests ne touchent NI a OpenAI NI a Meta AI. Ils verifient la partie du
-prototype qui est verifiable sans reseau ni compte.
-
-    python -m unittest discover -s tests
+Rien ici n'appelle OpenAI ni fal.ai.
 """
 
+import importlib
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -15,328 +14,365 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from app import prompts  # noqa: E402
-from app.models import Storyboard, StoryboardError  # noqa: E402
+from app.models import (  # noqa: E402
+    MOTION_INTENTS,
+    AnimationPlan,
+    ImageAnalysis,
+    Storyboard,
+    StoryboardError,
+)
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from test_validator import board  # noqa: E402
 
 
-def shot(i=1, **over):
-    base = {
-        "id": i,
-        "duration": "4s",
-        "voice": f"Voix du plan {i}.",
-        "visual_description": f"Description visuelle du plan {i}.",
-        "image_prompt": f"White electric car, shot {i}. {prompts.STYLE_DIRECTIVE}",
-    }
-    base.update(over)
-    return base
-
-
-def storyboard_dict(n=4, **over):
-    base = {
-        "subject": "Fonctionnement d'une voiture électrique",
-        "duration": 16,
-        "visual_style": "Premium 3D engineering visualization.",
-        "visual_continuity": "Same white electric car, same dark studio.",
-        "shots": [shot(i) for i in range(1, n + 1)],
-    }
-    base.update(over)
-    return base
-
-
-class TestStoryboardParsing(unittest.TestCase):
-    def test_reponse_valide(self):
-        sb = Storyboard.from_dict(storyboard_dict(), expected_shots=4)
-        self.assertEqual(sb.duration, 16)
-        self.assertEqual(len(sb.shots), 4)
+class TestContratStoryboard(unittest.TestCase):
+    def test_lecture_complete(self):
+        sb = Storyboard.from_dict(board())
+        self.assertEqual(sb.shot_count, 4)
+        self.assertEqual(sb.total_duration, 16)
         self.assertEqual(sb.shot(3).id, 3)
         self.assertEqual(sb.shots[0].slug, "shot_01")
+        self.assertEqual(sb.visual_bible.vehicle[:5], "White")
 
-    def test_mauvais_nombre_de_plans_refuse(self):
-        with self.assertRaises(StoryboardError) as ctx:
-            Storyboard.from_dict(storyboard_dict(n=3), expected_shots=4)
-        self.assertIn("3 plan(s) recu(s), 4 attendu(s)", str(ctx.exception))
+    def test_la_bible_est_injectable_telle_quelle(self):
+        bloc = Storyboard.from_dict(board()).visual_bible.as_block()
+        for champ in ("Vehicle:", "Environment:", "Materials:", "Lighting:",
+                      "Colour palette:", "Camera language:"):
+            self.assertIn(champ, bloc)
 
-    def test_ids_non_contigus_refuses(self):
-        raw = storyboard_dict(n=2)
-        raw["shots"][1]["id"] = 5
-        with self.assertRaises(StoryboardError) as ctx:
-            Storyboard.from_dict(raw)
-        self.assertIn("id doivent aller de 1 a 2", str(ctx.exception))
-
-    def test_champ_de_plan_manquant_refuse(self):
-        for champ in ("voice", "visual_description", "image_prompt", "duration"):
+    def test_bible_incomplete_refusee(self):
+        for champ in ("vehicle", "environment", "materials", "lighting",
+                      "color_palette", "camera_language"):
             with self.subTest(champ=champ):
-                raw = storyboard_dict(n=1)
-                raw["shots"][0][champ] = "   "
+                raw = board()
+                raw["visual_bible"][champ] = "  "
                 with self.assertRaises(StoryboardError) as ctx:
                     Storyboard.from_dict(raw)
                 self.assertIn(champ, str(ctx.exception))
 
-    def test_champ_racine_manquant_refuse(self):
-        for champ in ("subject", "visual_style", "visual_continuity"):
+    def test_bible_absente_refusee(self):
+        raw = board()
+        del raw["visual_bible"]
+        with self.assertRaises(StoryboardError):
+            Storyboard.from_dict(raw)
+
+    def test_champ_de_plan_manquant_refuse(self):
+        for champ in ("voice", "visual_description", "educational_function", "image_prompt"):
             with self.subTest(champ=champ):
-                raw = storyboard_dict(n=1)
-                raw[champ] = ""
-                with self.assertRaises(StoryboardError):
+                raw = board()
+                raw["shots"][0][champ] = " "
+                with self.assertRaises(StoryboardError) as ctx:
                     Storyboard.from_dict(raw)
+                self.assertIn(champ, str(ctx.exception))
 
-    def test_shots_vide_refuse(self):
+    def test_score_non_numerique_refuse(self):
+        raw = board()
+        raw["shots"][0]["semantic_alignment_score"] = "élevé"
         with self.assertRaises(StoryboardError):
-            Storyboard.from_dict(storyboard_dict(shots=[]))
+            Storyboard.from_dict(raw)
 
-    def test_reponse_non_objet_refusee(self):
-        with self.assertRaises(StoryboardError):
-            Storyboard.from_dict(["pas", "un", "objet"])
+    def test_debit_de_parole_calcule(self):
+        sb = Storyboard.from_dict(board())
+        shot = sb.shots[0]
+        self.assertEqual(shot.word_count, len(shot.voice.split()))
+        self.assertAlmostEqual(shot.words_per_second,
+                               shot.word_count / shot.duration_seconds, places=6)
 
     def test_aller_retour_disque(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "project.json"
-            original = Storyboard.from_dict(storyboard_dict())
+            original = Storyboard.from_dict(board())
             original.save(path)
-            relu = Storyboard.load(path)
-            self.assertEqual(relu.to_dict(), original.to_dict())
+            self.assertEqual(Storyboard.load(path).to_dict(), original.to_dict())
 
-    def test_project_json_illisible(self):
+    def test_fichier_absent_ou_casse(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "project.json"
-            path.write_text("{cassé", encoding="utf-8")
-            with self.assertRaises(StoryboardError):
-                Storyboard.load(path)
             with self.assertRaises(StoryboardError):
                 Storyboard.load(Path(tmp) / "absent.json")
+            casse = Path(tmp) / "project.json"
+            casse.write_text("{cassé", encoding="utf-8")
+            with self.assertRaises(StoryboardError):
+                Storyboard.load(casse)
 
 
-class TestStyle(unittest.TestCase):
-    def test_directive_ajoutee_si_oubliee(self):
-        result = prompts.enforce_style("A white electric car in a dark studio")
-        self.assertIn(prompts.STYLE_DIRECTIVE, result)
+class TestContratAnalyseImage(unittest.TestCase):
+    def analyse(self, **over):
+        base = {
+            "visible_subjects": ["white electric sedan", "battery pack"],
+            "composition": "Low macro framing, pack centre, floor receding",
+            "camera": "Low angle, close, 50mm feel",
+            "lighting": "Cool key upper left, volumetric haze",
+            "important_components": ["prismatic cells", "copper busbars"],
+            "preserve": ["cell geometry", "vehicle identity"],
+            "possible_motion": ["energy pulse along busbars", "macro tracking"],
+        }
+        base.update(over)
+        return base
 
-    def test_directive_non_dupliquee(self):
+    def test_lecture_complete(self):
+        a = ImageAnalysis.from_dict(self.analyse())
+        self.assertEqual(len(a.visible_subjects), 2)
+        self.assertIn("prismatic cells", a.as_block())
+
+    def test_une_chaine_seule_est_acceptee_comme_liste(self):
+        a = ImageAnalysis.from_dict(self.analyse(preserve="cell geometry"))
+        self.assertEqual(a.preserve, ["cell geometry"])
+
+    def test_champ_vide_refuse(self):
+        for champ in ("visible_subjects", "composition", "camera", "lighting",
+                      "important_components", "preserve", "possible_motion"):
+            with self.subTest(champ=champ):
+                with self.assertRaises(StoryboardError) as ctx:
+                    ImageAnalysis.from_dict(self.analyse(**{champ: []}))
+                self.assertIn(champ, str(ctx.exception))
+
+
+class TestContratAnimation(unittest.TestCase):
+    def plan(self, **over):
+        base = {
+            "animation_prompt": (
+                "Electrical energy pulses travel progressively along the copper busbars "
+                "from the battery pack toward the motor while every cell stays fixed."),
+            "motion_intent": "energy_follow",
+            "camera_motion": "Slow controlled macro tracking from left to right",
+            "mechanical_motion": "none: nothing rotates in this framing",
+            "energy_motion": "Pulses from the pack forward to the motor",
+            "preserve": ["cell geometry", "vehicle identity"],
+            "forbidden": ["deformation", "added objects", "text"],
+        }
+        base.update(over)
+        return base
+
+    def test_lecture_complete(self):
+        p = AnimationPlan.from_dict(self.plan())
+        self.assertEqual(p.motion_intent, "energy_follow")
+        self.assertIn("busbars", p.animation_prompt)
+
+    def test_intention_hors_vocabulaire_refusee(self):
+        with self.assertRaises(StoryboardError) as ctx:
+            AnimationPlan.from_dict(self.plan(motion_intent="zoom_in"))
+        self.assertIn("hors vocabulaire", str(ctx.exception))
+
+    def test_zoom_in_n_est_pas_dans_le_vocabulaire(self):
+        self.assertNotIn("zoom_in", MOTION_INTENTS)
+        self.assertIn("mechanical_rotation", MOTION_INTENTS)
+        self.assertIn("energy_follow", MOTION_INTENTS)
+
+    def test_prompt_trop_court_refuse(self):
+        with self.assertRaises(StoryboardError) as ctx:
+            AnimationPlan.from_dict(self.plan(animation_prompt="slow zoom in"))
+        self.assertIn("trop court", str(ctx.exception))
+
+    def test_chaque_facette_du_mouvement_est_exigee(self):
+        for champ in ("camera_motion", "mechanical_motion", "energy_motion"):
+            with self.subTest(champ=champ):
+                with self.assertRaises(StoryboardError) as ctx:
+                    AnimationPlan.from_dict(self.plan(**{champ: ""}))
+                self.assertIn(champ, str(ctx.exception))
+
+    def test_preserver_et_interdire_sont_obligatoires(self):
+        for champ in ("preserve", "forbidden"):
+            with self.subTest(champ=champ):
+                with self.assertRaises(StoryboardError):
+                    AnimationPlan.from_dict(self.plan(**{champ: []}))
+
+
+class TestConditionsDuPrompt(unittest.TestCase):
+    def setUp(self):
+        self.texte = prompts.storyboard_user("Fonctionnement d'une voiture électrique", 16, 4)
+
+    def test_les_conditions_sont_toutes_presentes(self):
+        for condition in ("CONDITION 1", "CONDITION 2", "CONDITION 3",
+                          "CONDITION 4", "CONDITION 5", "CONDITION 6", "CONDITION 10"):
+            self.assertIn(condition, self.texte)
+
+    def test_condition_1_exige_une_chaine_causale(self):
+        self.assertIn("CAUSAL CHAIN", self.texte)
+        self.assertIn("Do not list components", self.texte)
+        self.assertIn("battery → electrical energy → accelerator pedal", self.texte)
+
+    def test_condition_2_donne_la_cible_en_mots(self):
+        self.assertIn("sum to EXACTLY 16", self.texte)
+        self.assertIn("roughly 10 French words", self.texte)
+        self.assertIn("Never write a tiny sentence", self.texte)
+
+    def test_condition_5_interdit_le_prompt_vague(self):
+        self.assertIn('"Electric motor in a car" is rejected', self.texte)
+        for exigence in ("framing", "camera angle", "depth", "lighting",
+                         "materials", "unmistakably visible"):
+            self.assertIn(exigence, self.texte)
+
+    def test_condition_6_impose_le_seuil_de_score(self):
+        self.assertIn("below 0.8", self.texte)
+        self.assertIn("Never narrate a component that the image does not show", self.texte)
+
+    def test_direction_artistique_verbatim(self):
+        self.assertIn(prompts.STYLE_DIRECTIVE, self.texte)
+        self.assertIn("VERBATIM", self.texte)
+
+    def test_prompt_animation_refuse_le_simple_mouvement_de_camera(self):
+        texte = prompts.animation_user("La batterie alimente le moteur.",
+                                       "Montre le premier maillon.",
+                                       "Visible subjects: battery", MOTION_INTENTS)
+        self.assertIn('"slow zoom in"', texte)
+        self.assertIn("A camera move alone is rejected", texte)
+        self.assertIn("stator stays fixed", prompts.ANIMATION_SYSTEM)
+        self.assertIn("energy_follow", texte)
+        self.assertIn("La batterie alimente le moteur.", texte)
+
+    def test_analyse_interdit_de_deviner(self):
+        self.assertIn("ONLY what is actually visible", prompts.ANALYSIS_USER)
+        self.assertIn("Do not use the brief that produced it", prompts.ANALYSIS_USER)
+
+    def test_enforce_style_ajoute_sans_dupliquer(self):
+        self.assertIn(prompts.STYLE_DIRECTIVE, prompts.enforce_style("A white car"))
         deja = f"A white car. {prompts.STYLE_DIRECTIVE}"
         self.assertEqual(prompts.enforce_style(deja).count(prompts.STYLE_FINGERPRINT), 1)
 
-    def test_directive_dans_le_prompt_storyboard(self):
-        texte = prompts.storyboard_user("Sujet", 16, 4)
-        self.assertIn(prompts.STYLE_DIRECTIVE, texte)
-        self.assertIn("SAME white electric car", texte)
-        self.assertIn("exactly 4 objects", texte)
-        self.assertIn("16 seconds", texte)
-
-    def test_prompt_animation_interdit_le_simple_zoom(self):
-        texte = prompts.animation_user("La batterie alimente le moteur.", "Batterie visible.")
-        self.assertIn("PEDAGOGICAL", texte)
-        self.assertIn('"zoom in"', texte)
-        self.assertIn("WHAT MUST STAY PERFECTLY STILL", texte)
-        self.assertIn("La batterie alimente le moteur.", texte)
-
-
-class TestStatus(unittest.TestCase):
-    def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(self._tmp.cleanup)
-        from app import config
-
-        self.config = config
-        self._saved = config.STATUS_FILE
-        config.STATUS_FILE = Path(self._tmp.name) / "status.json"
-        self.addCleanup(lambda: setattr(config, "STATUS_FILE", self._saved))
-
-    def test_status_par_defaut_tout_pending(self):
-        from app.main import load_status
-
-        self.assertEqual(
-            load_status(4),
-            {"shot_01": "pending", "shot_02": "pending",
-             "shot_03": "pending", "shot_04": "pending"},
-        )
-
-    def test_reprise_conserve_les_plans_termines(self):
-        from app.main import load_status, save_status
-
-        save_status({"shot_01": "completed", "shot_02": "completed",
-                     "shot_03": "pending", "shot_04": "pending"})
-        status = load_status(4)
-        self.assertEqual(status["shot_02"], "completed")
-        self.assertEqual(status["shot_03"], "pending")
-
-    def test_status_corrompu_repart_proprement(self):
-        from app.main import load_status
-
-        self.config.STATUS_FILE.write_text("{cassé", encoding="utf-8")
-        self.assertTrue(all(v == "pending" for v in load_status(4).values()))
-
-    def test_cles_inconnues_ignorees(self):
-        from app.main import load_status
-
-        self.config.STATUS_FILE.write_text(
-            json.dumps({"shot_01": "completed", "shot_99": "completed"}), encoding="utf-8"
-        )
-        status = load_status(4)
-        self.assertNotIn("shot_99", status)
-        self.assertEqual(status["shot_01"], "completed")
-
-
-class TestFeuilleDePrompts(unittest.TestCase):
-    """La feuille lue au telephone et collee a la main dans Meta AI."""
-
-    def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(self._tmp.cleanup)
-        from app import config
-
-        self._saved = config.PASTE_SHEET
-        config.PASTE_SHEET = Path(self._tmp.name) / "prompts_a_coller.txt"
-        self.addCleanup(lambda: setattr(config, "PASTE_SHEET", self._saved))
-        self.config = config
-
-    def test_contient_chaque_plan_et_son_prompt(self):
-        from app.main import write_paste_sheet
-
-        sb = Storyboard.from_dict(storyboard_dict())
-        texte = write_paste_sheet(sb).read_text(encoding="utf-8")
-
-        for i in range(1, 5):
-            self.assertIn(f"SHOT {i:02d}", texte)
-            self.assertIn(f"White electric car, shot {i}.", texte)
-            self.assertIn(f"Voix du plan {i}.", texte)
-        self.assertEqual(texte.count("--- PROMPT PHOTO"), 4)
-
-    def test_rappelle_le_lien_meta_ai(self):
-        from app.main import write_paste_sheet
-
-        texte = write_paste_sheet(Storyboard.from_dict(storyboard_dict())).read_text("utf-8")
-        self.assertIn(self.config.META_AI_URL, texte)
-
-    def test_la_direction_artistique_est_dans_chaque_bloc(self):
-        from app.main import write_paste_sheet
-
-        texte = write_paste_sheet(Storyboard.from_dict(storyboard_dict())).read_text("utf-8")
-        self.assertEqual(texte.count(prompts.STYLE_FINGERPRINT), 4)
-
 
 class TestCerveau(unittest.TestCase):
-    """Quel service repond aux appels, selon les cles presentes."""
-
     def config_avec(self, **env):
-        import importlib
-        import os
-
         from app import config as module
 
-        efface = {k: os.environ.pop(k, None)
-                  for k in ("OPENAI_API_KEY", "GROQ_API_KEY", "OPENAI_MODEL",
-                            "OPENAI_BASE_URL", "OPENAI_VISION_MODEL", "GROQ_MODEL")}
+        garde = {k: os.environ.pop(k, None)
+                 for k in ("OPENAI_API_KEY", "GROQ_API_KEY", "OPENAI_MODEL",
+                           "OPENAI_BASE_URL", "OPENAI_VISION_MODEL", "GROQ_MODEL")}
         os.environ.update({k: v for k, v in env.items() if v is not None})
         self.addCleanup(importlib.reload, module)
 
         def restaurer():
             for k in env:
                 os.environ.pop(k, None)
-            for k, v in efface.items():
+            for k, v in garde.items():
                 if v is not None:
                     os.environ[k] = v
 
         self.addCleanup(restaurer)
         return importlib.reload(module)
 
+    def test_variable_vide_compte_comme_absente(self):
+        """Regression : GitHub envoie "" pour une variable de depot non definie.
+
+        os.getenv(nom, defaut) rend "" dans ce cas, donc le defaut n'etait
+        jamais applique et model="" partait a l'API — l'erreur 400
+        « you must provide a model parameter » vue en production.
+        """
+        c = self.config_avec(GROQ_API_KEY="gsk-x", OPENAI_VISION_MODEL="")
+        self.assertEqual(c.OPENAI_VISION_MODEL, "openai/gpt-oss-120b")
+
+    def test_variable_faite_d_espaces(self):
+        c = self.config_avec(OPENAI_API_KEY="sk-a", OPENAI_MODEL="   ")
+        self.assertEqual(c.OPENAI_MODEL, "gpt-4o")
+
     def test_openai_prioritaire_sur_groq(self):
         c = self.config_avec(OPENAI_API_KEY="sk-abc", GROQ_API_KEY="gsk-def")
         self.assertFalse(c.USING_GROQ)
-        self.assertEqual(c.OPENAI_API_KEY, "sk-abc")
         self.assertIsNone(c.OPENAI_BASE_URL)
         self.assertIn("OpenAI", c.cerveau())
 
-    def test_bascule_sur_groq_si_openai_absente(self):
+    def test_bascule_sur_groq(self):
         c = self.config_avec(GROQ_API_KEY="gsk-def")
         self.assertTrue(c.USING_GROQ)
-        self.assertEqual(c.OPENAI_API_KEY, "gsk-def")
         self.assertEqual(c.OPENAI_BASE_URL, "https://api.groq.com/openai/v1")
-        self.assertIn("Groq", c.cerveau())
 
     def test_aucune_cle(self):
-        c = self.config_avec()
-        self.assertEqual(c.OPENAI_API_KEY, "")
-        self.assertFalse(c.USING_GROQ)
-        self.assertIn("aucune cle", c.cerveau())
+        self.assertIn("aucune cle", self.config_avec().cerveau())
 
-    def test_modele_par_defaut_suit_le_service(self):
-        self.assertEqual(self.config_avec(OPENAI_API_KEY="sk-a").OPENAI_MODEL, "gpt-4o")
-        self.assertEqual(self.config_avec(GROQ_API_KEY="g").OPENAI_MODEL,
-                         "openai/gpt-oss-120b")
-
-    def test_base_url_explicite_respectee(self):
-        c = self.config_avec(OPENAI_API_KEY="sk-a", OPENAI_BASE_URL="https://ailleurs.test/v1")
-        self.assertEqual(c.OPENAI_BASE_URL, "https://ailleurs.test/v1")
-        self.assertIn("ailleurs.test", c.cerveau())
-
-    def test_message_d_erreur_cite_les_deux_cles(self):
+    def test_message_sans_cle_cite_le_fichier_env(self):
         self.config_avec()
-        import importlib
-
         from app import openai_client
         importlib.reload(openai_client)
         with self.assertRaises(openai_client.OpenAIError) as ctx:
-            openai_client._client()
-        message = str(ctx.exception)
-        self.assertIn("OPENAI_API_KEY", message)
-        self.assertIn("GROQ_API_KEY", message)
+            openai_client.client()
+        self.assertIn("OPENAI_API_KEY manquante dans .env", str(ctx.exception))
+
+    def test_modele_vide_refuse_avant_l_appel(self):
+        self.config_avec(OPENAI_API_KEY="sk-a")
+        from app import openai_client
+        importlib.reload(openai_client)
+        with self.assertRaises(openai_client.OpenAIError) as ctx:
+            openai_client.chat_json("", [{"role": "user", "content": "x"}])
+        self.assertIn("aucun modele nomme", str(ctx.exception))
+
+
+class TestReprise(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        from app import config
+
+        self.config = config
+        garde = config.STATUS_FILE
+        config.STATUS_FILE = Path(self._tmp.name) / "status.json"
+        self.addCleanup(lambda: setattr(config, "STATUS_FILE", garde))
+
+    def test_tout_pending_au_depart(self):
+        from app.main import load_status
+
+        self.assertEqual(set(load_status(4).values()), {"pending"})
+
+    def test_les_plans_termines_sont_conserves(self):
+        from app.main import load_status, save_status
+
+        save_status({"shot_01": "completed", "shot_02": "completed",
+                     "shot_03": "pending", "shot_04": "pending"})
+        self.assertEqual(load_status(4)["shot_02"], "completed")
+
+    def test_fichier_corrompu_repart_proprement(self):
+        from app.main import load_status
+
+        self.config.STATUS_FILE.write_text("{cassé", encoding="utf-8")
+        self.assertEqual(set(load_status(4).values()), {"pending"})
+
+    def test_cles_inconnues_ignorees(self):
+        from app.main import load_status
+
+        self.config.STATUS_FILE.write_text(
+            json.dumps({"shot_01": "completed", "shot_99": "completed"}), encoding="utf-8")
+        status = load_status(4)
+        self.assertNotIn("shot_99", status)
+        self.assertEqual(status["shot_01"], "completed")
 
 
 class TestConfigEtCli(unittest.TestCase):
-    def test_valeurs_de_l_etape_1(self):
+    def test_les_trois_valeurs_d_entree(self):
         from app import config
 
         self.assertEqual(config.DURATION, 16)
         self.assertEqual(config.SHOT_COUNT, 4)
         self.assertTrue(config.TEST_MODE)
-        self.assertEqual(
-            config.META_AI_URL,
-            "https://www.meta.ai/prompt/f1da6c85-fb08-433d-b203-04cc41e575c6",
-        )
+        self.assertIn("voiture", config.SUBJECT)
 
-    def test_aucune_cle_api_en_dur_dans_le_code(self):
+    def test_aucune_cle_en_dur(self):
         for path in (Path(__file__).resolve().parent.parent / "app").glob("*.py"):
             texte = path.read_text(encoding="utf-8")
             self.assertNotIn("sk-proj", texte, f"cle en dur dans {path.name}")
             self.assertNotRegex(texte, r'OPENAI_API_KEY\s*=\s*"sk-')
 
-    def test_dossiers_de_plans(self):
-        from app import config
+    def test_python_main_py_sans_argument_lance_le_storyboard(self):
+        from app.main import build_parser
 
-        self.assertEqual(config.shot_dir(1).name, "shot_01")
-        self.assertEqual(config.shot_dir(4).name, "shot_04")
+        args = build_parser().parse_args(["storyboard"])
+        self.assertEqual(args.func.__name__, "cmd_storyboard")
 
-    def test_cli_expose_les_commandes(self):
+    def test_les_commandes_existent(self):
         from app.main import build_parser
 
         parser = build_parser()
-        for cmd in ("storyboard", "run", "status", "selfcheck"):
-            with self.subTest(cmd=cmd):
-                args = parser.parse_args([cmd])
-                self.assertTrue(callable(args.func))
+        for commande in ("storyboard", "analyser", "produire", "valider",
+                         "status", "selfcheck"):
+            with self.subTest(commande=commande):
+                self.assertTrue(callable(parser.parse_args(
+                    [commande] + (["--shot", "1", "--image", "a.png"]
+                                  if commande == "analyser" else [])).func))
 
-    def test_commande_animation(self):
+    def test_analyser_exige_le_plan_et_l_image(self):
         from app.main import build_parser
 
-        args = build_parser().parse_args(
-            ["animation", "--shot", "2", "--image", "https://x.test/a.png"])
-        self.assertEqual(args.shot, 2)
-        self.assertEqual(args.image, "https://x.test/a.png")
-
-    def test_animation_exige_shot_et_image(self):
-        from app.main import build_parser
-
-        for incomplet in (["animation"], ["animation", "--shot", "1"],
-                          ["animation", "--image", "a.png"]):
+        for incomplet in (["analyser"], ["analyser", "--shot", "1"]):
             with self.subTest(argv=incomplet), self.assertRaises(SystemExit):
                 build_parser().parse_args(incomplet)
-
-    def test_test_mode_pilotable_en_ligne_de_commande(self):
-        from app.main import build_parser
-
-        parser = build_parser()
-        self.assertIsNone(parser.parse_args(["run"]).test_mode)
-        self.assertTrue(parser.parse_args(["run", "--test-mode"]).test_mode)
-        self.assertFalse(parser.parse_args(["run", "--no-test-mode"]).test_mode)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,6 @@
 #  Ni OpenAI ni Meta AI ne sont appelés ici. On vérifie le code qu'on peut
 #  vérifier : validation du JSON, direction artistique, reprise, CLI,
 #  absence de clé en dur, et la mécanique de collage dans un vrai Chromium
-#  contre une fausse page de chat locale.
 # ═══════════════════════════════════════════════════════════════════════
 
 name: Prototype — tests
@@ -43,16 +42,9 @@ jobs:
         run: ruff check app tests
 
       - name: Vérifications hors ligne
-        run: python -m unittest discover -s tests -p "test_prototype.py" -v
+        run: python -m unittest discover -s tests -p "test_*.py" -v
 
-      - name: Client fal.ai (service simulé, aucun appel réel)
-        run: python -m unittest tests.test_fal -v
 
-      - name: Installer Chromium
-        run: python -m playwright install --with-deps chromium
-
-      - name: Collage dans un vrai navigateur (fausse page de chat locale)
-        run: python -m unittest tests.test_browser_paste -v
 
       - name: Selfcheck sans clé (doit signaler la clé absente, pas planter)
         run: |
