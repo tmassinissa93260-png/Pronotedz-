@@ -81,15 +81,35 @@ def _download(url: str, dest: Path, timeout: float) -> Path:
 # ---------------------------------------------------------------------------
 
 
-def generate_image(prompt: str, dest: Path) -> Path:
+def build_payload(prompt: str, model: str) -> dict:
+    """La charge utile, adaptee au modele vise.
+
+    Les modeles de la famille FLUX n'acceptent pas tous les memes champs :
+    « ultra » raisonne en rapport d'image, les « pro » ne prennent pas de
+    nombre de pas, et schnell ignore la guidance. Envoyer un champ inconnu
+    fait rejeter l'appel.
+    """
+    payload: dict = {"prompt": prompt, "num_images": 1}
+
+    if "ultra" in model:
+        payload["aspect_ratio"] = "9:16"
+    else:
+        payload["image_size"] = {"width": config.IMAGE_WIDTH, "height": config.IMAGE_HEIGHT}
+
+    if "pro" not in model:
+        payload["num_inference_steps"] = (
+            config.FAL_IMAGE_STEPS or (4 if "schnell" in model else 28)
+        )
+    if "schnell" not in model:
+        payload["guidance_scale"] = config.FAL_GUIDANCE
+
+    return payload
+
+
+def generate_image(prompt: str, dest: Path, model: str | None = None) -> Path:
     """Un prompt photo -> un fichier image 9:16."""
-    payload = {
-        "prompt": prompt,
-        "image_size": {"width": config.IMAGE_WIDTH, "height": config.IMAGE_HEIGHT},
-        "num_inference_steps": config.FAL_IMAGE_STEPS,
-        "num_images": 1,
-    }
-    out = _call(config.FAL_IMAGE_MODEL, payload, config.FAL_TIMEOUT)
+    model = model or config.FAL_IMAGE_MODEL
+    out = _call(model, build_payload(prompt, model), config.FAL_TIMEOUT)
 
     images = out.get("images") or []
     if not images or not images[0].get("url"):

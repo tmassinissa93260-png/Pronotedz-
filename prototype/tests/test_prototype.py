@@ -360,8 +360,8 @@ class TestConfigEtCli(unittest.TestCase):
         from app.main import build_parser
 
         parser = build_parser()
-        for commande in ("storyboard", "analyser", "produire", "valider",
-                         "status", "selfcheck"):
+        for commande in ("storyboard", "analyser", "produire", "comparer",
+                         "valider", "status", "selfcheck"):
             with self.subTest(commande=commande):
                 self.assertTrue(callable(parser.parse_args(
                     [commande] + (["--shot", "1", "--image", "a.png"]

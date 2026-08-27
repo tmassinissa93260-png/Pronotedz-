@@ -86,16 +86,42 @@ def cerveau() -> str:
 # ---------------------------------------------------------------------------
 
 FAL_KEY = env("FAL_KEY")
-FAL_IMAGE_MODEL = env("FAL_IMAGE_MODEL", "fal-ai/flux/schnell")
+# Dans la famille FLUX, du plus faible au plus fort :
+#   flux/schnell     distille a 4 pas, fait pour la vitesse. Casse sur un
+#                    prompt d'ingenierie long : geometries incoherentes,
+#                    texte hallucine. C'etait le defaut, c'etait une erreur.
+#   flux/dev         ~28 pas, tient la structure. Correct.
+#   flux-pro/v1.1    le meilleur rapport tenue du prompt / coherence.
+#   flux-pro/v1.1-ultra  plus grand, plus cher, prend aspect_ratio.
+# La commande « comparer » sert a trancher sur pieces plutot que sur parole.
+FAL_IMAGE_MODEL = env("FAL_IMAGE_MODEL", "fal-ai/flux-pro/v1.1")
+
+# Les modeles compares par defaut par la commande « comparer ».
+FAL_COMPARE_MODELS = [
+    m.strip() for m in env(
+        "FAL_COMPARE_MODELS",
+        "fal-ai/flux-pro/v1.1,fal-ai/flux/dev,fal-ai/flux/schnell",
+    ).split(",") if m.strip()
+]
 FAL_VIDEO_MODEL = env(
     "FAL_VIDEO_MODEL", "fal-ai/kling-video/v2.1/standard/image-to-video"
 )
-FAL_IMAGE_STEPS = int(env("FAL_IMAGE_STEPS", "4"))
+# 4 pas pour schnell (il est distille pour ca), ~28 pour dev. Les modeles pro
+# ne prennent pas ce reglage : on ne le leur envoie pas.
+FAL_IMAGE_STEPS = int(env("FAL_IMAGE_STEPS", "0"))
+
+# Guidance : ignoré par schnell, utile a dev pour coller au prompt.
+FAL_GUIDANCE = float(env("FAL_GUIDANCE", "3.5"))
 FAL_TIMEOUT = float(env("FAL_TIMEOUT", "600"))
 
 # 9:16 vertical, comme impose par la direction artistique.
-IMAGE_WIDTH = int(env("IMAGE_WIDTH", "1080"))
-IMAGE_HEIGHT = int(env("IMAGE_HEIGHT", "1920"))
+#
+# 768x1344 = 1,03 Mpx. FLUX est entraine autour de 1 Mpx : au dela il perd la
+# coherence geometrique et invente des motifs. 1080x1920 valait 2,07 Mpx, soit
+# le double — d'ou les tiges qui sortent des roues et le texte en miroir.
+# Pour du 1080p final, agrandir apres coup plutot que generer trop grand.
+IMAGE_WIDTH = int(env("IMAGE_WIDTH", "768"))
+IMAGE_HEIGHT = int(env("IMAGE_HEIGHT", "1344"))
 
 # ---------------------------------------------------------------------------
 # Arborescence locale

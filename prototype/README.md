@@ -64,6 +64,7 @@ python -m app.main                              # idem
 python -m app.main valider                      # rejouer les 10 vérifications
 python -m app.main analyser --shot 1 --image X  # image → analyse → animation
 python -m app.main produire --sans-video        # images via fal.ai
+python -m app.main comparer --shot 1            # le même prompt sur N modèles
 python -m app.main selfcheck                    # état de la config
 ```
 
@@ -165,6 +166,31 @@ affichage — **aucune image, aucune vidéo**. C'est le mode par défaut.
 | `storyboard` | le cerveau seul, gratuit hors OpenAI |
 | `produire` | + images et vidéos via fal.ai (**payant**) |
 | `analyser` | une image → analyse → prompt d'animation |
+| `comparer` | le même prompt photo sur plusieurs modèles, pour choisir sur pièces |
+
+### Choisir le générateur d'images
+
+Le premier essai s'est fait avec `fal-ai/flux/schnell` en 1080×1920. Résultat :
+du texte halluciné malgré `no text`, une tige métallique sortant d'une roue, un
+rectangle gris sur une calandre. Deux causes — le modèle le plus faible de la
+famille, et une résolution au double du domaine d'entraînement de FLUX.
+
+Les mêmes prompts, collés dans Meta AI, ont rendu des images justes : voir
+`exemples/meta-ai/`. **Le cerveau n'était pas en cause, le générateur l'était.**
+
+Défaut actuel : `fal-ai/flux-pro/v1.1` en 768×1344 (1,03 Mpx). Mais plutôt que
+de me croire :
+
+```bash
+python -m app.main comparer --shot 1
+```
+
+envoie le même prompt à `flux-pro/v1.1`, `flux/dev` et `flux/schnell`, et dépose
+les images côte à côte. Tu regardes, tu choisis, tu fixes `FAL_IMAGE_MODEL`.
+
+Chaque famille a ses champs propres — `ultra` raisonne en rapport d'image, les
+`pro` ne prennent pas de nombre de pas, `schnell` ignore la guidance. La charge
+utile s'adapte au modèle : envoyer un champ inconnu fait rejeter l'appel.
 
 Secrets : `OPENAI_API_KEY` ou `GROQ_API_KEY`, et `FAL_KEY` pour `produire`.
 Le champ `animations` vaut **0 par défaut** : aucune dépense vidéo.

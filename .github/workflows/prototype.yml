@@ -1,30 +1,28 @@
 # ═══════════════════════════════════════════════════════════════════════
-#  Prototype — préparer les prompts pour Meta AI, depuis le téléphone.
+#  Prototype — sujet → OpenAI → storyboard validé → images → animations.
 #
-#  Onglet « Actions » → « Prototype — prompts Meta AI » → « Run workflow ».
-#  La feuille de prompts attend en fin de page, dans les artefacts du run.
+#  Onglet « Actions » → « Prototype — produire une vidéo » → « Run workflow ».
+#  Le résultat attend en fin de page, dans les artefacts du run.
 #
-#  Deux façons de s'en servir :
+#  Trois étapes :
 #
-#    « produire »   → chaîne 100% automatique : OpenAI écrit, fal.ai fabrique
-#                     les images ET les animations. Rien à faire à la main.
-#                     ⚠️ fal.ai est payant, surtout la vidéo. Le plafond
-#                     « animations » borne la dépense d'un run.
+#    « produire »   → tout : storyboard validé, images fal.ai, et animations
+#                     si le plafond « animations » est levé.
+#                     ⚠️ fal.ai est payant, surtout la vidéo. Le plafond vaut
+#                     0 par défaut : aucune dépense vidéo.
 #
-#    « storyboard » → gratuit hors OpenAI : on prépare seulement les prompts,
-#                     et tu les colles toi-même dans Meta AI.
+#    « storyboard » → le cerveau seul. Gratuit hors OpenAI. C'est l'étape à
+#                     relancer pour juger la qualité de la narration.
 #
-#  ⚠️ CE WORKFLOW NE TOUCHE JAMAIS À META AI, ET C'EST VOULU.
+#    « analyser »   → une image qui existe → ce qui y est réellement visible,
+#                     puis le prompt d'animation adapté à CETTE image.
 #
-#  Meta AI exige une session connectée et un navigateur visible. Sur une
-#  machine GitHub il n'y a ni écran, ni personne pour se connecter, et les
-#  runners sortent par des IP de datacenter que Meta bloque. Y arriver
-#  demanderait soit de stocker la session dans un secret — un identifiant,
-#  donc — soit de contourner une protection. Les deux sont exclus.
+#    « comparer »   → le même prompt photo envoyé à plusieurs modèles, pour
+#                     choisir sur pièces plutôt que sur parole. Une image
+#                     facturée par modèle.
 #
-#  Le partage du travail est donc :
-#     GitHub  →  OpenAI : storyboard, prompts photo, prompts d'animation
-#     Toi     →  le collage dans Meta AI, dans TON navigateur connecté
+#  Le storyboard n'est jamais accepté sur parole : validator.py applique dix
+#  vérifications, et ce qui échoue repart chez OpenAI pour correction.
 # ═══════════════════════════════════════════════════════════════════════
 
 name: Prototype — produire une vidéo
@@ -39,6 +37,7 @@ on:
         type: choice
         options:
           - produire     # TOUT automatique : OpenAI + fal.ai → images + vidéos
+          - comparer     # le même prompt sur plusieurs modèles, pour choisir
           - storyboard   # sujet → 4 plans + 4 prompts photo prêts à coller
           - analyser     # une image déjà générée → analyse + prompt d'animation
       sujet:
@@ -57,17 +56,31 @@ on:
         default: "4"
         type: string
       plan:
-        description: "Numéro du plan à animer (étape animation)"
+        description: "Numéro du plan à analyser (étape analyser uniquement)"
         required: false
         default: "1"
         type: string
       image:
         description: >-
-          L'image générée par Meta AI (étape animation) : URL directe de
-          l'image, ou chemin d'un fichier ajouté au dépôt.
+          L'image à analyser (étape analyser uniquement) : URL directe de
+          l'image, ou chemin d'un fichier ajouté au dépôt. Ignoré ailleurs.
         required: false
         default: ""
         type: string
+      modele_image:
+        description: >-
+          Quel modèle fabrique les images. « dev » tient la géométrie et suit
+          le prompt ; « schnell » est plus rapide et bien moins cher, mais
+          casse sur les prompts d'ingénierie ; « pro » est le meilleur et le
+          plus cher.
+        required: false
+        default: fal-ai/flux-pro/v1.1
+        type: choice
+        options:
+          - fal-ai/flux-pro/v1.1
+          - fal-ai/flux-pro/v1.1-ultra
+          - fal-ai/flux/dev
+          - fal-ai/flux/schnell
       animations:
         description: >-
           Combien de plans, AU PLUS, sont animés par fal.ai (étape produire).
@@ -80,7 +93,7 @@ on:
       enregistrer:
         description: >-
           Enregistrer le storyboard dans la branche, pour que l'étape
-          « animation » puisse le relire plus tard.
+          « analyser » puisse le relire plus tard.
         required: false
         default: true
         type: boolean
@@ -130,6 +143,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           FAL_KEY: ${{ secrets.FAL_KEY }}
+          FAL_IMAGE_MODEL: ${{ inputs.modele_image }}
           # Une variable de depot non definie vaut "" : ne la transmettre
           # que si elle a reellement une valeur.
           OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL || '' }}
@@ -151,6 +165,23 @@ jobs:
             --shots "${{ inputs.plans }}" \
             --max-animations "${{ inputs.animations }}" \
             $sans_video
+
+      - name: Comparer plusieurs modèles d'image
+        if: inputs.etape == 'comparer'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+        run: |
+          if [ -z "$FAL_KEY" ]; then
+            echo "::error::Le secret FAL_KEY n'est pas défini."
+            exit 1
+          fi
+          if [ ! -f app/output/project.json ]; then
+            echo "::error::app/output/project.json absent. Lance d'abord « storyboard »."
+            exit 1
+          fi
+          python -m app.main comparer --shot "${{ inputs.plan }}"
 
       - name: Générer le storyboard et les prompts photo
         if: inputs.etape == 'storyboard'
@@ -195,6 +226,10 @@ jobs:
               cat app/output/project.json
               echo '```'
             fi
+            for f in app/output/comparaison/*.png; do
+              [ -f "$f" ] || continue
+              echo "- \`$(basename "$f" .png)\` — $(du -h "$f" | cut -f1)"
+            done
             for f in app/output/shots/*/image.png; do
               [ -f "$f" ] || continue
               echo "- \`$f\` — $(du -h "$f" | cut -f1)"
