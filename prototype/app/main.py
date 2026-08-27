@@ -83,9 +83,41 @@ def build_storyboard(subject: str, duration: int, shot_count: int) -> Storyboard
         )
         (config.shot_dir(shot.id) / "voice.txt").write_text(shot.voice + "\n", encoding="utf-8")
 
+    write_paste_sheet(storyboard)
+
     log("OK", "Storyboard créé")
     print(f"      -> {config.PROJECT_FILE}", flush=True)
+    print(f"      -> {config.PASTE_SHEET}", flush=True)
     return storyboard
+
+
+def write_paste_sheet(storyboard: Storyboard) -> Path:
+    """Une feuille unique a lire au telephone et a coller dans Meta AI."""
+    lines = [
+        "PROMPTS A COLLER DANS META AI",
+        f"Sujet  : {storyboard.subject}",
+        f"Duree  : {storyboard.duration}s en {len(storyboard.shots)} plans",
+        f"Lien   : {config.META_AI_URL}",
+        "",
+        "Colle chaque bloc PROMPT PHOTO dans Meta AI, un par un.",
+        "",
+    ]
+    for shot in storyboard.shots:
+        lines += [
+            "=" * 70,
+            f"SHOT {shot.id:02d}  ({shot.duration})",
+            "=" * 70,
+            "",
+            f"VOIX : {shot.voice}",
+            "",
+            "--- PROMPT PHOTO -------------------------------------------------",
+            shot.image_prompt,
+            "------------------------------------------------------------------",
+            "",
+        ]
+    config.PASTE_SHEET.parent.mkdir(parents=True, exist_ok=True)
+    config.PASTE_SHEET.write_text("\n".join(lines), encoding="utf-8")
+    return config.PASTE_SHEET
 
 
 def load_or_build_storyboard(args) -> Storyboard:
@@ -155,9 +187,9 @@ def do_photo(page, shot: Shot, stop_after_submit: bool = False) -> Path | None:
 # ---------------------------------------------------------------------------
 
 
-def do_animation_prompt(shot: Shot, image_path: Path) -> str:
+def do_animation_prompt(shot: Shot, image: Path | str) -> str:
     log("OPENAI", f"Analyse image {shot.id:02d}...")
-    animation_prompt = openai_client.build_animation_prompt(image_path, shot)
+    animation_prompt = openai_client.build_animation_prompt(image, shot)
     target = config.shot_dir(shot.id) / "animation_prompt.txt"
     target.write_text(animation_prompt + "\n", encoding="utf-8")
     log("OK", f"Prompt animation {shot.id:02d}")
@@ -289,6 +321,27 @@ def cmd_run(args) -> int:
     return 0
 
 
+def cmd_animation(args) -> int:
+    """ETAPE 6 seule : une image existante -> son prompt d'animation.
+
+    Ne demande aucun navigateur : utilisable sur une machine sans ecran.
+    """
+    storyboard = Storyboard.load(config.PROJECT_FILE)
+    shot = storyboard.shot(args.shot)
+
+    image = args.image
+    if not str(image).startswith(("http://", "https://")):
+        image = Path(image)
+
+    config.ensure_dirs(len(storyboard.shots))
+    animation_prompt = do_animation_prompt(shot, image)
+
+    print(flush=True)
+    print("--- PROMPT ANIMATION ---")
+    print(animation_prompt)
+    return 0
+
+
 def cmd_status(args) -> int:
     status = load_status(args.shots)
     print(json.dumps(status, indent=2, ensure_ascii=False))
@@ -367,6 +420,13 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--no-test-mode", dest="test_mode", action="store_false")
     p_run.set_defaults(func=cmd_run)
 
+    p_anim = sub.add_parser(
+        "animation", help="ETAPE 6 seule : une image -> son prompt d'animation")
+    p_anim.add_argument("--shot", type=int, required=True, help="numero du plan (1..N)")
+    p_anim.add_argument("--image", required=True,
+                        help="chemin d'un fichier local OU URL http(s) directe")
+    p_anim.set_defaults(func=cmd_animation)
+
     p_status = sub.add_parser("status", help="afficher status.json")
     p_status.add_argument("--shots", type=int, default=config.SHOT_COUNT)
     p_status.set_defaults(func=cmd_status)
@@ -392,6 +452,9 @@ def main(argv: list[str] | None = None) -> int:
         return 4
     except StoryboardError as exc:
         print(f"\n[ERREUR STORYBOARD] {exc}", file=sys.stderr)
+        return 5
+    except KeyError as exc:
+        print(f"\n[ERREUR] {exc.args[0] if exc.args else exc}", file=sys.stderr)
         return 5
     except KeyboardInterrupt:
         print("\n[STOP] interrompu. status.json conserve la progression.", file=sys.stderr)

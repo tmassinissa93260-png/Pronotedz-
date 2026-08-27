@@ -88,12 +88,9 @@ def generate_storyboard(subject: str, duration: int, shot_count: int) -> Storybo
 # ---------------------------------------------------------------------------
 
 
-def build_animation_prompt(image_path: Path, shot: Shot) -> str:
-    if not image_path.is_file():
-        raise OpenAIError(f"image introuvable pour l'analyse: {image_path}")
-
-    mime = mimetypes.guess_type(image_path.name)[0] or "image/png"
-    data = base64.b64encode(image_path.read_bytes()).decode("ascii")
+def build_animation_prompt(image: Path | str, shot: Shot) -> str:
+    """`image` est un fichier local ou une URL http(s) directe."""
+    image_url = _image_payload(image)
 
     raw = _chat_json(
         config.OPENAI_VISION_MODEL,
@@ -106,10 +103,7 @@ def build_animation_prompt(image_path: Path, shot: Shot) -> str:
                         "type": "text",
                         "text": prompts.animation_user(shot.voice, shot.visual_description),
                     },
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": f"data:{mime};base64,{data}"},
-                    },
+                    {"type": "image_url", "image_url": {"url": image_url}},
                 ],
             },
         ],
@@ -123,3 +117,18 @@ def build_animation_prompt(image_path: Path, shot: Shot) -> str:
             f"prompt d'animation trop court pour etre pedagogique: {animation_prompt!r}"
         )
     return animation_prompt
+
+
+def _image_payload(image: Path | str) -> str:
+    """URL directe telle quelle, fichier local encode en base64."""
+    if isinstance(image, str) and image.startswith(("http://", "https://")):
+        return image
+    path = Path(image)
+    if not path.is_file():
+        raise OpenAIError(
+            f"image introuvable pour l'analyse: {path}\n"
+            "  Donne un chemin de fichier existant ou une URL http(s) directe."
+        )
+    mime = mimetypes.guess_type(path.name)[0] or "image/png"
+    data = base64.b64encode(path.read_bytes()).decode("ascii")
+    return f"data:{mime};base64,{data}"

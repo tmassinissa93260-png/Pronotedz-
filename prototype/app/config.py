@@ -48,6 +48,7 @@ OPENAI_TIMEOUT = float(os.getenv("OPENAI_TIMEOUT", "120"))
 OUTPUT_DIR = Path(os.getenv("OUTPUT_DIR", APP_DIR / "output"))
 PROJECT_FILE = OUTPUT_DIR / "project.json"
 STATUS_FILE = OUTPUT_DIR / "status.json"
+PASTE_SHEET = OUTPUT_DIR / "prompts_a_coller.txt"
 SHOTS_DIR = OUTPUT_DIR / "shots"
 SCREENSHOT_DIR = OUTPUT_DIR / "screenshots"
 

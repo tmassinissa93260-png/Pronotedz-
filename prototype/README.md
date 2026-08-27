@@ -125,6 +125,54 @@ animation, plan après plan.
 
 ---
 
+## Sur GitHub Actions
+
+Deux workflows, dans `.github/workflows/` :
+
+| Workflow | Rôle |
+| --- | --- |
+| **Prototype — prompts Meta AI** | à la demande : OpenAI prépare les prompts, tu les récupères en fin de page |
+| **Prototype — tests** | à chaque push sur `prototype/` : ruff + tests hors ligne + collage dans un vrai Chromium |
+
+### Ce qui NE tourne pas sur GitHub, et pourquoi
+
+**Meta AI reste sur ta machine.** Ce n'est pas une limite à contourner :
+
+- il n'y a pas d'écran sur un runner, or le prototype exige un navigateur visible ;
+- il n'y a personne pour se connecter à ton compte Meta ni pour appuyer sur Entrée ;
+- la seule façon de s'en passer serait de mettre ta session Meta dans un secret
+  GitHub — c'est un identifiant, et le cahier des charges l'interdit ;
+- les runners sortent par des IP de datacenter que Meta bloque ; passer outre
+  serait un contournement de protection, également interdit.
+
+Le partage est donc : **GitHub fait OpenAI, toi tu fais le collage.**
+
+### Préparer
+
+Une seule fois : `Settings` → `Secrets and variables` → `Actions` →
+`New repository secret`, nom `OPENAI_API_KEY`, valeur `sk-...`.
+
+### Étape « storyboard »
+
+`Actions` → `Prototype — prompts Meta AI` → `Run workflow`, étape `storyboard`.
+
+En fin de page tu trouves les 4 prompts photo, lisibles et copiables depuis le
+téléphone, dans le récapitulatif du run **et** dans l'artefact
+`prompts_a_coller.txt`. Avec `enregistrer` coché, `project.json` est aussi
+commité dans la branche — c'est ce qui permet l'étape suivante.
+
+Tu colles ensuite chaque prompt dans Meta AI, à la main, dans ton navigateur
+connecté.
+
+### Étape « animation »
+
+Une fois qu'une image existe vraiment, relance le workflow en étape
+`animation`, avec le numéro du plan et l'image (URL directe de l'image, ou
+chemin d'un fichier que tu as ajouté au dépôt). OpenAI regarde l'image réelle
+et rend le prompt d'animation, affiché en fin de page.
+
+---
+
 ## Ce que produit le programme
 
 ```

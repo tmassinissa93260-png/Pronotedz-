@@ -1,0 +1,172 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  Prototype — préparer les prompts pour Meta AI, depuis le téléphone.
+#
+#  Onglet « Actions » → « Prototype — prompts Meta AI » → « Run workflow ».
+#  La feuille de prompts attend en fin de page, dans les artefacts du run.
+#
+#  ⚠️ CE WORKFLOW NE TOUCHE JAMAIS À META AI, ET C'EST VOULU.
+#
+#  Meta AI exige une session connectée et un navigateur visible. Sur une
+#  machine GitHub il n'y a ni écran, ni personne pour se connecter, et les
+#  runners sortent par des IP de datacenter que Meta bloque. Y arriver
+#  demanderait soit de stocker la session dans un secret — un identifiant,
+#  donc — soit de contourner une protection. Les deux sont exclus.
+#
+#  Le partage du travail est donc :
+#     GitHub  →  OpenAI : storyboard, prompts photo, prompts d'animation
+#     Toi     →  le collage dans Meta AI, dans TON navigateur connecté
+# ═══════════════════════════════════════════════════════════════════════
+
+name: Prototype — prompts Meta AI
+
+on:
+  workflow_dispatch:
+    inputs:
+      etape:
+        description: "Ce que je veux faire"
+        required: true
+        default: storyboard
+        type: choice
+        options:
+          - storyboard   # sujet → 4 plans + 4 prompts photo prêts à coller
+          - animation    # une image déjà générée → son prompt d'animation
+      sujet:
+        description: "Le sujet (étape storyboard)"
+        required: false
+        default: "Fonctionnement d'une voiture électrique"
+        type: string
+      duree:
+        description: "Durée visée, en secondes"
+        required: false
+        default: "16"
+        type: string
+      plans:
+        description: "Nombre de plans"
+        required: false
+        default: "4"
+        type: string
+      plan:
+        description: "Numéro du plan à animer (étape animation)"
+        required: false
+        default: "1"
+        type: string
+      image:
+        description: >-
+          L'image générée par Meta AI (étape animation) : URL directe de
+          l'image, ou chemin d'un fichier ajouté au dépôt.
+        required: false
+        default: ""
+        type: string
+      enregistrer:
+        description: >-
+          Enregistrer le storyboard dans la branche, pour que l'étape
+          « animation » puisse le relire plus tard.
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  prompts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: prototype
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installer les dépendances
+        run: pip install -r app/requirements.txt
+
+      - name: Vérifier la clé OpenAI
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -z "$OPENAI_API_KEY" ]; then
+            echo "::error::Le secret OPENAI_API_KEY n'est pas défini."
+            echo "Settings → Secrets and variables → Actions → New repository secret"
+            echo "Nom : OPENAI_API_KEY   Valeur : ta clé sk-..."
+            exit 1
+          fi
+          echo "Clé présente (${#OPENAI_API_KEY} caractères)."
+
+      - name: Générer le storyboard et les prompts photo
+        if: inputs.etape == 'storyboard'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python -m app.main storyboard \
+            --subject "${{ inputs.sujet }}" \
+            --duration "${{ inputs.duree }}" \
+            --shots "${{ inputs.plans }}"
+
+      - name: Générer le prompt d'animation
+        if: inputs.etape == 'animation'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          if [ -z "${{ inputs.image }}" ]; then
+            echo "::error::L'étape « animation » a besoin du champ « image »."
+            exit 1
+          fi
+          if [ ! -f app/output/project.json ]; then
+            echo "::error::app/output/project.json absent de la branche."
+            echo "Lance d'abord l'étape « storyboard » avec « enregistrer » coché."
+            exit 1
+          fi
+          python -m app.main animation \
+            --shot "${{ inputs.plan }}" \
+            --image "${{ inputs.image }}"
+
+      - name: Récapitulatif lisible en fin de page
+        if: always()
+        run: |
+          {
+            echo "## Prototype — étape \`${{ inputs.etape }}\`"
+            echo
+            if [ -f app/output/prompts_a_coller.txt ]; then
+              echo "### À coller dans Meta AI"
+              echo
+              echo '```'
+              cat app/output/prompts_a_coller.txt
+              echo '```'
+            fi
+            for f in app/output/shots/*/animation_prompt.txt; do
+              [ -f "$f" ] || continue
+              echo "### $(basename "$(dirname "$f")") — prompt d'animation"
+              echo
+              echo '```'
+              cat "$f"
+              echo '```'
+            done
+            echo
+            echo "> Le collage dans Meta AI se fait à la main, dans ton"
+            echo "> navigateur connecté : $(grep -o 'https://www.meta.ai/[^\"]*' app/config.py | head -1)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Déposer les fichiers en artefact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prompts-${{ inputs.etape }}-${{ github.run_number }}
+          path: prototype/app/output/
+          if-no-files-found: warn
+
+      - name: Enregistrer le storyboard dans la branche
+        if: inputs.etape == 'storyboard' && inputs.enregistrer
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f app/output/project.json app/output/prompts_a_coller.txt
+          if git diff --cached --quiet; then
+            echo "Storyboard identique au précédent, rien à enregistrer."
+          else
+            git commit -m "prototype: storyboard « ${{ inputs.sujet }} »"
+            git push
+          fi

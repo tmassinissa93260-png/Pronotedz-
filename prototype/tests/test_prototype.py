@@ -175,6 +175,44 @@ class TestStatus(unittest.TestCase):
         self.assertEqual(status["shot_01"], "completed")
 
 
+class TestFeuilleDePrompts(unittest.TestCase):
+    """La feuille lue au telephone et collee a la main dans Meta AI."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        from app import config
+
+        self._saved = config.PASTE_SHEET
+        config.PASTE_SHEET = Path(self._tmp.name) / "prompts_a_coller.txt"
+        self.addCleanup(lambda: setattr(config, "PASTE_SHEET", self._saved))
+        self.config = config
+
+    def test_contient_chaque_plan_et_son_prompt(self):
+        from app.main import write_paste_sheet
+
+        sb = Storyboard.from_dict(storyboard_dict())
+        texte = write_paste_sheet(sb).read_text(encoding="utf-8")
+
+        for i in range(1, 5):
+            self.assertIn(f"SHOT {i:02d}", texte)
+            self.assertIn(f"White electric car, shot {i}.", texte)
+            self.assertIn(f"Voix du plan {i}.", texte)
+        self.assertEqual(texte.count("--- PROMPT PHOTO"), 4)
+
+    def test_rappelle_le_lien_meta_ai(self):
+        from app.main import write_paste_sheet
+
+        texte = write_paste_sheet(Storyboard.from_dict(storyboard_dict())).read_text("utf-8")
+        self.assertIn(self.config.META_AI_URL, texte)
+
+    def test_la_direction_artistique_est_dans_chaque_bloc(self):
+        from app.main import write_paste_sheet
+
+        texte = write_paste_sheet(Storyboard.from_dict(storyboard_dict())).read_text("utf-8")
+        self.assertEqual(texte.count(prompts.STYLE_FINGERPRINT), 4)
+
+
 class TestConfigEtCli(unittest.TestCase):
     def test_valeurs_de_l_etape_1(self):
         from app import config
@@ -207,6 +245,22 @@ class TestConfigEtCli(unittest.TestCase):
             with self.subTest(cmd=cmd):
                 args = parser.parse_args([cmd])
                 self.assertTrue(callable(args.func))
+
+    def test_commande_animation(self):
+        from app.main import build_parser
+
+        args = build_parser().parse_args(
+            ["animation", "--shot", "2", "--image", "https://x.test/a.png"])
+        self.assertEqual(args.shot, 2)
+        self.assertEqual(args.image, "https://x.test/a.png")
+
+    def test_animation_exige_shot_et_image(self):
+        from app.main import build_parser
+
+        for incomplet in (["animation"], ["animation", "--shot", "1"],
+                          ["animation", "--image", "a.png"]):
+            with self.subTest(argv=incomplet), self.assertRaises(SystemExit):
+                build_parser().parse_args(incomplet)
 
     def test_test_mode_pilotable_en_ligne_de_commande(self):
         from app.main import build_parser
