@@ -102,6 +102,29 @@ Déroulé :
 Grâce au profil persistant `browser_profile/`, la connexion de l'étape 3 n'est
 normalement à refaire qu'une fois.
 
+### Ne pas se reconnecter du tout
+
+Si tu es déjà connecté à Meta dans ton Chrome habituel, tu peux dire au
+programme d'utiliser **ce navigateur-là et ce profil-là**. Dans `.env` :
+
+```
+BROWSER_CHANNEL=chrome
+BROWSER_PROFILE_DIR=/Users/TOI/Library/Application Support/Google/Chrome
+```
+
+Chemins du profil selon le système :
+
+| Système | `BROWSER_PROFILE_DIR` |
+| --- | --- |
+| macOS | `/Users/TOI/Library/Application Support/Google/Chrome` |
+| Windows | `C:\Users\TOI\AppData\Local\Google\Chrome\User Data` |
+| Linux | `/home/TOI/.config/google-chrome` |
+
+⚠️ **Ferme complètement Chrome avant de lancer le programme** — Chrome
+verrouille son profil, et deux processus ne peuvent pas l'ouvrir en même temps.
+Si tu préfères ne pas y toucher, laisse les réglages par défaut : tu te
+connectes une fois dans `browser_profile/` et c'est réglé pour de bon.
+
 Si un élément de l'interface est introuvable, le programme **ne plante pas en
 silence** : message explicite, capture d'écran + HTML dans
 `app/output/screenshots/`, pause, et tu reprends à la main.

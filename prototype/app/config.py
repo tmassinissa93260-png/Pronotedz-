@@ -65,6 +65,10 @@ BROWSER_PROFILE_DIR = Path(os.getenv("BROWSER_PROFILE_DIR", ROOT_DIR / "browser_
 # aux verifications automatiques (machine sans ecran).
 HEADLESS = os.getenv("HEADLESS", "0") == "1"
 CHROMIUM_PATH = os.getenv("CHROMIUM_PATH", "").strip() or None
+
+# Quel navigateur ouvrir : vide = le Chromium installe par Playwright.
+# "chrome" ou "msedge" = TON navigateur, celui ou tu es deja connecte.
+BROWSER_CHANNEL = os.getenv("BROWSER_CHANNEL", "").strip() or None
 PAGE_TIMEOUT_MS = int(os.getenv("PAGE_TIMEOUT_MS", "60000"))
 GENERATION_TIMEOUT_S = int(os.getenv("GENERATION_TIMEOUT_S", "240"))
 

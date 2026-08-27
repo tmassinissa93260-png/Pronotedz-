@@ -32,8 +32,11 @@ def open_browser(headless: bool | None = None):
         "headless": headless,
         "args": ["--disable-blink-features=AutomationControlled"],
     }
+    # executable_path et channel s'excluent : un chemin explicite l'emporte.
     if config.CHROMIUM_PATH:
         launch_kwargs["executable_path"] = config.CHROMIUM_PATH
+    elif config.BROWSER_CHANNEL:
+        launch_kwargs["channel"] = config.BROWSER_CHANNEL
     if not headless:
         launch_kwargs["no_viewport"] = True
 
@@ -42,8 +45,10 @@ def open_browser(headless: bool | None = None):
             context = pw.chromium.launch_persistent_context(**launch_kwargs)
         except PlaywrightError as exc:
             raise BrowserError(
-                f"Chromium n'a pas pu demarrer: {exc}\n"
-                "  Installe-le une fois avec : python -m playwright install chromium\n"
+                f"le navigateur n'a pas pu demarrer: {exc}\n"
+                "  Installe Chromium une fois : python -m playwright install chromium\n"
+                "  Si tu vises ton propre Chrome (BROWSER_PROFILE_DIR vers ton profil),\n"
+                "  FERME COMPLETEMENT Chrome d'abord : il verrouille son profil.\n"
                 "  Sur une machine sans ecran, ajoute HEADLESS=1 dans .env."
             ) from exc
 
