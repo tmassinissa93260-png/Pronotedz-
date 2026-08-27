@@ -4,11 +4,17 @@ le niveau d'exigence.
 
 from __future__ import annotations
 
+import os
+
 # ---------------------------------------------------------------------------
 # STYLE VISUEL OBLIGATOIRE - present tel quel dans chaque image_prompt
+#
+# Le defaut nomme un vehicule electrique. Sur un autre sujet — un moteur
+# thermique, par exemple — cette mention se contredit avec ce que le plan
+# montre. STYLE_DIRECTIVE dans l'environnement remplace alors la phrase.
 # ---------------------------------------------------------------------------
 
-STYLE_DIRECTIVE = (
+_DEFAUT = (
     "Photorealistic premium 3D engineering visualization, modern electric vehicle, "
     "clean dark studio environment, realistic materials, physically accurate mechanical "
     "components, cinematic lighting, high contrast, subtle volumetric light, detailed "
@@ -16,6 +22,10 @@ STYLE_DIRECTIVE = (
     "no watermark."
 )
 
+STYLE_DIRECTIVE = (os.getenv("STYLE_DIRECTIVE") or "").strip() or _DEFAUT
+
+# Signature commune a toutes les variantes : sert a reperer la phrase de style
+# dans un prompt, et a la retirer quand on mesure ce qui est propre au plan.
 STYLE_FINGERPRINT = "Photorealistic premium 3D engineering visualization"
 
 # Debit de parole vise, en mots par seconde de francais parle.
