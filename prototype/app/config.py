@@ -42,6 +42,22 @@ OPENAI_VISION_MODEL = os.getenv("OPENAI_VISION_MODEL", OPENAI_MODEL).strip()
 OPENAI_TIMEOUT = float(os.getenv("OPENAI_TIMEOUT", "120"))
 
 # ---------------------------------------------------------------------------
+# fal.ai - images et animation, quand on veut la chaine 100% automatique
+# ---------------------------------------------------------------------------
+
+FAL_KEY = os.getenv("FAL_KEY", "").strip()
+FAL_IMAGE_MODEL = os.getenv("FAL_IMAGE_MODEL", "fal-ai/flux/schnell").strip()
+FAL_VIDEO_MODEL = os.getenv(
+    "FAL_VIDEO_MODEL", "fal-ai/kling-video/v2.1/standard/image-to-video"
+).strip()
+FAL_IMAGE_STEPS = int(os.getenv("FAL_IMAGE_STEPS", "4"))
+FAL_TIMEOUT = float(os.getenv("FAL_TIMEOUT", "600"))
+
+# 9:16 vertical, comme impose par la direction artistique.
+IMAGE_WIDTH = int(os.getenv("IMAGE_WIDTH", "1080"))
+IMAGE_HEIGHT = int(os.getenv("IMAGE_HEIGHT", "1920"))
+
+# ---------------------------------------------------------------------------
 # Arborescence locale
 # ---------------------------------------------------------------------------
 

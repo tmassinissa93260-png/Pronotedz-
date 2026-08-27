@@ -45,6 +45,9 @@ jobs:
       - name: Vérifications hors ligne
         run: python -m unittest discover -s tests -p "test_prototype.py" -v
 
+      - name: Client fal.ai (service simulé, aucun appel réel)
+        run: python -m unittest tests.test_fal -v
+
       - name: Installer Chromium
         run: python -m playwright install --with-deps chromium
 

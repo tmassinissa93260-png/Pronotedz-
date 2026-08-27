@@ -4,6 +4,16 @@
 #  Onglet « Actions » → « Prototype — prompts Meta AI » → « Run workflow ».
 #  La feuille de prompts attend en fin de page, dans les artefacts du run.
 #
+#  Deux façons de s'en servir :
+#
+#    « produire »   → chaîne 100% automatique : OpenAI écrit, fal.ai fabrique
+#                     les images ET les animations. Rien à faire à la main.
+#                     ⚠️ fal.ai est payant, surtout la vidéo. Le plafond
+#                     « animations » borne la dépense d'un run.
+#
+#    « storyboard » → gratuit hors OpenAI : on prépare seulement les prompts,
+#                     et tu les colles toi-même dans Meta AI.
+#
 #  ⚠️ CE WORKFLOW NE TOUCHE JAMAIS À META AI, ET C'EST VOULU.
 #
 #  Meta AI exige une session connectée et un navigateur visible. Sur une
@@ -28,6 +38,7 @@ on:
         default: storyboard
         type: choice
         options:
+          - produire     # TOUT automatique : OpenAI + fal.ai → images + vidéos
           - storyboard   # sujet → 4 plans + 4 prompts photo prêts à coller
           - animation    # une image déjà générée → son prompt d'animation
       sujet:
@@ -56,6 +67,15 @@ on:
           l'image, ou chemin d'un fichier ajouté au dépôt.
         required: false
         default: ""
+        type: string
+      animations:
+        description: >-
+          Combien de plans, AU PLUS, sont animés par fal.ai (étape produire).
+          0 = images seulement, aucune dépense vidéo. C'est un plafond en
+          PLANS, pas en dollars : le tarif n'est pas mesuré ici, relève ton
+          solde fal.ai avant et après pour connaître le coût réel.
+        required: false
+        default: "0"
         type: string
       enregistrer:
         description: >-
@@ -95,6 +115,30 @@ jobs:
             exit 1
           fi
           echo "Clé présente (${#OPENAI_API_KEY} caractères)."
+
+      - name: Tout produire avec fal.ai
+        if: inputs.etape == 'produire'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+        run: |
+          if [ -z "$FAL_KEY" ]; then
+            echo "::error::Le secret FAL_KEY n'est pas défini."
+            echo "Settings → Secrets and variables → Actions → New repository secret"
+            echo "Nom : FAL_KEY   Valeur : ta clé fal.ai (fal.ai/dashboard/keys)"
+            exit 1
+          fi
+          sans_video=""
+          if [ "${{ inputs.animations }}" = "0" ]; then
+            sans_video="--sans-video"
+            echo "::notice::Plafond à 0 : images seulement, aucune dépense vidéo."
+          fi
+          python -m app.main produire \
+            --subject "${{ inputs.sujet }}" \
+            --duration "${{ inputs.duree }}" \
+            --shots "${{ inputs.plans }}" \
+            --max-animations "${{ inputs.animations }}" \
+            $sans_video
 
       - name: Générer le storyboard et les prompts photo
         if: inputs.etape == 'storyboard'
@@ -137,6 +181,15 @@ jobs:
               cat app/output/prompts_a_coller.txt
               echo '```'
             fi
+            for f in app/output/shots/*/image.png; do
+              [ -f "$f" ] || continue
+              echo "- \`$f\` — $(du -h "$f" | cut -f1)"
+            done
+            for f in app/output/shots/*/video.mp4; do
+              [ -f "$f" ] || continue
+              echo "- \`$f\` — $(du -h "$f" | cut -f1)"
+            done
+            echo
             for f in app/output/shots/*/animation_prompt.txt; do
               [ -f "$f" ] || continue
               echo "### $(basename "$(dirname "$f")") — prompt d'animation"

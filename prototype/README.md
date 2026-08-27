@@ -154,8 +154,30 @@ Deux workflows, dans `.github/workflows/` :
 
 | Workflow | Rôle |
 | --- | --- |
-| **Prototype — prompts Meta AI** | à la demande : OpenAI prépare les prompts, tu les récupères en fin de page |
-| **Prototype — tests** | à chaque push sur `prototype/` : ruff + tests hors ligne + collage dans un vrai Chromium |
+| **Prototype — prompts Meta AI** | à la demande, trois étapes : `produire`, `storyboard`, `animation` |
+| **Prototype — tests** | à chaque push sur `prototype/` : ruff + tests hors ligne + client fal simulé + collage dans un vrai Chromium |
+
+### Étape `produire` — tout automatique, avec fal.ai
+
+```bash
+python -m app.main produire                      # local
+python -m app.main produire --sans-video         # images seulement, zéro dépense vidéo
+python -m app.main produire --max-animations 1   # une seule animation payante
+```
+
+Aucun navigateur. OpenAI écrit le storyboard, **fal.ai** fabrique les images
+(FLUX) puis les animations (Kling image-to-video), et OpenAI analyse chaque
+image réelle entre les deux pour écrire le prompt d'animation.
+
+C'est la seule voie 100 % automatique sur GitHub, parce que fal.ai a une vraie
+API — contrairement à Meta AI.
+
+Il te faut le secret `FAL_KEY` en plus de `OPENAI_API_KEY`.
+
+⚠️ **fal.ai est payant.** Les images sont bon marché, **la vidéo est le poste
+de dépense**. Le champ `animations` du workflow est un plafond **en plans**,
+pas en dollars : à `0` (défaut) rien n'est animé, aucune dépense vidéo. Relève
+ton solde fal.ai avant et après un run pour connaître le coût réel.
 
 ### Ce qui NE tourne pas sur GitHub, et pourquoi
 

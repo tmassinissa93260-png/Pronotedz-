@@ -13,7 +13,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import browser, config, meta_ai, openai_client
+from . import browser, config, fal_client, meta_ai, openai_client
 from .models import Shot, Storyboard, StoryboardError
 
 PENDING, GENERATED, COMPLETED = "pending", "generated", "completed"
@@ -321,6 +321,95 @@ def cmd_run(args) -> int:
     return 0
 
 
+def cmd_produire(args) -> int:
+    """Chaine 100% automatique : OpenAI + fal.ai, aucun navigateur.
+
+    Utilisable sur une machine sans ecran, donc sur GitHub Actions.
+    """
+    storyboard = load_or_build_storyboard(args)
+    config.ensure_dirs(len(storyboard.shots))
+    status = load_status(len(storyboard.shots))
+
+    animations_left = 0 if args.sans_video else args.max_animations
+    if args.sans_video:
+        log("INFO", "images seules : aucune depense video")
+    else:
+        log("COUT", f"jusqu'a {animations_left} animation(s) payante(s) fal.ai")
+
+    echecs = []
+    for shot in storyboard.shots:
+        key = shot.slug
+        directory = config.shot_dir(shot.id)
+        shot_header(shot.id)
+
+        if status.get(key) == COMPLETED and not args.force:
+            log("SKIP", "deja termine (status.json)")
+            continue
+
+        try:
+            # --- image ---
+            image_path = find_existing(shot.id, "image")
+            if image_path and not args.force:
+                log("SKIP", f"image deja presente: {image_path}")
+            else:
+                (directory / "image_prompt.txt").write_text(
+                    shot.image_prompt + "\n", encoding="utf-8")
+                log("FAL", f"Génération image {shot.id:02d}...")
+                image_path = fal_client.generate_image(
+                    shot.image_prompt, directory / "image.png")
+                log("OK", f"Image {shot.id:02d}  -> {image_path}")
+
+            # --- prompt d'animation, a partir de l'image REELLE ---
+            animation_file = directory / "animation_prompt.txt"
+            if animation_file.is_file() and not args.force:
+                animation_prompt = animation_file.read_text(encoding="utf-8").strip()
+                log("SKIP", "prompt d'animation deja present")
+            else:
+                animation_prompt = do_animation_prompt(shot, image_path)
+
+            if animations_left <= 0:
+                status[key] = GENERATED
+                save_status(status)
+                log("STOP", "plafond d'animations atteint : image et prompt seulement")
+                continue
+
+            # --- animation ---
+            log("FAL", f"Animation {shot.id:02d}...")
+            video = fal_client.animate(
+                image_path, animation_prompt,
+                _seconds(shot, storyboard), directory / "video.mp4")
+            animations_left -= 1
+            log("OK", f"Vidéo {shot.id:02d}  -> {video}")
+
+            status[key] = COMPLETED
+            save_status(status)
+
+        except (fal_client.FalError, openai_client.OpenAIError) as exc:
+            # Un plan en echec ne doit pas emporter les trois autres.
+            log("ERREUR", str(exc).splitlines()[0])
+            echecs.append((shot.id, str(exc)))
+            status[key] = status.get(key, PENDING)
+            save_status(status)
+
+    print(flush=True)
+    if echecs:
+        log("STOP", f"{len(echecs)} plan(s) en echec :")
+        for shot_id, message in echecs:
+            print(f"      SHOT {shot_id:02d} : {message}", flush=True)
+        return 6
+    log("OK", "Terminé")
+    return 0
+
+
+def _seconds(shot: Shot, storyboard: Storyboard) -> float:
+    """La duree du plan, lue depuis le storyboard, sinon repartie egalement."""
+    chiffres = "".join(c for c in shot.duration if c.isdigit() or c == ".")
+    try:
+        return float(chiffres)
+    except ValueError:
+        return storyboard.duration / max(len(storyboard.shots), 1)
+
+
 def cmd_animation(args) -> int:
     """ETAPE 6 seule : une image existante -> son prompt d'animation.
 
@@ -420,6 +509,16 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--no-test-mode", dest="test_mode", action="store_false")
     p_run.set_defaults(func=cmd_run)
 
+    p_prod = common(sub.add_parser(
+        "produire", help="chaine 100%% automatique : OpenAI + fal.ai, sans navigateur"))
+    p_prod.add_argument("--regenerate", action="store_true")
+    p_prod.add_argument("--force", action="store_true")
+    p_prod.add_argument("--sans-video", dest="sans_video", action="store_true",
+                        help="images et prompts seulement, aucune depense video")
+    p_prod.add_argument("--max-animations", type=int, default=config.SHOT_COUNT,
+                        help="plafond d'animations payantes (defaut: nombre de plans)")
+    p_prod.set_defaults(func=cmd_produire)
+
     p_anim = sub.add_parser(
         "animation", help="ETAPE 6 seule : une image -> son prompt d'animation")
     p_anim.add_argument("--shot", type=int, required=True, help="numero du plan (1..N)")
@@ -444,6 +543,9 @@ def main(argv: list[str] | None = None) -> int:
     except openai_client.OpenAIError as exc:
         print(f"\n[ERREUR OPENAI] {exc}", file=sys.stderr)
         return 2
+    except fal_client.FalError as exc:
+        print(f"\n[ERREUR FAL] {exc}", file=sys.stderr)
+        return 7
     except meta_ai.MetaAIError as exc:
         print(f"\n[ERREUR META AI] {exc}", file=sys.stderr)
         return 3
