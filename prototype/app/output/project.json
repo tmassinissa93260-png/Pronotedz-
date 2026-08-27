@@ -1,0 +1,105 @@
+{
+  "subject": "Fonctionnement d'une voiture à moteur thermique",
+  "duration_seconds": 40.0,
+  "shot_count": 10,
+  "visual_bible": {
+    "vehicle": "sleek modern sedan with a visible internal combustion engine",
+    "environment": "sleek dark studio space with a clean concrete floor",
+    "materials": "realistic metallic and plastic components",
+    "lighting": "cinematic high contrast with subtle volumetric effects",
+    "color_palette": "grays and silvers with accents of red and blue",
+    "camera_language": "dynamic with a mix of wide and close-up shots, maintaining focus on mechanical components"
+  },
+  "shots": [
+    {
+      "id": 1,
+      "duration_seconds": 3.5,
+      "voice": "Le carburant est stocké dans le réservoir et attend d'être envoyé au moteur.",
+      "visual_description": "Wide view of the sedan in a dark studio, highlighting the fuel tank under the rear seat and the engine within the frame.",
+      "educational_function": "This shot introduces the fuel tank and its role as the beginning of the energy chain.",
+      "image_prompt": "Wide shot of the sleek modern sedan with a focus on the fuel tank under the rear seat and the internal combustion engine clearly visible in the frame. Use cinematic lighting to accentuate the components and ensure the engine is prominently featured. The camera position captures both the fuel tank and engine within the sedan's structure, using realistic materials like metal and plastic. Photorealistic premium 3D engineering visualization, modern internal combustion engine car, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.95
+    },
+    {
+      "id": 2,
+      "duration_seconds": 4.0,
+      "voice": "La pompe à carburant envoie le carburant du réservoir vers le moteur.",
+      "visual_description": "Zoomed view showing the fuel pump under the car, with a clear path of fuel moving in a tube towards the engine.",
+      "educational_function": "This shot explains the role of the fuel pump in transporting fuel to the engine.",
+      "image_prompt": "Close-up of the fuel pump located near the sedan's rear underside, with a visible connection to the engine and fuel moving through a transparent tube. The camera highlights the fuel pump and ensures the internal combustion engine is visible within the composition, supported by cinematic lighting. Employ realistic materials like metal and plastic. Photorealistic premium 3D engineering visualization, modern internal combustion engine car, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.94
+    },
+    {
+      "id": 3,
+      "duration_seconds": 4.0,
+      "voice": "Le carburant atteint le moteur et entre dans la chambre de combustion.",
+      "visual_description": "Close-up of the engine's intake system with visible fuel entering the combustion chamber.",
+      "educational_function": "This shot connects the path of the fuel to the start of the engine process.",
+      "image_prompt": "Focus on the sleek sedan's engine bay, showing the intricate intake system where the fuel visibly enters the combustion chambers. Cadrage is close-up, with the engine clearly visible and the camera position accentuates the flow of fuel. Lighting highlights this process, with realistic metal and plastic materials. Photorealistic premium 3D engineering visualization, modern internal combustion engine car, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.96
+    },
+    {
+      "id": 4,
+      "duration_seconds": 3.5,
+      "voice": "La bougie d'allumage produit une étincelle qui enflamme le carburant.",
+      "visual_description": "Macro view of a spark plug igniting the fuel-air mixture in the cylinder.",
+      "educational_function": "This shot details how the ignition process begins the engine operation.",
+      "image_prompt": "Macro shot of a cylinder in the sleek sedan's engine with a spark plug igniting the air-fuel mixture. The camera is positioned to focus closely on the ignition event, with cinematic lighting and realistic metal materials. Photorealistic premium 3D engineering visualization, modern internal combustion engine car, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.97
+    },
+    {
+      "id": 5,
+      "duration_seconds": 4.5,
+      "voice": "La combustion pousse le piston vers le bas, créant un mouvement mécanique.",
+      "visual_description": "View of a piston moving within the engine block due to combustion pressure.",
+      "educational_function": "This shot illustrates the mechanical response caused by the combustion of fuel.",
+      "image_prompt": "Close-up of the engine's open cylinder in the sleek modern sedan, showing the piston moving downward due to combustion. Camera positioned to capture piston and connecting rods. Use cinematic lighting and showcase realistic metal materials. Photorealistic premium 3D engineering visualization, modern internal combustion engine car, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.96
+    },
+    {
+      "id": 6,
+      "duration_seconds": 4.0,
+      "voice": "L'énergie du piston se transmet au vilebrequin, créant une rotation.",
+      "visual_description": "Medium view of the crankshaft assembly showing rotational movement driven by pistons.",
+      "educational_function": "This shot explains how the piston's linear motion converts to rotational energy.",
+      "image_prompt": "Medium angle shot showing the crankshaft and connected pistons in the sleek sedan's engine. Focus on the conversion of linear to rotational energy, with visible motion. Camera positioned to highlight these dynamics, utilizing realistic metal materials. Photorealistic premium 3D engineering visualization, modern internal combustion engine car, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.98
+    },
+    {
+      "id": 7,
+      "duration_seconds": 3.0,
+      "voice": "Le vilebrequin entraîne la transmission pour diriger l'énergie vers les roues motrices.",
+      "visual_description": "Wide shot of the transmission system connecting the crankshaft to the drivetrain including visible wheels.",
+      "educational_function": "This shot bridges the engine's rotational energy to the vehicle's drivetrain system.",
+      "image_prompt": "Wide angle view within the sleek modern sedan, capturing the position and connection from the crankshaft to the transmission and drivetrain, including the visible rotating wheels. The camera uses broad coverage and detailed lighting to illustrate energy transfer, with realistic metal and plastic materials. Photorealistic premium 3D engineering visualization, modern internal combustion engine car, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.92
+    },
+    {
+      "id": 8,
+      "duration_seconds": 4.0,
+      "voice": "La transmission interprète et transfère l'énergie mécanique vers le différentiel de la voiture.",
+      "visual_description": "Close perspective showing the differential receiving energy from the transmission.",
+      "educational_function": "This shot clarifies how the transmission connects to the differential, balancing vehicle movement.",
+      "image_prompt": "Close-up in the sleek modern sedan's drivetrain, focusing on the differential receiving energy from the transmission system. The camera and lighting enhance the visible flow of energy between components, using realistic metal and plastic materials. Photorealistic premium 3D engineering visualization, modern internal combustion engine car, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.9
+    },
+    {
+      "id": 9,
+      "duration_seconds": 5.0,
+      "voice": "Le différentiel répartit efficacement la puissance aux roues, facilitant le déplacement de la voiture.",
+      "visual_description": "Wide view of the differential distributing energy evenly to the wheels causing movement.",
+      "educational_function": "This shot conveys how differential power distribution enables the vehicle to move.",
+      "image_prompt": "Wide camera view of the rear axle assembly within the sleek modern sedan, seeing the differential distributing power evenly to the wheels. Lighting highlights the operational efficiency, emphasizing realistic metal materials. Photorealistic premium 3D engineering visualization, modern internal combustion engine car, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.93
+    },
+    {
+      "id": 10,
+      "duration_seconds": 4.0,
+      "voice": "Les roues en rotation propulsent la voiture vers l'avant sur la route.",
+      "visual_description": "Final wide shot of the sedan moving forward due to rotating wheels.",
+      "educational_function": "Concludes the sequence by showing the final effect of the energy transformation process.",
+      "image_prompt": "Wide angle, vertical shot showing the position of the sleek modern sedan moving forward on a road simulation within the studio, with the rotating wheels prominently visible. Camera captures this dynamic motion with cinematic lighting, utilizing realistic metal and plastic materials. Photorealistic premium 3D engineering visualization, modern internal combustion engine car, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.94
+    }
+  ]
+}
