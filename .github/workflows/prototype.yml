@@ -269,6 +269,26 @@ jobs:
           path: prototype/app/output/
           if-no-files-found: warn
 
+      - name: Enregistrer les images dans la branche
+        if: always() && (inputs.etape == 'produire' || inputs.etape == 'comparer')
+        run: |
+          shopt -s nullglob
+          fichiers=(app/output/shots/*/image.png app/output/comparaison/*.png)
+          if [ ${#fichiers[@]} -eq 0 ]; then
+            echo "Aucune image produite, rien a enregistrer."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f "${fichiers[@]}" app/output/project.json
+          if git diff --cached --quiet; then
+            echo "Images identiques aux precedentes, rien a enregistrer."
+          else
+            git commit -m "images : run ${{ github.run_number }} (${{ inputs.modele_image }})"
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
       - name: Enregistrer le storyboard dans la branche
         if: inputs.etape == 'storyboard' && inputs.enregistrer
         run: |
