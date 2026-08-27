@@ -35,13 +35,11 @@ SHOT_COUNT = 4
 
 # True  : on s'arrete apres avoir colle le prompt du SHOT 01 (preuve de boucle).
 # False : les 4 plans s'enchainent automatiquement.
+# True : on s'arrete apres le storyboard valide. Aucune image, aucune video.
 TEST_MODE = True
 
-# ---------------------------------------------------------------------------
-# META AI - destination fixe du prototype
-# ---------------------------------------------------------------------------
-
-META_AI_URL = "https://www.meta.ai/prompt/f1da6c85-fb08-433d-b203-04cc41e575c6"
+# Combien de fois, au plus, on renvoie ses erreurs a OpenAI pour correction.
+MAX_REPAIR_ATTEMPTS = int(env("MAX_REPAIR_ATTEMPTS", "2"))
 
 # ---------------------------------------------------------------------------
 # OpenAI - la cle vient de .env, JAMAIS du code
@@ -110,25 +108,7 @@ PASTE_SHEET = OUTPUT_DIR / "prompts_a_coller.txt"
 SHOTS_DIR = OUTPUT_DIR / "shots"
 SCREENSHOT_DIR = OUTPUT_DIR / "screenshots"
 
-# Profil navigateur persistant : garde la session Meta entre deux lancements.
-# Il ne contient jamais d'identifiant ecrit par nous, seulement les cookies
-# que le navigateur pose lui-meme quand TU te connectes a la main.
-BROWSER_PROFILE_DIR = Path(env("BROWSER_PROFILE_DIR") or ROOT_DIR / "browser_profile")
 
-# ---------------------------------------------------------------------------
-# Navigateur
-# ---------------------------------------------------------------------------
-
-# Navigateur VISIBLE par defaut, comme demande. HEADLESS=1 sert uniquement
-# aux verifications automatiques (machine sans ecran).
-HEADLESS = env("HEADLESS", "0") == "1"
-CHROMIUM_PATH = env("CHROMIUM_PATH") or None
-
-# Quel navigateur ouvrir : vide = le Chromium installe par Playwright.
-# "chrome" ou "msedge" = TON navigateur, celui ou tu es deja connecte.
-BROWSER_CHANNEL = env("BROWSER_CHANNEL") or None
-PAGE_TIMEOUT_MS = int(env("PAGE_TIMEOUT_MS", "60000"))
-GENERATION_TIMEOUT_S = int(env("GENERATION_TIMEOUT_S", "240"))
 
 
 def shot_dir(shot_id: int) -> Path:
