@@ -1,0 +1,51 @@
+{
+  "subject": "Fonctionnement d'une voiture électrique",
+  "duration_seconds": 16.0,
+  "shot_count": 4,
+  "visual_bible": {
+    "vehicle": "sleek modern electric sedan, white body with aerodynamic curves",
+    "environment": "clean dark studio environment with a smooth black floor",
+    "materials": "polished metal, reinforced transparent casing, high-grade plastics",
+    "lighting": "cinematic lighting from the top and sides, creating sharp contrasts",
+    "color_palette": "white, black, metallic silver, and subtle glows of electric blue",
+    "camera_language": "steady shots with smooth tracking, varied close-up to wide frames"
+  },
+  "shots": [
+    {
+      "id": 1,
+      "duration_seconds": 4.0,
+      "voice": "L'énergie électrique stockée dans la batterie alimente le système.",
+      "visual_description": "A close-up view of the electric car's battery, depicting a detailed internal structure with visible electrical connections.",
+      "educational_function": "This shot introduces the viewer to the source of energy for the vehicle, showing how electrical energy is stored in the battery.",
+      "image_prompt": "Close-up of a sleek modern electric sedan's battery compartment. The battery is open, showing individual cells and their connections, prominently placed under the car's floor. Materials include polished metal casings and high-grade plastics for insulation. The camera angle is low and slightly angled downwards, capturing depth within the battery. Sharp focus on battery cells; background slightly blurred. Cinematic top-side lighting highlights battery cell details. Photorealistic premium 3D engineering visualization, modern electric vehicle, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.95
+    },
+    {
+      "id": 2,
+      "duration_seconds": 4.0,
+      "voice": "L'énergie est ensuite contrôlée par l'électronique de puissance.",
+      "visual_description": "Medium shot of the power electronics module showing circuit boards and components connected to the battery.",
+      "educational_function": "This shot explains how the energy from the battery is regulated and controlled before being sent to other components.",
+      "image_prompt": "Medium shot of the sleek modern electric sedan's power electronics module, located centrally under the hood. Circuit boards with visible chips and cables are arranged in a precise layout. The camera angle is front-facing, slightly above eye level. Circuit details in focus, with depth into the cabin. Strong key lighting from the top enhances the metallic reflections. Photorealistic premium 3D engineering visualization, modern electric vehicle, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.95
+    },
+    {
+      "id": 3,
+      "duration_seconds": 4.0,
+      "voice": "L'énergie contrôlée active le moteur électrique, générant une rotation.",
+      "visual_description": "A close-up view of the electric motor, clearly showing its rotational dynamics.",
+      "educational_function": "This shot demonstrates how the regulated energy is used to create mechanical motion through the motor, a crucial transition from electricity to movement.",
+      "image_prompt": "Close-up on the modern electric sedan's motor, placed at the front of the vehicle. The motor is shown with its casing partly transparent, displaying coils and a central rotating shaft. Materials include metallic coils and reinforced casing. The angle is side-on at waist height. The rotation of the shaft is in focus, with surrounding housing slightly blurred. Side lighting enhances the mechanical details within the motor. Photorealistic premium 3D engineering visualization, modern electric vehicle, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.95
+    },
+    {
+      "id": 4,
+      "duration_seconds": 4.0,
+      "voice": "Le moteur entraîne les roues, provoquant le déplacement de la voiture.",
+      "visual_description": "Wide shot of the electric car in motion, emphasizing the wheels turning.",
+      "educational_function": "This shot visualizes the final step where mechanical energy moves the car, clearly linking the motor's function to the wheels' movement.",
+      "image_prompt": "Wide shot of the sleek modern electric sedan on a smooth black floor in a dimly lit studio. The electric motor is clearly visible at the front, driving the wheels. The car's wheels are captured in motion, with a slight motion blur showing speed. Materials include polished metallic motor components and durable rubber tires. The camera angle is low and frontal, creating a sense of dynamic movement. Lighting from the ceiling and the sides highlights the car's curves and the wheels' motion. Photorealistic premium 3D engineering visualization, modern electric vehicle, clean dark studio environment, realistic materials, physically accurate mechanical components, cinematic lighting, high contrast, subtle volumetric light, detailed engineering visualization, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+      "semantic_alignment_score": 0.95
+    }
+  ]
+}
