@@ -213,6 +213,74 @@ class TestFeuilleDePrompts(unittest.TestCase):
         self.assertEqual(texte.count(prompts.STYLE_FINGERPRINT), 4)
 
 
+class TestCerveau(unittest.TestCase):
+    """Quel service repond aux appels, selon les cles presentes."""
+
+    def config_avec(self, **env):
+        import importlib
+        import os
+
+        from app import config as module
+
+        efface = {k: os.environ.pop(k, None)
+                  for k in ("OPENAI_API_KEY", "GROQ_API_KEY", "OPENAI_MODEL",
+                            "OPENAI_BASE_URL", "OPENAI_VISION_MODEL", "GROQ_MODEL")}
+        os.environ.update({k: v for k, v in env.items() if v is not None})
+        self.addCleanup(importlib.reload, module)
+
+        def restaurer():
+            for k in env:
+                os.environ.pop(k, None)
+            for k, v in efface.items():
+                if v is not None:
+                    os.environ[k] = v
+
+        self.addCleanup(restaurer)
+        return importlib.reload(module)
+
+    def test_openai_prioritaire_sur_groq(self):
+        c = self.config_avec(OPENAI_API_KEY="sk-abc", GROQ_API_KEY="gsk-def")
+        self.assertFalse(c.USING_GROQ)
+        self.assertEqual(c.OPENAI_API_KEY, "sk-abc")
+        self.assertIsNone(c.OPENAI_BASE_URL)
+        self.assertIn("OpenAI", c.cerveau())
+
+    def test_bascule_sur_groq_si_openai_absente(self):
+        c = self.config_avec(GROQ_API_KEY="gsk-def")
+        self.assertTrue(c.USING_GROQ)
+        self.assertEqual(c.OPENAI_API_KEY, "gsk-def")
+        self.assertEqual(c.OPENAI_BASE_URL, "https://api.groq.com/openai/v1")
+        self.assertIn("Groq", c.cerveau())
+
+    def test_aucune_cle(self):
+        c = self.config_avec()
+        self.assertEqual(c.OPENAI_API_KEY, "")
+        self.assertFalse(c.USING_GROQ)
+        self.assertIn("aucune cle", c.cerveau())
+
+    def test_modele_par_defaut_suit_le_service(self):
+        self.assertEqual(self.config_avec(OPENAI_API_KEY="sk-a").OPENAI_MODEL, "gpt-4o")
+        self.assertEqual(self.config_avec(GROQ_API_KEY="g").OPENAI_MODEL,
+                         "openai/gpt-oss-120b")
+
+    def test_base_url_explicite_respectee(self):
+        c = self.config_avec(OPENAI_API_KEY="sk-a", OPENAI_BASE_URL="https://ailleurs.test/v1")
+        self.assertEqual(c.OPENAI_BASE_URL, "https://ailleurs.test/v1")
+        self.assertIn("ailleurs.test", c.cerveau())
+
+    def test_message_d_erreur_cite_les_deux_cles(self):
+        self.config_avec()
+        import importlib
+
+        from app import openai_client
+        importlib.reload(openai_client)
+        with self.assertRaises(openai_client.OpenAIError) as ctx:
+            openai_client._client()
+        message = str(ctx.exception)
+        self.assertIn("OPENAI_API_KEY", message)
+        self.assertIn("GROQ_API_KEY", message)
+
+
 class TestConfigEtCli(unittest.TestCase):
     def test_valeurs_de_l_etape_1(self):
         from app import config

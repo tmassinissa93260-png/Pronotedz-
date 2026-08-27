@@ -447,17 +447,26 @@ def cmd_selfcheck(args) -> int:
     print(f"  SHOT_COUNT   : {config.SHOT_COUNT}")
     print(f"  TEST_MODE    : {config.TEST_MODE}")
     print(f"  META_AI_URL  : {config.META_AI_URL}")
-    print(f"  OPENAI_MODEL : {config.OPENAI_MODEL}")
+    print(f"  cerveau      : {config.cerveau()}")
+    print(f"  vision       : {config.OPENAI_VISION_MODEL}")
     print(f"  output       : {config.OUTPUT_DIR}")
     print(f"  profil nav.  : {config.BROWSER_PROFILE_DIR}")
 
-    print("\nCle OpenAI")
+    print("\nCerveau")
     if config.OPENAI_API_KEY:
-        print(f"  presente ({len(config.OPENAI_API_KEY)} caracteres)")
+        source = "GROQ_API_KEY" if config.USING_GROQ else "OPENAI_API_KEY"
+        print(f"  {source} presente ({len(config.OPENAI_API_KEY)} caracteres)")
+        print(f"  les appels partiront vers : {config.cerveau()}")
+        if config.USING_GROQ:
+            print("  NOTE : pour l'analyse d'image, nomme un modele vision Groq")
+            print("         via OPENAI_VISION_MODEL=... sinon l'etape 6 echouera.")
     else:
-        print("  ABSENTE  -> les commandes 'storyboard' et 'run' echoueront")
-        print("             cree .env a partir de .env.example")
+        print("  AUCUNE CLE -> 'storyboard', 'run' et 'produire' echoueront")
+        print("               mets OPENAI_API_KEY ou GROQ_API_KEY dans .env")
         ok = False
+
+    print("\nfal.ai (commande 'produire')")
+    print(f"  FAL_KEY : {'presente' if config.FAL_KEY else 'absente'}")
 
     print("\nChromium (Playwright)")
     try:

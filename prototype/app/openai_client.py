@@ -20,13 +20,18 @@ class OpenAIError(RuntimeError):
 def _client() -> openai.OpenAI:
     if not config.OPENAI_API_KEY:
         raise OpenAIError(
-            "OPENAI_API_KEY absente.\n"
-            f"  Cree {config.ROOT_DIR / '.env'} a partir de .env.example, "
-            "puis mets ta cle dedans :\n"
-            "      OPENAI_API_KEY=sk-...\n"
+            "Aucun cerveau configure : ni OPENAI_API_KEY ni GROQ_API_KEY.\n"
+            f"  Cree {config.ROOT_DIR / '.env'} a partir de .env.example, puis mets\n"
+            "  UNE de ces deux lignes dedans :\n"
+            "      OPENAI_API_KEY=sk-...      (OpenAI, payant, compte a creer)\n"
+            "      GROQ_API_KEY=gsk_...       (Groq, gratuit, cle que tu as deja)\n"
+            "  Groq parle le protocole OpenAI : le meme code marche sur les deux.\n"
             "  (la cle ne doit jamais etre ecrite dans le code)"
         )
-    return openai.OpenAI(api_key=config.OPENAI_API_KEY, timeout=config.OPENAI_TIMEOUT)
+    kwargs = {"api_key": config.OPENAI_API_KEY, "timeout": config.OPENAI_TIMEOUT}
+    if config.OPENAI_BASE_URL:
+        kwargs["base_url"] = config.OPENAI_BASE_URL
+    return openai.OpenAI(**kwargs)
 
 
 def _chat_json(model: str, messages: list[dict]) -> dict:

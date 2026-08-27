@@ -104,22 +104,32 @@ jobs:
       - name: Installer les dépendances
         run: pip install -r app/requirements.txt
 
-      - name: Vérifier la clé OpenAI
+      - name: Vérifier qu'un cerveau est disponible
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
-          if [ -z "$OPENAI_API_KEY" ]; then
-            echo "::error::Le secret OPENAI_API_KEY n'est pas défini."
+          if [ -n "$OPENAI_API_KEY" ]; then
+            echo "OPENAI_API_KEY présente (${#OPENAI_API_KEY} caractères) → OpenAI."
+          elif [ -n "$GROQ_API_KEY" ]; then
+            echo "OPENAI_API_KEY absente, GROQ_API_KEY présente → bascule sur Groq."
+            echo "Groq expose une API compatible OpenAI : le même code, une autre adresse."
+            echo "::warning::Pour l'étape « produire », nomme un modèle vision Groq via"
+            echo "la variable OPENAI_VISION_MODEL, sinon l'analyse d'image échouera."
+          else
+            echo "::error::Aucun cerveau : ni OPENAI_API_KEY ni GROQ_API_KEY."
             echo "Settings → Secrets and variables → Actions → New repository secret"
-            echo "Nom : OPENAI_API_KEY   Valeur : ta clé sk-..."
+            echo "  OPENAI_API_KEY = sk-...   (OpenAI, payant, compte à créer)"
+            echo "  ou GROQ_API_KEY = gsk_... (Groq, gratuit — tu l'as déjà)"
             exit 1
           fi
-          echo "Clé présente (${#OPENAI_API_KEY} caractères)."
 
       - name: Tout produire avec fal.ai
         if: inputs.etape == 'produire'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL }}
           FAL_KEY: ${{ secrets.FAL_KEY }}
         run: |
           if [ -z "$FAL_KEY" ]; then
@@ -144,6 +154,7 @@ jobs:
         if: inputs.etape == 'storyboard'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: |
           python -m app.main storyboard \
             --subject "${{ inputs.sujet }}" \
@@ -154,6 +165,8 @@ jobs:
         if: inputs.etape == 'animation'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL }}
         run: |
           if [ -z "${{ inputs.image }}" ]; then
             echo "::error::L'étape « animation » a besoin du champ « image »."

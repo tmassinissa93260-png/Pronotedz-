@@ -36,10 +36,41 @@ META_AI_URL = "https://www.meta.ai/prompt/f1da6c85-fb08-433d-b203-04cc41e575c6"
 # OpenAI - la cle vient de .env, JAMAIS du code
 # ---------------------------------------------------------------------------
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o").strip()
+# Groq expose une API compatible OpenAI (voir pdz2/providers/groq.py) : le
+# meme SDK, le meme code, une autre adresse. Si aucune cle OpenAI n'est
+# fournie mais qu'une cle Groq l'est, on bascule dessus automatiquement.
+GROQ_BASE_URL = "https://api.groq.com/openai/v1"
+
+_openai_key = os.getenv("OPENAI_API_KEY", "").strip()
+_groq_key = os.getenv("GROQ_API_KEY", "").strip()
+
+USING_GROQ = not _openai_key and bool(_groq_key)
+
+OPENAI_API_KEY = _openai_key or (_groq_key if USING_GROQ else "")
+OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "").strip() or (
+    GROQ_BASE_URL if USING_GROQ else None
+)
+
+_default_model = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b") if USING_GROQ else "gpt-4o"
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", _default_model).strip()
+
+# L'analyse d'image exige un modele qui SAIT lire une image. Chez OpenAI
+# gpt-4o le fait ; chez Groq il faut nommer explicitement un modele vision,
+# sinon l'appel echouera — bruyamment, avec le message du service.
 OPENAI_VISION_MODEL = os.getenv("OPENAI_VISION_MODEL", OPENAI_MODEL).strip()
+
 OPENAI_TIMEOUT = float(os.getenv("OPENAI_TIMEOUT", "120"))
+
+
+def cerveau() -> str:
+    """Quel service repond aux appels « OpenAI », en clair."""
+    if not OPENAI_API_KEY:
+        return "aucun (aucune cle)"
+    if USING_GROQ:
+        return f"Groq ({OPENAI_MODEL})"
+    if OPENAI_BASE_URL:
+        return f"{OPENAI_BASE_URL} ({OPENAI_MODEL})"
+    return f"OpenAI ({OPENAI_MODEL})"
 
 # ---------------------------------------------------------------------------
 # fal.ai - images et animation, quand on veut la chaine 100% automatique

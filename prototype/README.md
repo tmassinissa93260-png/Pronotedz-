@@ -33,16 +33,29 @@ pip install -r app/requirements.txt
 python -m playwright install chromium
 ```
 
-## 2. Comment configurer OPENAI_API_KEY
+## 2. Comment configurer le cerveau (OpenAI **ou** Groq)
 
 ```bash
 cp .env.example .env
 ```
 
-Puis dans `.env` :
+Puis dans `.env`, **une** de ces deux lignes :
 
 ```
-OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=sk-...      # OpenAI : payant, compte à créer
+GROQ_API_KEY=gsk_...       # Groq : gratuit
+```
+
+Groq expose une API **compatible OpenAI** (`https://api.groq.com/openai/v1`,
+comme dans `pdz2/providers/groq.py`). Si `OPENAI_API_KEY` est vide et
+`GROQ_API_KEY` remplie, le programme bascule tout seul : même code, même SDK,
+autre adresse.
+
+⚠️ Avec Groq, l'**analyse d'image** (étape 6) exige un modèle qui sait lire une
+image. Nomme-le explicitement, sinon l'étape échouera :
+
+```
+OPENAI_VISION_MODEL=le-modele-vision-de-ton-choix
 ```
 
 Ni espace, ni guillemets, pas de commentaire sur la même ligne. `.env` est dans
