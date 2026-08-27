@@ -1,0 +1,4 @@
+# Jamais sur GitHub : cle API, session de navigateur, resultats locaux
+.env
+browser_profile/
+app/output/
