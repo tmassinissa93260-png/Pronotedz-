@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from .models import COLOR_CODE, QUALITY_AXES, Storyboard
+from .models import COLOR_NOTION, EXPLICATION_FIELDS, QUALITY_AXES, Storyboard
 from .prompts import STYLE_FINGERPRINT
 
 MIN_WORDS_PER_SECOND = 1.8
@@ -41,6 +41,12 @@ MOUVEMENT = ("flow", "travel", "move", "pulse", "circulat", "rotat", "spin", "tu
              "illuminat", "light up", "glow", "advance", "progress", "accelerat",
              "reverse", "enter", "exit", "rise", "propagat", "sweep")
 
+# Un flux doit aller QUELQUE PART : sans direction lisible, le spectateur ne
+# peut pas savoir dans quel sens l'energie circule.
+DIRECTION = ("toward", "towards", "into", "out of", "from", "back to", "along",
+             "through", "up to", "down to", "reverses", "reversing", "outward",
+             "inward", "forward", "returns", "leaving", "entering")
+
 # Mouvements de camera : ils ne comptent pas comme mouvement pedagogique.
 CAMERA = ("camera", "zoom", "dolly", "pan", "tilt", "orbit", "push in", "pull out",
           "tracking shot")
@@ -48,9 +54,11 @@ CAMERA = ("camera", "zoom", "dolly", "pan", "tilt", "orbit", "push in", "pull ou
 # Composant nomme -> mouvement attendu si l'image le met en avant.
 COMPOSANT_MOUVEMENT = {
     "rotor": ("rotat", "spin", "turn"),
+    "stator": ("rotat", "spin", "turn", "stationary", "fixed", "still"),
     "crankshaft": ("rotat", "spin", "turn"),
     "piston": ("move", "travel", "stroke", "down", "up"),
     "gear": ("rotat", "mesh", "turn"),
+    "transmission": ("rotat", "turn", "transmit", "carr"),
     "wheel": ("rotat", "spin", "turn"),
     "cell": ("illuminat", "light", "glow", "charge", "flow"),
 }
@@ -104,6 +112,7 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _progression(sb)
     problems += _grammaire_visuelle(sb)
     problems += _correspondance(sb)
+    problems += _explication(sb)
     problems += _qualite(sb)
     return problems
 
@@ -294,19 +303,25 @@ def _normalise(texte: str) -> str:
 # --- LA REGLE CENTRALE : grammaire visuelle et correspondance ---------------
 
 
-def couleurs_pedagogiques(texte: str) -> set[str]:
-    """Les couleurs du code employees pour porter un phenomene.
+def notions_pedagogiques(texte: str) -> set[str]:
+    """Les NOTIONS du code couleur portees par le texte.
+
+    On raisonne en notions et pas en teintes : l'energie electrique est
+    jaune/orange, donc un flux annonce en jaune dans l'image et repris en
+    orange dans l'animation reste le meme flux.
 
     « yellow energy streams » compte ; « yellow paint » ne compte pas : la
     couleur doit etre attachee a un phenomene, pas a un objet.
     """
     bas = texte.lower()
     trouvees = set()
-    for couleur in COLOR_CODE:
+    for couleur, notion in COLOR_NOTION.items():
+        if notion in trouvees:
+            continue
         for m in re.finditer(re.escape(couleur), bas):
             fenetre = bas[max(0, m.start() - 60):m.end() + 90]
             if any(p in fenetre for p in PHENOMENE):
-                trouvees.add(couleur)
+                trouvees.add(notion)
                 break
     return trouvees
 
@@ -325,7 +340,7 @@ def _grammaire_visuelle(sb: Storyboard) -> list[Problem]:
         parle_invisible = any(mot in s.voice.lower() for mot in
                               ("énergie", "energie", "électricité", "electricite", "courant",
                                "champ", "signal", "puissance", "chaleur", "récupér", "recuper"))
-        if parle_invisible and not couleurs_pedagogiques(s.image_prompt):
+        if parle_invisible and not notions_pedagogiques(s.image_prompt):
             out.append(Problem("GRAMMAIRE", s.slug,
                                "la voix nomme un phenomene invisible, "
                                "aucune representation coloree dans le prompt photo",
@@ -343,15 +358,25 @@ def _correspondance(sb: Storyboard) -> list[Problem]:
         image, anim = own_part(s.image_prompt), s.animation_prompt
         bas_anim = anim.lower()
 
-        perdues = couleurs_pedagogiques(image) - couleurs_pedagogiques(anim)
+        notions_image = notions_pedagogiques(image)
+        perdues = notions_image - notions_pedagogiques(anim)
         if perdues:
             out.append(Problem("CORRESPONDANCE", s.slug,
-                               f"l'image introduit du {', '.join(sorted(perdues))} pedagogique, "
-                               f"l'animation ne le fait pas bouger",
-                               f"Shot {s.id}: the image shows a "
-                               f"{'/'.join(sorted(perdues))} representation of an invisible "
-                               f"phenomenon. The animation must make that same element travel, "
-                               f"pulse or circulate — not just move the camera."))
+                               f"l'image introduit une representation « {', '.join(sorted(perdues))} », "
+                               f"l'animation ne la fait pas bouger",
+                               f"Shot {s.id}: the image carries a {'/'.join(sorted(perdues))} "
+                               f"representation of an invisible phenomenon. The animation must "
+                               f"make that same element travel, pulse or circulate — not just "
+                               f"move the camera."))
+
+        # LE FLUX N'EST JAMAIS STATIQUE : il doit aller quelque part.
+        if "energie" in notions_image and not any(d in bas_anim for d in DIRECTION):
+            out.append(Problem("FLUX", s.slug,
+                               "le flux d'energie n'a pas de direction lisible dans l'animation",
+                               f"Shot {s.id}: the energy flow must never be static. State where "
+                               f"it comes from and where it goes — for example from the battery "
+                               f"toward the motor windings — so the viewer reads the direction "
+                               f"of the transfer."))
 
         if not _mouvement_non_camera(anim):
             out.append(Problem("CORRESPONDANCE", s.slug,
@@ -369,6 +394,31 @@ def _correspondance(sb: Storyboard) -> list[Problem]:
                                        f"Shot {s.id}: the animation must name the {composant} "
                                        f"and describe its motion "
                                        f"({', '.join(verbes)})."))
+    return out
+
+
+def _explication(sb: Storyboard) -> list[Problem]:
+    """Chaque phrase de narration traduite en information visuelle."""
+    out = []
+    for s in sb.shots:
+        courts = [f for f in EXPLICATION_FIELDS
+                  if len(s.visual_explanation.get(f, "").strip()) < 15]
+        if courts:
+            out.append(Problem("EXPLICATION", s.slug,
+                               f"visual_explanation trop vague : {', '.join(courts)}",
+                               f"Shot {s.id}: spell out the four steps — what the voice "
+                               f"explains, the physical element that carries it, the visual "
+                               f"behaviour that makes it readable, and the movement that shows "
+                               f"it."))
+            continue
+
+        mouvement = s.visual_explanation["animation_movement"].lower()
+        if not any(v in mouvement for v in MOUVEMENT):
+            out.append(Problem("EXPLICATION", s.slug,
+                               "animation_movement ne decrit aucun mouvement reel",
+                               f"Shot {s.id}: animation_movement must name a real motion — a "
+                               f"flow travelling, a part rotating, a light spreading — not a "
+                               f"mood or a camera position."))
     return out
 
 

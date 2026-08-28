@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from app import validator  # noqa: E402
 from app.models import Storyboard  # noqa: E402
 from app.prompts import STYLE_DIRECTIVE  # noqa: E402
-from fixtures import IMAGE, board  # noqa: E402
+from fixtures import ANIMATION, IMAGE, board  # noqa: E402
 
 
 def valider(raw, duration=16, shots=4):
@@ -40,16 +40,27 @@ class TestGrammaireVisuelle(unittest.TestCase):
 
     def test_la_couleur_doit_porter_un_phenomene_pas_un_objet(self):
         """« yellow paint » n'est pas une representation de l'electricite."""
-        self.assertEqual(validator.couleurs_pedagogiques("a car with yellow paint"), set())
+        self.assertEqual(validator.notions_pedagogiques("a car with yellow paint"), set())
         self.assertEqual(
-            validator.couleurs_pedagogiques("yellow energy streams along the cable"),
-            {"yellow"})
+            validator.notions_pedagogiques("yellow energy streams along the cable"),
+            {"energie"})
 
-    def test_chaque_couleur_du_code_est_reconnue(self):
-        for couleur in ("yellow", "blue", "green", "orange", "grey"):
+    def test_jaune_et_orange_portent_la_meme_notion(self):
+        """L'energie est jaune/orange : un flux annonce en jaune et repris en
+        orange reste le meme flux, l'animation ne doit pas etre refusee."""
+        self.assertEqual(validator.notions_pedagogiques("yellow energy pulses"), {"energie"})
+        self.assertEqual(validator.notions_pedagogiques("orange energy pulses"), {"energie"})
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = ANIMATION.replace("yellow", "orange")
+        self.assertEqual([x for x in valider(raw) if x.code == "CORRESPONDANCE"], [])
+
+    def test_chaque_notion_du_code_est_reconnue(self):
+        for couleur, notion in (("yellow", "energie"), ("orange", "energie"),
+                                ("blue", "batterie"), ("green", "recuperation"),
+                                ("grey", "mecanique")):
             with self.subTest(couleur=couleur):
                 self.assertEqual(
-                    validator.couleurs_pedagogiques(f"{couleur} energy flow"), {couleur})
+                    validator.notions_pedagogiques(f"{couleur} energy flow"), {notion})
 
 
 class TestCorrespondance(unittest.TestCase):
@@ -63,7 +74,7 @@ class TestCorrespondance(unittest.TestCase):
             "geometry and materials. No deformation, no floating parts.")
         p = [x for x in valider(raw) if x.code == "CORRESPONDANCE"]
         self.assertTrue(p)
-        self.assertIn("yellow", str(p[0]))
+        self.assertIn("energie", str(p[0]))
 
     def test_animation_reduite_a_un_mouvement_de_camera(self):
         raw = board()
@@ -90,6 +101,61 @@ class TestCorrespondance(unittest.TestCase):
             "The rotor rotates. The camera slowly pushes in."))
         self.assertFalse(validator._mouvement_non_camera(
             "The camera slowly zooms in. Camera pushes forward."))
+
+
+class TestFluxDirectionnel(unittest.TestCase):
+    """Le flux n'est jamais statique : le spectateur doit lire son sens."""
+
+    def test_flux_sans_direction_refuse(self):
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "The yellow energy streams pulse and shimmer around the copper busbars while "
+            "the rotor rotates in place. Everything else stays perfectly rigid. Preserve "
+            "exact geometry, proportions and materials. No deformation, no floating parts.")
+        p = [x for x in valider(raw) if x.code == "FLUX"]
+        self.assertTrue(p)
+        self.assertIn("direction", str(p[0]))
+
+    def test_flux_avec_direction_accepte(self):
+        self.assertEqual([x for x in valider(board()) if x.code == "FLUX"], [])
+
+    def test_une_inversion_compte_comme_direction(self):
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "The yellow energy flow reverses and pulses back to the battery pack as the "
+            "wheels keep rotating. The chassis stays rigid. Preserve exact geometry and "
+            "materials. No deformation, no floating parts, no invented components.")
+        self.assertEqual([x for x in valider(raw) if x.code == "FLUX"], [])
+
+
+class TestExplicationVisuelle(unittest.TestCase):
+    """Chaque phrase de narration traduite en information visuelle."""
+
+    def test_les_quatre_temps_sont_exiges(self):
+        from app.models import EXPLICATION_FIELDS, StoryboardError
+        for champ in EXPLICATION_FIELDS:
+            with self.subTest(champ=champ):
+                raw = board()
+                raw["shots"][0]["visual_explanation"][champ] = " "
+                with self.assertRaises(StoryboardError) as ctx:
+                    Storyboard.from_dict(raw)
+                self.assertIn(champ, str(ctx.exception))
+
+    def test_explication_trop_vague(self):
+        raw = board()
+        raw["shots"][0]["visual_explanation"]["physical_element"] = "le moteur"
+        p = [x for x in valider(raw) if x.code == "EXPLICATION"]
+        self.assertIn("physical_element", str(p[0]))
+
+    def test_le_mouvement_doit_etre_un_vrai_mouvement(self):
+        raw = board()
+        raw["shots"][0]["visual_explanation"]["animation_movement"] = (
+            "une ambiance premium et contemplative sur le composant")
+        p = [x for x in valider(raw) if x.code == "EXPLICATION"]
+        self.assertIn("aucun mouvement reel", str(p[0]))
+
+    def test_une_explication_complete_passe(self):
+        self.assertEqual([x for x in valider(board()) if x.code == "EXPLICATION"], [])
 
 
 class TestQualite(unittest.TestCase):

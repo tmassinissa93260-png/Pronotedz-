@@ -31,15 +31,28 @@ MOTION_INTENTS = (
 )
 
 # ---------------------------------------------------------------------------
-# CODE COULEUR - une couleur = une notion, stable dans toute la video.
+# CODE COULEUR
+#
+# Une NOTION peut porter plusieurs couleurs — l'energie electrique est
+# jaune/orange — mais une couleur ne porte jamais deux notions. Les controles
+# raisonnent donc sur la notion, pas sur la teinte : un flux annonce en jaune
+# dans l'image et repris en orange dans l'animation reste le meme flux.
 # ---------------------------------------------------------------------------
 
-COLOR_CODE = {
-    "yellow": "électricité, courant, énergie électrique",
-    "blue": "batterie, système électrique, technologie",
-    "green": "efficacité, énergie récupérée, recharge",
-    "orange": "chaleur, puissance, phénomène à distinguer",
-    "grey": "mécanique, structure, composants",
+COLOR_NOTION = {
+    "yellow": "energie",
+    "orange": "energie",
+    "blue": "batterie",
+    "green": "recuperation",
+    "grey": "mecanique",
+    "gray": "mecanique",
+}
+
+NOTION_SENS = {
+    "energie": "électricité, courant, flux d'énergie — jaune/orange lumineux",
+    "batterie": "batterie, système électrique, technologie — bleu",
+    "recuperation": "énergie récupérée, efficacité, recharge — vert",
+    "mecanique": "mécanique, structure, composants — gris",
 }
 
 VISUAL_BIBLE_FIELDS = (
@@ -63,6 +76,15 @@ SHOT_TEXT_FIELDS = (
     "visual_concept",
     "image_prompt",
     "animation_prompt",
+)
+
+# REGLE « VISUAL EXPLANATION » : chaque phrase de narration est traduite en
+# information visuelle, en quatre temps explicites.
+EXPLICATION_FIELDS = (
+    "information",        # ce que la voix explique
+    "physical_element",   # l'element physique qui porte cette information
+    "visual_behavior",    # le comportement visuel qui la rend comprehensible
+    "animation_movement",  # le mouvement d'animation correspondant
 )
 
 # Les sept axes du controle qualite.
@@ -120,6 +142,7 @@ class Shot:
     image_prompt: str
     animation_prompt: str
     motion_intent: str
+    visual_explanation: dict
 
     @property
     def slug(self) -> str:
@@ -149,6 +172,14 @@ class Shot:
                 f"{label} : motion_intent '{intent}' hors vocabulaire.\n"
                 f"  Valeurs admises : {', '.join(MOTION_INTENTS)}")
 
+        explication = raw.get("visual_explanation")
+        if not isinstance(explication, dict):
+            raise StoryboardError(f"{label} : 'visual_explanation' manquante")
+        vides = [f for f in EXPLICATION_FIELDS if not str(explication.get(f) or "").strip()]
+        if vides:
+            raise StoryboardError(
+                f"{label} : visual_explanation, champ(s) vide(s) : {', '.join(vides)}")
+
         return cls(
             id=_entier(raw.get("id"), f"{label} 'id'"),
             duration_seconds=_nombre(raw.get("duration_seconds"),
@@ -160,6 +191,7 @@ class Shot:
             image_prompt=str(raw["image_prompt"]).strip(),
             animation_prompt=str(raw["animation_prompt"]).strip(),
             motion_intent=intent,
+            visual_explanation={f: str(explication[f]).strip() for f in EXPLICATION_FIELDS},
         )
 
 

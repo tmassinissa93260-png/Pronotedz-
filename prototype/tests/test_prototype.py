@@ -12,8 +12,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from app import montage, prompts  # noqa: E402
 from app.models import (  # noqa: E402
-    COLOR_CODE,
+    COLOR_NOTION,
     MOTION_INTENTS,
+    NOTION_SENS,
     QUALITY_AXES,
     VISUAL_BIBLE_FIELDS,
     Storyboard,
@@ -87,15 +88,21 @@ class TestContrat(unittest.TestCase):
 
 
 class TestCodeCouleur(unittest.TestCase):
-    def test_les_cinq_couleurs_et_leur_sens(self):
-        self.assertEqual(set(COLOR_CODE), {"yellow", "blue", "green", "orange", "grey"})
-        self.assertIn("électricité", COLOR_CODE["yellow"])
-        self.assertIn("récupérée", COLOR_CODE["green"])
+    def test_l_energie_est_jaune_ET_orange(self):
+        self.assertEqual(COLOR_NOTION["yellow"], "energie")
+        self.assertEqual(COLOR_NOTION["orange"], "energie")
+        self.assertIn("jaune/orange", NOTION_SENS["energie"])
+
+    def test_une_couleur_ne_porte_jamais_deux_notions(self):
+        for couleur, notion in COLOR_NOTION.items():
+            with self.subTest(couleur=couleur):
+                self.assertIsInstance(notion, str)
+        self.assertEqual(set(NOTION_SENS), set(COLOR_NOTION.values()))
 
     def test_le_code_est_injecte_dans_le_prompt(self):
         texte = prompts.storyboard_user("Sujet", 16, 4)
-        for couleur in COLOR_CODE:
-            self.assertIn(couleur.upper(), texte)
+        for notion in NOTION_SENS:
+            self.assertIn(notion.upper(), texte)
 
 
 class TestConditionsDuPrompt(unittest.TestCase):
@@ -115,6 +122,29 @@ class TestConditionsDuPrompt(unittest.TestCase):
         self.assertIn("CORRESPONDENCE", self.texte)
         self.assertIn("image shows a rotor", self.texte)
         self.assertIn("A camera move is never the main motion", self.texte)
+
+    def test_le_style_de_reference_est_impose(self):
+        self.assertIn("REFERENCE VISUAL LANGUAGE", self.texte)
+        self.assertIn("semi-cutaway", self.texte)
+        self.assertIn("blue and white lighting", self.texte)
+        self.assertIn("high-end car commercial", self.texte)
+        self.assertIn("same silhouette, same colour", self.texte)
+
+    def test_la_regle_visual_explanation_et_ses_quatre_temps(self):
+        self.assertIn("VISUAL EXPLANATION", self.texte)
+        for etape in ("information", "physical_element", "visual_behavior",
+                      "animation_movement"):
+            self.assertIn(etape, self.texte)
+        self.assertIn("sound off", self.texte)
+
+    def test_les_correspondances_concretes(self):
+        for bloc in ("BATTERY", "ELECTRICITY", "MOTOR", "TRANSMISSION", "REGENERATIVE"):
+            self.assertIn(bloc, self.texte)
+        self.assertIn("THE FLOW IS NEVER STATIC", self.texte)
+
+    def test_aucune_animation_decorative(self):
+        self.assertIn("NEVER A DECORATIVE ANIMATION", self.texte)
+        self.assertIn("logical continuation of the still image", self.texte)
 
     def test_les_transformations_sont_nommees(self):
         for transformation in ("electricity → motion", "energy → storage",

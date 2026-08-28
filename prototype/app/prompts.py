@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 
-from .models import COLOR_CODE, MOTION_INTENTS
+from .models import MOTION_INTENTS, NOTION_SENS
 
 # ---------------------------------------------------------------------------
 # STYLE VISUEL DE BASE
@@ -19,11 +19,13 @@ from .models import COLOR_CODE, MOTION_INTENTS
 # ---------------------------------------------------------------------------
 
 _DEFAUT = (
-    "Photorealistic premium 3D engineering visualization, modern electric vehicle, "
-    "clean dark studio environment, realistic materials, physically accurate mechanical "
-    "components, cinematic lighting, high contrast, subtle volumetric light, detailed "
-    "engineering visualization, vertical 9:16 composition, no text, no labels, no logos, "
-    "no watermark."
+    "Photorealistic premium 3D engineering visualization, modern car in technical "
+    "semi-cutaway view, realistic bodywork with internal components visible where the "
+    "explanation needs them, dark premium studio environment, cinematic blue and white "
+    "lighting, realistic detailed materials, physically credible automotive mechanics, "
+    "clearly visible electrical and mechanical components, cinematic depth of field, high "
+    "contrast, premium high-end car commercial rendering, vertical 9:16 composition, no "
+    "text, no labels, no logos, no watermark."
 )
 
 STYLE_DIRECTIVE = (os.getenv("STYLE_DIRECTIVE") or "").strip() or _DEFAUT
@@ -40,7 +42,7 @@ def enforce_style(image_prompt: str) -> str:
 
 
 def color_block() -> str:
-    return "\n".join(f"  {couleur.upper():7} = {sens}" for couleur, sens in COLOR_CODE.items())
+    return "\n".join(f"  {notion.upper():14} = {sens}" for notion, sens in NOTION_SENS.items())
 
 
 # ---------------------------------------------------------------------------
@@ -72,6 +74,17 @@ TOTAL DURATION: {duration} seconds
 SHOTS: {shot_count}
 
 Every rule below is mandatory. A storyboard that misses one is rejected.
+
+── THE REFERENCE VISUAL LANGUAGE — the artistic reference for the whole video ──
+Photorealistic premium 3D engineering visualization. A modern car in technical
+semi-cutaway, realistic bodywork with the internal components visible where the
+explanation needs them. Dark premium studio. Cinematic blue and white lighting.
+Realistic detailed materials. Physically credible automotive mechanics.
+Electrical and mechanical components clearly visible. Cinematic depth of field,
+high contrast. The finish of a high-end car commercial. Vertical 9:16.
+
+CONTINUITY: the same car throughout — same silhouette, same colour, same
+proportions, same materials, same environment, same visual language.
 
 ── PART 1 — THE SCRIPT ──
 Write "script": the full narration, in French, as one continuous spoken text.
@@ -116,7 +129,31 @@ pulses travelling along the cables into the windings.
 That yellow element is NOT decoration. It carries information. It must mean
 the same thing in every shot of the video.
 
-── COLOUR CODE — one colour, one meaning, stable throughout ──
+── VISUAL EXPLANATION — every sentence becomes visual information ──
+An image that is only beautiful is rejected. For EVERY shot, fill
+"visual_explanation" with these four, in order:
+  1. information        what the voice explains, in one sentence
+  2. physical_element   the physical element that carries that information
+  3. visual_behavior    the visual behaviour that makes it understandable
+  4. animation_movement the movement that shows it
+The viewer must understand how it works even with the sound off.
+
+── THE CONCRETE MAPPINGS ──
+BATTERY        visible cells · stored energy as a pulsing yellow/orange light ·
+               the cells light up progressively
+ELECTRICITY    yellow/orange flow · clearly directional · the flow actually
+               travels along the cables
+MOTOR          rotor and stator visible · the flow entering · the rotor starts
+               to turn
+TRANSMISSION   visible gears · the gears rotate · the rotation carries on to
+               the wheels
+REGENERATIVE   wheels turning · the flow reverses direction · it travels back
+BRAKING        to the motor, then to the battery
+
+THE FLOW IS NEVER STATIC. It always has a clear direction, so the viewer reads
+which way the energy goes.
+
+── COLOUR CODE — one notion, one colour, stable throughout ──
 {color_block()}
 Never use a different colour for the same notion. Never reuse a colour for a
 different notion.
@@ -164,6 +201,15 @@ This is FORBIDDEN:
 A camera move is never the main motion. The camera may move, but it stays
 secondary to the information.
 
+── NEVER A DECORATIVE ANIMATION ──
+Every movement explains something:
+  a flow travelling      = energy being transferred
+  a rotation             = energy becoming motion
+  a flow reversing       = energy being recovered
+  a progressive lighting = energy accumulating or a system activating
+  a camera move          = revealing or following an information
+The animation is the logical continuation of the still image.
+
 ── SHOW THE TRANSFORMATION ──
 When the explanation contains a transformation, the animation shows it:
   electricity → motion : the flow enters, then the rotor starts turning
@@ -209,7 +255,13 @@ Return only this JSON:
 concretely, e.g. yellow energy flow entering the stator windings",
       "image_prompt": "in English, very detailed, ending with the art direction",
       "animation_prompt": "in English, what moves and how, for THIS image",
-      "motion_intent": "one value from the list above"
+      "motion_intent": "one value from the list above",
+      "visual_explanation": {{
+        "information": "what the voice explains here",
+        "physical_element": "the element that carries it",
+        "visual_behavior": "how it reads on screen",
+        "animation_movement": "the movement that shows it"
+      }}
     }}
   ],
   "quality_check": {{

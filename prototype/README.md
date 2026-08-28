@@ -100,6 +100,21 @@ pédagogique, le prompt image et le prompt animation.
 
 ---
 
+## Le style de référence
+
+La direction artistique par défaut encode le langage visuel de référence :
+visualisation 3D d'ingénierie premium, automobile moderne en **semi-coupe
+technique**, carrosserie réaliste avec les composants internes visibles là où
+l'explication l'exige, studio sombre premium, **éclairage cinématique
+bleu/blanc**, matériaux réalistes, mécanique physiquement crédible, profondeur
+de champ cinématographique, contraste élevé, finition de **publicité automobile
+haut de gamme**, vertical 9:16.
+
+La continuité est exigée : même silhouette, même couleur, mêmes proportions,
+mêmes matériaux, même environnement, d'un plan à l'autre.
+
+`STYLE_DIRECTIVE` dans `.env` remplace cette phrase pour un autre sujet.
+
 ## La règle centrale : la grammaire visuelle pédagogique
 
 Un prompt qui se contente de montrer un objet est refusé. Quand la voix nomme
@@ -111,15 +126,57 @@ système doit en **créer une représentation visible**.
 
 Cet élément jaune n'est pas une décoration : **il porte une information**.
 
-### Code couleur — une couleur, un sens, stable
+### Code couleur — une notion, sa couleur, stable
 
-| | |
+| Notion | Couleur |
 |---|---|
-| **jaune** | électricité, courant, énergie électrique |
-| **bleu** | batterie, système électrique, technologie |
-| **vert** | efficacité, énergie récupérée, recharge |
-| **orange** | chaleur, puissance, phénomène à distinguer |
-| **gris** | mécanique, structure, composants |
+| électricité, courant, flux d'énergie | **jaune / orange** lumineux |
+| batterie, système électrique | **bleu** |
+| énergie récupérée, recharge | **vert** |
+| mécanique, structure | **gris** |
+
+Une notion peut porter deux teintes — l'énergie est jaune/orange — mais une
+teinte ne porte jamais deux notions. Les contrôles raisonnent donc sur la
+**notion** : un flux annoncé en jaune dans l'image et repris en orange dans
+l'animation reste le même flux, et n'est pas refusé.
+
+### Le flux n'est jamais statique
+
+Dès qu'une représentation d'énergie apparaît, l'animation doit dire **d'où elle
+vient et où elle va** — « from the battery toward the motor windings », « back
+to the pack ». Sans direction lisible, le contrôle `FLUX` refuse : le
+spectateur ne peut pas savoir dans quel sens l'énergie circule.
+
+### Chaque phrase devient une information visuelle
+
+Pour chaque plan, quatre temps explicites, vérifiés :
+
+1. **information** — ce que la voix explique
+2. **physical_element** — l'élément physique qui le porte
+3. **visual_behavior** — le comportement visuel qui le rend lisible
+4. **animation_movement** — le mouvement qui le montre
+
+Le spectateur doit comprendre le fonctionnement **même sans le son**.
+
+### Les correspondances concrètes
+
+| | Image | Animation |
+|---|---|---|
+| Batterie | cellules visibles, lumière jaune/orange pulsante | les cellules s'illuminent progressivement |
+| Électricité | flux jaune/orange | le flux se déplace réellement dans les câbles |
+| Moteur | rotor et stator visibles, flux entrant | le rotor commence à tourner |
+| Transmission | engrenages visibles | ils tournent, la rotation gagne les roues |
+| Freinage régénératif | roues en rotation | le flux s'inverse et retourne vers la batterie |
+
+### Aucune animation décorative
+
+| Mouvement | Ce qu'il explique |
+|---|---|
+| un flux qui se déplace | transfert d'énergie |
+| une rotation | transformation en mouvement |
+| un flux qui s'inverse | récupération d'énergie |
+| une illumination progressive | accumulation, activation |
+| un mouvement de caméra | révélation ou suivi d'une information |
 
 ### Correspondance image → animation
 
@@ -163,6 +220,8 @@ règle seulement demandée n'est pas une règle.
 | `PROGRESSION` | deux plans qui disent la même chose |
 | **`GRAMMAIRE`** | **un phénomène invisible sans représentation colorée** |
 | **`CORRESPONDANCE`** | **un élément pédagogique que l'animation ne fait pas bouger, ou une animation réduite à un mouvement de caméra** |
+| **`FLUX`** | **un flux d'énergie sans direction lisible** |
+| **`EXPLICATION`** | **les quatre temps absents, vagues, ou un « mouvement » qui n'en est pas un** |
 | `QUALITE` | un des sept axes sous 0,8 |
 
 Quand le validateur refuse, la liste exacte repart chez OpenAI, plan par plan.
@@ -197,9 +256,10 @@ Secret : `OPENAI_API_KEY` ou `GROQ_API_KEY`.
 python -m unittest discover -s tests
 ```
 
-62 tests, aucun appel réseau : contrat JSON, code couleur, les vérifications
-une par une — dont la grammaire visuelle et la correspondance image → animation
-—, conditions présentes dans le prompt, timeline, sous-titres, CLI.
+75 tests, aucun appel réseau : contrat JSON, code couleur par notion, les
+vérifications une par une — grammaire visuelle, correspondance image →
+animation, direction du flux, explication en quatre temps —, conditions
+présentes dans le prompt, timeline, sous-titres, CLI.
 
 ## Limites assumées
 

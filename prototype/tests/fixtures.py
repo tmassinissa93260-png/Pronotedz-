@@ -53,6 +53,13 @@ def shot(i=1, **over):
         "image_prompt": IMAGE,
         "animation_prompt": ANIMATION,
         "motion_intent": INTENTS[i - 1],
+        "visual_explanation": {
+            "information": "l'énergie stockée quitte la batterie et rejoint le moteur",
+            "physical_element": "les busbars en cuivre reliant le pack au stator",
+            "visual_behavior": "un flux jaune lumineux parcourt les busbars vers l'avant",
+            "animation_movement": "le flux jaune travels along the busbars toward the "
+                                  "stator, puis le rotor commence à tourner",
+        },
     }
     base.update(over)
     return base
@@ -69,7 +76,8 @@ def board(n=4, **over):
             "main_subject": "the powertrain of a white compact electric sedan",
             "characters_objects": "no characters, only the vehicle and its components",
             "vehicle": "white compact electric sedan, modern design, realistic proportions",
-            "colors": "yellow for electrical energy, blue for the battery, grey for mechanics",
+            "colors": "yellow and orange for electrical energy, blue for the battery, "
+                      "green for recovered energy, grey for mechanics",
             "environment": "dark technical studio, night-blue grey backdrop, concrete floor",
             "materials": "matte white paint, brushed aluminium, dark composite, visible copper",
             "lighting": "cinematic key light, high contrast, subtle volumetric haze",
