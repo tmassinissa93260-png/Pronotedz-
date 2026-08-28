@@ -48,6 +48,13 @@ COLOR_NOTION = {
     "gray": "mecanique",
 }
 
+# Deux notions representent un PHENOMENE INVISIBLE, qui se deplace : c'est a
+# elles seules que s'applique « ce que l'image introduit, l'animation doit le
+# faire bouger ». Les deux autres sont des couleurs d'IDENTITE — la batterie
+# est bleue, la mecanique est grise — et exiger qu'un gris se deplace n'a
+# aucun sens.
+NOTIONS_EN_MOUVEMENT = ("energie", "recuperation")
+
 NOTION_SENS = {
     "energie": "électricité, courant, flux d'énergie — jaune/orange lumineux",
     "batterie": "batterie, système électrique, technologie — bleu",

@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from .models import COLOR_NOTION, EXPLICATION_FIELDS, QUALITY_AXES, Storyboard
+from .models import COLOR_NOTION, EXPLICATION_FIELDS, NOTIONS_EN_MOUVEMENT, QUALITY_AXES, Storyboard
 from .prompts import STYLE_FINGERPRINT
 
 MIN_WORDS_PER_SECOND = 1.8
@@ -35,6 +35,13 @@ SPECIFICITY_FAMILIES = {
 # Mots qui signalent un phenomene invisible rendu visible.
 PHENOMENE = ("energy", "current", "electric", "flow", "stream", "pulse", "particle",
              "field", "charge", "power", "signal", "heat")
+
+# Une couleur qui qualifie l'ECLAIRAGE ou le decor est de la direction
+# artistique, pas une notion pedagogique : « cinematic blue lighting » est
+# impose par le style de reference, et personne ne peut le faire bouger.
+AMBIANCE = ("lighting", "light on", "light from", "backlight", "rim light",
+            "key light", "ambient", "haze", "backdrop", "environment", "studio",
+            "atmosphere", "tone", "cast", "background", "wash")
 
 # Verbes de mouvement qui font vraiment bouger la chose.
 MOUVEMENT = ("flow", "travel", "move", "pulse", "circulat", "rotat", "spin", "turn",
@@ -354,10 +361,25 @@ def _non_montres(voix: str, image: str) -> list[str]:
             if fr in v and not any(_mot_present(a, i) for a in en)]
 
 
+def _forme(mot: str) -> str:
+    """Le motif d'un mot entier, ses flexions courantes comprises.
+
+    Le run 18 a montre le defaut inverse du precedent : « braking » ne
+    matchait pas « brake », et le validateur reclamait un frein que le prompt
+    photo nommait deux fois. On accepte donc le gerondif et le participe, en
+    retirant le e muet — brake -> brak(e|es|ing|ed) — sans pour autant
+    rouvrir la porte a « engine » dans « engineering », qui ne fait partie
+    d'aucune de ces flexions.
+    """
+    radical = mot[:-1] if mot.endswith("e") else mot
+    return rf"\b{re.escape(radical)}(e?s|es|ing|ed|e)?\b"
+
+
 def _mot_present(mot: str, texte: str) -> bool:
-    """Mot entier, pluriel tolere. « engine » ne matche pas « engineering »,
-    mais « winding » matche bien « windings »."""
-    return re.search(rf"\b{re.escape(mot)}(s|es)?\b", texte) is not None
+    """Mot entier, flexions tolerees. « engine » ne matche pas
+    « engineering », mais « winding » matche « windings » et « brake »
+    matche « braking »."""
+    return re.search(_forme(mot), texte) is not None
 
 
 def _progression(sb: Storyboard) -> list[Problem]:
@@ -403,6 +425,15 @@ def notions_pedagogiques(texte: str) -> set[str]:
         if notion in trouvees:
             continue
         for m in re.finditer(re.escape(couleur), bas):
+            apres = bas[m.end():m.end() + 40]
+            premier_ambiance = min((apres.find(a) for a in AMBIANCE
+                                    if a in apres), default=-1)
+            premier_phenomene = min((apres.find(p) for p in PHENOMENE
+                                     if p in apres), default=-1)
+            # « blue lighting » est la direction artistique, pas une notion.
+            if premier_ambiance >= 0 and (premier_phenomene < 0
+                                          or premier_ambiance < premier_phenomene):
+                continue
             fenetre = bas[max(0, m.start() - 60):m.end() + 90]
             if any(p in fenetre for p in PHENOMENE):
                 trouvees.add(notion)
@@ -443,7 +474,8 @@ def _correspondance(sb: Storyboard) -> list[Problem]:
         bas_anim = anim.lower()
 
         notions_image = notions_pedagogiques(image)
-        perdues = notions_image - notions_pedagogiques(anim)
+        mobiles = notions_image & set(NOTIONS_EN_MOUVEMENT)
+        perdues = mobiles - notions_pedagogiques(anim)
         if perdues:
             out.append(Problem("CORRESPONDANCE", s.slug,
                                f"l'image introduit une representation « {', '.join(sorted(perdues))} », "
@@ -529,7 +561,7 @@ def _mots_ancrables(texte: str, generiques: set[str]) -> list[list[str]]:
 def _dans_le_cadre(mot: str, texte: str) -> bool:
     """Vrai si le mot est nomme autrement que comme destination d'un flux."""
     bas = texte.lower()
-    for m in re.finditer(rf"\b{re.escape(mot)}(s|es)?\b", bas):
+    for m in re.finditer(_forme(mot), bas):
         avant = bas[max(0, m.start() - FENETRE_DESTINATION):m.start()]
         if not any(d in avant for d in DESTINATION):
             return True
@@ -601,7 +633,7 @@ def _hors_camera(texte: str) -> str:
 
 def _acteur(mot: str, proposition: str) -> bool:
     """Vrai si la piece bouge elle-meme, plutot que de subir un flux."""
-    for m in re.finditer(rf"\b{re.escape(mot)}(s|es)?\b", proposition):
+    for m in re.finditer(_forme(mot), proposition):
         if not any(r in proposition[max(0, m.start() - 20):m.start()]
                    for r in ROLE_PASSIF):
             return True

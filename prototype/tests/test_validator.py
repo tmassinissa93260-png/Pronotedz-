@@ -235,6 +235,53 @@ class TestAncrage(unittest.TestCase):
         self.assertEqual([x for x in valider(board()) if x.code == "ANCRAGE"], [])
 
 
+class TestCouleursDIdentite(unittest.TestCase):
+    """Une couleur d'identite n'a pas a se deplacer."""
+
+    def test_l_eclairage_bleu_n_est_pas_une_notion_pedagogique(self):
+        """« cinematic blue lighting » est impose par la direction artistique.
+        Le run 18 le comptait comme une representation de la batterie, et
+        reclamait ensuite qu'elle bouge."""
+        from app.validator import notions_pedagogiques
+        self.assertNotIn("batterie", notions_pedagogiques(
+            "The cinematic blue lighting enhances the energy glow inside the cells"))
+        self.assertIn("energie", notions_pedagogiques(
+            "controlled yellow energy streams travel along the busbars"))
+
+    def test_le_gris_de_la_mecanique_n_a_pas_a_bouger(self):
+        raw = board()
+        raw["shots"][0]["image_prompt"] = raw["shots"][0]["image_prompt"].replace(
+            "dark composite tray.",
+            "dark composite tray, grey mechanical power transfer housing.")
+        self.assertEqual([x for x in valider(raw)
+                          if x.code == "CORRESPONDANCE" and "mecanique" in x.message], [])
+
+    def test_un_flux_jaune_doit_toujours_bouger(self):
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "The central rotor progressively begins to rotate as the transmission "
+            "gears turn with it, and the wheels follow. Everything else stays rigid. "
+            "Preserve exact geometry, proportions and materials. No deformation.")
+        p = [x for x in valider(raw) if x.code == "CORRESPONDANCE"]
+        self.assertTrue(p)
+        self.assertIn("energie", str(p[0]))
+
+
+class TestFlexions(unittest.TestCase):
+    """« braking » est bien « brake »."""
+
+    def test_le_gerondif_compte(self):
+        from app.validator import _mot_present
+        self.assertTrue(_mot_present("brake", "emphasize braking mechanics"))
+        self.assertTrue(_mot_present("winding", "the stator windings"))
+        self.assertTrue(_mot_present("rotate", "the rotor is rotating"))
+
+    def test_mais_engine_ne_se_cache_toujours_pas_dans_engineering(self):
+        from app.validator import _mot_present
+        self.assertFalse(_mot_present("engine", "3D engineering visualization"))
+        self.assertFalse(_mot_present("cell", "cellular structure"))
+
+
 class TestAnimationDynamique(unittest.TestCase):
     """Le zoom n'est jamais le mouvement principal."""
 
