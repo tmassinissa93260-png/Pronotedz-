@@ -1,7 +1,7 @@
-"""Structures du storyboard, de l'analyse d'image et du plan d'animation.
+"""Le contrat : storyboard, visual bible, analyse video, timeline.
 
-Le JSON attendu d'OpenAI est decrit ici et nulle part ailleurs : c'est le
-contrat. `validator.py` verifie qu'il est tenu.
+Tout ce qu'OpenAI doit rendre est decrit ici, et nulle part ailleurs.
+`validator.py` verifie que le contrat est tenu.
 """
 
 from __future__ import annotations
@@ -10,40 +10,70 @@ import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
-# Vocabulaire controle des intentions de mouvement (CONDITION « MOTION INTENT »).
+# ---------------------------------------------------------------------------
+# MOTION INTENT - vocabulaire ferme. « zoom » n'y figure pas, volontairement.
+# ---------------------------------------------------------------------------
+
 MOTION_INTENTS = (
-    "reveal",
-    "orbit",
-    "macro_travel",
-    "interaction",
-    "tracking",
-    "energy_follow",
+    "energy_flow",
+    "energy_storage",
+    "energy_transfer",
     "mechanical_rotation",
     "electromagnetic_rotation",
-    "gear_rotation",
-    "drivetrain_follow",
-    "causal_traversal",
+    "cause_effect",
+    "reveal",
+    "tracking",
+    "macro_travel",
     "acceleration",
     "deceleration",
-    "reverse_energy",
-    "energy_generation",
+    "regenerative_braking",
     "energy_return",
 )
 
+# ---------------------------------------------------------------------------
+# CODE COULEUR - une couleur = une notion, stable dans toute la video.
+# ---------------------------------------------------------------------------
+
+COLOR_CODE = {
+    "yellow": "électricité, courant, énergie électrique",
+    "blue": "batterie, système électrique, technologie",
+    "green": "efficacité, énergie récupérée, recharge",
+    "orange": "chaleur, puissance, phénomène à distinguer",
+    "grey": "mécanique, structure, composants",
+}
+
 VISUAL_BIBLE_FIELDS = (
+    "main_subject",
+    "characters_objects",
     "vehicle",
+    "colors",
     "environment",
     "materials",
     "lighting",
-    "color_palette",
-    "camera_language",
+    "camera",
+    "style_3d",
+    "realism",
+    "invisible_phenomena",
 )
 
 SHOT_TEXT_FIELDS = (
     "voice",
     "visual_description",
     "educational_function",
+    "visual_concept",
     "image_prompt",
+    "animation_prompt",
+)
+
+# Les sept axes du controle qualite.
+QUALITY_AXES = (
+    "narrative_quality",
+    "visual_quality",
+    "scientific_accuracy",
+    "voice_visual_alignment",
+    "visual_continuity",
+    "pedagogical_clarity",
+    "animation_potential",
 )
 
 
@@ -53,31 +83,29 @@ class StoryboardError(ValueError):
 
 @dataclass
 class VisualBible:
+    main_subject: str
+    characters_objects: str
     vehicle: str
+    colors: str
     environment: str
     materials: str
     lighting: str
-    color_palette: str
-    camera_language: str
+    camera: str
+    style_3d: str
+    realism: str
+    invisible_phenomena: str
 
     def as_block(self) -> str:
-        """La bible telle qu'elle est injectee dans chaque prompt photo."""
-        return (
-            f"Vehicle: {self.vehicle}\n"
-            f"Environment: {self.environment}\n"
-            f"Materials: {self.materials}\n"
-            f"Lighting: {self.lighting}\n"
-            f"Colour palette: {self.color_palette}\n"
-            f"Camera language: {self.camera_language}"
-        )
+        return "\n".join(f"{champ.replace('_', ' ').capitalize()}: {getattr(self, champ)}"
+                         for champ in VISUAL_BIBLE_FIELDS)
 
     @classmethod
     def from_dict(cls, raw: object) -> VisualBible:
         if not isinstance(raw, dict):
             raise StoryboardError("'visual_bible' manquante ou invalide")
-        missing = [f for f in VISUAL_BIBLE_FIELDS if not str(raw.get(f) or "").strip()]
-        if missing:
-            raise StoryboardError(f"visual_bible : champ(s) vide(s) : {', '.join(missing)}")
+        manquants = [f for f in VISUAL_BIBLE_FIELDS if not str(raw.get(f) or "").strip()]
+        if manquants:
+            raise StoryboardError(f"visual_bible : champ(s) vide(s) : {', '.join(manquants)}")
         return cls(**{f: str(raw[f]).strip() for f in VISUAL_BIBLE_FIELDS})
 
 
@@ -88,8 +116,10 @@ class Shot:
     voice: str
     visual_description: str
     educational_function: str
+    visual_concept: str
     image_prompt: str
-    semantic_alignment_score: float
+    animation_prompt: str
+    motion_intent: str
 
     @property
     def slug(self) -> str:
@@ -97,7 +127,7 @@ class Shot:
 
     @property
     def word_count(self) -> int:
-        return len([w for w in self.voice.split() if w.strip()])
+        return len([m for m in self.voice.split() if m.strip()])
 
     @property
     def words_per_second(self) -> float:
@@ -109,20 +139,27 @@ class Shot:
         if not isinstance(raw, dict):
             raise StoryboardError(f"{label} : doit etre un objet JSON")
 
-        missing = [f for f in SHOT_TEXT_FIELDS if not str(raw.get(f) or "").strip()]
-        if missing:
-            raise StoryboardError(f"{label} : champ(s) vide(s) : {', '.join(missing)}")
+        manquants = [f for f in SHOT_TEXT_FIELDS if not str(raw.get(f) or "").strip()]
+        if manquants:
+            raise StoryboardError(f"{label} : champ(s) vide(s) : {', '.join(manquants)}")
+
+        intent = str(raw.get("motion_intent") or "").strip()
+        if intent not in MOTION_INTENTS:
+            raise StoryboardError(
+                f"{label} : motion_intent '{intent}' hors vocabulaire.\n"
+                f"  Valeurs admises : {', '.join(MOTION_INTENTS)}")
 
         return cls(
-            id=_number(raw.get("id"), f"{label} 'id'", integer=True),
-            duration_seconds=_number(raw.get("duration_seconds"), f"{label} 'duration_seconds'"),
+            id=_entier(raw.get("id"), f"{label} 'id'"),
+            duration_seconds=_nombre(raw.get("duration_seconds"),
+                                     f"{label} 'duration_seconds'"),
             voice=str(raw["voice"]).strip(),
             visual_description=str(raw["visual_description"]).strip(),
             educational_function=str(raw["educational_function"]).strip(),
+            visual_concept=str(raw["visual_concept"]).strip(),
             image_prompt=str(raw["image_prompt"]).strip(),
-            semantic_alignment_score=_number(
-                raw.get("semantic_alignment_score"), f"{label} 'semantic_alignment_score'"
-            ),
+            animation_prompt=str(raw["animation_prompt"]).strip(),
+            motion_intent=intent,
         )
 
 
@@ -131,8 +168,10 @@ class Storyboard:
     subject: str
     duration_seconds: float
     shot_count: int
+    script: str
     visual_bible: VisualBible
     shots: list[Shot] = field(default_factory=list)
+    quality_check: dict = field(default_factory=dict)
 
     @property
     def total_duration(self) -> float:
@@ -149,9 +188,8 @@ class Storyboard:
 
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
-            json.dumps(self.to_dict(), indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-        )
+        path.write_text(json.dumps(self.to_dict(), indent=2, ensure_ascii=False) + "\n",
+                        encoding="utf-8")
 
     @classmethod
     def load(cls, path: Path) -> Storyboard:
@@ -166,138 +204,97 @@ class Storyboard:
     def from_dict(cls, raw: object) -> Storyboard:
         if not isinstance(raw, dict):
             raise StoryboardError("la reponse doit etre un objet JSON")
-        if not str(raw.get("subject") or "").strip():
-            raise StoryboardError("champ 'subject' vide ou manquant")
+        for champ in ("subject", "script"):
+            if not str(raw.get(champ) or "").strip():
+                raise StoryboardError(f"champ '{champ}' vide ou manquant")
 
         shots_raw = raw.get("shots")
         if not isinstance(shots_raw, list) or not shots_raw:
             raise StoryboardError("champ 'shots' vide ou manquant")
 
+        qualite = raw.get("quality_check")
+        if not isinstance(qualite, dict):
+            raise StoryboardError("'quality_check' manquant")
+        manquants = [a for a in QUALITY_AXES if a not in qualite]
+        if manquants:
+            raise StoryboardError(f"quality_check : axe(s) manquant(s) : {', '.join(manquants)}")
+
         return cls(
             subject=str(raw["subject"]).strip(),
-            duration_seconds=_number(raw.get("duration_seconds"), "'duration_seconds'"),
-            shot_count=_number(raw.get("shot_count"), "'shot_count'", integer=True),
+            duration_seconds=_nombre(raw.get("duration_seconds"), "'duration_seconds'"),
+            shot_count=_entier(raw.get("shot_count"), "'shot_count'"),
+            script=str(raw["script"]).strip(),
             visual_bible=VisualBible.from_dict(raw.get("visual_bible")),
             shots=[Shot.from_dict(i, s) for i, s in enumerate(shots_raw)],
+            quality_check={a: _nombre(qualite.get(a), f"quality_check.{a}") for a in QUALITY_AXES},
         )
 
 
 # ---------------------------------------------------------------------------
-# Analyse d'image et plan d'animation
+# Analyse des videos renvoyees par l'utilisateur
 # ---------------------------------------------------------------------------
 
-ANALYSIS_LIST_FIELDS = ("visible_subjects", "important_components", "preserve", "possible_motion")
-ANALYSIS_TEXT_FIELDS = ("composition", "camera", "lighting")
+VIDEO_TEXT_FIELDS = ("content", "framing", "movement", "quality", "voice_match")
+VIDEO_LIST_FIELDS = ("pedagogical_elements", "defects")
 
 
 @dataclass
-class ImageAnalysis:
-    """Ce qui est REELLEMENT visible dans l'image, avant toute animation."""
-
-    visible_subjects: list[str]
-    composition: str
-    camera: str
-    lighting: str
-    important_components: list[str]
-    preserve: list[str]
-    possible_motion: list[str]
-
-    def as_block(self) -> str:
-        return (
-            f"Visible subjects: {', '.join(self.visible_subjects)}\n"
-            f"Composition: {self.composition}\n"
-            f"Camera: {self.camera}\n"
-            f"Lighting: {self.lighting}\n"
-            f"Important components: {', '.join(self.important_components)}\n"
-            f"Must be preserved: {', '.join(self.preserve)}\n"
-            f"Possible motion: {', '.join(self.possible_motion)}"
-        )
-
-    @classmethod
-    def from_dict(cls, raw: object) -> ImageAnalysis:
-        if not isinstance(raw, dict):
-            raise StoryboardError("l'analyse d'image doit etre un objet JSON")
-        missing = [f for f in ANALYSIS_TEXT_FIELDS if not str(raw.get(f) or "").strip()]
-        empty = [f for f in ANALYSIS_LIST_FIELDS if not _as_list(raw.get(f))]
-        if missing or empty:
-            raise StoryboardError(
-                f"analyse d'image : champ(s) vide(s) : {', '.join(missing + empty)}"
-            )
-        return cls(
-            visible_subjects=_as_list(raw["visible_subjects"]),
-            composition=str(raw["composition"]).strip(),
-            camera=str(raw["camera"]).strip(),
-            lighting=str(raw["lighting"]).strip(),
-            important_components=_as_list(raw["important_components"]),
-            preserve=_as_list(raw["preserve"]),
-            possible_motion=_as_list(raw["possible_motion"]),
-        )
-
-
-@dataclass
-class AnimationPlan:
-    animation_prompt: str
-    motion_intent: str
-    camera_motion: str
-    mechanical_motion: str
-    energy_motion: str
-    preserve: list[str]
-    forbidden: list[str]
+class VideoAnalysis:
+    shot_id: int
+    measured_duration: float
+    content: str
+    framing: str
+    movement: str
+    quality: str
+    voice_match: str
+    pedagogical_elements: list[str]
+    defects: list[str]
+    matches_plan: bool
 
     def to_dict(self) -> dict:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, raw: object) -> AnimationPlan:
+    def from_dict(cls, shot_id: int, measured: float, raw: object) -> VideoAnalysis:
         if not isinstance(raw, dict):
-            raise StoryboardError("le plan d'animation doit etre un objet JSON")
-
-        intent = str(raw.get("motion_intent") or "").strip()
-        if intent not in MOTION_INTENTS:
-            raise StoryboardError(
-                f"motion_intent '{intent}' hors vocabulaire.\n"
-                f"  Valeurs admises : {', '.join(MOTION_INTENTS)}"
-            )
-
-        prompt = str(raw.get("animation_prompt") or "").strip()
-        if len(prompt) < 80:
-            raise StoryboardError(
-                f"animation_prompt trop court pour etre pedagogique : {prompt!r}"
-            )
-
-        for champ in ("camera_motion", "mechanical_motion", "energy_motion"):
-            if not str(raw.get(champ) or "").strip():
-                raise StoryboardError(f"plan d'animation : '{champ}' vide")
-        if not _as_list(raw.get("preserve")):
-            raise StoryboardError("plan d'animation : 'preserve' vide")
-        if not _as_list(raw.get("forbidden")):
-            raise StoryboardError("plan d'animation : 'forbidden' vide")
-
+            raise StoryboardError("l'analyse video doit etre un objet JSON")
+        manquants = [f for f in VIDEO_TEXT_FIELDS if not str(raw.get(f) or "").strip()]
+        if manquants:
+            raise StoryboardError(f"analyse video : champ(s) vide(s) : {', '.join(manquants)}")
         return cls(
-            animation_prompt=prompt,
-            motion_intent=intent,
-            camera_motion=str(raw["camera_motion"]).strip(),
-            mechanical_motion=str(raw["mechanical_motion"]).strip(),
-            energy_motion=str(raw["energy_motion"]).strip(),
-            preserve=_as_list(raw["preserve"]),
-            forbidden=_as_list(raw["forbidden"]),
+            shot_id=shot_id,
+            measured_duration=measured,
+            content=str(raw["content"]).strip(),
+            framing=str(raw["framing"]).strip(),
+            movement=str(raw["movement"]).strip(),
+            quality=str(raw["quality"]).strip(),
+            voice_match=str(raw["voice_match"]).strip(),
+            pedagogical_elements=_liste(raw.get("pedagogical_elements")),
+            defects=_liste(raw.get("defects")),
+            matches_plan=bool(raw.get("matches_plan", False)),
         )
 
 
 # ---------------------------------------------------------------------------
 
 
-def _number(value: object, label: str, integer: bool = False) -> float | int:
+def _nombre(valeur: object, label: str) -> float:
     try:
-        number = int(value) if integer else float(value)
+        return float(valeur)
     except (TypeError, ValueError):
         raise StoryboardError(f"{label} absent ou non numerique") from None
-    return number
 
 
-def _as_list(value: object) -> list[str]:
-    if isinstance(value, str):
-        value = [value]
-    if not isinstance(value, list):
+def _entier(valeur: object, label: str) -> int:
+    try:
+        return int(valeur)
+    except (TypeError, ValueError):
+        raise StoryboardError(f"{label} absent ou non numerique") from None
+
+
+def _liste(valeur: object) -> list[str]:
+    if isinstance(valeur, str):
+        valeur = [valeur]
+    if not isinstance(valeur, list):
         return []
-    return [str(v).strip() for v in value if str(v).strip()]
+    return [str(v).strip() for v in valeur if str(v).strip()]

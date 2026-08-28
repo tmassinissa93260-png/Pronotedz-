@@ -1,7 +1,7 @@
 """generate_storyboard() : le cerveau, avec sa boucle de correction.
 
-Quand le validateur refuse un storyboard, on ne rend pas la main : on renvoie
-a OpenAI la liste exacte de ce qui cloche et on lui demande de corriger.
+Quand le validateur refuse, on ne rend pas la main : la liste exacte des
+manquements repart chez OpenAI, plan par plan.
 """
 
 from __future__ import annotations
@@ -34,23 +34,18 @@ def client() -> openai.OpenAI:
 
 
 def chat_json(model: str, messages: list[dict]) -> dict:
-    """Un appel en mode JSON, erreurs traduites en clair."""
     if not model:
         raise OpenAIError(
             "aucun modele nomme pour cet appel.\n"
-            "  Renseigne OPENAI_MODEL, ou OPENAI_VISION_MODEL pour l'analyse d'image."
-        )
+            "  Renseigne OPENAI_MODEL, ou OPENAI_VISION_MODEL pour l'analyse d'image.")
     try:
-        response = client().chat.completions.create(
-            model=model, messages=messages, response_format={"type": "json_object"}
-        )
+        reponse = client().chat.completions.create(
+            model=model, messages=messages, response_format={"type": "json_object"})
     except openai.AuthenticationError as exc:
         raise OpenAIError(f"cle refusee : {exc}") from exc
     except openai.NotFoundError as exc:
-        raise OpenAIError(
-            f"modele '{model}' indisponible pour ce compte : {exc}\n"
-            "  Choisis-en un autre via OPENAI_MODEL dans .env"
-        ) from exc
+        raise OpenAIError(f"modele '{model}' indisponible : {exc}\n"
+                          "  Choisis-en un autre via OPENAI_MODEL dans .env") from exc
     except openai.APIConnectionError as exc:
         raise OpenAIError(f"service injoignable : {exc}") from exc
     except openai.RateLimitError as exc:
@@ -58,67 +53,52 @@ def chat_json(model: str, messages: list[dict]) -> dict:
     except openai.APIStatusError as exc:
         raise OpenAIError(f"le service a repondu {exc.status_code} : {exc}") from exc
 
-    content = (response.choices[0].message.content or "").strip()
-    if not content:
+    contenu = (reponse.choices[0].message.content or "").strip()
+    if not contenu:
         raise OpenAIError("reponse vide")
     try:
-        return json.loads(content)
+        return json.loads(contenu)
     except json.JSONDecodeError as exc:
-        raise OpenAIError(f"reponse non JSON : {exc}\n---\n{content[:500]}") from exc
-
-
-# ---------------------------------------------------------------------------
+        raise OpenAIError(f"reponse non JSON : {exc}\n---\n{contenu[:500]}") from exc
 
 
 def generate_storyboard(subject: str, duration: float, shot_count: int,
                         on_attempt=None) -> tuple[Storyboard, list]:
-    """Genere puis fait corriger jusqu'a ce que le validateur accepte.
-
-    Retourne le storyboard et la liste des problemes restants (vide si tout
-    est passe). `on_attempt(numero, problemes)` sert a journaliser.
-    """
+    """Genere puis fait corriger jusqu'a ce que le validateur accepte."""
     messages = [
         {"role": "system", "content": prompts.STORYBOARD_SYSTEM},
         {"role": "user", "content": prompts.storyboard_user(subject, duration, shot_count)},
     ]
+    storyboard, problems = None, []
 
-    storyboard = None
-    problems: list = []
-
-    for attempt in range(1, config.MAX_REPAIR_ATTEMPTS + 2):
-        raw = chat_json(config.OPENAI_MODEL, messages)
+    for tentative in range(1, config.MAX_REPAIR_ATTEMPTS + 2):
+        brut = chat_json(config.OPENAI_MODEL, messages)
         try:
-            candidate = Storyboard.from_dict(raw)
+            candidat = Storyboard.from_dict(brut)
         except StoryboardError as exc:
-            # JSON mal forme : on le dit a OpenAI et on retente.
             problems = [validator.Problem("FORME", "storyboard", str(exc),
-                                          f"The JSON was rejected: {exc}. Return the "
-                                          f"exact shape asked for.")]
+                                          f"The JSON was rejected: {exc}. Return the exact "
+                                          f"shape asked for.")]
             if on_attempt:
-                on_attempt(attempt, problems)
-            if attempt > config.MAX_REPAIR_ATTEMPTS:
+                on_attempt(tentative, problems)
+            if tentative > config.MAX_REPAIR_ATTEMPTS:
                 raise OpenAIError(f"storyboard invalide apres correction : {exc}") from exc
-            messages += [
-                {"role": "assistant", "content": json.dumps(raw, ensure_ascii=False)},
-                {"role": "user", "content": validator.correction_request(problems)},
-            ]
+            messages += [{"role": "assistant", "content": json.dumps(brut, ensure_ascii=False)},
+                         {"role": "user", "content": validator.correction_request(problems)}]
             continue
 
-        # Filet : la direction artistique doit y etre, quoi qu'il arrive.
-        for shot in candidate.shots:
-            shot.image_prompt = prompts.enforce_style(shot.image_prompt)
+        for s in candidat.shots:
+            s.image_prompt = prompts.enforce_style(s.image_prompt)
 
-        storyboard = candidate
-        problems = validator.validate(candidate, duration, shot_count)
+        storyboard = candidat
+        problems = validator.validate(candidat, duration, shot_count)
         if on_attempt:
-            on_attempt(attempt, problems)
-        if not problems or attempt > config.MAX_REPAIR_ATTEMPTS:
+            on_attempt(tentative, problems)
+        if not problems or tentative > config.MAX_REPAIR_ATTEMPTS:
             break
 
-        messages += [
-            {"role": "assistant", "content": json.dumps(raw, ensure_ascii=False)},
-            {"role": "user", "content": validator.correction_request(problems)},
-        ]
+        messages += [{"role": "assistant", "content": json.dumps(brut, ensure_ascii=False)},
+                     {"role": "user", "content": validator.correction_request(problems)}]
 
     if storyboard is None:
         raise OpenAIError("aucun storyboard exploitable")

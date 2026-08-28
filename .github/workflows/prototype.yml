@@ -1,31 +1,27 @@
 # ═══════════════════════════════════════════════════════════════════════
-#  Prototype — sujet → OpenAI → storyboard validé → images → animations.
+#  Prototype — préparer une vidéo éducative, puis la monter.
 #
-#  Onglet « Actions » → « Prototype — produire une vidéo » → « Run workflow ».
-#  Le résultat attend en fin de page, dans les artefacts du run.
+#  Onglet « Actions » → « Prototype — vidéo éducative » → « Run workflow ».
+#
+#  ⚠️ CE SYSTÈME NE GÉNÈRE NI IMAGE NI VIDÉO, ET C'EST VOULU.
+#
+#  Il prépare tout — script, visual bible, prompts image et animation — puis
+#  te rend la main. Tu produis avec l'outil de ton choix, tu déposes les
+#  vidéos, et il analyse, cale la timeline, écrit les sous-titres et monte.
 #
 #  Trois étapes :
 #
-#    « produire »   → tout : storyboard validé, images fal.ai, et animations
-#                     si le plafond « animations » est levé.
-#                     ⚠️ fal.ai est payant, surtout la vidéo. Le plafond vaut
-#                     0 par défaut : aucune dépense vidéo.
+#    « storyboard »      → script, visual bible, 4 plans, prompts image ET
+#                          animation, contrôle qualité. Rien d'autre.
+#    « analyser-videos » → les vidéos que TU as déposées → ce qu'elles
+#                          montrent vraiment, défauts compris.
+#    « montage »         → timeline calée sur la voix, sous-titres, MP4.
 #
-#    « storyboard » → le cerveau seul. Gratuit hors OpenAI. C'est l'étape à
-#                     relancer pour juger la qualité de la narration.
-#
-#    « analyser »   → une image qui existe → ce qui y est réellement visible,
-#                     puis le prompt d'animation adapté à CETTE image.
-#
-#    « comparer »   → le même prompt photo envoyé à plusieurs modèles, pour
-#                     choisir sur pièces plutôt que sur parole. Une image
-#                     facturée par modèle.
-#
-#  Le storyboard n'est jamais accepté sur parole : validator.py applique dix
-#  vérifications, et ce qui échoue repart chez OpenAI pour correction.
+#  Le storyboard n'est jamais accepté sur parole : validator.py le vérifie,
+#  et ce qui échoue repart chez OpenAI pour correction.
 # ═══════════════════════════════════════════════════════════════════════
 
-name: Prototype — produire une vidéo
+name: Prototype — vidéo éducative
 
 on:
   workflow_dispatch:
@@ -33,15 +29,14 @@ on:
       etape:
         description: "Ce que je veux faire"
         required: true
-        default: produire
+        default: storyboard
         type: choice
         options:
-          - produire     # TOUT automatique : OpenAI + fal.ai → images + vidéos
-          - comparer     # le même prompt sur plusieurs modèles, pour choisir
-          - storyboard   # sujet → 4 plans + 4 prompts photo prêts à coller
-          - analyser     # une image déjà générée → analyse + prompt d'animation
+          - storyboard
+          - analyser-videos
+          - montage
       sujet:
-        description: "Le sujet (étape storyboard)"
+        description: "Le sujet de la vidéo"
         required: false
         default: "Fonctionnement d'une voiture électrique"
         type: string
@@ -55,32 +50,6 @@ on:
         required: false
         default: "4"
         type: string
-      plan:
-        description: "Numéro du plan à analyser (étape analyser uniquement)"
-        required: false
-        default: "1"
-        type: string
-      image:
-        description: >-
-          L'image à analyser (étape analyser uniquement) : URL directe de
-          l'image, ou chemin d'un fichier ajouté au dépôt. Ignoré ailleurs.
-        required: false
-        default: ""
-        type: string
-      modele_image:
-        description: >-
-          Quel modèle fabrique les images. « dev » tient la géométrie et suit
-          le prompt ; « schnell » est plus rapide et bien moins cher, mais
-          casse sur les prompts d'ingénierie ; « pro » est le meilleur et le
-          plus cher.
-        required: false
-        default: fal-ai/flux-pro/v1.1
-        type: choice
-        options:
-          - fal-ai/flux-pro/v1.1
-          - fal-ai/flux-pro/v1.1-ultra
-          - fal-ai/flux/dev
-          - fal-ai/flux/schnell
       style:
         description: >-
           Remplace la phrase de direction artistique. Le défaut nomme un
@@ -89,25 +58,16 @@ on:
         required: false
         default: ""
         type: string
-      animations:
-        description: >-
-          Combien de plans, AU PLUS, sont animés par fal.ai (étape produire).
-          0 = images seulement, aucune dépense vidéo. C'est un plafond en
-          PLANS, pas en dollars : le tarif n'est pas mesuré ici, relève ton
-          solde fal.ai avant et après pour connaître le coût réel.
-        required: false
-        default: "0"
-        type: string
       enregistrer:
         description: >-
-          Enregistrer le storyboard dans la branche, pour que l'étape
-          « analyser » puisse le relire plus tard.
+          Enregistrer le storyboard et la feuille d'éléments dans la branche,
+          pour les relire depuis un téléphone.
         required: false
         default: true
         type: boolean
 
 jobs:
-  prompts:
+  video:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -125,6 +85,10 @@ jobs:
       - name: Installer les dépendances
         run: pip install -r app/requirements.txt
 
+      - name: Installer ffmpeg
+        if: inputs.etape != 'storyboard'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+
       - name: Vérifier qu'un cerveau est disponible
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -134,65 +98,15 @@ jobs:
             echo "OPENAI_API_KEY présente (${#OPENAI_API_KEY} caractères) → OpenAI."
           elif [ -n "$GROQ_API_KEY" ]; then
             echo "OPENAI_API_KEY absente, GROQ_API_KEY présente → bascule sur Groq."
-            echo "Groq expose une API compatible OpenAI : le même code, une autre adresse."
-            echo "::warning::Pour l'étape « produire », nomme un modèle vision Groq via"
-            echo "la variable OPENAI_VISION_MODEL, sinon l'analyse d'image échouera."
+            echo "::warning::Pour analyser des vidéos, nomme un modèle vision Groq via"
+            echo "la variable OPENAI_VISION_MODEL, sinon l'analyse échouera."
           else
             echo "::error::Aucun cerveau : ni OPENAI_API_KEY ni GROQ_API_KEY."
             echo "Settings → Secrets and variables → Actions → New repository secret"
-            echo "  OPENAI_API_KEY = sk-...   (OpenAI, payant, compte à créer)"
-            echo "  ou GROQ_API_KEY = gsk_... (Groq, gratuit — tu l'as déjà)"
             exit 1
           fi
 
-      - name: Tout produire avec fal.ai
-        if: inputs.etape == 'produire'
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          FAL_KEY: ${{ secrets.FAL_KEY }}
-          FAL_IMAGE_MODEL: ${{ inputs.modele_image }}
-          STYLE_DIRECTIVE: ${{ inputs.style }}
-          # Une variable de depot non definie vaut "" : ne la transmettre
-          # que si elle a reellement une valeur.
-          OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL || '' }}
-        run: |
-          if [ -z "$FAL_KEY" ]; then
-            echo "::error::Le secret FAL_KEY n'est pas défini."
-            echo "Settings → Secrets and variables → Actions → New repository secret"
-            echo "Nom : FAL_KEY   Valeur : ta clé fal.ai (fal.ai/dashboard/keys)"
-            exit 1
-          fi
-          sans_video=""
-          if [ "${{ inputs.animations }}" = "0" ]; then
-            sans_video="--sans-video"
-            echo "::notice::Plafond à 0 : images seulement, aucune dépense vidéo."
-          fi
-          python -m app.main produire \
-            --subject "${{ inputs.sujet }}" \
-            --duration "${{ inputs.duree }}" \
-            --shots "${{ inputs.plans }}" \
-            --max-animations "${{ inputs.animations }}" \
-            $sans_video
-
-      - name: Comparer plusieurs modèles d'image
-        if: inputs.etape == 'comparer'
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          FAL_KEY: ${{ secrets.FAL_KEY }}
-        run: |
-          if [ -z "$FAL_KEY" ]; then
-            echo "::error::Le secret FAL_KEY n'est pas défini."
-            exit 1
-          fi
-          if [ ! -f app/output/project.json ]; then
-            echo "::error::app/output/project.json absent. Lance d'abord « storyboard »."
-            exit 1
-          fi
-          python -m app.main comparer --shot "${{ inputs.plan }}"
-
-      - name: Générer le storyboard et les prompts photo
+      - name: Script, storyboard, visual bible et prompts
         if: inputs.etape == 'storyboard'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -204,24 +118,27 @@ jobs:
             --duration "${{ inputs.duree }}" \
             --shots "${{ inputs.plans }}"
 
-      - name: Analyser l'image puis écrire le prompt d'animation
-        if: inputs.etape == 'analyser'
+      - name: Analyser les vidéos déposées
+        if: inputs.etape == 'analyser-videos'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL || '' }}
         run: |
-          if [ -z "${{ inputs.image }}" ]; then
-            echo "::error::L'étape « analyser » a besoin du champ « image »."
+          if [ ! -d app/output/videos ]; then
+            echo "::error::app/output/videos absent."
+            echo "Dépose tes vidéos (shot_01.mp4, shot_02.mp4, …) dans ce dossier,"
+            echo "commite-les dans la branche, puis relance cette étape."
             exit 1
           fi
-          if [ ! -f app/output/project.json ]; then
-            echo "::error::app/output/project.json absent de la branche."
-            echo "Lance d'abord l'étape « storyboard » avec « enregistrer » coché."
-            exit 1
-          fi
-          python -m app.main analyser \
-            --shot "${{ inputs.plan }}" \
-            --image "${{ inputs.image }}"
+          python -m app.main analyser-videos
+
+      - name: Timeline, sous-titres et montage
+        if: inputs.etape == 'montage'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: python -m app.main montage
 
       - name: Récapitulatif lisible en fin de page
         if: always()
@@ -229,34 +146,23 @@ jobs:
           {
             echo "## Prototype — étape \`${{ inputs.etape }}\`"
             echo
-            if [ -f app/output/project.json ]; then
-              echo "### Storyboard validé"
+            if [ -f app/output/elements.md ]; then
+              cat app/output/elements.md
+            fi
+            if [ -f app/output/timeline.json ]; then
+              echo "### Timeline"
               echo
               echo '```json'
-              cat app/output/project.json
+              cat app/output/timeline.json
               echo '```'
             fi
-            for f in app/output/comparaison/*.png; do
-              [ -f "$f" ] || continue
-              echo "- \`$(basename "$f" .png)\` — $(du -h "$f" | cut -f1)"
-            done
-            for f in app/output/shots/*/image.png; do
-              [ -f "$f" ] || continue
-              echo "- \`$f\` — $(du -h "$f" | cut -f1)"
-            done
-            for f in app/output/shots/*/video.mp4; do
-              [ -f "$f" ] || continue
-              echo "- \`$f\` — $(du -h "$f" | cut -f1)"
-            done
-            echo
-            for f in app/output/shots/*/animation.json; do
-              [ -f "$f" ] || continue
-              echo "### $(basename "$(dirname "$f")") — animation"
+            if [ -f app/output/sous_titres.srt ]; then
+              echo "### Sous-titres"
               echo
-              echo '```json'
-              cat "$f"
               echo '```'
-            done
+              cat app/output/sous_titres.srt
+              echo '```'
+            fi
             echo
             echo "> Les fichiers sont dans l'artefact, en haut de cette page."
           } >> "$GITHUB_STEP_SUMMARY"
@@ -265,40 +171,25 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: prompts-${{ inputs.etape }}-${{ github.run_number }}
+          name: video-${{ inputs.etape }}-${{ github.run_number }}
           path: prototype/app/output/
           if-no-files-found: warn
 
-      - name: Enregistrer les images dans la branche
-        if: always() && (inputs.etape == 'produire' || inputs.etape == 'comparer')
+      - name: Enregistrer dans la branche
+        if: always() && inputs.enregistrer
         run: |
           shopt -s nullglob
-          fichiers=(app/output/shots/*/image.png app/output/shots/*/video.mp4
-                    app/output/shots/*/animation.json app/output/comparaison/*.png)
-          if [ ${#fichiers[@]} -eq 0 ]; then
-            echo "Aucune image produite, rien a enregistrer."
-            exit 0
-          fi
+          fichiers=(app/output/project.json app/output/elements.md
+                    app/output/timeline.json app/output/sous_titres.srt
+                    app/output/shots/*/animation.json
+                    app/output/shots/*/video_analysis.json)
+          [ ${#fichiers[@]} -eq 0 ] && { echo "Rien à enregistrer."; exit 0; }
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f "${fichiers[@]}" app/output/project.json
+          git add -f "${fichiers[@]}"
           if git diff --cached --quiet; then
-            echo "Images identiques aux precedentes, rien a enregistrer."
+            echo "Identique au précédent, rien à enregistrer."
           else
-            git commit -m "images : run ${{ github.run_number }} (${{ inputs.modele_image }})"
-            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+            git commit -m "${{ inputs.etape }} : run ${{ github.run_number }}"
             git push origin "HEAD:${GITHUB_REF_NAME}"
-          fi
-
-      - name: Enregistrer le storyboard dans la branche
-        if: inputs.etape == 'storyboard' && inputs.enregistrer
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f app/output/project.json
-          if git diff --cached --quiet; then
-            echo "Storyboard identique au précédent, rien à enregistrer."
-          else
-            git commit -m "prototype: storyboard « ${{ inputs.sujet }} »"
-            git push
           fi

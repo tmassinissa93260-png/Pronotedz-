@@ -1,22 +1,22 @@
-# Jamais sur GitHub : cle API, session de navigateur
+# Jamais sur GitHub : la cle API
 .env
-browser_profile/
 
-# Les resultats locaux restent locaux. Trois exceptions, que le workflow
-# enregistre dans la branche : le storyboard, et les images produites.
+# Les fichiers de travail restent locaux ; les livrables remontent.
 app/output/*
 !app/output/project.json
-!app/output/shots/
-!app/output/comparaison/
+!app/output/elements.md
+!app/output/timeline.json
+!app/output/sous_titres.srt
 
-# Dans ces deux dossiers remontent les livrables — image, video, plan
-# d'animation — mais pas les fichiers de travail : ni les prompts recopies,
-# ni la voix, ni l'analyse brute.
-app/output/shots/*
+# Les videos que TU deposes, et ce que le systeme en dit.
+!app/output/videos/
+!app/output/videos/*
+!app/output/shots/
 !app/output/shots/*/
 app/output/shots/*/*
-!app/output/shots/*/image.png
-!app/output/shots/*/video.mp4
 !app/output/shots/*/animation.json
-app/output/comparaison/*
-!app/output/comparaison/*.png
+!app/output/shots/*/video_analysis.json
+
+# Le MP4 final et les rushes normalises ne sont pas versionnes.
+app/output/final.mp4
+app/output/montage/

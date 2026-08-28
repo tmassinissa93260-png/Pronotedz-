@@ -1,10 +1,11 @@
-"""Prototype : SUJET -> OPENAI -> STORYBOARD VALIDE -> (images, animations).
+"""Prototype semi-automatique.
 
-    python main.py                      depuis app/
-    python -m app.main                  depuis prototype/
-
-    python -m app.main analyser --shot 1 --image ...   analyse + animation
-    python -m app.main produire                        images/videos (fal.ai)
+    python main.py                              le storyboard complet
+    python -m app.main elements                 tout exporter pour produire
+    python -m app.main affiner --shot 1 --image X   image reelle -> animation
+    python -m app.main analyser-videos          les videos rendues -> analyses
+    python -m app.main timeline                 timeline + sous-titres
+    python -m app.main montage                  MP4 final
 """
 
 from __future__ import annotations
@@ -12,142 +13,163 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-import time
 from pathlib import Path
 
-# Permet « python main.py » depuis app/, en plus de « python -m app.main ».
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     __package__ = "app"
 
-from . import config, image_analyzer, validator  # noqa: E402
+from . import analyzer, config, montage, validator  # noqa: E402
 from .models import Storyboard, StoryboardError  # noqa: E402
 from .openai_client import OpenAIError, generate_storyboard  # noqa: E402
 
-PENDING, GENERATED, COMPLETED = "pending", "generated", "completed"
+EXTENSIONS_VIDEO = (".mp4", ".mov", ".webm", ".m4v")
 
 
 def log(tag: str, message: str = "") -> None:
     print(f"[{tag}] {message}".rstrip(), flush=True)
 
 
-# ---------------------------------------------------------------------------
-# Etat / reprise
-# ---------------------------------------------------------------------------
-
-
-def load_status(shot_count: int) -> dict:
-    default = {f"shot_{i:02d}": PENDING for i in range(1, shot_count + 1)}
-    if not config.STATUS_FILE.is_file():
-        return default
-    try:
-        saved = json.loads(config.STATUS_FILE.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return default
-    if isinstance(saved, dict):
-        default.update({k: v for k, v in saved.items() if k in default})
-    return default
-
-
-def save_status(status: dict) -> None:
-    config.STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
-    config.STATUS_FILE.write_text(
-        json.dumps(status, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
-
-
-def find_existing(shot_id: int, stem: str) -> Path | None:
-    for path in sorted(config.shot_dir(shot_id).glob(f"{stem}.*")):
-        if path.is_file() and path.suffix != ".txt":
-            return path
-    return None
+def montrer_problemes(problems: list) -> None:
+    for p in problems:
+        print(f"  ! {p}", flush=True)
 
 
 # ---------------------------------------------------------------------------
-# Affichage
+# ETAPE 1 : script, storyboard, visual bible, prompts
 # ---------------------------------------------------------------------------
 
 
-def show_input(subject: str, duration: float, shot_count: int) -> None:
+def construire(subject: str, duration: float, shot_count: int) -> Storyboard:
     log("INPUT")
-    print(f"  {subject}")
-    print(f"  {duration:g} secondes")
-    print(f"  {shot_count} plans")
-    print(flush=True)
+    print(f"  {subject}\n  {duration:g} secondes\n  {shot_count} plans\n", flush=True)
 
+    log("OPENAI", "Écriture du script...")
+    log("OPENAI", "Storyboard, visual bible et prompts...")
 
-def show_storyboard(sb: Storyboard) -> None:
-    print()
-    print("VISUAL BIBLE")
-    for line in sb.visual_bible.as_block().splitlines():
-        print(f"  {line}")
-    for shot in sb.shots:
-        print()
-        print(f"  ── PLAN {shot.id:02d} ── {shot.duration_seconds:g}s "
-              f"· {shot.word_count} mots · {shot.words_per_second:.1f} mot/s "
-              f"· alignement {shot.semantic_alignment_score}")
-        print(f"  Voix     : {shot.voice}")
-        print(f"  Fonction : {shot.educational_function}")
-        print(f"  Visible  : {_wrap(shot.visual_description)}")
-        print(f"  Photo    : {_wrap(shot.image_prompt)}")
-    print(flush=True)
-
-
-def _wrap(text: str, width: int = 300) -> str:
-    text = " ".join(text.split())
-    return text if len(text) <= width else text[:width] + "…"
-
-
-def show_problems(problems: list) -> None:
-    for problem in problems:
-        print(f"  ! {problem}", flush=True)
-
-
-# ---------------------------------------------------------------------------
-# ETAPE 1 : storyboard
-# ---------------------------------------------------------------------------
-
-
-def build_storyboard(subject: str, duration: float, shot_count: int) -> Storyboard:
-    log("OPENAI", "Génération du script...")
-    log("OPENAI", "Génération du storyboard...")
-
-    def on_attempt(attempt: int, problems: list) -> None:
-        log("VALIDATION", f"Vérification... (tentative {attempt})")
+    def a_chaque_tentative(numero: int, problems: list) -> None:
+        log("VALIDATION", f"Vérification... (tentative {numero})")
         if problems:
             log("CORRECTION", f"{len(problems)} point(s) à corriger, renvoi à OpenAI")
-            show_problems(problems)
+            montrer_problemes(problems)
 
-    storyboard, problems = generate_storyboard(subject, duration, shot_count,
-                                               on_attempt=on_attempt)
-
-    config.ensure_dirs(len(storyboard.shots))
-    storyboard.save(config.PROJECT_FILE)
-    for shot in storyboard.shots:
-        directory = config.shot_dir(shot.id)
-        (directory / "image_prompt.txt").write_text(shot.image_prompt + "\n", encoding="utf-8")
-        (directory / "voice.txt").write_text(shot.voice + "\n", encoding="utf-8")
+    sb, problems = generate_storyboard(subject, duration, shot_count,
+                                       on_attempt=a_chaque_tentative)
+    config.ensure_dirs(len(sb.shots))
+    sb.save(config.PROJECT_FILE)
 
     if problems:
         log("ATTENTION", f"{len(problems)} point(s) non corrigé(s) après "
                          f"{config.MAX_REPAIR_ATTEMPTS} tentative(s) :")
-        show_problems(problems)
+        montrer_problemes(problems)
     else:
-        log("OK", f"{len(storyboard.shots)} plans validés")
-
+        log("OK", f"{len(sb.shots)} plans validés")
     log("OUTPUT", str(config.PROJECT_FILE))
-    return storyboard
+    return sb
 
 
-def load_or_build(args) -> Storyboard:
-    if config.PROJECT_FILE.is_file() and not getattr(args, "regenerate", False):
-        try:
-            storyboard = Storyboard.load(config.PROJECT_FILE)
-            log("OK", f"Storyboard repris depuis {config.PROJECT_FILE}")
-            return storyboard
-        except StoryboardError as exc:
-            log("ATTENTION", f"project.json inutilisable ({exc}), régénération")
-    return build_storyboard(args.subject, args.duration, args.shots)
+def charger() -> Storyboard:
+    return Storyboard.load(config.PROJECT_FILE)
+
+
+# ---------------------------------------------------------------------------
+# ETAPE 2 : tout remettre a l'utilisateur
+# ---------------------------------------------------------------------------
+
+
+def ecrire_elements(sb: Storyboard) -> Path:
+    """Une feuille unique : script, bible, et pour chaque plan les deux prompts."""
+    lignes = [
+        f"# {sb.subject}",
+        "",
+        f"{sb.duration_seconds:g} secondes · {sb.shot_count} plans",
+        "",
+        "## Script",
+        "",
+        sb.script,
+        "",
+        "## Visual bible",
+        "",
+        "À réutiliser dans **chaque** image. Les couleurs ont un sens fixe.",
+        "",
+    ]
+    lignes += [f"- **{c.replace('_', ' ')}** : {getattr(sb.visual_bible, c)}"
+               for c in sb.visual_bible.__dataclass_fields__]
+    lignes += ["", "## Contrôle qualité", ""]
+    lignes += [f"- {axe.replace('_', ' ')} : {note}" for axe, note in sb.quality_check.items()]
+
+    for s in sb.shots:
+        lignes += [
+            "", "---", "",
+            f"## Plan {s.id:02d} — {s.duration_seconds:g}s",
+            "",
+            f"**Voix** : {s.voice}",
+            "",
+            f"**Fonction** : {s.educational_function}",
+            "",
+            f"**Élément pédagogique** : {s.visual_concept}",
+            "",
+            f"**Intention de mouvement** : `{s.motion_intent}`",
+            "",
+            "### Prompt image", "", "```", s.image_prompt, "```",
+            "",
+            "### Prompt animation", "", "```", s.animation_prompt, "```",
+        ]
+
+    lignes += [
+        "", "---", "",
+        "## Ce que tu fais maintenant",
+        "",
+        "1. Génère chaque **image** avec l'outil de ton choix, à partir du prompt image.",
+        "2. Génère chaque **animation** à partir de ton image, avec le prompt animation.",
+        f"3. Dépose les vidéos dans `{config.VIDEOS_DIR}` nommées `shot_01.mp4`, "
+        "`shot_02.mp4`…",
+        "4. Reviens : `analyser-videos`, puis `timeline`, puis `montage`.",
+        "",
+    ]
+    config.ELEMENTS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    config.ELEMENTS_FILE.write_text("\n".join(lignes), encoding="utf-8")
+
+    for s in sb.shots:
+        d = config.shot_dir(s.id)
+        d.mkdir(parents=True, exist_ok=True)
+        (d / "image_prompt.txt").write_text(s.image_prompt + "\n", encoding="utf-8")
+        (d / "animation_prompt.txt").write_text(s.animation_prompt + "\n", encoding="utf-8")
+        (d / "voice.txt").write_text(s.voice + "\n", encoding="utf-8")
+    return config.ELEMENTS_FILE
+
+
+# ---------------------------------------------------------------------------
+# Videos deposees par l'utilisateur
+# ---------------------------------------------------------------------------
+
+
+def trouver_videos(sb: Storyboard) -> dict[int, Path]:
+    trouvees: dict[int, Path] = {}
+    if not config.VIDEOS_DIR.is_dir():
+        return trouvees
+    for s in sb.shots:
+        for ext in EXTENSIONS_VIDEO:
+            for motif in (f"shot_{s.id:02d}{ext}", f"{s.id:02d}{ext}", f"{s.id}{ext}"):
+                candidat = config.VIDEOS_DIR / motif
+                if candidat.is_file():
+                    trouvees[s.id] = candidat
+                    break
+            if s.id in trouvees:
+                break
+    return trouvees
+
+
+def charger_analyses(sb: Storyboard) -> dict:
+    from .models import VideoAnalysis
+
+    analyses = {}
+    for s in sb.shots:
+        fichier = config.shot_dir(s.id) / "video_analysis.json"
+        if fichier.is_file():
+            brut = json.loads(fichier.read_text(encoding="utf-8"))
+            analyses[s.id] = VideoAnalysis(**brut)
+    return analyses
 
 
 # ---------------------------------------------------------------------------
@@ -156,202 +178,171 @@ def load_or_build(args) -> Storyboard:
 
 
 def cmd_storyboard(args) -> int:
-    show_input(args.subject, args.duration, args.shots)
-    storyboard = build_storyboard(args.subject, args.duration, args.shots)
-    show_storyboard(storyboard)
-    if config.TEST_MODE if args.test_mode is None else args.test_mode:
-        log("TEST_MODE", "aucune génération d'image ni de vidéo")
+    sb = construire(args.subject, args.duration, args.shots)
+    chemin = ecrire_elements(sb)
+    print()
+    print("VISUAL BIBLE")
+    for ligne in sb.visual_bible.as_block().splitlines():
+        print(f"  {ligne}")
+    print()
+    print("SCRIPT")
+    print(f"  {sb.script}")
+    for s in sb.shots:
+        print()
+        print(f"  ── PLAN {s.id:02d} ── {s.duration_seconds:g}s · {s.word_count} mots "
+              f"· {s.words_per_second:.1f} mot/s · {s.motion_intent}")
+        print(f"  Voix     : {s.voice}")
+        print(f"  Concept  : {s.visual_concept}")
+        print(f"  Fonction : {s.educational_function}")
+    print()
+    log("OUTPUT", str(chemin))
+    log("TEST_MODE", "aucune image, aucune vidéo générée — c'est toi qui produis")
     return 0
 
 
-def cmd_analyser(args) -> int:
-    """IMAGE -> ANALYSE -> PROMPT D'ANIMATION, sans navigateur."""
-    storyboard = Storyboard.load(config.PROJECT_FILE)
-    shot = storyboard.shot(args.shot)
-    image = args.image
-    if not str(image).startswith(("http://", "https://")):
-        image = Path(image)
-
-    config.ensure_dirs(len(storyboard.shots))
-    directory = config.shot_dir(shot.id)
-
-    log("OPENAI", f"Analyse image {shot.id:02d}...")
-    analysis = image_analyzer.analyze_image(image)
-    (directory / "image_analysis.json").write_text(
-        json.dumps(analysis.__dict__, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    log("OK", f"Analyse {shot.id:02d} : {', '.join(analysis.visible_subjects[:5])}")
-
-    log("OPENAI", f"Prompt animation {shot.id:02d}...")
-    plan = image_analyzer.generate_animation_prompt(shot, analysis)
-    (directory / "animation.json").write_text(
-        json.dumps(plan.to_dict(), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    (directory / "animation_prompt.txt").write_text(
-        plan.animation_prompt + "\n", encoding="utf-8")
-    log("OK", f"Prompt animation {shot.id:02d} — intention : {plan.motion_intent}")
-
-    print()
-    print(f"  Intention   : {plan.motion_intent}")
-    print(f"  Caméra      : {plan.camera_motion}")
-    print(f"  Mécanique   : {plan.mechanical_motion}")
-    print(f"  Énergie     : {plan.energy_motion}")
-    print(f"  Préserver   : {', '.join(plan.preserve)}")
-    print(f"  Interdit    : {', '.join(plan.forbidden)}")
-    print()
-    print("  --- PROMPT ANIMATION ---")
-    print(f"  {plan.animation_prompt}")
+def cmd_elements(args) -> int:
+    sb = charger()
+    log("OUTPUT", str(ecrire_elements(sb)))
+    for s in sb.shots:
+        print(f"  plan {s.id:02d} : {config.shot_dir(s.id)}")
     return 0
 
 
-def cmd_produire(args) -> int:
-    """Point d'integration images/videos : fal.ai. Aucun navigateur."""
-    from . import fal_client
+def cmd_affiner(args) -> int:
+    """Une image REELLE -> ce qu'elle contient -> prompt d'animation ajuste."""
+    sb = charger()
+    shot = sb.shot(args.shot)
+    image = args.image if str(args.image).startswith(("http://", "https://")) \
+        else Path(args.image)
+    dossier = config.shot_dir(shot.id)
+    dossier.mkdir(parents=True, exist_ok=True)
 
-    show_input(args.subject, args.duration, args.shots)
-    storyboard = load_or_build(args)
-    config.ensure_dirs(len(storyboard.shots))
-    status = load_status(len(storyboard.shots))
+    log("OPENAI", f"Analyse de l'image du plan {shot.id:02d}...")
+    analyse = analyzer.analyze_image(image, shot.visual_concept)
+    (dossier / "image_analysis.json").write_text(
+        json.dumps(analyse, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    visible = analyse.get("pedagogical_element_visible")
+    log("OK", f"Élément pédagogique visible : {visible}")
+    if visible is False:
+        log("ATTENTION", analyse.get("pedagogical_element_note", ""))
 
-    animations_left = 0 if args.sans_video else args.max_animations
-    log("COUT", "images seules, aucune dépense vidéo" if animations_left <= 0
-        else f"jusqu'à {animations_left} animation(s) payante(s)")
+    log("OPENAI", "Prompt d'animation ajusté à cette image...")
+    plan = analyzer.refine_animation(shot, analyse)
+    (dossier / "animation.json").write_text(
+        json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    (dossier / "animation_prompt.txt").write_text(
+        plan["animation_prompt"] + "\n", encoding="utf-8")
+    log("OK", f"Intention : {plan['motion_intent']}")
+    print()
+    print(plan["animation_prompt"])
+    return 0
+
+
+def cmd_analyser_videos(args) -> int:
+    sb = charger()
+    videos = trouver_videos(sb)
+    if not videos:
+        log("STOP", f"aucune vidéo trouvée dans {config.VIDEOS_DIR}")
+        print("  Nomme-les shot_01.mp4, shot_02.mp4, … puis relance.")
+        return 1
 
     echecs = []
-    for shot in storyboard.shots:
-        key, directory = shot.slug, config.shot_dir(shot.id)
-        print(f"\n[SHOT {shot.id:02d}]", flush=True)
-
-        if status.get(key) == COMPLETED and not args.force:
-            log("SKIP", "déjà terminé (status.json)")
+    for s in sb.shots:
+        video = videos.get(s.id)
+        if video is None:
+            log("MANQUE", f"plan {s.id:02d} : aucune vidéo")
             continue
+        dossier = config.shot_dir(s.id)
+        dossier.mkdir(parents=True, exist_ok=True)
+        log("OPENAI", f"Analyse de la vidéo {s.id:02d} ({video.name})...")
         try:
-            image_path = find_existing(shot.id, "image")
-            if image_path and not args.force:
-                log("SKIP", f"image déjà présente : {image_path}")
-            else:
-                log("FAL", f"Génération image {shot.id:02d}...")
-                image_path = fal_client.generate_image(
-                    shot.image_prompt, directory / "image.png")
-                log("OK", f"Image {shot.id:02d} -> {image_path}")
-
-            if animations_left <= 0:
-                status[key] = GENERATED
-                save_status(status)
-                log("OK", "image seule (aucun budget d'animation)")
-                continue
-
-            log("OPENAI", f"Analyse image {shot.id:02d}...")
-            analysis, plan = image_analyzer.animate(shot, image_path)
-            (directory / "animation.json").write_text(
-                json.dumps(plan.to_dict(), indent=2, ensure_ascii=False) + "\n",
-                encoding="utf-8")
-            (directory / "animation_prompt.txt").write_text(
-                plan.animation_prompt + "\n", encoding="utf-8")
-            log("OK", f"Prompt animation {shot.id:02d} — {plan.motion_intent}")
-
-            log("FAL", f"Animation {shot.id:02d}...")
-            video = fal_client.animate(image_path, plan.animation_prompt,
-                                       shot.duration_seconds, directory / "video.mp4")
-            animations_left -= 1
-            log("OK", f"Vidéo {shot.id:02d} -> {video}")
-
-            status[key] = COMPLETED
-            save_status(status)
-        except (fal_client.FalError, OpenAIError) as exc:
+            analyse = analyzer.analyze_video(s, video, dossier)
+        except OpenAIError as exc:
             log("ERREUR", str(exc).splitlines()[0])
-            echecs.append((shot.id, str(exc)))
-            save_status(status)
+            echecs.append((s.id, str(exc)))
+            continue
+        (dossier / "video_analysis.json").write_text(
+            json.dumps(analyse.to_dict(), indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8")
+        etat = "conforme" if analyse.matches_plan else "NON CONFORME"
+        log("OK", f"Vidéo {s.id:02d} — {analyse.measured_duration or '?'}s — {etat}")
+        for defaut in analyse.defects:
+            print(f"      défaut : {defaut}")
+    return 6 if echecs else 0
+
+
+def cmd_timeline(args) -> int:
+    sb = charger()
+    videos = trouver_videos(sb)
+    manquants = [s.id for s in sb.shots if s.id not in videos]
+    if manquants:
+        log("STOP", f"vidéo manquante pour le(s) plan(s) : "
+                    f"{', '.join(f'{i:02d}' for i in manquants)}")
+        print(f"  Dépose-les dans {config.VIDEOS_DIR}")
+        return 1
+
+    entrees = montage.construire_timeline(sb, videos, charger_analyses(sb))
+    montage.sauver_timeline(entrees, config.TIMELINE_FILE)
+    config.SRT_FILE.write_text(montage.sous_titres(entrees), encoding="utf-8")
 
     print()
-    if echecs:
-        log("STOP", f"{len(echecs)} plan(s) en échec :")
-        for shot_id, message in echecs:
-            print(f"      SHOT {shot_id:02d} : {message}")
-        return 6
-    log("OK", "Terminé")
+    print("  Plan   Début     Fin      Durée   Ajustement")
+    for e in entrees:
+        print(f"  {e.shot_id:02d}     {e.start:6.2f}s  {e.end:6.2f}s  "
+              f"{e.duration:5.2f}s  {e.ajustement}")
+        for r in e.remarques:
+            print(f"           ! {r}")
+    print()
+    log("OUTPUT", str(config.TIMELINE_FILE))
+    log("OUTPUT", str(config.SRT_FILE))
     return 0
 
 
-def cmd_comparer(args) -> int:
-    """Le meme prompt photo envoye a plusieurs modeles, pour trancher sur pieces.
+def cmd_montage(args) -> int:
+    sb = charger()
+    videos = trouver_videos(sb)
+    manquants = [s.id for s in sb.shots if s.id not in videos]
+    if manquants:
+        log("STOP", f"vidéo manquante pour le(s) plan(s) : "
+                    f"{', '.join(f'{i:02d}' for i in manquants)}")
+        return 1
 
-    Un modele qu'on ne peut pas tester depuis le poste de developpement ne se
-    choisit pas sur parole : on regarde les images.
-    """
-    from . import fal_client
+    entrees = montage.construire_timeline(sb, videos, charger_analyses(sb))
+    montage.sauver_timeline(entrees, config.TIMELINE_FILE)
+    config.SRT_FILE.write_text(montage.sous_titres(entrees), encoding="utf-8")
 
-    storyboard = Storyboard.load(config.PROJECT_FILE)
-    shot = storyboard.shot(args.shot)
-    modeles = args.modeles or config.FAL_COMPARE_MODELS
-
-    dossier = config.OUTPUT_DIR / "comparaison"
-    dossier.mkdir(parents=True, exist_ok=True)
-    (dossier / "prompt.txt").write_text(shot.image_prompt + "\n", encoding="utf-8")
-
-    print()
-    log("COMPARAISON", f"plan {shot.id:02d}, {len(modeles)} modele(s)")
-    print(f"  voix : {shot.voice}")
-    log("COUT", f"{len(modeles)} image(s) facturees par fal.ai")
-    print()
-
-    resultats, echecs = [], []
-    for modele in modeles:
-        nom = modele.replace("/", "_").replace("fal-ai_", "")
-        log("FAL", f"{modele}...")
-        debut = time.monotonic()
-        try:
-            chemin = fal_client.generate_image(shot.image_prompt, dossier / f"{nom}.png",
-                                               model=modele)
-        except fal_client.FalError as exc:
-            log("ERREUR", str(exc).splitlines()[0])
-            echecs.append((modele, str(exc)))
-            continue
-        secondes = time.monotonic() - debut
-        taille = chemin.stat().st_size // 1024
-        resultats.append((modele, chemin, secondes, taille))
-        log("OK", f"{chemin.name}  ({secondes:.0f}s, {taille} Ko)")
-
-    print()
-    if resultats:
-        print("  Modèle                              Temps    Poids   Fichier")
-        for modele, chemin, secondes, taille in resultats:
-            print(f"  {modele:35} {secondes:5.0f}s  {taille:5} Ko  {chemin.name}")
-        print()
-        print("  Compare-les dans l'artefact, puis fixe ton choix :")
-        print(f"      FAL_IMAGE_MODEL={resultats[0][0]}")
-    for modele, message in echecs:
-        print(f"  ! {modele} : {message.splitlines()[0]}")
-    return 0 if resultats else 7
+    voix = config.VOICE_FILE if config.VOICE_FILE.is_file() else None
+    musique = config.MUSIC_FILE if config.MUSIC_FILE.is_file() else None
+    log("MONTAGE", f"{len(entrees)} plans · voix : {'oui' if voix else 'non'} · "
+                   f"musique : {'oui' if musique else 'non'} · sous-titres : oui")
+    sortie = montage.assembler(entrees, config.FINAL_FILE, voix, musique,
+                               config.SRT_FILE if not args.sans_sous_titres else None)
+    log("OK", f"MP4 final -> {sortie}")
+    return 0
 
 
 def cmd_valider(args) -> int:
-    """Rejoue les 10 vérifications sur le project.json déjà sauvegardé."""
-    storyboard = Storyboard.load(config.PROJECT_FILE)
+    sb = charger()
     log("VALIDATION", f"Vérification de {config.PROJECT_FILE}...")
-    problems = validator.validate(storyboard, args.duration, args.shots)
+    problems = validator.validate(sb, args.duration, args.shots)
     if problems:
         log("ÉCHEC", f"{len(problems)} point(s) :")
-        show_problems(problems)
+        montrer_problemes(problems)
         return 1
-    log("OK", f"{len(storyboard.shots)} plans validés")
-    return 0
-
-
-def cmd_status(args) -> int:
-    print(json.dumps(load_status(args.shots), indent=2, ensure_ascii=False))
+    log("OK", f"{len(sb.shots)} plans validés")
     return 0
 
 
 def cmd_selfcheck(args) -> int:
     ok = True
     print("Configuration")
-    print(f"  SUBJECT      : {config.SUBJECT}")
-    print(f"  DURATION     : {config.DURATION}s")
-    print(f"  SHOT_COUNT   : {config.SHOT_COUNT}")
-    print(f"  TEST_MODE    : {config.TEST_MODE}")
-    print(f"  cerveau      : {config.cerveau()}")
-    print(f"  vision       : {config.OPENAI_VISION_MODEL}")
-    print(f"  corrections  : {config.MAX_REPAIR_ATTEMPTS} au plus")
-    print(f"  output       : {config.OUTPUT_DIR}")
+    print(f"  SUBJECT     : {config.SUBJECT}")
+    print(f"  DURATION    : {config.DURATION}s")
+    print(f"  SHOT_COUNT  : {config.SHOT_COUNT}")
+    print(f"  cerveau     : {config.cerveau()}")
+    print(f"  vision      : {config.OPENAI_VISION_MODEL}")
+    print(f"  corrections : {config.MAX_REPAIR_ATTEMPTS} au plus")
+    print(f"  vidéos      : {config.VIDEOS_DIR}")
 
     print("\nCerveau")
     if config.OPENAI_API_KEY:
@@ -361,68 +352,67 @@ def cmd_selfcheck(args) -> int:
         print("  OPENAI_API_KEY manquante dans .env")
         ok = False
 
-    print(f"\nfal.ai (point d'intégration images/vidéos)\n  FAL_KEY : "
-          f"{'présente' if config.FAL_KEY else 'absente'}")
+    print("\nffmpeg (montage et analyse vidéo)")
+    try:
+        montage.exiger_ffmpeg()
+        print("  ffmpeg et ffprobe présents")
+    except montage.MontageError as exc:
+        print(f"  {str(exc).splitlines()[0]}")
+        print("  storyboard et prompts fonctionnent sans ; montage et analyse vidéo non.")
+
     print("\n=> selfcheck", "OK" if ok else "INCOMPLET")
     return 0 if ok else 1
 
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="main.py", description="Sujet -> OpenAI -> storyboard validé -> images")
+        prog="main.py",
+        description="Sujet -> script, storyboard, prompts -> tu produis -> montage")
     sub = parser.add_subparsers(dest="command")
 
-    def common(p):
+    def commun(p):
         p.add_argument("--subject", default=config.SUBJECT)
         p.add_argument("--duration", type=float, default=config.DURATION)
         p.add_argument("--shots", type=int, default=config.SHOT_COUNT)
         return p
 
-    p_story = common(sub.add_parser("storyboard", help="cerveau seul (défaut)"))
-    p_story.add_argument("--test-mode", dest="test_mode", action="store_true", default=None)
-    p_story.add_argument("--no-test-mode", dest="test_mode", action="store_false")
-    p_story.set_defaults(func=cmd_storyboard)
+    commun(sub.add_parser("storyboard", help="script, bible, plans, prompts")
+           ).set_defaults(func=cmd_storyboard)
+    sub.add_parser("elements", help="tout réexporter pour produire"
+                   ).set_defaults(func=cmd_elements)
 
-    p_an = sub.add_parser("analyser", help="image -> analyse -> prompt d'animation")
-    p_an.add_argument("--shot", type=int, required=True)
-    p_an.add_argument("--image", required=True, help="fichier local ou URL http(s)")
-    p_an.set_defaults(func=cmd_analyser)
+    p_aff = sub.add_parser("affiner", help="image réelle -> prompt d'animation ajusté")
+    p_aff.add_argument("--shot", type=int, required=True)
+    p_aff.add_argument("--image", required=True, help="fichier local ou URL http(s)")
+    p_aff.set_defaults(func=cmd_affiner)
 
-    p_prod = common(sub.add_parser("produire", help="images/vidéos via fal.ai"))
-    p_prod.add_argument("--regenerate", action="store_true")
-    p_prod.add_argument("--force", action="store_true")
-    p_prod.add_argument("--sans-video", dest="sans_video", action="store_true")
-    p_prod.add_argument("--max-animations", type=int, default=config.SHOT_COUNT)
-    p_prod.set_defaults(func=cmd_produire)
+    sub.add_parser("analyser-videos", help="analyser les vidéos déposées"
+                   ).set_defaults(func=cmd_analyser_videos)
+    sub.add_parser("timeline", help="timeline + sous-titres").set_defaults(func=cmd_timeline)
 
-    p_cmp = sub.add_parser(
-        "comparer", help="le même prompt sur plusieurs modèles d'image")
-    p_cmp.add_argument("--shot", type=int, default=1)
-    p_cmp.add_argument("--modeles", nargs="*", default=None,
-                       help="par défaut : ceux de FAL_COMPARE_MODELS")
-    p_cmp.set_defaults(func=cmd_comparer)
+    p_mon = sub.add_parser("montage", help="assembler le MP4 final")
+    p_mon.add_argument("--sans-sous-titres", dest="sans_sous_titres", action="store_true")
+    p_mon.set_defaults(func=cmd_montage)
 
-    p_val = common(sub.add_parser("valider", help="rejouer les 10 vérifications"))
-    p_val.set_defaults(func=cmd_valider)
-
-    p_st = sub.add_parser("status", help="afficher status.json")
-    p_st.add_argument("--shots", type=int, default=config.SHOT_COUNT)
-    p_st.set_defaults(func=cmd_status)
-
-    sub.add_parser("selfcheck", help="vérifications hors ligne").set_defaults(func=cmd_selfcheck)
+    commun(sub.add_parser("valider", help="rejouer les vérifications")
+           ).set_defaults(func=cmd_valider)
+    sub.add_parser("selfcheck", help="état de la configuration").set_defaults(func=cmd_selfcheck)
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if not argv or argv[0].startswith("-"):
-        argv = ["storyboard", *argv]        # « python main.py » tout court
+        argv = ["storyboard", *argv]
     args = build_parser().parse_args(argv)
     try:
         return args.func(args)
     except OpenAIError as exc:
         print(f"\n[ERREUR OPENAI] {exc}", file=sys.stderr)
         return 2
+    except montage.MontageError as exc:
+        print(f"\n[ERREUR MONTAGE] {exc}", file=sys.stderr)
+        return 3
     except StoryboardError as exc:
         print(f"\n[ERREUR STORYBOARD] {exc}", file=sys.stderr)
         return 5

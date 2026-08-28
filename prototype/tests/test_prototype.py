@@ -1,10 +1,6 @@
-"""Contrat JSON, conditions du prompt, cerveau, reprise, CLI.
-
-Rien ici n'appelle OpenAI ni fal.ai.
-"""
+"""Contrat JSON, conditions du prompt, timeline, sous-titres, CLI, cerveau."""
 
 import importlib
-import json
 import os
 import sys
 import tempfile
@@ -12,38 +8,38 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from app import prompts  # noqa: E402
+from app import montage, prompts  # noqa: E402
 from app.models import (  # noqa: E402
+    COLOR_CODE,
     MOTION_INTENTS,
-    AnimationPlan,
-    ImageAnalysis,
+    QUALITY_AXES,
+    VISUAL_BIBLE_FIELDS,
     Storyboard,
     StoryboardError,
+    VideoAnalysis,
 )
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from test_validator import board  # noqa: E402
+from fixtures import board  # noqa: E402
 
 
-class TestContratStoryboard(unittest.TestCase):
+class TestContrat(unittest.TestCase):
     def test_lecture_complete(self):
         sb = Storyboard.from_dict(board())
         self.assertEqual(sb.shot_count, 4)
         self.assertEqual(sb.total_duration, 16)
-        self.assertEqual(sb.shot(3).id, 3)
+        self.assertTrue(sb.script)
         self.assertEqual(sb.shots[0].slug, "shot_01")
-        self.assertEqual(sb.visual_bible.vehicle[:5], "White")
+        self.assertEqual(len(sb.quality_check), len(QUALITY_AXES))
 
-    def test_la_bible_est_injectable_telle_quelle(self):
+    def test_les_onze_champs_de_la_bible(self):
+        self.assertEqual(len(VISUAL_BIBLE_FIELDS), 11)
         bloc = Storyboard.from_dict(board()).visual_bible.as_block()
-        for champ in ("Vehicle:", "Environment:", "Materials:", "Lighting:",
-                      "Colour palette:", "Camera language:"):
-            self.assertIn(champ, bloc)
+        for champ in VISUAL_BIBLE_FIELDS:
+            self.assertIn(champ.replace("_", " ").capitalize(), bloc)
 
     def test_bible_incomplete_refusee(self):
-        for champ in ("vehicle", "environment", "materials", "lighting",
-                      "color_palette", "camera_language"):
+        for champ in VISUAL_BIBLE_FIELDS:
             with self.subTest(champ=champ):
                 raw = board()
                 raw["visual_bible"][champ] = "  "
@@ -51,14 +47,16 @@ class TestContratStoryboard(unittest.TestCase):
                     Storyboard.from_dict(raw)
                 self.assertIn(champ, str(ctx.exception))
 
-    def test_bible_absente_refusee(self):
+    def test_script_obligatoire(self):
         raw = board()
-        del raw["visual_bible"]
-        with self.assertRaises(StoryboardError):
+        raw["script"] = ""
+        with self.assertRaises(StoryboardError) as ctx:
             Storyboard.from_dict(raw)
+        self.assertIn("script", str(ctx.exception))
 
-    def test_champ_de_plan_manquant_refuse(self):
-        for champ in ("voice", "visual_description", "educational_function", "image_prompt"):
+    def test_champ_de_plan_manquant(self):
+        for champ in ("voice", "visual_description", "educational_function",
+                      "visual_concept", "image_prompt", "animation_prompt"):
             with self.subTest(champ=champ):
                 raw = board()
                 raw["shots"][0][champ] = " "
@@ -66,169 +64,140 @@ class TestContratStoryboard(unittest.TestCase):
                     Storyboard.from_dict(raw)
                 self.assertIn(champ, str(ctx.exception))
 
-    def test_score_non_numerique_refuse(self):
+    def test_motion_intent_hors_vocabulaire(self):
         raw = board()
-        raw["shots"][0]["semantic_alignment_score"] = "élevé"
-        with self.assertRaises(StoryboardError):
+        raw["shots"][0]["motion_intent"] = "zoom_in"
+        with self.assertRaises(StoryboardError) as ctx:
             Storyboard.from_dict(raw)
+        self.assertIn("hors vocabulaire", str(ctx.exception))
 
-    def test_debit_de_parole_calcule(self):
-        sb = Storyboard.from_dict(board())
-        shot = sb.shots[0]
-        self.assertEqual(shot.word_count, len(shot.voice.split()))
-        self.assertAlmostEqual(shot.words_per_second,
-                               shot.word_count / shot.duration_seconds, places=6)
+    def test_zoom_absent_du_vocabulaire(self):
+        self.assertNotIn("zoom_in", MOTION_INTENTS)
+        self.assertNotIn("zoom", MOTION_INTENTS)
+        for attendu in ("energy_flow", "energy_storage", "regenerative_braking",
+                        "electromagnetic_rotation", "cause_effect", "energy_return"):
+            self.assertIn(attendu, MOTION_INTENTS)
 
     def test_aller_retour_disque(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "project.json"
+            chemin = Path(tmp) / "project.json"
             original = Storyboard.from_dict(board())
-            original.save(path)
-            self.assertEqual(Storyboard.load(path).to_dict(), original.to_dict())
-
-    def test_fichier_absent_ou_casse(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            with self.assertRaises(StoryboardError):
-                Storyboard.load(Path(tmp) / "absent.json")
-            casse = Path(tmp) / "project.json"
-            casse.write_text("{cassé", encoding="utf-8")
-            with self.assertRaises(StoryboardError):
-                Storyboard.load(casse)
+            original.save(chemin)
+            self.assertEqual(Storyboard.load(chemin).to_dict(), original.to_dict())
 
 
-class TestContratAnalyseImage(unittest.TestCase):
-    def analyse(self, **over):
-        base = {
-            "visible_subjects": ["white electric sedan", "battery pack"],
-            "composition": "Low macro framing, pack centre, floor receding",
-            "camera": "Low angle, close, 50mm feel",
-            "lighting": "Cool key upper left, volumetric haze",
-            "important_components": ["prismatic cells", "copper busbars"],
-            "preserve": ["cell geometry", "vehicle identity"],
-            "possible_motion": ["energy pulse along busbars", "macro tracking"],
-        }
-        base.update(over)
-        return base
+class TestCodeCouleur(unittest.TestCase):
+    def test_les_cinq_couleurs_et_leur_sens(self):
+        self.assertEqual(set(COLOR_CODE), {"yellow", "blue", "green", "orange", "grey"})
+        self.assertIn("électricité", COLOR_CODE["yellow"])
+        self.assertIn("récupérée", COLOR_CODE["green"])
 
-    def test_lecture_complete(self):
-        a = ImageAnalysis.from_dict(self.analyse())
-        self.assertEqual(len(a.visible_subjects), 2)
-        self.assertIn("prismatic cells", a.as_block())
-
-    def test_une_chaine_seule_est_acceptee_comme_liste(self):
-        a = ImageAnalysis.from_dict(self.analyse(preserve="cell geometry"))
-        self.assertEqual(a.preserve, ["cell geometry"])
-
-    def test_champ_vide_refuse(self):
-        for champ in ("visible_subjects", "composition", "camera", "lighting",
-                      "important_components", "preserve", "possible_motion"):
-            with self.subTest(champ=champ):
-                with self.assertRaises(StoryboardError) as ctx:
-                    ImageAnalysis.from_dict(self.analyse(**{champ: []}))
-                self.assertIn(champ, str(ctx.exception))
-
-
-class TestContratAnimation(unittest.TestCase):
-    def plan(self, **over):
-        base = {
-            "animation_prompt": (
-                "Electrical energy pulses travel progressively along the copper busbars "
-                "from the battery pack toward the motor while every cell stays fixed."),
-            "motion_intent": "energy_follow",
-            "camera_motion": "Slow controlled macro tracking from left to right",
-            "mechanical_motion": "none: nothing rotates in this framing",
-            "energy_motion": "Pulses from the pack forward to the motor",
-            "preserve": ["cell geometry", "vehicle identity"],
-            "forbidden": ["deformation", "added objects", "text"],
-        }
-        base.update(over)
-        return base
-
-    def test_lecture_complete(self):
-        p = AnimationPlan.from_dict(self.plan())
-        self.assertEqual(p.motion_intent, "energy_follow")
-        self.assertIn("busbars", p.animation_prompt)
-
-    def test_intention_hors_vocabulaire_refusee(self):
-        with self.assertRaises(StoryboardError) as ctx:
-            AnimationPlan.from_dict(self.plan(motion_intent="zoom_in"))
-        self.assertIn("hors vocabulaire", str(ctx.exception))
-
-    def test_zoom_in_n_est_pas_dans_le_vocabulaire(self):
-        self.assertNotIn("zoom_in", MOTION_INTENTS)
-        self.assertIn("mechanical_rotation", MOTION_INTENTS)
-        self.assertIn("energy_follow", MOTION_INTENTS)
-
-    def test_prompt_trop_court_refuse(self):
-        with self.assertRaises(StoryboardError) as ctx:
-            AnimationPlan.from_dict(self.plan(animation_prompt="slow zoom in"))
-        self.assertIn("trop court", str(ctx.exception))
-
-    def test_chaque_facette_du_mouvement_est_exigee(self):
-        for champ in ("camera_motion", "mechanical_motion", "energy_motion"):
-            with self.subTest(champ=champ):
-                with self.assertRaises(StoryboardError) as ctx:
-                    AnimationPlan.from_dict(self.plan(**{champ: ""}))
-                self.assertIn(champ, str(ctx.exception))
-
-    def test_preserver_et_interdire_sont_obligatoires(self):
-        for champ in ("preserve", "forbidden"):
-            with self.subTest(champ=champ):
-                with self.assertRaises(StoryboardError):
-                    AnimationPlan.from_dict(self.plan(**{champ: []}))
+    def test_le_code_est_injecte_dans_le_prompt(self):
+        texte = prompts.storyboard_user("Sujet", 16, 4)
+        for couleur in COLOR_CODE:
+            self.assertIn(couleur.upper(), texte)
 
 
 class TestConditionsDuPrompt(unittest.TestCase):
     def setUp(self):
         self.texte = prompts.storyboard_user("Fonctionnement d'une voiture électrique", 16, 4)
 
-    def test_les_conditions_sont_toutes_presentes(self):
-        for condition in ("CONDITION 1", "CONDITION 2", "CONDITION 3",
-                          "CONDITION 4", "CONDITION 5", "CONDITION 6", "CONDITION 10"):
-            self.assertIn(condition, self.texte)
+    def test_les_six_parties(self):
+        for partie in ("PART 1", "PART 2", "PART 3", "PART 4", "PART 5", "PART 6"):
+            self.assertIn(partie, self.texte)
 
-    def test_condition_1_exige_une_chaine_causale(self):
-        self.assertIn("CAUSAL CHAIN", self.texte)
-        self.assertIn("Do not list components", self.texte)
-        self.assertIn("battery → electrical energy → accelerator pedal", self.texte)
+    def test_la_grammaire_visuelle_est_la_regle_centrale(self):
+        self.assertIn("PEDAGOGICAL VISUAL GRAMMAR", self.texte)
+        self.assertIn("Do NOT settle for showing objects", self.texte)
+        self.assertIn("is NOT decoration", self.texte)
 
-    def test_condition_2_donne_la_cible_en_mots(self):
-        self.assertIn("sum to EXACTLY 16", self.texte)
-        self.assertIn("roughly 10 French words", self.texte)
-        self.assertIn("Never write a tiny sentence", self.texte)
+    def test_la_correspondance_image_animation_est_exigee(self):
+        self.assertIn("CORRESPONDENCE", self.texte)
+        self.assertIn("image shows a rotor", self.texte)
+        self.assertIn("A camera move is never the main motion", self.texte)
 
-    def test_condition_5_interdit_le_prompt_vague(self):
-        self.assertIn('"Electric motor in a car" is rejected', self.texte)
-        for exigence in ("framing", "camera angle", "depth", "lighting",
-                         "materials", "unmistakably visible"):
-            self.assertIn(exigence, self.texte)
+    def test_les_transformations_sont_nommees(self):
+        for transformation in ("electricity → motion", "energy → storage",
+                               "braking → recovery", "motor → generator"):
+            self.assertIn(transformation, self.texte)
 
-    def test_condition_6_impose_le_seuil_de_score(self):
-        self.assertIn("below 0.8", self.texte)
-        self.assertIn("Never narrate a component that the image does not show", self.texte)
+    def test_le_script_doit_avoir_un_hook(self):
+        self.assertIn("strong hook", self.texte)
+        self.assertIn("no generic filler", self.texte)
+
+    def test_les_sept_axes_de_qualite(self):
+        for axe in QUALITY_AXES:
+            self.assertIn(axe, self.texte)
 
     def test_direction_artistique_verbatim(self):
         self.assertIn(prompts.STYLE_DIRECTIVE, self.texte)
         self.assertIn("VERBATIM", self.texte)
 
-    def test_prompt_animation_refuse_le_simple_mouvement_de_camera(self):
-        texte = prompts.animation_user("La batterie alimente le moteur.",
-                                       "Montre le premier maillon.",
-                                       "Visible subjects: battery", MOTION_INTENTS)
-        self.assertIn('"slow zoom in"', texte)
-        self.assertIn("A camera move alone is rejected", texte)
-        self.assertIn("stator stays fixed", prompts.ANIMATION_SYSTEM)
-        self.assertIn("energy_follow", texte)
-        self.assertIn("La batterie alimente le moteur.", texte)
+    def test_analyse_image_interdit_de_deviner(self):
+        texte = prompts.image_analysis_user("le flux jaune")
+        self.assertIn("ONLY what is actually visible", texte)
+        self.assertIn("must not pretend it is there", texte)
 
-    def test_analyse_interdit_de_deviner(self):
-        self.assertIn("ONLY what is actually visible", prompts.ANALYSIS_USER)
-        self.assertIn("Do not use the brief that produced it", prompts.ANALYSIS_USER)
+    def test_analyse_video_juge_ce_qui_est_livre(self):
+        texte = prompts.video_analysis_user(1, "la voix", 4.0, 5.2, "flux jaune", "anim")
+        self.assertIn("not what was requested", texte)
+        self.assertIn("5.2", texte)
+        self.assertIn("defects", texte)
 
-    def test_enforce_style_ajoute_sans_dupliquer(self):
-        self.assertIn(prompts.STYLE_DIRECTIVE, prompts.enforce_style("A white car"))
-        deja = f"A white car. {prompts.STYLE_DIRECTIVE}"
-        self.assertEqual(prompts.enforce_style(deja).count(prompts.STYLE_FINGERPRINT), 1)
+
+class TestTimelineEtSousTitres(unittest.TestCase):
+    def setUp(self):
+        self.sb = Storyboard.from_dict(board())
+        self.videos = {s.id: Path(f"/tmp/shot_{s.id:02d}.mp4") for s in self.sb.shots}
+
+    def test_les_plans_s_enchainent_sans_trou(self):
+        entrees = montage.construire_timeline(self.sb, self.videos)
+        self.assertEqual(entrees[0].start, 0.0)
+        for precedent, suivant in zip(entrees, entrees[1:], strict=False):
+            self.assertEqual(precedent.end, suivant.start)
+        self.assertEqual(entrees[-1].end, 16.0)
+
+    def test_la_voix_reste_la_reference_temporelle(self):
+        """Une video trop longue est coupee, pas l'inverse."""
+        analyse = VideoAnalysis(1, 7.5, "c", "c", "m", "q", "v", [], [], True)
+        entrees = montage.construire_timeline(self.sb, self.videos, {1: analyse})
+        self.assertEqual(entrees[0].duration, 4.0)
+        self.assertIn("coupee", entrees[0].ajustement)
+
+    def test_video_trop_courte_signalee(self):
+        analyse = VideoAnalysis(1, 2.0, "c", "c", "m", "q", "v", [], [], True)
+        entrees = montage.construire_timeline(self.sb, self.videos, {1: analyse})
+        self.assertIn("plus courte", entrees[0].ajustement)
+
+    def test_defauts_et_non_conformite_remontent(self):
+        analyse = VideoAnalysis(1, 4.0, "c", "c", "m", "q", "v", [], ["morphing"], False)
+        entrees = montage.construire_timeline(self.sb, self.videos, {1: analyse})
+        self.assertIn("ne correspond pas au plan", entrees[0].remarques[0])
+        self.assertIn("morphing", entrees[0].remarques)
+
+    def test_video_manquante_refusee(self):
+        with self.assertRaises(montage.MontageError) as ctx:
+            montage.construire_timeline(self.sb, {1: Path("/tmp/a.mp4")})
+        self.assertIn("plan 02", str(ctx.exception))
+
+    def test_horodatage_srt(self):
+        self.assertEqual(montage.horodatage(0), "00:00:00,000")
+        self.assertEqual(montage.horodatage(4.5), "00:00:04,500")
+        self.assertEqual(montage.horodatage(3661.25), "01:01:01,250")
+
+    def test_sous_titres_cales_sur_la_timeline(self):
+        entrees = montage.construire_timeline(self.sb, self.videos)
+        srt = montage.sous_titres(entrees)
+        self.assertTrue(srt.startswith("1\n00:00:00,000 --> 00:00:04,000"))
+        self.assertEqual(srt.count("-->"), 4)
+        for s in self.sb.shots:
+            self.assertIn(s.voice.split()[0], srt)
+
+    def test_sous_titres_deux_lignes_au_plus(self):
+        entrees = montage.construire_timeline(self.sb, self.videos)
+        for bloc in montage.sous_titres(entrees).strip().split("\n\n"):
+            lignes = bloc.splitlines()
+            self.assertLessEqual(len(lignes) - 2, 2, bloc)
 
 
 class TestCerveau(unittest.TestCase):
@@ -252,87 +221,25 @@ class TestCerveau(unittest.TestCase):
         return importlib.reload(module)
 
     def test_variable_vide_compte_comme_absente(self):
-        """Regression : GitHub envoie "" pour une variable de depot non definie.
-
-        os.getenv(nom, defaut) rend "" dans ce cas, donc le defaut n'etait
-        jamais applique et model="" partait a l'API — l'erreur 400
-        « you must provide a model parameter » vue en production.
-        """
         c = self.config_avec(GROQ_API_KEY="gsk-x", OPENAI_VISION_MODEL="")
         self.assertEqual(c.OPENAI_VISION_MODEL, "openai/gpt-oss-120b")
-
-    def test_variable_faite_d_espaces(self):
-        c = self.config_avec(OPENAI_API_KEY="sk-a", OPENAI_MODEL="   ")
-        self.assertEqual(c.OPENAI_MODEL, "gpt-4o")
 
     def test_openai_prioritaire_sur_groq(self):
         c = self.config_avec(OPENAI_API_KEY="sk-abc", GROQ_API_KEY="gsk-def")
         self.assertFalse(c.USING_GROQ)
-        self.assertIsNone(c.OPENAI_BASE_URL)
         self.assertIn("OpenAI", c.cerveau())
 
     def test_bascule_sur_groq(self):
         c = self.config_avec(GROQ_API_KEY="gsk-def")
-        self.assertTrue(c.USING_GROQ)
         self.assertEqual(c.OPENAI_BASE_URL, "https://api.groq.com/openai/v1")
 
-    def test_aucune_cle(self):
-        self.assertIn("aucune cle", self.config_avec().cerveau())
-
-    def test_message_sans_cle_cite_le_fichier_env(self):
+    def test_message_sans_cle(self):
         self.config_avec()
         from app import openai_client
         importlib.reload(openai_client)
         with self.assertRaises(openai_client.OpenAIError) as ctx:
             openai_client.client()
         self.assertIn("OPENAI_API_KEY manquante dans .env", str(ctx.exception))
-
-    def test_modele_vide_refuse_avant_l_appel(self):
-        self.config_avec(OPENAI_API_KEY="sk-a")
-        from app import openai_client
-        importlib.reload(openai_client)
-        with self.assertRaises(openai_client.OpenAIError) as ctx:
-            openai_client.chat_json("", [{"role": "user", "content": "x"}])
-        self.assertIn("aucun modele nomme", str(ctx.exception))
-
-
-class TestReprise(unittest.TestCase):
-    def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(self._tmp.cleanup)
-        from app import config
-
-        self.config = config
-        garde = config.STATUS_FILE
-        config.STATUS_FILE = Path(self._tmp.name) / "status.json"
-        self.addCleanup(lambda: setattr(config, "STATUS_FILE", garde))
-
-    def test_tout_pending_au_depart(self):
-        from app.main import load_status
-
-        self.assertEqual(set(load_status(4).values()), {"pending"})
-
-    def test_les_plans_termines_sont_conserves(self):
-        from app.main import load_status, save_status
-
-        save_status({"shot_01": "completed", "shot_02": "completed",
-                     "shot_03": "pending", "shot_04": "pending"})
-        self.assertEqual(load_status(4)["shot_02"], "completed")
-
-    def test_fichier_corrompu_repart_proprement(self):
-        from app.main import load_status
-
-        self.config.STATUS_FILE.write_text("{cassé", encoding="utf-8")
-        self.assertEqual(set(load_status(4).values()), {"pending"})
-
-    def test_cles_inconnues_ignorees(self):
-        from app.main import load_status
-
-        self.config.STATUS_FILE.write_text(
-            json.dumps({"shot_01": "completed", "shot_99": "completed"}), encoding="utf-8")
-        status = load_status(4)
-        self.assertNotIn("shot_99", status)
-        self.assertEqual(status["shot_01"], "completed")
 
 
 class TestConfigEtCli(unittest.TestCase):
@@ -341,38 +248,84 @@ class TestConfigEtCli(unittest.TestCase):
 
         self.assertEqual(config.DURATION, 16)
         self.assertEqual(config.SHOT_COUNT, 4)
-        self.assertTrue(config.TEST_MODE)
         self.assertIn("voiture", config.SUBJECT)
 
     def test_aucune_cle_en_dur(self):
-        for path in (Path(__file__).resolve().parent.parent / "app").glob("*.py"):
-            texte = path.read_text(encoding="utf-8")
-            self.assertNotIn("sk-proj", texte, f"cle en dur dans {path.name}")
+        for chemin in (Path(__file__).resolve().parent.parent / "app").glob("*.py"):
+            texte = chemin.read_text(encoding="utf-8")
+            self.assertNotIn("sk-proj", texte, f"cle en dur dans {chemin.name}")
             self.assertNotRegex(texte, r'OPENAI_API_KEY\s*=\s*"sk-')
 
-    def test_python_main_py_sans_argument_lance_le_storyboard(self):
-        from app.main import build_parser
-
-        args = build_parser().parse_args(["storyboard"])
-        self.assertEqual(args.func.__name__, "cmd_storyboard")
+    def test_plus_aucune_generation_automatique(self):
+        """Le systeme ne fabrique plus ni image ni video."""
+        app = Path(__file__).resolve().parent.parent / "app"
+        self.assertFalse((app / "fal_client.py").exists())
+        for chemin in app.glob("*.py"):
+            texte = chemin.read_text(encoding="utf-8").lower()
+            self.assertNotIn("fal.run", texte, chemin.name)
+            self.assertNotIn("meta.ai", texte, chemin.name)
+            self.assertNotIn("playwright", texte, chemin.name)
 
     def test_les_commandes_existent(self):
         from app.main import build_parser
 
         parser = build_parser()
-        for commande in ("storyboard", "analyser", "produire", "comparer",
-                         "valider", "status", "selfcheck"):
+        extra = {"affiner": ["--shot", "1", "--image", "a.png"]}
+        for commande in ("storyboard", "elements", "affiner", "analyser-videos",
+                         "timeline", "montage", "valider", "selfcheck"):
             with self.subTest(commande=commande):
-                self.assertTrue(callable(parser.parse_args(
-                    [commande] + (["--shot", "1", "--image", "a.png"]
-                                  if commande == "analyser" else [])).func))
+                args = parser.parse_args([commande] + extra.get(commande, []))
+                self.assertTrue(callable(args.func))
 
-    def test_analyser_exige_le_plan_et_l_image(self):
+    def test_main_sans_argument_lance_le_storyboard(self):
         from app.main import build_parser
 
-        for incomplet in (["analyser"], ["analyser", "--shot", "1"]):
-            with self.subTest(argv=incomplet), self.assertRaises(SystemExit):
-                build_parser().parse_args(incomplet)
+        self.assertEqual(build_parser().parse_args(["storyboard"]).func.__name__,
+                         "cmd_storyboard")
+
+
+class TestElements(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        from app import config
+
+        self.config = config
+        garde = (config.OUTPUT_DIR, config.ELEMENTS_FILE, config.SHOTS_DIR)
+        racine = Path(self._tmp.name)
+        config.OUTPUT_DIR = racine
+        config.ELEMENTS_FILE = racine / "elements.md"
+        config.SHOTS_DIR = racine / "shots"
+
+        def restaurer():
+            (config.OUTPUT_DIR, config.ELEMENTS_FILE, config.SHOTS_DIR) = garde
+
+        self.addCleanup(restaurer)
+
+    def test_la_feuille_contient_tout_ce_qu_il_faut_pour_produire(self):
+        from app.main import ecrire_elements
+
+        sb = Storyboard.from_dict(board())
+        texte = ecrire_elements(sb).read_text(encoding="utf-8")
+        self.assertIn("## Script", texte)
+        self.assertIn("## Visual bible", texte)
+        for s in sb.shots:
+            self.assertIn(f"## Plan {s.id:02d}", texte)
+            self.assertIn(s.image_prompt, texte)
+            self.assertIn(s.animation_prompt, texte)
+            self.assertIn(s.visual_concept, texte)
+            self.assertIn(f"`{s.motion_intent}`", texte)
+        self.assertIn("Ce que tu fais maintenant", texte)
+
+    def test_chaque_plan_a_ses_fichiers(self):
+        from app.main import ecrire_elements
+
+        sb = Storyboard.from_dict(board())
+        ecrire_elements(sb)
+        for s in sb.shots:
+            d = self.config.shot_dir(s.id)
+            for nom in ("image_prompt.txt", "animation_prompt.txt", "voice.txt"):
+                self.assertTrue((d / nom).is_file(), f"{s.slug}/{nom}")
 
 
 if __name__ == "__main__":

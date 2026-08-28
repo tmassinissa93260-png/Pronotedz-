@@ -1,199 +1,195 @@
-# Prototype — sujet → OpenAI → storyboard validé → images → animations
+# Prototype — vidéo éducative semi-automatique
 
-Petit programme local. Un sujet, une durée, un nombre de plans. OpenAI écrit,
-un validateur vérifie, et fait corriger OpenAI tant que ce n'est pas bon.
+Tu donnes un sujet, une durée, un nombre de plans. Le système écrit le script,
+la visual bible, les plans, les prompts image **et** animation. **Tu produis
+les images et les animations** avec l'outil de ton choix. Tu renvoies les
+vidéos. Il analyse, cale la timeline, écrit les sous-titres et monte le MP4.
 
-Prototype **4 plans**. Indépendant : rien de `pdz`/`pdz2`, pas de plateforme
-web, pas de framework, pas de base de données.
+**Il ne génère jamais d'image ni de vidéo.** Pas d'automatisation navigateur,
+pas de plateforme web, pas de base de données.
 
 ```
 prototype/
   app/
-    main.py             orchestration, logs, reprise
-    openai_client.py    generate_storyboard() + boucle de correction
-    prompts.py          les 10 conditions, la direction artistique
+    main.py             orchestration, logs
+    openai_client.py    le cerveau + la boucle de correction
+    prompts.py          la grammaire visuelle pédagogique
     models.py           le contrat JSON
-    validator.py        les 10 vérifications
-    image_analyzer.py   analyze_image() puis generate_animation_prompt()
-    config.py           les 3 valeurs d'entrée, modèles, chemins
-    fal_client.py       point d'intégration images/vidéos
+    validator.py        les vérifications
+    analyzer.py         image réelle → animation · vidéos rendues → analyse
+    montage.py          timeline, sous-titres, MP4
+    config.py           les 3 valeurs d'entrée
     requirements.txt
-    output/             project.json, status.json, shots/
-  .env                  ta clé (jamais commité)
+    output/             project.json, elements.md, videos/, timeline.json, final.mp4
+  .env                  ta clé (jamais commitée)
   tests/
 ```
 
 ---
 
-## 1. Installer
+## Le pipeline
+
+```
+SUBJECT · DURATION · SHOT_COUNT
+        ↓
+   OpenAI  →  script · storyboard · visual bible · prompts image · prompts animation
+        ↓
+   TOI     →  tu génères les images
+        ↓
+   TOI     →  tu génères les animations à partir de tes images
+        ↓
+   TOI     →  tu déposes les vidéos dans output/videos/
+        ↓
+   OpenAI  →  analyse des vidéos rendues
+        ↓
+             timeline · sous-titres · montage · MP4 final
+```
+
+## Installer
 
 ```bash
 cd prototype
-python3 -m venv .venv && source .venv/bin/activate    # Windows : .venv\Scripts\activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r app/requirements.txt
 ```
 
-## 2. Configurer la clé
+`ffmpeg` est nécessaire pour l'analyse vidéo et le montage — pas pour le
+storyboard.
+
+```bash
+brew install ffmpeg        # macOS
+sudo apt install ffmpeg    # Linux
+```
+
+## Configurer
 
 ```bash
 cp .env.example .env
 ```
 
-Puis **une** de ces lignes dans `.env` :
+Puis **une** de ces lignes :
 
 ```
 OPENAI_API_KEY=sk-...      # OpenAI
-GROQ_API_KEY=gsk_...       # Groq — API compatible OpenAI, gratuite
+GROQ_API_KEY=gsk_...       # Groq — API compatible, gratuite
 ```
 
-La clé n'est jamais dans le code (un test le vérifie). Sans clé, le programme
-affiche `OPENAI_API_KEY manquante dans .env` et sort proprement.
+La clé n'est jamais dans le code : un test le vérifie.
 
-Le modèle se change dans `.env` : `OPENAI_MODEL`, `OPENAI_VISION_MODEL`.
-
-## 3. Lancer
+## Lancer
 
 ```bash
-cd app && python main.py           # le cerveau seul, TEST_MODE
+cd app && python main.py                            # script + storyboard + prompts
 ```
 
-ou, depuis `prototype/` :
+ou depuis `prototype/` :
 
 ```bash
-python -m app.main                              # idem
-python -m app.main valider                      # rejouer les 10 vérifications
-python -m app.main analyser --shot 1 --image X  # image → analyse → animation
-python -m app.main produire --sans-video        # images via fal.ai
-python -m app.main comparer --shot 1            # le même prompt sur N modèles
-python -m app.main selfcheck                    # état de la config
+python -m app.main                                  # idem
+python -m app.main elements                         # tout réexporter
+python -m app.main affiner --shot 1 --image X       # image réelle → animation ajustée
+python -m app.main analyser-videos                  # tes vidéos → ce qu'elles montrent
+python -m app.main timeline                         # timeline + sous-titres
+python -m app.main montage                          # MP4 final
+python -m app.main selfcheck                        # état de la configuration
 ```
 
-Sortie de `python main.py` :
-
-```
-[INPUT]
-  Fonctionnement d'une voiture électrique
-  16 secondes
-  4 plans
-
-[OPENAI] Génération du script...
-[OPENAI] Génération du storyboard...
-[VALIDATION] Vérification... (tentative 1)
-[CORRECTION] 3 point(s) à corriger, renvoi à OpenAI
-  ! [DEBIT] shot_01 : 2 mots pour 4.0s (0.5 mot/s) : phrase trop courte
-[VALIDATION] Vérification... (tentative 2)
-[OK] 4 plans validés
-[OUTPUT] .../output/project.json
-```
-
-Puis les 4 plans, avec leur voix, leur fonction et leur prompt photo.
+Tout ce qu'il te faut pour produire est rassemblé dans **`output/elements.md`** :
+script, visual bible, et pour chaque plan la voix, la fonction, l'élément
+pédagogique, le prompt image et le prompt animation.
 
 ---
 
-## Les 10 conditions, et comment elles sont tenues
+## La règle centrale : la grammaire visuelle pédagogique
 
-Chacune est **écrite dans le prompt** (`prompts.py`) *et* **vérifiée après coup**
-(`validator.py`). Une condition seulement demandée n'est pas une condition.
+Un prompt qui se contente de montrer un objet est refusé. Quand la voix nomme
+quelque chose d'invisible — électricité, courant, champ, énergie, signal — le
+système doit en **créer une représentation visible**.
 
-| Condition | Dans le prompt | Vérifiée par |
-| --- | --- | --- |
-| 1 · chaîne causale | exemple de chaîne, interdiction de lister | `PROGRESSION` : deux plans ne peuvent dire la même chose |
-| 2 · durée | somme exacte, ~2,7 mots/seconde | `DUREE` + `DEBIT` : mots/seconde hors de [1.8, 4.0] rejeté |
-| 3 · fonction du plan | `educational_function` justifiée | `FONCTION` : trop vague, ou dupliquée |
-| 4 · visual bible | remplie avant les prompts, réinjectée partout | `CONTINUITE` : la bible doit se retrouver dans chaque prompt |
-| 5 · prompt spécifique | 11 points exigés | `PRECISION` : longueur + cadrage, caméra, position, lumière, matériaux |
-| 6 · dit = montré | score honnête, seuil 0,8 | `ALIGNEMENT` : composant nommé dans la voix cherché dans le prompt photo |
-| 7 · animation qui explique | facettes obligatoires, vocabulaire contrôlé | `AnimationPlan` : `motion_intent` hors liste rejeté |
-| 8 · animation après l'image | `analyze_image()` avant `generate_animation_prompt()` | l'ordre est imposé par le code |
-| 9 · physique plausible | stator fixe, pas de déformation, flux orienté | dans le prompt système |
-| 10 · pas de texte | direction artistique, `no text no labels` | `STYLE` : direction artistique absente = rejet |
+> « Le moteur reçoit l'électricité » → montrer un moteur ne suffit pas.
+> Il faut des flux lumineux **jaunes** entrant dans les bobinages.
 
-### La boucle de correction
+Cet élément jaune n'est pas une décoration : **il porte une information**.
 
-Quand le validateur refuse, on ne rend pas la main : la liste exacte des
-manquements repart chez OpenAI, plan par plan.
+### Code couleur — une couleur, un sens, stable
 
-```
-Your previous JSON was rejected by an automatic validator.
-- shot_01: write about 10 words of narration, not 2. Say more about the causal link, do not pad.
-- shot_02: the image_prompt must explicitly state cadrage, camera, position, lumiere, materiaux.
-- shot_03: rework it until what the voice says is unmistakably the thing shown.
-```
+| | |
+|---|---|
+| **jaune** | électricité, courant, énergie électrique |
+| **bleu** | batterie, système électrique, technologie |
+| **vert** | efficacité, énergie récupérée, recharge |
+| **orange** | chaleur, puissance, phénomène à distinguer |
+| **gris** | mécanique, structure, composants |
 
-`MAX_REPAIR_ATTEMPTS` (défaut 2) borne le nombre d'allers-retours. Ce qui reste
-non corrigé est affiché en `[ATTENTION]`, jamais masqué.
+### Correspondance image → animation
 
-### Vocabulaire d'animation
+Ce que l'image introduit, l'animation doit le faire bouger.
 
-`motion_intent` doit valoir exactement une de ces valeurs :
+| L'image montre | L'animation doit |
+|---|---|
+| un flux d'énergie jaune | le faire circuler |
+| un rotor | le faire tourner |
+| des cellules de batterie | les faire s'illuminer, ou montrer l'énergie circuler |
 
-`reveal` · `orbit` · `macro_travel` · `interaction` · `tracking` ·
-`energy_follow` · `mechanical_rotation` · `electromagnetic_rotation` ·
-`gear_rotation` · `drivetrain_follow` · `causal_traversal` · `acceleration` ·
-`deceleration` · `reverse_energy` · `energy_generation` · `energy_return`
+**Interdit** : image « batterie + flux électrique » / animation « zoom caméra ».
+La caméra peut bouger, mais jamais comme mouvement principal.
 
-`zoom_in` n'y est pas, volontairement.
+### Vocabulaire de mouvement — fermé
+
+`energy_flow` · `energy_storage` · `energy_transfer` · `mechanical_rotation` ·
+`electromagnetic_rotation` · `cause_effect` · `reveal` · `tracking` ·
+`macro_travel` · `acceleration` · `deceleration` · `regenerative_braking` ·
+`energy_return`
+
+`zoom` n'y figure pas, volontairement. Un `motion_intent` hors liste est rejeté
+par le code, pas seulement déconseillé.
 
 ---
 
-## Ce que produit le programme
+## Les vérifications
 
-```
-app/output/
-  project.json          storyboard validé, rejouable
-  status.json           {"shot_01": "completed", ...}
-  shots/shot_01/
-    voice.txt
-    image_prompt.txt
-    image.png             si fal.ai a tourné
-    image_analysis.json   ce qui est réellement visible
-    animation.json        prompt, intention, caméra, mécanique, énergie, préserver, interdit
-    animation_prompt.txt
-    video.mp4             si fal.ai a animé
-```
+Chaque règle est **écrite dans le prompt** *et* **vérifiée après coup**. Une
+règle seulement demandée n'est pas une règle.
 
-## TEST_MODE
+| Code | Rejette |
+| --- | --- |
+| `PLANS` · `DUREE` · `IDS` | mauvais compte, somme des durées fausse, numérotation trouée |
+| `DEBIT` | hors de 1,8–4,0 mots/seconde : plan vide, ou impossible à dire |
+| `FONCTION` | une fonction pédagogique vague ou dupliquée |
+| `STYLE` | la direction artistique absente d'un prompt |
+| `PRECISION` | un prompt muet sur cadrage, caméra, position, lumière ou matériaux |
+| `CONTINUITE` | un prompt qui ne reprend rien de la visual bible |
+| `ALIGNEMENT` | un composant nommé par la voix, absent du prompt image |
+| `PROGRESSION` | deux plans qui disent la même chose |
+| **`GRAMMAIRE`** | **un phénomène invisible sans représentation colorée** |
+| **`CORRESPONDANCE`** | **un élément pédagogique que l'animation ne fait pas bouger, ou une animation réduite à un mouvement de caméra** |
+| `QUALITE` | un des sept axes sous 0,8 |
 
-`TEST_MODE = True` dans `app/config.py` : OpenAI, validation, `project.json`,
-affichage — **aucune image, aucune vidéo**. C'est le mode par défaut.
+Quand le validateur refuse, la liste exacte repart chez OpenAI, plan par plan.
+`MAX_REPAIR_ATTEMPTS` (défaut 2) borne les allers-retours ; ce qui reste est
+affiché en `[ATTENTION]`, jamais masqué.
+
+## Montage
+
+La **voix off est la référence temporelle**. Chaque plan occupe la durée prévue
+par sa narration : une vidéo trop longue est coupée, une trop courte est
+signalée. Les sous-titres sont calés sur cette même timeline, deux lignes au
+plus.
+
+Dépose si tu veux `output/voix.mp3` et `output/musique.mp3` : la musique est
+mixée à 15 % sous la voix.
 
 ## Sur GitHub Actions
 
-`Actions` → **Prototype — produire une vidéo** → `Run workflow`.
+`Actions` → **Prototype — vidéo éducative** → `Run workflow`.
 
-| Étape | Ce qu'elle fait |
+| Étape | |
 | --- | --- |
-| `storyboard` | le cerveau seul, gratuit hors OpenAI |
-| `produire` | + images et vidéos via fal.ai (**payant**) |
-| `analyser` | une image → analyse → prompt d'animation |
-| `comparer` | le même prompt photo sur plusieurs modèles, pour choisir sur pièces |
+| `storyboard` | script, bible, prompts — c'est tout |
+| `analyser-videos` | tes vidéos déposées dans `app/output/videos/` |
+| `montage` | timeline, sous-titres, MP4 |
 
-### Choisir le générateur d'images
-
-Le premier essai s'est fait avec `fal-ai/flux/schnell` en 1080×1920. Résultat :
-du texte halluciné malgré `no text`, une tige métallique sortant d'une roue, un
-rectangle gris sur une calandre. Deux causes — le modèle le plus faible de la
-famille, et une résolution au double du domaine d'entraînement de FLUX.
-
-Les mêmes prompts, collés dans Meta AI, ont rendu des images justes : voir
-`exemples/meta-ai/`. **Le cerveau n'était pas en cause, le générateur l'était.**
-
-Défaut actuel : `fal-ai/flux-pro/v1.1` en 768×1344 (1,03 Mpx). Mais plutôt que
-de me croire :
-
-```bash
-python -m app.main comparer --shot 1
-```
-
-envoie le même prompt à `flux-pro/v1.1`, `flux/dev` et `flux/schnell`, et dépose
-les images côte à côte. Tu regardes, tu choisis, tu fixes `FAL_IMAGE_MODEL`.
-
-Chaque famille a ses champs propres — `ultra` raisonne en rapport d'image, les
-`pro` ne prennent pas de nombre de pas, `schnell` ignore la guidance. La charge
-utile s'adapte au modèle : envoyer un champ inconnu fait rejeter l'appel.
-
-Secrets : `OPENAI_API_KEY` ou `GROQ_API_KEY`, et `FAL_KEY` pour `produire`.
-Le champ `animations` vaut **0 par défaut** : aucune dépense vidéo.
+Secret : `OPENAI_API_KEY` ou `GROQ_API_KEY`.
 
 ## Tests
 
@@ -201,15 +197,16 @@ Le champ `animations` vaut **0 par défaut** : aucune dépense vidéo.
 python -m unittest discover -s tests
 ```
 
-77 tests, aucun appel réseau : contrat JSON, les 10 vérifications une par une,
-conditions présentes dans le prompt, résolution du cerveau, reprise, CLI, et
-le client fal contre un service simulé.
+62 tests, aucun appel réseau : contrat JSON, code couleur, les vérifications
+une par une — dont la grammaire visuelle et la correspondance image → animation
+—, conditions présentes dans le prompt, timeline, sous-titres, CLI.
 
 ## Limites assumées
 
-- Le point d'intégration images/vidéos est `fal_client.py`. Le premier vrai
-  appel se fait sur ta machine ou en CI, pas ici.
-- `ALIGNEMENT` compare des mots français de la voix à leurs équivalents
-  anglais attendus dans le prompt photo : c'est une heuristique, pas une
-  compréhension. Elle attrape les oublis francs, pas les subtils.
+- L'analyse vidéo échantillonne quelques images du fichier : un modèle de
+  vision lit des images, pas un flux. Elle juge ce qui change entre le début et
+  la fin, pas chaque frame.
+- `ALIGNEMENT` et `GRAMMAIRE` rapprochent des mots français de leurs
+  équivalents anglais attendus : une heuristique, pas une compréhension. Elles
+  attrapent les oublis francs, pas les subtils.
 - 4 plans. Ne pas monter à 20 avant que les 4 tiennent.

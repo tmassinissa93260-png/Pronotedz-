@@ -1,7 +1,7 @@
-"""Les 10 verifications imposees avant de sauvegarder un storyboard.
+"""Les verifications imposees avant de rendre un storyboard.
 
-Le validateur ne se contente pas de dire non : chaque probleme porte une
-phrase adressee a OpenAI, qui sert a lui demander une correction ciblee.
+Chaque probleme porte sa consigne de correction, adressee a OpenAI : le
+validateur ne dit pas seulement non, il dit quoi refaire.
 """
 
 from __future__ import annotations
@@ -9,36 +9,57 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from .models import Storyboard
+from .models import COLOR_CODE, QUALITY_AXES, Storyboard
 from .prompts import STYLE_FINGERPRINT
 
-# Debit de parole en francais. En dessous, la phrase est trop courte pour la
-# duree annoncee ; au dessus, elle est impossible a prononcer dans le temps.
 MIN_WORDS_PER_SECOND = 1.8
 MAX_WORDS_PER_SECOND = 4.0
-
-MIN_ALIGNMENT_SCORE = 0.8
-MIN_IMAGE_PROMPT_CHARS = 220
+MIN_QUALITY = 0.8
+MIN_IMAGE_PROMPT_CHARS = 260
+MIN_ANIMATION_PROMPT_CHARS = 120
 DURATION_TOLERANCE_S = 0.5
 
-# CONDITION 5 : un prompt photo doit dire ou est quoi, comment c'est cadre,
-# et sous quelle lumiere. Chaque famille doit apparaitre au moins une fois.
+# CONDITION : le prompt photo doit dire ou est quoi, comment c'est cadre,
+# sous quelle lumiere, en quels materiaux.
 SPECIFICITY_FAMILIES = {
     "cadrage": ("shot", "framing", "close-up", "closeup", "wide", "medium", "macro", "view"),
     "camera": ("camera", "angle", "lens", "perspective", "eye level", "low angle", "high angle"),
     "position": ("left", "right", "centre", "center", "beneath", "under", "above", "behind",
-                 "front", "rear", "between", "along", "inside", "mounted", "positioned"),
+                 "front", "rear", "between", "along", "inside", "mounted", "positioned",
+                 "toward", "towards", "into", "around"),
     "lumiere": ("light", "lighting", "lit", "illuminat", "volumetric", "backlight", "rim"),
     "materiaux": ("material", "metal", "aluminium", "aluminum", "copper", "composite",
-                  "matte", "paint", "plastic", "steel", "glass"),
+                  "matte", "paint", "plastic", "steel", "glass", "rubber"),
 }
 
-# CONDITION 6 : ce qui est dit doit etre montre. Mots francais de la voix
-# rapproches de leur equivalent anglais attendu dans le prompt photo.
-SEMANTIC_PAIRS = {
+# Mots qui signalent un phenomene invisible rendu visible.
+PHENOMENE = ("energy", "current", "electric", "flow", "stream", "pulse", "particle",
+             "field", "charge", "power", "signal", "heat")
+
+# Verbes de mouvement qui font vraiment bouger la chose.
+MOUVEMENT = ("flow", "travel", "move", "pulse", "circulat", "rotat", "spin", "turn",
+             "illuminat", "light up", "glow", "advance", "progress", "accelerat",
+             "reverse", "enter", "exit", "rise", "propagat", "sweep")
+
+# Mouvements de camera : ils ne comptent pas comme mouvement pedagogique.
+CAMERA = ("camera", "zoom", "dolly", "pan", "tilt", "orbit", "push in", "pull out",
+          "tracking shot")
+
+# Composant nomme -> mouvement attendu si l'image le met en avant.
+COMPOSANT_MOUVEMENT = {
+    "rotor": ("rotat", "spin", "turn"),
+    "crankshaft": ("rotat", "spin", "turn"),
+    "piston": ("move", "travel", "stroke", "down", "up"),
+    "gear": ("rotat", "mesh", "turn"),
+    "wheel": ("rotat", "spin", "turn"),
+    "cell": ("illuminat", "light", "glow", "charge", "flow"),
+}
+
+# CONDITION : ce qui est dit doit etre montre.
+SEMANTIQUE = {
     "batterie": ("battery", "cell", "pack", "module"),
     "cellule": ("cell",),
-    "moteur": ("motor", "rotor", "stator", "winding"),
+    "moteur": ("motor", "engine", "rotor", "stator", "winding"),
     "rotor": ("rotor",),
     "stator": ("stator",),
     "roue": ("wheel", "tyre", "tire", "hub"),
@@ -53,14 +74,14 @@ SEMANTIC_PAIRS = {
     "pedale": ("pedal",),
     "transmission": ("transmission", "gear", "drivetrain", "axle"),
     "engrenage": ("gear",),
+    "piston": ("piston",),
+    "vilebrequin": ("crankshaft",),
     "freinage": ("brake", "regenerat"),
 }
 
 
 @dataclass
 class Problem:
-    """Un manquement, avec sa consigne de correction pour OpenAI."""
-
     code: str
     where: str
     message: str
@@ -70,254 +91,308 @@ class Problem:
         return f"[{self.code}] {self.where} : {self.message}"
 
 
-def validate(storyboard: Storyboard, duration: float, shot_count: int) -> list[Problem]:
-    """Les 10 verifications. Liste vide = storyboard acceptable."""
+def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems: list[Problem] = []
-    problems += _check_shot_count(storyboard, shot_count)
-    problems += _check_total_duration(storyboard, duration)
-    problems += _check_required_fields(storyboard)
-    problems += _check_style_directive(storyboard)
-    problems += _check_speech_rate(storyboard)
-    problems += _check_prompt_specificity(storyboard)
-    problems += _check_visual_continuity(storyboard)
-    problems += _check_semantic_alignment(storyboard)
-    problems += _check_narration_progression(storyboard)
+    problems += _plans(sb, shot_count)
+    problems += _duree(sb, duration)
+    problems += _debit(sb)
+    problems += _fonction(sb)
+    problems += _style(sb)
+    problems += _precision(sb)
+    problems += _continuite(sb)
+    problems += _alignement(sb)
+    problems += _progression(sb)
+    problems += _grammaire_visuelle(sb)
+    problems += _correspondance(sb)
+    problems += _qualite(sb)
     return problems
 
 
-# --- 1. nombre de plans ------------------------------------------------------
+# --- nombre de plans, duree, debit ------------------------------------------
 
 
-def _check_shot_count(sb: Storyboard, expected: int) -> list[Problem]:
-    if len(sb.shots) == expected:
+def _plans(sb: Storyboard, attendu: int) -> list[Problem]:
+    if len(sb.shots) == attendu:
         return []
-    return [Problem("PLANS", "storyboard",
-                    f"{len(sb.shots)} plan(s) au lieu de {expected}",
-                    f"Return exactly {expected} shots, with ids 1 to {expected}.")]
+    return [Problem("PLANS", "storyboard", f"{len(sb.shots)} plan(s) au lieu de {attendu}",
+                    f"Return exactly {attendu} shots, ids 1 to {attendu}.")]
 
 
-# --- 2. duree totale ---------------------------------------------------------
+def _duree(sb: Storyboard, attendue: float) -> list[Problem]:
+    out = []
+    if abs(sb.total_duration - attendue) > DURATION_TOLERANCE_S:
+        out.append(Problem("DUREE", "storyboard",
+                           f"somme des plans = {sb.total_duration}s au lieu de {attendue}s",
+                           f"The durations must sum to exactly {attendue}."))
+    for s in sb.shots:
+        if s.duration_seconds <= 0:
+            out.append(Problem("DUREE", s.slug, f"duree invalide : {s.duration_seconds}",
+                               f"Shot {s.id} needs a positive duration_seconds."))
+    return out
 
 
-def _check_total_duration(sb: Storyboard, expected: float) -> list[Problem]:
-    problems = []
-    if abs(sb.total_duration - expected) > DURATION_TOLERANCE_S:
-        problems.append(Problem(
-            "DUREE", "storyboard",
-            f"somme des plans = {sb.total_duration}s au lieu de {expected}s",
-            f"The sum of every duration_seconds must equal exactly {expected}."))
-    for shot in sb.shots:
-        if shot.duration_seconds <= 0:
-            problems.append(Problem(
-                "DUREE", shot.slug, f"duree invalide : {shot.duration_seconds}",
-                f"Shot {shot.id} needs a positive duration_seconds."))
-    return problems
+def _debit(sb: Storyboard) -> list[Problem]:
+    out = []
+    for s in sb.shots:
+        taux = s.words_per_second
+        cible = int(s.duration_seconds * 2.7)
+        if taux < MIN_WORDS_PER_SECOND:
+            out.append(Problem("DEBIT", s.slug,
+                               f"{s.word_count} mots pour {s.duration_seconds}s "
+                               f"({taux:.1f} mot/s) : le plan serait vide",
+                               f"Shot {s.id}: write about {cible} words, not {s.word_count}. "
+                               f"Say more about the causal link, do not pad."))
+        elif taux > MAX_WORDS_PER_SECOND:
+            out.append(Problem("DEBIT", s.slug,
+                               f"{s.word_count} mots pour {s.duration_seconds}s "
+                               f"({taux:.1f} mot/s) : impossible a prononcer",
+                               f"Shot {s.id}: shorten the narration to about {cible} words."))
+    return out
 
 
-# --- 3/4/5. champs obligatoires ---------------------------------------------
-
-
-def _check_required_fields(sb: Storyboard) -> list[Problem]:
-    problems = []
+def _fonction(sb: Storyboard) -> list[Problem]:
+    out = []
     ids = [s.id for s in sb.shots]
     if ids != list(range(1, len(sb.shots) + 1)):
-        problems.append(Problem(
-            "IDS", "storyboard", f"ids non contigus : {ids}",
-            f"Number the shots 1 to {len(sb.shots)} in order."))
-    for shot in sb.shots:
-        if len(shot.educational_function) < 20:
-            problems.append(Problem(
-                "FONCTION", shot.slug,
-                "educational_function trop vague pour justifier le plan",
-                f"Shot {shot.id}: state in one full sentence what understanding this "
-                f"shot adds that no other shot provides."))
-    return problems
+        out.append(Problem("IDS", "storyboard", f"ids non contigus : {ids}",
+                           f"Number the shots 1 to {len(sb.shots)} in order."))
+    for s in sb.shots:
+        if len(s.educational_function) < 20:
+            out.append(Problem("FONCTION", s.slug,
+                               "educational_function trop vague pour justifier le plan",
+                               f"Shot {s.id}: state in one full sentence what the viewer "
+                               f"understands after this shot that no other shot provides."))
+    return out
 
 
-# --- 6. direction artistique -------------------------------------------------
+def _style(sb: Storyboard) -> list[Problem]:
+    return [Problem("STYLE", s.slug, "direction artistique absente du prompt photo",
+                    f"Shot {s.id}: end image_prompt with the mandatory art direction "
+                    f"sentence, copied verbatim.")
+            for s in sb.shots if STYLE_FINGERPRINT.lower() not in s.image_prompt.lower()]
 
 
-def _check_style_directive(sb: Storyboard) -> list[Problem]:
-    return [
-        Problem("STYLE", shot.slug, "direction artistique absente du prompt photo",
-                f"Shot {shot.id}: end image_prompt with the mandatory art direction "
-                f"sentence, copied verbatim.")
-        for shot in sb.shots
-        if STYLE_FINGERPRINT.lower() not in shot.image_prompt.lower()
-    ]
+# --- precision et continuite ------------------------------------------------
 
 
-# --- 2 bis. narration compatible avec la duree ------------------------------
-
-
-def _check_speech_rate(sb: Storyboard) -> list[Problem]:
-    problems = []
-    for shot in sb.shots:
-        rate = shot.words_per_second
-        if rate < MIN_WORDS_PER_SECOND:
-            problems.append(Problem(
-                "DEBIT", shot.slug,
-                f"{shot.word_count} mots pour {shot.duration_seconds}s "
-                f"({rate:.1f} mot/s) : phrase trop courte, le plan serait vide",
-                f"Shot {shot.id}: write about "
-                f"{int(shot.duration_seconds * 2.7)} words of narration, not "
-                f"{shot.word_count}. Say more about the causal link, do not pad."))
-        elif rate > MAX_WORDS_PER_SECOND:
-            problems.append(Problem(
-                "DEBIT", shot.slug,
-                f"{shot.word_count} mots pour {shot.duration_seconds}s "
-                f"({rate:.1f} mot/s) : impossible a prononcer",
-                f"Shot {shot.id}: shorten the narration to about "
-                f"{int(shot.duration_seconds * 2.7)} words."))
-    return problems
-
-
-# --- 5. specificite du prompt photo -----------------------------------------
-
-
-def _check_prompt_specificity(sb: Storyboard) -> list[Problem]:
-    problems = []
-    for shot in sb.shots:
-        # La direction artistique est commune a tous : elle ne compte pas
-        # comme de la specificite propre au plan.
-        propre = _own_part(shot.image_prompt)
-        bas = propre.lower()
-
-        if len(propre.strip()) < MIN_IMAGE_PROMPT_CHARS:
-            problems.append(Problem(
-                "PRECISION", shot.slug,
-                f"prompt photo trop general ({len(propre.strip())} caracteres "
-                f"hors direction artistique)",
-                f"Shot {shot.id}: describe the subject, the visible components and "
-                f"where each one sits, the framing, the camera angle, the depth, the "
-                f"lighting, the materials, and what must be unmistakably visible."))
-
-        absentes = [nom for nom, mots in SPECIFICITY_FAMILIES.items()
-                    if not any(m in bas for m in mots)]
-        if absentes:
-            problems.append(Problem(
-                "PRECISION", shot.slug,
-                f"le prompt photo ne dit rien sur : {', '.join(absentes)}",
-                f"Shot {shot.id}: the image_prompt must explicitly state "
-                f"{', '.join(absentes)}."))
-    return problems
-
-
-# --- 7. continuite visuelle --------------------------------------------------
-
-
-def _check_visual_continuity(sb: Storyboard) -> list[Problem]:
-    """La bible doit se retrouver dans chaque prompt, pas seulement en tete."""
-    ancres = _continuity_anchors(sb)
-    if not ancres:
-        return []
-    problems = []
-    for shot in sb.shots:
-        # La direction artistique contient « dark studio » : elle satisferait
-        # le controle a elle seule, dans tous les plans. On ne regarde donc
-        # que la part propre au plan.
-        bas = _own_part(shot.image_prompt).lower()
-        if not any(a in bas for a in ancres):
-            problems.append(Problem(
-                "CONTINUITE", shot.slug,
-                "le prompt photo ne reprend rien de la visual_bible",
-                f"Shot {shot.id}: restate the car, the environment and the materials "
-                f"described in visual_bible, so every shot shows the same vehicle."))
-    return problems
-
-
-def _own_part(image_prompt: str) -> str:
+def own_part(image_prompt: str) -> str:
     """Le prompt photo prive de la direction artistique commune.
 
-    On COUPE a la signature, on ne la supprime pas : la supprimer d'abord
-    rendrait la coupe introuvable et laisserait toute la fin de la phrase de
-    style (« clean dark studio environment », « cinematic lighting »...)
-    passer pour du contenu propre au plan.
+    On COUPE a la signature : la supprimer d'abord rendrait la coupe
+    introuvable et laisserait la fin de la phrase de style passer pour du
+    contenu propre au plan.
     """
     debut = image_prompt.lower().find(STYLE_FINGERPRINT.lower())
     return image_prompt if debut < 0 else image_prompt[:debut]
 
 
-def _continuity_anchors(sb: Storyboard) -> list[str]:
-    """Mots porteurs de la bible : couleur, carrosserie, decor."""
-    source = f"{sb.visual_bible.vehicle} {sb.visual_bible.environment}".lower()
-    candidats = ("white", "blanc", "sedan", "berline", "hatchback", "compact", "suv",
-                 "studio", "dark", "sombre", "grey", "gray", "blue")
+def _precision(sb: Storyboard) -> list[Problem]:
+    out = []
+    for s in sb.shots:
+        propre = own_part(s.image_prompt)
+        bas = propre.lower()
+        if len(propre.strip()) < MIN_IMAGE_PROMPT_CHARS:
+            out.append(Problem("PRECISION", s.slug,
+                               f"prompt photo trop general ({len(propre.strip())} caracteres "
+                               f"hors direction artistique)",
+                               f"Shot {s.id}: state the subject, the phenomenon shown, the "
+                               f"pedagogical elements and their colour, where each sits, the "
+                               f"framing, the camera angle, the depth, the lighting, the "
+                               f"materials, what to preserve and what is forbidden."))
+        absentes = [nom for nom, mots in SPECIFICITY_FAMILIES.items()
+                    if not any(m in bas for m in mots)]
+        if absentes:
+            out.append(Problem("PRECISION", s.slug,
+                               f"le prompt photo ne dit rien sur : {', '.join(absentes)}",
+                               f"Shot {s.id}: the image_prompt must explicitly state "
+                               f"{', '.join(absentes)}."))
+        if len(s.animation_prompt.strip()) < MIN_ANIMATION_PROMPT_CHARS:
+            out.append(Problem("PRECISION", s.slug,
+                               f"prompt d'animation trop court "
+                               f"({len(s.animation_prompt.strip())} caracteres)",
+                               f"Shot {s.id}: say which element moves, in which direction, at "
+                               f"what speed, what stays still, and what must not deform."))
+    return out
+
+
+def _continuite(sb: Storyboard) -> list[Problem]:
+    ancres = _ancres(sb)
+    if not ancres:
+        return []
+    return [Problem("CONTINUITE", s.slug,
+                    "le prompt photo ne reprend rien de la visual_bible",
+                    f"Shot {s.id}: restate the subject, the environment and the materials "
+                    f"fixed by visual_bible, so every shot shows the same object.")
+            for s in sb.shots if not any(a in own_part(s.image_prompt).lower() for a in ancres)]
+
+
+def _ancres(sb: Storyboard) -> list[str]:
+    source = " ".join([sb.visual_bible.vehicle, sb.visual_bible.main_subject,
+                       sb.visual_bible.environment]).lower()
+    candidats = ("white", "silver", "black", "sedan", "hatchback", "compact", "suv", "coupe",
+                 "studio", "dark", "grey", "gray", "blue", "navy", "concrete")
     return [c for c in candidats if c in source]
 
 
-# --- 8. ce qui est dit est montre -------------------------------------------
-
-
-def _check_semantic_alignment(sb: Storyboard) -> list[Problem]:
-    problems = []
-    for shot in sb.shots:
-        if shot.semantic_alignment_score < MIN_ALIGNMENT_SCORE:
-            problems.append(Problem(
-                "ALIGNEMENT", shot.slug,
-                f"score annonce {shot.semantic_alignment_score} < {MIN_ALIGNMENT_SCORE}",
-                f"Shot {shot.id}: rework it until what the voice says is unmistakably "
-                f"the thing shown, then re-score honestly."))
-        if not 0.0 <= shot.semantic_alignment_score <= 1.0:
-            problems.append(Problem(
-                "ALIGNEMENT", shot.slug,
-                f"score hors bornes : {shot.semantic_alignment_score}",
-                f"Shot {shot.id}: semantic_alignment_score must be between 0 and 1."))
-
-        manquants = _unshown_components(shot.voice, shot.image_prompt)
+def _alignement(sb: Storyboard) -> list[Problem]:
+    out = []
+    for s in sb.shots:
+        # own_part et pas le prompt entier : la direction artistique contient
+        # « 3D engineering visualization », dont le « engine » suffisait a faire
+        # croire qu'un moteur etait montre.
+        manquants = _non_montres(s.voice, own_part(s.image_prompt))
         if manquants:
-            problems.append(Problem(
-                "ALIGNEMENT", shot.slug,
-                f"la voix parle de {', '.join(manquants)} — invisible dans le prompt photo",
-                f"Shot {shot.id}: the voice mentions {', '.join(manquants)}, so the "
-                f"image_prompt must show it clearly and name it."))
-    return problems
+            out.append(Problem("ALIGNEMENT", s.slug,
+                               f"la voix parle de {', '.join(manquants)} — "
+                               f"invisible dans le prompt photo",
+                               f"Shot {s.id}: the voice mentions {', '.join(manquants)}, so the "
+                               f"image_prompt must show it clearly and name it."))
+    return out
 
 
-def _unshown_components(voice: str, image_prompt: str) -> list[str]:
-    voix, image = voice.lower(), image_prompt.lower()
-    manquants = []
-    for francais, anglais in SEMANTIC_PAIRS.items():
-        if francais in voix and not any(a in image for a in anglais):
-            manquants.append(francais)
-    return manquants
+def _non_montres(voix: str, image: str) -> list[str]:
+    """Les composants nommes par la voix et absents du prompt photo.
+
+    Recherche sur les mots entiers : « engine » ne doit pas etre trouve dans
+    « engineering », ni « cell » dans « excellent ».
+    """
+    v, i = voix.lower(), image.lower()
+    return [fr for fr, en in SEMANTIQUE.items()
+            if fr in v and not any(_mot_present(a, i) for a in en)]
 
 
-# --- 9. narration non contradictoire, et qui progresse ----------------------
+def _mot_present(mot: str, texte: str) -> bool:
+    """Mot entier, pluriel tolere. « engine » ne matche pas « engineering »,
+    mais « winding » matche bien « windings »."""
+    return re.search(rf"\b{re.escape(mot)}(s|es)?\b", texte) is not None
 
 
-def _check_narration_progression(sb: Storyboard) -> list[Problem]:
-    problems = []
-    vues = {}
-    for shot in sb.shots:
-        cle = _normalise(shot.voice)
+def _progression(sb: Storyboard) -> list[Problem]:
+    out = []
+    vues: dict[str, int] = {}
+    for s in sb.shots:
+        cle = _normalise(s.voice)
         if cle in vues:
-            problems.append(Problem(
-                "PROGRESSION", shot.slug,
-                f"narration identique au plan {vues[cle]}",
-                f"Shot {shot.id}: each shot must advance the causal chain, not repeat "
-                f"what shot {vues[cle]} already said."))
-        vues[cle] = shot.id
-
+            out.append(Problem("PROGRESSION", s.slug,
+                               f"narration identique au plan {vues[cle]}",
+                               f"Shot {s.id}: advance the causal chain instead of repeating "
+                               f"what shot {vues[cle]} already said."))
+        vues[cle] = s.id
     fonctions = [_normalise(s.educational_function) for s in sb.shots]
     if len(set(fonctions)) < len(fonctions):
-        problems.append(Problem(
-            "PROGRESSION", "storyboard",
-            "deux plans revendiquent la meme fonction pedagogique",
-            "Give each shot a distinct educational_function: one link of the causal "
-            "chain each, in order."))
-    return problems
+        out.append(Problem("PROGRESSION", "storyboard",
+                           "deux plans revendiquent la meme fonction pedagogique",
+                           "Give each shot a distinct educational_function: one link of the "
+                           "causal chain each, in order."))
+    return out
 
 
 def _normalise(texte: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", texte.lower()).strip()
 
 
+# --- LA REGLE CENTRALE : grammaire visuelle et correspondance ---------------
+
+
+def couleurs_pedagogiques(texte: str) -> set[str]:
+    """Les couleurs du code employees pour porter un phenomene.
+
+    « yellow energy streams » compte ; « yellow paint » ne compte pas : la
+    couleur doit etre attachee a un phenomene, pas a un objet.
+    """
+    bas = texte.lower()
+    trouvees = set()
+    for couleur in COLOR_CODE:
+        for m in re.finditer(re.escape(couleur), bas):
+            fenetre = bas[max(0, m.start() - 60):m.end() + 90]
+            if any(p in fenetre for p in PHENOMENE):
+                trouvees.add(couleur)
+                break
+    return trouvees
+
+
+def _mouvement_non_camera(texte: str) -> bool:
+    """Vrai s'il reste un mouvement une fois les phrases de camera retirees."""
+    phrases = re.split(r"[.;]", texte.lower())
+    utiles = [p for p in phrases if not any(c in p for c in CAMERA)]
+    return any(v in " ".join(utiles) for v in MOUVEMENT)
+
+
+def _grammaire_visuelle(sb: Storyboard) -> list[Problem]:
+    """Un phenomene invisible nomme par la voix doit etre rendu visible."""
+    out = []
+    for s in sb.shots:
+        parle_invisible = any(mot in s.voice.lower() for mot in
+                              ("énergie", "energie", "électricité", "electricite", "courant",
+                               "champ", "signal", "puissance", "chaleur", "récupér", "recuper"))
+        if parle_invisible and not couleurs_pedagogiques(s.image_prompt):
+            out.append(Problem("GRAMMAIRE", s.slug,
+                               "la voix nomme un phenomene invisible, "
+                               "aucune representation coloree dans le prompt photo",
+                               f"Shot {s.id}: the narration names something the eye cannot see. "
+                               f"Create a visible representation of it and name its colour "
+                               f"from the colour code — for example controlled yellow luminous "
+                               f"streams for electrical energy."))
+    return out
+
+
+def _correspondance(sb: Storyboard) -> list[Problem]:
+    """Ce que l'image introduit, l'animation doit le faire bouger."""
+    out = []
+    for s in sb.shots:
+        image, anim = own_part(s.image_prompt), s.animation_prompt
+        bas_anim = anim.lower()
+
+        perdues = couleurs_pedagogiques(image) - couleurs_pedagogiques(anim)
+        if perdues:
+            out.append(Problem("CORRESPONDANCE", s.slug,
+                               f"l'image introduit du {', '.join(sorted(perdues))} pedagogique, "
+                               f"l'animation ne le fait pas bouger",
+                               f"Shot {s.id}: the image shows a "
+                               f"{'/'.join(sorted(perdues))} representation of an invisible "
+                               f"phenomenon. The animation must make that same element travel, "
+                               f"pulse or circulate — not just move the camera."))
+
+        if not _mouvement_non_camera(anim):
+            out.append(Problem("CORRESPONDANCE", s.slug,
+                               "l'animation ne contient qu'un mouvement de camera",
+                               f"Shot {s.id}: a camera move alone is rejected. Name the element "
+                               f"that moves and how, and keep the camera secondary."))
+
+        concept = s.visual_concept.lower()
+        for composant, verbes in COMPOSANT_MOUVEMENT.items():
+            if composant in concept and composant in image.lower():
+                if composant not in bas_anim or not any(v in bas_anim for v in verbes):
+                    out.append(Problem("CORRESPONDANCE", s.slug,
+                                       f"l'image met en avant « {composant} », "
+                                       f"l'animation ne le fait pas bouger",
+                                       f"Shot {s.id}: the animation must name the {composant} "
+                                       f"and describe its motion "
+                                       f"({', '.join(verbes)})."))
+    return out
+
+
+def _qualite(sb: Storyboard) -> list[Problem]:
+    out = []
+    for axe in QUALITY_AXES:
+        note = sb.quality_check.get(axe)
+        if note is None:
+            continue
+        if not 0.0 <= note <= 1.0:
+            out.append(Problem("QUALITE", "storyboard", f"{axe} hors bornes : {note}",
+                               f"quality_check.{axe} must be between 0 and 1."))
+        elif note < MIN_QUALITY:
+            out.append(Problem("QUALITE", "storyboard",
+                               f"{axe} = {note} < {MIN_QUALITY}",
+                               f"Rework the storyboard until {axe} honestly reaches "
+                               f"{MIN_QUALITY}, then re-score."))
+    return out
+
+
 # ---------------------------------------------------------------------------
 
 
 def correction_request(problems: list[Problem]) -> str:
-    """Le message de correction envoye a OpenAI, probleme par probleme."""
     lignes = [
         "Your previous JSON was rejected by an automatic validator.",
         "Fix every point below and return the SAME JSON shape, corrected.",

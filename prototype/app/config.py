@@ -17,7 +17,6 @@ def env(name: str, default: str = "") -> str:
     """
     return (os.getenv(name) or "").strip() or default
 
-
 APP_DIR = Path(__file__).resolve().parent
 ROOT_DIR = APP_DIR.parent
 
@@ -70,7 +69,6 @@ OPENAI_VISION_MODEL = env("OPENAI_VISION_MODEL", OPENAI_MODEL)
 
 OPENAI_TIMEOUT = float(env("OPENAI_TIMEOUT", "120"))
 
-
 def cerveau() -> str:
     """Quel service repond aux appels « OpenAI », en clair."""
     if not OPENAI_API_KEY:
@@ -82,48 +80,6 @@ def cerveau() -> str:
     return f"OpenAI ({OPENAI_MODEL})"
 
 # ---------------------------------------------------------------------------
-# fal.ai - images et animation, quand on veut la chaine 100% automatique
-# ---------------------------------------------------------------------------
-
-FAL_KEY = env("FAL_KEY")
-# Dans la famille FLUX, du plus faible au plus fort :
-#   flux/schnell     distille a 4 pas, fait pour la vitesse. Casse sur un
-#                    prompt d'ingenierie long : geometries incoherentes,
-#                    texte hallucine. C'etait le defaut, c'etait une erreur.
-#   flux/dev         ~28 pas, tient la structure. Correct.
-#   flux-pro/v1.1    le meilleur rapport tenue du prompt / coherence.
-#   flux-pro/v1.1-ultra  plus grand, plus cher, prend aspect_ratio.
-# La commande « comparer » sert a trancher sur pieces plutot que sur parole.
-FAL_IMAGE_MODEL = env("FAL_IMAGE_MODEL", "fal-ai/flux-pro/v1.1")
-
-# Les modeles compares par defaut par la commande « comparer ».
-FAL_COMPARE_MODELS = [
-    m.strip() for m in env(
-        "FAL_COMPARE_MODELS",
-        "fal-ai/flux-pro/v1.1,fal-ai/flux/dev,fal-ai/flux/schnell",
-    ).split(",") if m.strip()
-]
-FAL_VIDEO_MODEL = env(
-    "FAL_VIDEO_MODEL", "fal-ai/kling-video/v2.1/standard/image-to-video"
-)
-# 4 pas pour schnell (il est distille pour ca), ~28 pour dev. Les modeles pro
-# ne prennent pas ce reglage : on ne le leur envoie pas.
-FAL_IMAGE_STEPS = int(env("FAL_IMAGE_STEPS", "0"))
-
-# Guidance : ignoré par schnell, utile a dev pour coller au prompt.
-FAL_GUIDANCE = float(env("FAL_GUIDANCE", "3.5"))
-FAL_TIMEOUT = float(env("FAL_TIMEOUT", "600"))
-
-# 9:16 vertical, comme impose par la direction artistique.
-#
-# 768x1344 = 1,03 Mpx. FLUX est entraine autour de 1 Mpx : au dela il perd la
-# coherence geometrique et invente des motifs. 1080x1920 valait 2,07 Mpx, soit
-# le double — d'ou les tiges qui sortent des roues et le texte en miroir.
-# Pour du 1080p final, agrandir apres coup plutot que generer trop grand.
-IMAGE_WIDTH = int(env("IMAGE_WIDTH", "768"))
-IMAGE_HEIGHT = int(env("IMAGE_HEIGHT", "1344"))
-
-# ---------------------------------------------------------------------------
 # Arborescence locale
 # ---------------------------------------------------------------------------
 
@@ -132,15 +88,19 @@ PROJECT_FILE = OUTPUT_DIR / "project.json"
 STATUS_FILE = OUTPUT_DIR / "status.json"
 PASTE_SHEET = OUTPUT_DIR / "prompts_a_coller.txt"
 SHOTS_DIR = OUTPUT_DIR / "shots"
+# L'utilisateur depose ici les videos qu'il a produites lui-meme.
+VIDEOS_DIR = Path(env("VIDEOS_DIR") or OUTPUT_DIR / "videos")
+ELEMENTS_FILE = OUTPUT_DIR / "elements.md"
+TIMELINE_FILE = OUTPUT_DIR / "timeline.json"
+SRT_FILE = OUTPUT_DIR / "sous_titres.srt"
+FINAL_FILE = OUTPUT_DIR / "final.mp4"
+VOICE_FILE = Path(env("VOICE_FILE") or OUTPUT_DIR / "voix.mp3")
+MUSIC_FILE = Path(env("MUSIC_FILE") or OUTPUT_DIR / "musique.mp3")
 SCREENSHOT_DIR = OUTPUT_DIR / "screenshots"
-
-
-
 
 def shot_dir(shot_id: int) -> Path:
     """shots/shot_01, shots/shot_02, ..."""
     return SHOTS_DIR / f"shot_{shot_id:02d}"
-
 
 def ensure_dirs(shot_count: int = SHOT_COUNT) -> None:
     for path in (OUTPUT_DIR, SHOTS_DIR, SCREENSHOT_DIR):
