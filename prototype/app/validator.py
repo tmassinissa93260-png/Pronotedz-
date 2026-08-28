@@ -50,17 +50,36 @@ FAMILLES_MOUVEMENT = {
     "illumination": ("illuminat", "light up", "lights up", "lighting up", "glow",
                      "brighten", "pulse", "pulsing", "pulses"),
     "translation": ("advance", "moves forward", "moving forward", "roll", "drive",
-                    "accelerat", "decelerat", "slows"),
+                    "accelerat", "decelerat", "slows", "propel", "moving the",
+                    "moves the", "pushes", "pushing"),
     "inversion": ("reverse", "reversing", "reverses", "returns", "back into"),
     "transfert": ("enter", "enters", "entering", "exit", "reach", "reaches",
                   "reaching", "arriv", "leaving", "leaves"),
 }
 MIN_FAMILLES_MOUVEMENT = 2
 
+# Une chaine mecanique — le rotor tourne, la transmission tourne, les roues
+# tournent — est bien PLUSIEURS mouvements coordonnes, meme si les trois
+# appartiennent a la meme famille. On compte donc aussi ce qui bouge.
+COMPOSANTS_MOBILES = ("rotor", "stator", "gear", "transmission", "drivetrain",
+                      "axle", "wheel", "tyre", "tire", "hub", "cell", "pack",
+                      "cable", "busbar", "motor", "battery", "disc", "caliper",
+                      "car", "vehicle", "chassis", "piston", "crankshaft")
+MIN_COMPOSANTS_MOBILES = 2
+
+# Une piece n'est pas « en mouvement » parce qu'un flux part d'elle, passe par
+# elle ou va vers elle : « travels along the cables from the battery toward the
+# motor » ne fait bouger que le flux. Ces prepositions marquent l'origine, le
+# trajet ou la destination — pas l'acteur du mouvement.
+ROLE_PASSIF = ("from", "along", "through", "via", "out of", "between", "across",
+               "toward", "towards", "into", "back to", "onto", "up to", "down to")
+
 # Les mouvements doivent etre lies, pas juxtaposes : le prompt doit dire le
 # lien a voix haute.
 LIAISON = ("as ", "then", "which", "causing", "so that", "in turn", "powered by",
-           "driven by", "while", "making", "makes", "until", "and then", "once ")
+           "driven by", "while", "making", "makes", "until", "and then", "once ",
+           "sets off", "setting off", "propel", "driving", "sending", "pushing",
+           "resulting", "moving the", "so the", "before")
 
 # Un flux doit aller QUELQUE PART : sans direction lisible, le spectateur ne
 # peut pas savoir dans quel sens l'energie circule.
@@ -580,13 +599,39 @@ def _hors_camera(texte: str) -> str:
     return " ".join(p for p in phrases if not any(c in p for c in CAMERA))
 
 
+def _acteur(mot: str, proposition: str) -> bool:
+    """Vrai si la piece bouge elle-meme, plutot que de subir un flux."""
+    for m in re.finditer(rf"\b{re.escape(mot)}(s|es)?\b", proposition):
+        if not any(r in proposition[max(0, m.start() - 20):m.start()]
+                   for r in ROLE_PASSIF):
+            return True
+    return False
+
+
+def _composants_en_mouvement(monde: str) -> list[str]:
+    """Les pieces qui bougent vraiment, dans une proposition qui porte un mouvement."""
+    bouge = set()
+    for proposition in re.split(r"[,:;.]", monde):
+        if not any(v in proposition for verbes in FAMILLES_MOUVEMENT.values()
+                   for v in verbes):
+            continue
+        bouge.update(c for c in COMPOSANTS_MOBILES if _acteur(c, proposition))
+    return sorted(bouge)
+
+
 def _dynamique(sb: Storyboard) -> list[Problem]:
     """Le zoom n'est jamais le mouvement principal, et un mouvement seul suffit rarement.
 
     Un plan qui ne donne qu'UNE chose a faire bouger laisse le generateur
     combler le reste du temps avec la camera. C'est exactement ce qui est
-    arrive aux plans 1 et 2 : le prompt ne disait pas « zoom », mais il ne
-    proposait qu'un seul mouvement, et la video rendue est un travelling.
+    arrive aux plans 1 et 2 du run 14 : le prompt ne disait pas « zoom », mais
+    il ne proposait qu'un seul mouvement, et la video rendue est un travelling.
+
+    « Plusieurs mouvements » se compte de deux facons, et l'une suffit : des
+    familles differentes — un flux ET une rotation —, ou des pieces
+    differentes qui bougent — le rotor PUIS la transmission PUIS les roues.
+    Le run 17 a prouve qu'il fallait les deux : une chaine mecanique de trois
+    rotations est le meilleur plan du lot, et ne compte qu'une famille.
     """
     out = []
     for s in sb.shots:
@@ -594,7 +639,9 @@ def _dynamique(sb: Storyboard) -> list[Problem]:
 
         familles = sorted(f for f, verbes in FAMILLES_MOUVEMENT.items()
                           if any(v in monde for v in verbes))
-        if len(familles) < MIN_FAMILLES_MOUVEMENT:
+        composants = _composants_en_mouvement(monde)
+        if (len(familles) < MIN_FAMILLES_MOUVEMENT
+                and len(composants) < MIN_COMPOSANTS_MOBILES):
             porte = (f"qu'un seul mouvement ({familles[0]})" if familles
                      else "aucun mouvement")
             out.append(Problem("DYNAMIQUE", s.slug,

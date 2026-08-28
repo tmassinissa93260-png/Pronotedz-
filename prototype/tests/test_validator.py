@@ -271,6 +271,26 @@ class TestAnimationDynamique(unittest.TestCase):
         self.assertTrue(p)
         self.assertIn("juxtaposes", str(p[0]))
 
+    def test_une_chaine_mecanique_de_rotations_passe(self):
+        """Rotor puis transmission puis roues : une seule famille, mais bien
+        plusieurs mouvements coordonnes. Le run 17 avait ete refuse a tort."""
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "The motor rotor's turn sets off a chain reaction: the transmission gears "
+            "begin rotating, subsequently causing the wheels to spin. The chassis and "
+            "the bodywork stay perfectly rigid throughout. Preserve exact geometry, "
+            "proportions and materials. No deformation, no floating parts.")
+        self.assertEqual([x for x in valider(raw) if x.code == "DYNAMIQUE"], [])
+
+    def test_une_piece_traversee_par_un_flux_ne_bouge_pas(self):
+        """« along the cables from the battery toward the motor » ne fait
+        bouger que le flux : trois pieces nommees, aucune en mouvement."""
+        from app.validator import _composants_en_mouvement
+        self.assertEqual(_composants_en_mouvement(
+            "the flow travels along the cables from the battery toward the motor"), [])
+        self.assertEqual(_composants_en_mouvement(
+            "the central rotor begins to rotate"), ["rotor"])
+
     def test_une_chaine_causale_passe(self):
         """« As the pulses reach the windings, the rotor begins to rotate »."""
         self.assertEqual([x for x in valider(board()) if x.code == "DYNAMIQUE"], [])
