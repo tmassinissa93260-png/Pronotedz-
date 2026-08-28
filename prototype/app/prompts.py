@@ -252,8 +252,50 @@ animation prompt.
                                      energy circulating between them
 This is FORBIDDEN:
   image: battery with an electrical flow / animation: a camera zoom.
-A camera move is never the main motion. The camera may move, but it stays
-secondary to the information.
+
+── ABSOLUTE RULE — DYNAMIC ANIMATION ──
+Animations must NOT be simple zooms, pans or camera moves.
+The camera movement is SECONDARY.
+Every shot must contain at least ONE clearly visible PHYSICAL ACTION, and,
+when the subject allows it, several coordinated movements.
+PRIORITY OF MOVEMENTS:
+  1. movement of the main object
+  2. movement of the phenomenon being explained
+  3. interaction between the elements
+  4. camera movement
+The movement must explain the narration.
+If the narration says electricity reaches the motor:
+  BAD:  "Slow zoom toward the motor."
+  GOOD: "Yellow-orange electrical energy visibly travels through the cables
+         from the battery toward the motor. As the energy reaches the motor,
+         the rotor begins rotating progressively. The vehicle remains
+         physically stable while the energy flow and mechanical rotation
+         create the main movement. The camera performs a subtle tracking
+         movement following the energy path."
+A zoom may be used, but only as a secondary movement.
+NEVER use "slow zoom in" as the only animation.
+Every animation must answer "WHAT IS MOVING IN THE WORLD?"
+and not only "HOW IS THE CAMERA MOVING?"
+
+── MULTI-MOTION REQUIREMENT ──
+When it is physically relevant, an animation combines SEVERAL coherent
+movements. For an electric car:
+  · the car moves forward
+  · the wheels turn
+  · the electrical flow travels
+  · a mechanical component rotates
+  · the camera follows the action slightly
+Those movements must be synchronised and causally related. Say the link out
+loud in the prompt — "as", "then", "which makes", "driven by":
+  BATTERY
+  -> yellow/orange energy moves
+  -> it reaches the motor
+  -> the rotor starts turning
+  -> the transmission turns
+  -> the wheels turn
+  -> the car moves forward
+Show that chain whenever the shot can represent it. Never add movement just
+to look spectacular: every movement must have a pedagogical function.
 
 ── NEVER A DECORATIVE ANIMATION ──
 Every movement explains something:

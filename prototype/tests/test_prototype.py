@@ -121,7 +121,24 @@ class TestConditionsDuPrompt(unittest.TestCase):
     def test_la_correspondance_image_animation_est_exigee(self):
         self.assertIn("CORRESPONDENCE", self.texte)
         self.assertIn("image shows a rotor", self.texte)
-        self.assertIn("A camera move is never the main motion", self.texte)
+        self.assertIn("image: battery with an electrical flow", self.texte)
+
+    def test_le_zoom_n_est_jamais_le_mouvement_principal(self):
+        self.assertIn("ABSOLUTE RULE — DYNAMIC ANIMATION", self.texte)
+        self.assertIn("The camera movement is SECONDARY", self.texte)
+        self.assertIn("PRIORITY OF MOVEMENTS", self.texte)
+        self.assertIn('NEVER use "slow zoom in" as the only animation', self.texte)
+        self.assertIn("WHAT IS MOVING IN THE WORLD?", self.texte)
+
+    def test_plusieurs_mouvements_coordonnes(self):
+        self.assertIn("MULTI-MOTION REQUIREMENT", self.texte)
+        self.assertIn("synchronised and causally related", self.texte)
+        # La chaine causale complete, de la batterie a la voiture qui avance.
+        for maillon in ("the rotor starts turning", "the wheels turn",
+                        "the car moves forward"):
+            self.assertIn(maillon, self.texte)
+        # Et l'interdiction d'en rajouter pour faire joli.
+        self.assertIn("Never add movement just", self.texte)
 
     def test_le_style_de_reference_est_impose(self):
         self.assertIn("REFERENCE VISUAL LANGUAGE", self.texte)

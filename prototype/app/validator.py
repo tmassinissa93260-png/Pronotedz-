@@ -41,6 +41,27 @@ MOUVEMENT = ("flow", "travel", "move", "pulse", "circulat", "rotat", "spin", "tu
              "illuminat", "light up", "glow", "advance", "progress", "accelerat",
              "reverse", "enter", "exit", "rise", "propagat", "sweep")
 
+# MULTI-MOTION : les familles de mouvement physique. Une animation qui n'en
+# porte qu'une seule ne donne au generateur qu'une chose a faire bouger, et
+# il comble le temps avec la camera — c'est ce qu'on a vu sur les plans 1 et 2.
+FAMILLES_MOUVEMENT = {
+    "flux": ("flow", "travel", "stream", "propagat", "sweep", "circulat", "surge"),
+    "rotation": ("rotat", "spin", "turn", "revolv"),
+    "illumination": ("illuminat", "light up", "lights up", "lighting up", "glow",
+                     "brighten", "pulse", "pulsing", "pulses"),
+    "translation": ("advance", "moves forward", "moving forward", "roll", "drive",
+                    "accelerat", "decelerat", "slows"),
+    "inversion": ("reverse", "reversing", "reverses", "returns", "back into"),
+    "transfert": ("enter", "enters", "entering", "exit", "reach", "reaches",
+                  "reaching", "arriv", "leaving", "leaves"),
+}
+MIN_FAMILLES_MOUVEMENT = 2
+
+# Les mouvements doivent etre lies, pas juxtaposes : le prompt doit dire le
+# lien a voix haute.
+LIAISON = ("as ", "then", "which", "causing", "so that", "in turn", "powered by",
+           "driven by", "while", "making", "makes", "until", "and then", "once ")
+
 # Un flux doit aller QUELQUE PART : sans direction lisible, le spectateur ne
 # peut pas savoir dans quel sens l'energie circule.
 DIRECTION = ("toward", "towards", "into", "out of", "from", "back to", "along",
@@ -156,6 +177,7 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _correspondance(sb)
     problems += _explication(sb)
     problems += _ancrage(sb)
+    problems += _dynamique(sb)
     problems += _qualite(sb)
     return problems
 
@@ -549,6 +571,51 @@ def _ancrage(sb: Storyboard) -> list[Problem]:
                                    f"the animation. Either put the {objet} in the image "
                                    f"prompt, in frame and clearly visible, or stop naming it "
                                    f"in the animation."))
+    return out
+
+
+def _hors_camera(texte: str) -> str:
+    """Le texte prive de ses phrases de camera."""
+    phrases = re.split(r"[.;]", texte.lower())
+    return " ".join(p for p in phrases if not any(c in p for c in CAMERA))
+
+
+def _dynamique(sb: Storyboard) -> list[Problem]:
+    """Le zoom n'est jamais le mouvement principal, et un mouvement seul suffit rarement.
+
+    Un plan qui ne donne qu'UNE chose a faire bouger laisse le generateur
+    combler le reste du temps avec la camera. C'est exactement ce qui est
+    arrive aux plans 1 et 2 : le prompt ne disait pas « zoom », mais il ne
+    proposait qu'un seul mouvement, et la video rendue est un travelling.
+    """
+    out = []
+    for s in sb.shots:
+        monde = _hors_camera(s.animation_prompt)
+
+        familles = sorted(f for f, verbes in FAMILLES_MOUVEMENT.items()
+                          if any(v in monde for v in verbes))
+        if len(familles) < MIN_FAMILLES_MOUVEMENT:
+            porte = (f"qu'un seul mouvement ({familles[0]})" if familles
+                     else "aucun mouvement")
+            out.append(Problem("DYNAMIQUE", s.slug,
+                               f"l'animation ne porte {porte} : "
+                               f"le generateur comblera le reste avec la camera",
+                               f"Shot {s.id}: one movement is not enough. Answer WHAT IS "
+                               f"MOVING IN THE WORLD, not how the camera moves: combine at "
+                               f"least two coordinated physical movements — the flow "
+                               f"travelling AND what it makes happen when it arrives, the "
+                               f"rotor turning AND the wheels it drives. Never add movement "
+                               f"just to look spectacular: each one must explain something."))
+            continue
+
+        if not any(mot in monde for mot in LIAISON):
+            out.append(Problem("DYNAMIQUE", s.slug,
+                               f"les mouvements ({', '.join(familles)}) sont juxtaposes, "
+                               f"leur lien n'est pas dit",
+                               f"Shot {s.id}: the movements must be synchronised and causally "
+                               f"related, and the prompt must say the link out loud — 'as the "
+                               f"energy reaches the windings, the rotor begins to turn', "
+                               f"'driven by that rotation, the wheels turn'."))
     return out
 
 

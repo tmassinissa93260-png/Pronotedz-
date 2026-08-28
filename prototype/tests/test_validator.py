@@ -235,6 +235,47 @@ class TestAncrage(unittest.TestCase):
         self.assertEqual([x for x in valider(board()) if x.code == "ANCRAGE"], [])
 
 
+class TestAnimationDynamique(unittest.TestCase):
+    """Le zoom n'est jamais le mouvement principal."""
+
+    def test_un_seul_mouvement_laisse_la_place_a_la_camera(self):
+        """Le defaut du plan 2 : le prompt ne dit pas « zoom », mais il ne
+        propose qu'une chose a faire bouger, et la video rendue est un
+        travelling."""
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "The yellow/orange energy flow travels rapidly along the cables in a "
+            "directional motion heading from the battery toward the motor. The focus "
+            "remains on this movement, ensuring the clear path and dynamic progression "
+            "of the flow through the cables, with nothing else changing in the frame.")
+        p = [x for x in valider(raw) if x.code == "DYNAMIQUE"]
+        self.assertTrue(p)
+        self.assertIn("un seul mouvement", str(p[0]))
+
+    def test_un_zoom_ne_compte_pas_comme_mouvement(self):
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "Slow cinematic zoom toward the motor, the camera pushing in steadily on "
+            "the stator windings while the composition tightens around them, holding "
+            "the premium studio atmosphere throughout the shot.")
+        p = [x for x in valider(raw) if x.code == "DYNAMIQUE"]
+        self.assertIn("aucun mouvement", str(p[0]))
+
+    def test_des_mouvements_juxtaposes_sans_lien(self):
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "The yellow energy streams travel along the copper busbars. The central "
+            "rotor rotates steadily. The cells, the busbars and the chassis stay "
+            "perfectly rigid. Preserve exact geometry, proportions and materials.")
+        p = [x for x in valider(raw) if x.code == "DYNAMIQUE"]
+        self.assertTrue(p)
+        self.assertIn("juxtaposes", str(p[0]))
+
+    def test_une_chaine_causale_passe(self):
+        """« As the pulses reach the windings, the rotor begins to rotate »."""
+        self.assertEqual([x for x in valider(board()) if x.code == "DYNAMIQUE"], [])
+
+
 class TestQualite(unittest.TestCase):
     def test_un_axe_sous_le_seuil(self):
         raw = board()
