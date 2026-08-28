@@ -1,0 +1,14 @@
+{
+  "shot_id": 1,
+  "measured_duration": 5.208,
+  "content": "The shot shows a digital representation of the front of an electric car with visible internal components, including a glowing battery.",
+  "framing": "The camera remains stationary with a centered view of the car's front.",
+  "movement": "Orange energy flow is animated within the battery, creating a pulsating visual effect.",
+  "quality": "The image is sharp and clear with no visible artefacts, and the animation is stable.",
+  "voice_match": "The visual matches the concept of transforming energy into motion as described in the narration.",
+  "pedagogical_elements": [
+    "battery lighting up with energy representation"
+  ],
+  "defects": [],
+  "matches_plan": true
+}
