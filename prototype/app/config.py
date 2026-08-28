@@ -38,7 +38,7 @@ SHOT_COUNT = 4
 TEST_MODE = True
 
 # Combien de fois, au plus, on renvoie ses erreurs a OpenAI pour correction.
-MAX_REPAIR_ATTEMPTS = int(env("MAX_REPAIR_ATTEMPTS", "2"))
+MAX_REPAIR_ATTEMPTS = int(env("MAX_REPAIR_ATTEMPTS", "4"))
 
 # ---------------------------------------------------------------------------
 # OpenAI - la cle vient de .env, JAMAIS du code

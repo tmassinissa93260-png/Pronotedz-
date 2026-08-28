@@ -165,6 +165,12 @@ class TestConditionsDuPrompt(unittest.TestCase):
                       self.texte)
         # Une action claire vaut mieux qu'une composition riche et vague.
         self.assertIn("ONE clear pedagogical action", self.texte)
+        # « Plus simple » veut dire moins d'objets concurrents, jamais moins
+        # de mots : le run 16 avait lu l'inverse et rendu des prompts de
+        # 257 caracteres remplis d'etiquettes.
+        self.assertIn("SIMPLER MEANS FEWER COMPETING OBJECTS", self.texte)
+        self.assertIn("It never means fewer words", self.texte)
+        self.assertIn("continuous descriptive English prose", self.texte)
         # Le raisonnement precede le prompt, et l'exemple le montre en entier.
         self.assertIn("THE SAME REASONING, WORKED THROUGH", self.texte)
 

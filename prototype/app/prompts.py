@@ -140,6 +140,10 @@ if it was not clearly present in the source image.
 Prefer ONE clear pedagogical action plus its supporting elements over MANY
 objects in a vague cinematic composition. A technically simpler image showing
 one extremely clear physical process beats a beautiful but ambiguous one.
+SIMPLER MEANS FEWER COMPETING OBJECTS. It never means fewer words. The image
+prompt stays long and extremely detailed: the same scene, described far more
+precisely. Cutting the framing, the camera, the light, the materials or the
+visual bible is not simplifying — it is under-specifying, and it is rejected.
 The viewer must understand WHAT is happening from the image alone.
 The animation must then demonstrate HOW it happens.
 
@@ -234,6 +238,9 @@ composition the movement requires. It must state:
   12. the continuity with the other shots
   13. what must be preserved
   14. what is forbidden
+Write it as continuous descriptive English prose. Never as a list of labels —
+"Cadrage: close-up. Position: central." is filling in a form, not describing a
+picture, and a generator reads it as noise.
 End it with this sentence, copied VERBATIM:
 {STYLE_DIRECTIVE}
 
