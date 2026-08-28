@@ -79,12 +79,17 @@ SHOT_TEXT_FIELDS = (
 )
 
 # REGLE « VISUAL EXPLANATION » : chaque phrase de narration est traduite en
-# information visuelle, en quatre temps explicites.
+# information visuelle. Ces sept temps sont le RAISONNEMENT qui precede le
+# prompt, pas son resume : on ne part jamais d'une belle image, on part de
+# l'information a faire comprendre et on remonte jusqu'au cadre.
 EXPLICATION_FIELDS = (
-    "information",        # ce que la voix explique
-    "physical_element",   # l'element physique qui porte cette information
-    "visual_behavior",    # le comportement visuel qui la rend comprehensible
-    "animation_movement",  # le mouvement d'animation correspondant
+    "information",          # 1. ce que la voix explique
+    "physical_element",     # 2. l'objet physique principal qui la porte
+    "secondary_elements",   # 3. les objets secondaires qui la rendent lisible
+    "visual_behavior",      # 4. le phenomene visible qui la represente
+    "animation_movement",   # 5. le mouvement qui l'anime
+    "camera_position",      # 6. la camera qui laisse voir tout cela
+    "composition",          # 7. le cadre que ce mouvement exige
 )
 
 # Les sept axes du controle qualite.

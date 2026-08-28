@@ -56,9 +56,14 @@ def shot(i=1, **over):
         "visual_explanation": {
             "information": "l'énergie stockée quitte la batterie et rejoint le moteur",
             "physical_element": "les busbars en cuivre reliant le pack au stator",
+            "secondary_elements": "le pack de cellules, le stator et son rotor",
             "visual_behavior": "un flux jaune lumineux parcourt les busbars vers l'avant",
             "animation_movement": "le flux jaune travels along the busbars toward the "
                                   "stator, puis le rotor commence à tourner",
+            "camera_position": "macro en contre-plongée, assez près pour lire "
+                               "tout le trajet dans un seul cadre",
+            "composition": "le pack à gauche, le moteur à droite, les busbars "
+                           "entre les deux au centre du cadre",
         },
     }
     base.update(over)

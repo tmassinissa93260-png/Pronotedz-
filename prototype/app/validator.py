@@ -63,6 +63,48 @@ COMPOSANT_MOUVEMENT = {
     "cell": ("illuminat", "light", "glow", "charge", "flow"),
 }
 
+# REGLE « L'IMAGE EST LE PREMIER PLAN DE L'ANIMATION » : si l'animation fait
+# bouger un de ces objets, l'image doit deja le montrer. On raisonne par
+# famille : un prompt qui cadre le stator et le rotor montre bien le moteur.
+FAMILLES = (
+    ("battery", "cell", "pack", "module"),
+    ("motor", "engine", "rotor", "stator", "winding"),
+    ("cable", "wiring", "busbar", "harness"),
+    ("wheel", "tyre", "tire", "hub"),
+    ("gear", "transmission", "drivetrain", "axle"),
+    ("brake", "caliper", "disc"),
+    ("inverter", "controller"),
+    ("piston", "crankshaft", "cylinder"),
+)
+
+# « vers la batterie » ne met pas la batterie dans le cadre. Un objet nomme
+# seulement comme destination d'un flux n'est jamais montre : c'est le defaut
+# constate en production sur le plan du freinage regeneratif.
+DESTINATION = ("toward", "towards", "into", "back to", "up to", "down to", "onto",
+               "reaches", "reaching", "arrives at", "heading to", "returns to",
+               "travels to", "flowing to", "back into")
+FENETRE_DESTINATION = 30
+
+# Mots trop generiques pour ancrer quoi que ce soit dans le prompt photo.
+GENERIQUES = {"the", "a", "an", "and", "or", "with", "its", "that", "this", "which",
+              "of", "in", "on", "to", "from", "for", "by", "at", "into", "through",
+              "along", "as", "is", "are", "it", "their", "these", "those", "other",
+              "each", "one", "main", "primary", "visible", "clearly", "element",
+              "elements", "object", "objects", "component", "components", "part",
+              "parts", "view", "shot", "image", "animation", "system",
+              "whole", "entire", "full", "complete", "overall", "general"}
+
+# Le vehicule entier n'est pas un objet precis : un plan qui n'a rien de plus
+# precis a montrer que « la voiture » ne montre aucune information.
+VEHICULE = {"car", "vehicle", "automobile", "ev"}
+
+# Les champs qui NOMMENT peuvent etre courts ; ceux qui DECRIVENT ne peuvent pas.
+LONGUEUR_MINIMALE = {
+    "physical_element": 8,
+    "secondary_elements": 8,
+}
+LONGUEUR_PAR_DEFAUT = 15
+
 # CONDITION : ce qui est dit doit etre montre.
 SEMANTIQUE = {
     "batterie": ("battery", "cell", "pack", "module"),
@@ -113,6 +155,7 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _grammaire_visuelle(sb)
     problems += _correspondance(sb)
     problems += _explication(sb)
+    problems += _ancrage(sb)
     problems += _qualite(sb)
     return problems
 
@@ -398,18 +441,21 @@ def _correspondance(sb: Storyboard) -> list[Problem]:
 
 
 def _explication(sb: Storyboard) -> list[Problem]:
-    """Chaque phrase de narration traduite en information visuelle."""
+    """Le raisonnement en sept temps qui precede le prompt."""
     out = []
     for s in sb.shots:
         courts = [f for f in EXPLICATION_FIELDS
-                  if len(s.visual_explanation.get(f, "").strip()) < 15]
+                  if len(s.visual_explanation.get(f, "").strip())
+                  < LONGUEUR_MINIMALE.get(f, LONGUEUR_PAR_DEFAUT)]
         if courts:
             out.append(Problem("EXPLICATION", s.slug,
                                f"visual_explanation trop vague : {', '.join(courts)}",
-                               f"Shot {s.id}: spell out the four steps — what the voice "
-                               f"explains, the physical element that carries it, the visual "
-                               f"behaviour that makes it readable, and the movement that shows "
-                               f"it."))
+                               f"Shot {s.id}: answer the seven questions before writing any "
+                               f"prompt — which information must be understood, which single "
+                               f"object shows it, which secondary objects make it readable, "
+                               f"which visible phenomenon represents it, which movement "
+                               f"animates it, which camera lets it be seen, which framing that "
+                               f"movement requires."))
             continue
 
         mouvement = s.visual_explanation["animation_movement"].lower()
@@ -419,6 +465,90 @@ def _explication(sb: Storyboard) -> list[Problem]:
                                f"Shot {s.id}: animation_movement must name a real motion — a "
                                f"flow travelling, a part rotating, a light spreading — not a "
                                f"mood or a camera position."))
+    return out
+
+
+def _mots_ancrables(texte: str, generiques: set[str]) -> list[list[str]]:
+    """Les mots du texte qui peuvent servir d'ancre, avec leurs equivalents.
+
+    Le raisonnement peut nommer « le moteur » quand le prompt photo, lui, est
+    en anglais : SEMANTIQUE porte deja cette correspondance, on la reutilise
+    plutot que d'exiger que les deux textes soient dans la meme langue.
+    """
+    mots = re.findall(r"[^\W\d_]+", texte.lower(), re.UNICODE)
+    ancres = []
+    for mot in mots:
+        racine = mot[:-1] if mot.endswith("s") and not mot.endswith("ss") else mot
+        if len(racine) <= 2 or racine in GENERIQUES or racine in generiques:
+            continue
+        ancres.append([racine, *SEMANTIQUE.get(racine, ())])
+    return ancres
+
+
+def _dans_le_cadre(mot: str, texte: str) -> bool:
+    """Vrai si le mot est nomme autrement que comme destination d'un flux."""
+    bas = texte.lower()
+    for m in re.finditer(rf"\b{re.escape(mot)}(s|es)?\b", bas):
+        avant = bas[max(0, m.start() - FENETRE_DESTINATION):m.start()]
+        if not any(d in avant for d in DESTINATION):
+            return True
+    return False
+
+
+def _ancrage(sb: Storyboard) -> list[Problem]:
+    """L'image est le premier plan de l'animation, pas une illustration.
+
+    Deux sens a verifier, et c'est le second qui attrape le defaut vu en
+    production : une animation qui ramene l'energie « vers la batterie »
+    alors que la batterie n'a jamais ete dans le cadre.
+    """
+    out = []
+    for s in sb.shots:
+        image = own_part(s.image_prompt)
+        anim = s.animation_prompt
+
+        # 1. L'objet principal du raisonnement doit etre dans l'image.
+        principal = s.visual_explanation.get("physical_element", "")
+        ancres = _mots_ancrables(principal, VEHICULE)
+        if not ancres:
+            out.append(Problem("ANCRAGE", s.slug,
+                               f"physical_element ne nomme aucun objet precis : "
+                               f"« {principal.strip()} »",
+                               f"Shot {s.id}: name ONE precise physical object — the battery "
+                               f"pack, the high-voltage cable, the stator windings. The whole "
+                               f"vehicle is not an object: a shot with nothing more precise to "
+                               f"show carries no information."))
+        elif not any(_mot_present(m, image) for groupe in ancres for m in groupe):
+            out.append(Problem("ANCRAGE", s.slug,
+                               f"l'objet principal « {principal.strip()} » "
+                               f"n'est pas dans le prompt photo",
+                               f"Shot {s.id}: the image prompt must show {principal.strip()} "
+                               f"explicitly. The image is the first frame of the animation, so "
+                               f"it carries every element the animation needs."))
+
+        # 2. Ce que l'animation fait bouger doit deja etre DANS LE CADRE.
+        for famille in FAMILLES:
+            nommes = [o for o in famille if _mot_present(o, anim)]
+            if not nommes or any(_dans_le_cadre(o, image) for o in famille):
+                continue
+            objet = nommes[0]
+            if any(_mot_present(o, image) for o in famille):
+                out.append(Problem("ANCRAGE", s.slug,
+                                   f"« {objet} » n'est nomme que comme destination "
+                                   f"dans le prompt photo : il n'est jamais dans le cadre",
+                                   f"Shot {s.id}: the image prompt only mentions the {objet} "
+                                   f"as somewhere the flow goes. Put the {objet} itself in "
+                                   f"frame, clearly visible, so the viewer sees where the "
+                                   f"energy arrives — otherwise the flow simply leaves the "
+                                   f"picture and the shot explains nothing."))
+            else:
+                out.append(Problem("ANCRAGE", s.slug,
+                                   f"l'animation fait bouger « {objet} », "
+                                   f"absent du prompt photo",
+                                   f"Shot {s.id}: never introduce an important object only in "
+                                   f"the animation. Either put the {objet} in the image "
+                                   f"prompt, in frame and clearly visible, or stop naming it "
+                                   f"in the animation."))
     return out
 
 

@@ -130,12 +130,26 @@ class TestConditionsDuPrompt(unittest.TestCase):
         self.assertIn("high-end car commercial", self.texte)
         self.assertIn("same silhouette, same colour", self.texte)
 
-    def test_la_regle_visual_explanation_et_ses_quatre_temps(self):
+    def test_la_regle_visual_explanation_et_ses_sept_temps(self):
         self.assertIn("VISUAL EXPLANATION", self.texte)
-        for etape in ("information", "physical_element", "visual_behavior",
-                      "animation_movement"):
+        for etape in ("information", "physical_element", "secondary_elements",
+                      "visual_behavior", "animation_movement", "camera_position",
+                      "composition"):
             self.assertIn(etape, self.texte)
         self.assertIn("sound off", self.texte)
+
+    def test_on_ne_part_jamais_d_une_belle_image(self):
+        """L'image est le premier plan de l'animation, pas une illustration."""
+        self.assertIn("NEVER START FROM A BEAUTIFUL IMAGE", self.texte)
+        self.assertIn("FIRST FRAME", self.texte)
+        self.assertIn("must contain every physical element required by the animation",
+                      self.texte)
+        self.assertIn("Never introduce an important object or phenomenon only in the",
+                      self.texte)
+        # Une action claire vaut mieux qu'une composition riche et vague.
+        self.assertIn("ONE clear pedagogical action", self.texte)
+        # Le raisonnement precede le prompt, et l'exemple le montre en entier.
+        self.assertIn("THE SAME REASONING, WORKED THROUGH", self.texte)
 
     def test_les_correspondances_concretes(self):
         for bloc in ("BATTERY", "ELECTRICITY", "MOTOR", "TRANSMISSION", "REGENERATIVE"):

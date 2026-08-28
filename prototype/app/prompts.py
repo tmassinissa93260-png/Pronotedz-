@@ -129,14 +129,65 @@ pulses travelling along the cables into the windings.
 That yellow element is NOT decoration. It carries information. It must mean
 the same thing in every shot of the video.
 
-── VISUAL EXPLANATION — every sentence becomes visual information ──
-An image that is only beautiful is rejected. For EVERY shot, fill
-"visual_explanation" with these four, in order:
-  1. information        what the voice explains, in one sentence
-  2. physical_element   the physical element that carries that information
-  3. visual_behavior    the visual behaviour that makes it understandable
-  4. animation_movement the movement that shows it
-The viewer must understand how it works even with the sound off.
+── NEVER START FROM A BEAUTIFUL IMAGE ──
+CRITICAL RULE — IMAGE QUALITY MUST SERVE ANIMATION.
+Do not optimize image prompts only for visual beauty.
+Every image must be designed as the FIRST FRAME of its corresponding animation.
+The image must contain every physical element required by the animation.
+The animation prompt must animate those exact elements already visible in the
+image. Never introduce an important object or phenomenon only in the animation
+if it was not clearly present in the source image.
+Prefer ONE clear pedagogical action plus its supporting elements over MANY
+objects in a vague cinematic composition. A technically simpler image showing
+one extremely clear physical process beats a beautiful but ambiguous one.
+The viewer must understand WHAT is happening from the image alone.
+The animation must then demonstrate HOW it happens.
+
+── VISUAL EXPLANATION — the reasoning that comes BEFORE the prompt ──
+An image that is only beautiful is rejected. For EVERY shot, answer these seven
+questions IN ORDER, and only then write the prompts. Fill
+"visual_explanation" with the seven answers:
+  1. information        WHICH information must be understood, in one sentence
+  2. physical_element   WHICH single object lets you show it
+  3. secondary_elements WHICH other objects are needed to make it readable
+  4. visual_behavior    WHICH visible phenomenon represents that information
+  5. animation_movement WHICH movement will animate it
+  6. camera_position    WHICH camera lets the viewer see all of that clearly
+  7. composition        WHICH framing that movement requires
+Write the image prompt only after those seven answers, and make it carry every
+element you just named. The viewer must understand how it works even with the
+sound off.
+
+── THE SAME REASONING, WORKED THROUGH ──
+Weak, because it starts from the picture:
+  "Focus on the electric car's internal layout with cables..."
+The reasoning that replaces it:
+  information        the battery supplies electricity to the motor
+  physical_element   the battery pack
+  secondary_elements the high-voltage cable, the electric motor
+  visual_behavior    a yellow/orange electrical flow
+  animation_movement the flow leaves the battery, crosses the cable, reaches
+                     the motor
+  camera_position    close enough to read the whole path in one frame
+  composition        battery on one side, motor on the other, cable between
+And the prompt that follows from it:
+  "Technical semi-cutaway view focused on the energy path between the battery
+  and the electric motor. The battery pack is clearly visible on one side and
+  the electric motor on the other, connected by clearly visible high-voltage
+  cables. A bright yellow-orange electrical energy stream travels visibly
+  through the cables from the battery toward the motor. The energy stream is
+  the main visual focus and must have a clearly readable direction. Mechanical
+  components remain grey and secondary."
+Its animation animates exactly those elements, and nothing else:
+  "Animate the yellow-orange electrical energy stream continuously travelling
+  from the battery through the high-voltage cables toward the electric motor.
+  The flow must move visibly and directionally rather than simply glowing. As
+  the energy reaches the motor, subtle electrical pulses appear inside the
+  motor. Keep the battery, cables, motor and vehicle geometry completely rigid
+  and unchanged. Slow controlled camera tracking following the energy path. No
+  deformation, no invented components, no text."
+Notice what makes it work: ONE object, ONE phenomenon, ONE action, and a frame
+built so that action is legible. Everything else is grey and secondary.
 
 ── THE CONCRETE MAPPINGS ──
 BATTERY        visible cells · stored energy as a pulsing yellow/orange light ·
@@ -165,7 +216,10 @@ realistic, restrained and scientifically coherent. No magic effects, no random
 sparkles, no lens flares.
 
 ── PART 4 — THE IMAGE PROMPT ──
-"image_prompt", in English, extremely detailed. It must state:
+"image_prompt", in English, extremely detailed. Write it only after the seven
+answers above, and let it carry every element you named there — the primary
+object, the secondary objects, the visible phenomenon, the camera and the
+composition the movement requires. It must state:
   1. the main subject
   2. the action or phenomenon being shown
   3. the pedagogical elements
@@ -257,10 +311,13 @@ concretely, e.g. yellow energy flow entering the stator windings",
       "animation_prompt": "in English, what moves and how, for THIS image",
       "motion_intent": "one value from the list above",
       "visual_explanation": {{
-        "information": "what the voice explains here",
-        "physical_element": "the element that carries it",
-        "visual_behavior": "how it reads on screen",
-        "animation_movement": "the movement that shows it"
+        "information": "which information must be understood here",
+        "physical_element": "the single object that lets you show it",
+        "secondary_elements": "the other objects needed to make it readable",
+        "visual_behavior": "the visible phenomenon that represents it",
+        "animation_movement": "the movement that will animate it",
+        "camera_position": "the camera that lets all of it be seen clearly",
+        "composition": "the framing that movement requires"
       }}
     }}
   ],

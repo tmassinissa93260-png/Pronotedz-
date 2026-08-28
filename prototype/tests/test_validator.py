@@ -142,8 +142,21 @@ class TestExplicationVisuelle(unittest.TestCase):
                 self.assertIn(champ, str(ctx.exception))
 
     def test_explication_trop_vague(self):
+        """Un champ qui DECRIT ne peut pas tenir en trois mots."""
         raw = board()
-        raw["shots"][0]["visual_explanation"]["physical_element"] = "le moteur"
+        raw["shots"][0]["visual_explanation"]["composition"] = "plan large"
+        p = [x for x in valider(raw) if x.code == "EXPLICATION"]
+        self.assertIn("composition", str(p[0]))
+
+    def test_un_champ_qui_nomme_a_le_droit_d_etre_court(self):
+        """« Battery cells » nomme un objet precis : c'est une bonne reponse."""
+        raw = board()
+        raw["shots"][0]["visual_explanation"]["physical_element"] = "battery cells"
+        self.assertEqual([x for x in valider(raw) if x.code == "EXPLICATION"], [])
+
+    def test_mais_pas_le_droit_d_etre_vide_de_sens(self):
+        raw = board()
+        raw["shots"][0]["visual_explanation"]["physical_element"] = "le tout"
         p = [x for x in valider(raw) if x.code == "EXPLICATION"]
         self.assertIn("physical_element", str(p[0]))
 
@@ -156,6 +169,70 @@ class TestExplicationVisuelle(unittest.TestCase):
 
     def test_une_explication_complete_passe(self):
         self.assertEqual([x for x in valider(board()) if x.code == "EXPLICATION"], [])
+
+
+class TestAncrage(unittest.TestCase):
+    """L'image est le premier plan de l'animation, pas une illustration."""
+
+    def test_une_destination_ne_met_rien_dans_le_cadre(self):
+        """Le defaut vu en production sur le plan du freinage regeneratif :
+        l'animation ramene l'energie « vers la batterie », le prompt photo ne
+        nomme la batterie que comme destination, et la video montre un flux
+        vert qui sort du cadre."""
+        raw = board()
+        raw["shots"][0]["image_prompt"] = (
+            "Side view of the wheels and gear assembly of the white compact electric "
+            "sedan during braking, the hub and the brake disc at centre frame, the drive "
+            "gears behind them. Green luminous energy streams leave the wheels and travel "
+            "back to the battery, representing the recovered energy. Camera at wheel "
+            "height, 50mm lens feel, shallow depth. Cool key lighting from the upper left "
+            "in the dark studio. Materials: brushed aluminium, dark composite, rubber. "
+            "Preserve the wheel geometry. No text. " + IMAGE[IMAGE.find(STYLE_DIRECTIVE):])
+        raw["shots"][0]["animation_prompt"] = (
+            "The green energy flow reverses direction from the spinning wheels and travels "
+            "back towards the battery. The wheels keep rotating while the flow returns. "
+            "The chassis, the gears and the hub stay perfectly rigid. Slow secondary "
+            "camera tracking along the flow. Preserve exact geometry. No deformation.")
+        raw["shots"][0]["visual_explanation"]["physical_element"] = "the drive wheels and hub"
+        p = [x for x in valider(raw) if x.code == "ANCRAGE"]
+        self.assertTrue(p)
+        self.assertIn("destination", str(p[0]))
+        self.assertIn("battery", str(p[0]))
+
+    def test_un_objet_jamais_nomme_dans_l_image(self):
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            raw["shots"][0]["animation_prompt"]
+            + " The brake calipers clamp the discs as the vehicle slows.")
+        p = [x for x in valider(raw) if x.code == "ANCRAGE"]
+        self.assertTrue(p)
+        self.assertIn("absent du prompt photo", str(p[0]))
+
+    def test_le_moteur_est_dans_le_cadre_par_ses_pieces(self):
+        """Un prompt qui cadre le stator et le rotor montre bien le moteur."""
+        self.assertEqual([x for x in valider(board()) if x.code == "ANCRAGE"], [])
+
+    def test_l_objet_principal_doit_etre_dans_le_prompt_photo(self):
+        raw = board()
+        raw["shots"][0]["visual_explanation"]["physical_element"] = (
+            "le pédalier et son capteur de position")
+        p = [x for x in valider(raw) if x.code == "ANCRAGE"]
+        self.assertIn("pas dans le prompt photo", str(p[0]))
+
+    def test_le_vehicule_entier_n_est_pas_un_objet(self):
+        raw = board()
+        raw["shots"][0]["visual_explanation"]["physical_element"] = "the whole car"
+        p = [x for x in valider(raw) if x.code == "ANCRAGE"]
+        self.assertIn("aucun objet precis", str(p[0]))
+
+    def test_l_ancrage_traverse_les_langues(self):
+        """Le raisonnement peut dire « le moteur » quand le prompt dit « motor »."""
+        raw = board()
+        raw["shots"][0]["visual_explanation"]["physical_element"] = "le moteur électrique"
+        self.assertEqual([x for x in valider(raw) if x.code == "ANCRAGE"], [])
+
+    def test_une_image_qui_porte_tout_passe(self):
+        self.assertEqual([x for x in valider(board()) if x.code == "ANCRAGE"], [])
 
 
 class TestQualite(unittest.TestCase):

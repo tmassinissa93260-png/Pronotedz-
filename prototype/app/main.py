@@ -20,7 +20,7 @@ if __package__ in (None, ""):
     __package__ = "app"
 
 from . import analyzer, config, montage, validator  # noqa: E402
-from .models import Storyboard, StoryboardError  # noqa: E402
+from .models import EXPLICATION_FIELDS, Storyboard, StoryboardError  # noqa: E402
 from .openai_client import OpenAIError, generate_storyboard  # noqa: E402
 
 EXTENSIONS_VIDEO = (".mp4", ".mov", ".webm", ".m4v")
@@ -110,6 +110,14 @@ def ecrire_elements(sb: Storyboard) -> Path:
             f"**Élément pédagogique** : {s.visual_concept}",
             "",
             f"**Intention de mouvement** : `{s.motion_intent}`",
+            "",
+            "### Le raisonnement, avant le prompt",
+            "",
+        ]
+        lignes += [f"{n}. **{champ.replace('_', ' ')}** : "
+                   f"{s.visual_explanation.get(champ, '')}"
+                   for n, champ in enumerate(EXPLICATION_FIELDS, start=1)]
+        lignes += [
             "",
             "### Prompt image", "", "```", s.image_prompt, "```",
             "",
