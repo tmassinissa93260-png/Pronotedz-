@@ -1,0 +1,19 @@
+1
+00:00:00,000 --> 00:00:04,000
+Découvrez comment une voiture électrique
+transforme l'énergie en mouvement.
+
+2
+00:00:04,000 --> 00:00:08,000
+D'abord, la batterie fournit l'électricité
+essentielle pour le moteur.
+
+3
+00:00:08,000 --> 00:00:12,000
+Ensuite, elle alimente le moteur qui
+démarre et crée de la puissance.
+
+4
+00:00:12,000 --> 00:00:16,000
+Lors du freinage, l'énergie est récupérée
+pour recharger la batterie.

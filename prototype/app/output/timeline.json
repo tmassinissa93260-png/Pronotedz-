@@ -1,0 +1,54 @@
+[
+  {
+    "shot_id": 1,
+    "start": 0.0,
+    "end": 4.0,
+    "duration": 4.0,
+    "video": "/home/user/Pronotedz-/prototype/app/output/videos/shot_01.mov",
+    "voice": "Découvrez comment une voiture électrique transforme l'énergie en mouvement.",
+    "measured_duration": 5.208,
+    "ajustement": "video plus longue de 1.21s : coupee a 4.0s",
+    "remarques": []
+  },
+  {
+    "shot_id": 2,
+    "start": 4.0,
+    "end": 8.0,
+    "duration": 4.0,
+    "video": "/home/user/Pronotedz-/prototype/app/output/videos/shot_02.mov",
+    "voice": "D'abord, la batterie fournit l'électricité essentielle pour le moteur.",
+    "measured_duration": 5.208,
+    "ajustement": "video plus longue de 1.21s : coupee a 4.0s",
+    "remarques": [
+      "slightly longer duration than planned"
+    ]
+  },
+  {
+    "shot_id": 3,
+    "start": 8.0,
+    "end": 12.0,
+    "duration": 4.0,
+    "video": "/home/user/Pronotedz-/prototype/app/output/videos/shot_03.mov",
+    "voice": "Ensuite, elle alimente le moteur qui démarre et crée de la puissance.",
+    "measured_duration": 5.208,
+    "ajustement": "video plus longue de 1.21s : coupee a 4.0s",
+    "remarques": [
+      "la video ne correspond pas au plan prevu",
+      "lack of rotor spin, static frames, not showing motion"
+    ]
+  },
+  {
+    "shot_id": 4,
+    "start": 12.0,
+    "end": 16.0,
+    "duration": 4.0,
+    "video": "/home/user/Pronotedz-/prototype/app/output/videos/shot_04.mov",
+    "voice": "Lors du freinage, l'énergie est récupérée pour recharger la batterie.",
+    "measured_duration": 5.208,
+    "ajustement": "video plus longue de 1.21s : coupee a 4.0s",
+    "remarques": [
+      "la video ne correspond pas au plan prevu",
+      "None observed"
+    ]
+  }
+]
