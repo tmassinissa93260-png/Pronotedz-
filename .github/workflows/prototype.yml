@@ -179,11 +179,21 @@ jobs:
         if: always() && inputs.enregistrer
         run: |
           shopt -s nullglob
-          fichiers=(app/output/project.json app/output/elements.md
-                    app/output/timeline.json app/output/sous_titres.srt
-                    app/output/shots/*/animation.json
-                    app/output/shots/*/video_analysis.json)
-          [ ${#fichiers[@]} -eq 0 ] && { echo "Rien à enregistrer."; exit 0; }
+          # nullglob n'écarte que les motifs sans correspondance : un chemin
+          # littéral absent resterait dans la liste et ferait échouer git add.
+          candidats=(app/output/project.json app/output/elements.md
+                     app/output/timeline.json app/output/sous_titres.srt
+                     app/output/shots/*/animation.json
+                     app/output/shots/*/video_analysis.json)
+          fichiers=()
+          for f in "${candidats[@]}"; do
+            [ -f "$f" ] && fichiers+=("$f")
+          done
+          if [ ${#fichiers[@]} -eq 0 ]; then
+            echo "Rien à enregistrer."
+            exit 0
+          fi
+          echo "À enregistrer : ${fichiers[*]}"
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -f "${fichiers[@]}"
