@@ -30,7 +30,7 @@ load_dotenv(APP_DIR / ".env")
 
 SUBJECT = "Fonctionnement d'une voiture électrique"
 DURATION = 16
-SHOT_COUNT = 4
+SHOT_COUNT = 20
 
 # True  : on s'arrete apres avoir colle le prompt du SHOT 01 (preuve de boucle).
 # False : les 4 plans s'enchainent automatiquement.
@@ -84,6 +84,10 @@ def cerveau() -> str:
 # ---------------------------------------------------------------------------
 
 OUTPUT_DIR = Path(env("OUTPUT_DIR") or APP_DIR / "output")
+
+# Ce que tu as deja refuse. Le fichier est versionne : ecris-y une ligne,
+# elle vaut pour tous les runs suivants. C'est la memoire du systeme.
+FEEDBACK_FILE = Path(env("FEEDBACK_FILE") or ROOT_DIR / "feedback.md")
 PROJECT_FILE = OUTPUT_DIR / "project.json"
 STATUS_FILE = OUTPUT_DIR / "status.json"
 PASTE_SHEET = OUTPUT_DIR / "prompts_a_coller.txt"

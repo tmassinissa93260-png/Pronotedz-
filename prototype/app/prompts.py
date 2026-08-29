@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import os
 
-from .models import MOTION_INTENTS, NOTION_SENS
+from .models import MIN_MAILLONS, MIN_QUALITY, MOTION_INTENTS, NOTION_SENS
 
 # ---------------------------------------------------------------------------
 # STYLE VISUEL DE BASE
@@ -68,9 +68,29 @@ You answer with a single valid JSON object and nothing else: no markdown, no
 code fence, no commentary."""
 
 
+def retours() -> str:
+    """Ce que l'auteur a deja refuse, relu a chaque run.
+
+    Une regle apprise une fois ne doit pas etre reapprise : le fichier est
+    versionne, et son contenu entre dans le prompt.
+    """
+    from . import config
+
+    if not config.FEEDBACK_FILE.is_file():
+        return ""
+    texte = config.FEEDBACK_FILE.read_text(encoding="utf-8").strip()
+    if not texte:
+        return ""
+    return ("\n\n── WHAT THE AUTHOR HAS ALREADY REJECTED ──\n"
+            "These are corrections made on earlier videos. They are not suggestions.\n"
+            f"{texte}\n")
+
+
 def storyboard_user(subject: str, duration: float, shot_count: int) -> str:
     par_plan = round(duration / shot_count, 1)
     mots = int(par_plan * WORDS_PER_SECOND)
+    maillons = MIN_MAILLONS
+    seuil = MIN_QUALITY
     return f"""\
 Write the complete pre-production of a vertical 9:16 educational video.
 
@@ -91,6 +111,45 @@ high contrast. The finish of a high-end car commercial. Vertical 9:16.
 CONTINUITY: the same car throughout — same silhouette, same colour, same
 proportions, same materials, same environment, same visual language.
 
+── THE TWO RULES ABOVE ALL OTHERS ──
+NEVER optimise only for the beauty of an image. Every image is designed as the
+FIRST STATE of an animated sequence. Every animation represents a physical or
+causal transformation the viewer can follow. A camera move alone is not an
+animation when a subject, a component or a phenomenon could move instead.
+Every shot must answer, visually: WHAT CHANGES during these few seconds, AND
+WHY DOES IT CHANGE?
+
+── PART 0 — UNDERSTAND BEFORE YOU WRITE ──
+Do not invent scenes from the subject. Establish what the subject IS first,
+and fill "fact_sheet" BEFORE the script:
+  components                 which parts actually exist
+  functions                  what each one does, exactly — not approximately
+  energy_direction           which way the energy goes
+  transformations            which conversions happen, and where
+  invisible_phenomena        what the eye cannot see and must be represented
+  acceptable_simplifications what may fairly be simplified for a lay viewer
+  common_errors              the popular-science mistakes to avoid here
+Then write "causal_chain": the mechanism as an ordered list of at least
+{maillons} links, each one causing the next. For an electric car:
+  battery chemical energy -> electrical energy in the circuit -> power
+  electronics / inverter converts DC to AC and controls the power ->
+  electromagnetic torque in the motor -> motor rotation -> reduction gear and
+  drivetrain -> wheel rotation -> vehicle motion
+and under regenerative braking:
+  vehicle kinetic energy -> motor acting as a generator -> electrical energy
+  -> power electronics -> battery charging
+Accuracy comes first, then clarity, then visual power, then style. Never trade
+away a real physical relation to obtain a spectacular animation.
+A simplification is allowed; a falsehood is not. "The battery powers the
+motor" is fair vulgarisation. Saying the inverter is a mere stage on the way
+is not: it converts the battery's direct current into alternating current AND
+controls the torque and speed of the motor. The motor is not a black box
+either: stator and rotor interact electromagnetically to turn electrical
+energy into mechanical energy, and the same motor runs as a generator during
+regenerative braking.
+You have no browsing tool here: answer from established engineering knowledge,
+and state a mechanism only when you are confident it is right.
+
 ── PART 1 — THE SCRIPT ──
 Write "script": the full narration, in French, as one continuous spoken text.
 It must:
@@ -104,7 +163,8 @@ It must:
 Each sentence must prepare or explain what the viewer is about to see.
 
 ── PART 2 — THE STORYBOARD ──
-Cut the script into exactly {shot_count} shots. A shot never exists just to
+Cut the script into exactly {shot_count} shots, following the causal chain you
+just wrote: the shots walk the chain in order, and no shot exists outside it. A shot never exists just to
 reach {shot_count}. Each one earns its place by advancing understanding, and
 "educational_function" says in one sentence what the viewer understands after
 it that they did not understand before. Two shots never claim the same
@@ -174,16 +234,28 @@ The viewer must understand WHAT is happening from the image alone.
 The animation must then demonstrate HOW it happens.
 
 ── VISUAL EXPLANATION — the reasoning that comes BEFORE the prompt ──
-An image that is only beautiful is rejected. For EVERY shot, answer these seven
-questions IN ORDER, and only then write the prompts. Fill
-"visual_explanation" with the seven answers:
-  1. information        WHICH information must be understood, in one sentence
-  2. physical_element   WHICH single object lets you show it
-  3. secondary_elements WHICH other objects are needed to make it readable
-  4. visual_behavior    WHICH visible phenomenon represents that information
-  5. animation_movement WHICH movement will animate it
-  6. camera_position    WHICH camera lets the viewer see all of that clearly
-  7. composition        WHICH framing that movement requires
+An image that is only beautiful is rejected. For EVERY shot, answer these
+twelve questions IN ORDER, and only then write the prompts. Fill
+"visual_explanation" with the twelve answers:
+   1. information        WHICH information must be understood, in one sentence
+   2. cause              WHAT triggers the phenomenon in this shot
+   3. effect             WHICH change must become visible because of it
+   4. physical_element   WHICH single object lets you show it
+   5. secondary_elements WHICH other objects are needed to make it readable
+   6. visual_behavior    WHICH visible phenomenon represents that information
+   7. initial_state      WHAT the scene looks like on the FIRST frame
+   8. animation_movement WHICH primary movement animates it
+   9. secondary_motion   WHICH movement follows from that one
+  10. final_state        WHAT the scene looks like on the LAST frame
+  11. camera_position    WHICH camera lets the viewer see all of that clearly
+  12. composition        WHICH framing that movement requires
+initial_state and final_state must DIFFER. If nothing has changed between the
+first frame and the last, the shot explains nothing and must be redesigned.
+
+── IS THIS IMAGE WORTH ANIMATING? ──
+Before you keep an image prompt, ask: does this image allow a pedagogically
+interesting animation? An image with nothing to move is a bad image — go back
+and redesign it around something that transforms.
 Write the image prompt only after those seven answers, and make it carry every
 element you just named. The viewer must understand how it works even with the
 sound off.
@@ -282,10 +354,27 @@ End it with this sentence, copied VERBATIM:
 {STYLE_DIRECTIVE}
 
 ── PART 5 — THE ANIMATION PROMPT ──
-"animation_prompt", in English, written for THAT image. It must state: which
-element moves, in which direction, at what speed, along what path; the
-mechanical motion; the energy motion; the camera motion; what stays perfectly
-still; the geometry to preserve; the deformations forbidden.
+"animation_prompt", in English, written for THAT image, as continuous prose
+that carries these beats in this order:
+  INITIAL STATE     what is at rest, and where everything starts
+  PRIMARY MOTION    the phenomenon being explained, moving
+  SECONDARY MOTION  what that movement causes in turn
+  MECHANICAL        the parts that respond, and how
+  CAMERA            a secondary move, following the information
+  CAUSAL RELATION   said out loud: this causes that, which causes that
+  FINAL STATE       what has changed by the last frame
+It must also say what stays perfectly still, the geometry to preserve, and the
+deformations forbidden.
+Worked example, a motor shot:
+  "The rotor is initially stationary. Yellow-orange electrical pulses enter
+  the motor windings and travel around the stator; as they arrive, the
+  electromagnetic activity intensifies and the rotor progressively
+  accelerates, and that rotation carries through into the drivetrain, which
+  begins turning in synchrony. The camera performs a slow tracking movement
+  following the energy path toward the rotor. The stator, the casing and the
+  chassis stay perfectly rigid. By the end, the rotor and the drivetrain turn
+  smoothly at a stable speed. No deformation, no invented parts, no arbitrary
+  camera zoom as the main movement."
 
 ── IMAGE → ANIMATION CORRESPONDENCE — non negotiable ──
 Every pedagogical element introduced in the image prompt MUST move in the
@@ -398,10 +487,13 @@ When the explanation contains a transformation, the animation shows it:
 ── PART 6 — QUALITY CONTROL, BEFORE YOU ANSWER ──
 Score yourself honestly from 0 to 1 on each axis in "quality_check":
 narrative_quality, visual_quality, scientific_accuracy, voice_visual_alignment,
-visual_continuity, pedagogical_clarity, animation_potential.
+visual_continuity, pedagogical_clarity, animation_potential, motion_quality,
+causal_clarity, physical_plausibility.
 For every shot ask: "does the viewer understand the subject better thanks to
 this shot?" If the answer is no, REWRITE the shot before answering. Do not
-return a storyboard you scored below 0.8 on any axis.
+return a storyboard you scored below {seuil} on any axis. A good visual score
+never compensates for a poor pedagogical one: if motion_quality or
+causal_clarity is low, redesign the shot rather than repolishing the image.
 
 ── ANSWER FORMAT ──
 Return only this JSON:
@@ -409,6 +501,12 @@ Return only this JSON:
   "subject": "{subject}",
   "duration_seconds": {duration},
   "shot_count": {shot_count},
+  "fact_sheet": {{
+    "components": "...", "functions": "...", "energy_direction": "...",
+    "transformations": "...", "invisible_phenomena": "...",
+    "acceptable_simplifications": "...", "common_errors": "...",
+    "causal_chain": ["first link", "second link", "... at least {maillons}"]
+  }},
   "script": "the full narration in French",
   "visual_bible": {{
     "main_subject": "...", "characters_objects": "...", "vehicle": "...",
@@ -430,10 +528,15 @@ concretely, e.g. yellow energy flow entering the stator windings",
       "motion_intent": "one value from the list above",
       "visual_explanation": {{
         "information": "which information must be understood here",
+        "cause": "what triggers the phenomenon in this shot",
+        "effect": "which change must become visible because of it",
         "physical_element": "the single object that lets you show it",
         "secondary_elements": "the other objects needed to make it readable",
         "visual_behavior": "the visible phenomenon that represents it",
-        "animation_movement": "the movement that will animate it",
+        "initial_state": "what the scene looks like on the first frame",
+        "animation_movement": "the primary movement that animates it",
+        "secondary_motion": "the movement that follows from that one",
+        "final_state": "what the scene looks like on the last frame",
         "camera_position": "the camera that lets all of it be seen clearly",
         "composition": "the framing that movement requires"
       }}
@@ -443,10 +546,11 @@ concretely, e.g. yellow energy flow entering the stator windings",
     "narrative_quality": 0.9, "visual_quality": 0.9,
     "scientific_accuracy": 0.9, "voice_visual_alignment": 0.9,
     "visual_continuity": 0.9, "pedagogical_clarity": 0.9,
-    "animation_potential": 0.9
+    "animation_potential": 0.9, "motion_quality": 0.9,
+    "causal_clarity": 0.9, "physical_plausibility": 0.9
   }}
 }}
-"shots" holds exactly {shot_count} objects, ids 1 to {shot_count}."""
+"shots" holds exactly {shot_count} objects, ids 1 to {shot_count}.{retours()}"""
 
 
 # ---------------------------------------------------------------------------

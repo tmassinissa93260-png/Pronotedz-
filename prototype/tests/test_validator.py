@@ -282,6 +282,73 @@ class TestFlexions(unittest.TestCase):
         self.assertFalse(_mot_present("cell", "cellular structure"))
 
 
+class TestChaineCausale(unittest.TestCase):
+    """Le mecanisme est etabli avant d'etre raconte."""
+
+    def test_une_chaine_trop_courte_est_refusee(self):
+        from app.models import StoryboardError
+        raw = board()
+        raw["fact_sheet"]["causal_chain"] = ["la batterie", "les roues"]
+        with self.assertRaises(StoryboardError) as ctx:
+            Storyboard.from_dict(raw)
+        self.assertIn("causal_chain", str(ctx.exception))
+
+    def test_une_fiche_absente_est_refusee(self):
+        from app.models import StoryboardError
+        raw = board()
+        del raw["fact_sheet"]
+        with self.assertRaises(StoryboardError) as ctx:
+            Storyboard.from_dict(raw)
+        self.assertIn("fact_sheet", str(ctx.exception))
+
+    def test_une_chaine_qui_boucle_est_refusee(self):
+        raw = board()
+        raw["fact_sheet"]["causal_chain"].append(
+            "and the energy returns to the battery in a continuous loop")
+        p = [x for x in valider(raw) if x.code == "CHAINE"]
+        self.assertTrue(p)
+        self.assertIn("tourne en rond", str(p[0]))
+
+    def test_un_plan_hors_chaine_est_refuse(self):
+        raw = board()
+        raw["shots"][0]["visual_explanation"]["information"] = (
+            "la climatisation refroidit l'habitacle pendant le trajet")
+        raw["shots"][0]["visual_explanation"]["cause"] = (
+            "le compresseur du circuit frigorifique démarre")
+        raw["shots"][0]["visual_explanation"]["effect"] = (
+            "la température de l'habitacle descend nettement")
+        raw["shots"][0]["visual_concept"] = "cold air spreading through the cabin vents"
+        p = [x for x in valider(raw) if x.code == "CHAINE"]
+        self.assertTrue(p)
+        self.assertIn("aucun maillon", str(p[0]))
+
+
+class TestEtatDuPlan(unittest.TestCase):
+    """Qu'est-ce qui change pendant ces quelques secondes ?"""
+
+    def test_un_etat_final_identique_a_l_initial(self):
+        raw = board()
+        etat = "le rotor est immobile et les busbars sont éteints"
+        raw["shots"][0]["visual_explanation"]["initial_state"] = etat
+        raw["shots"][0]["visual_explanation"]["final_state"] = etat
+        p = [x for x in valider(raw) if x.code == "ETAT"]
+        self.assertTrue(p)
+        self.assertIn("rien ne change", str(p[0]))
+
+    def test_une_animation_sans_point_de_depart(self):
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "The yellow energy streams travel along the copper busbars toward the motor, "
+            "which makes the rotor turn and the transmission follow. By the end, "
+            "everything turns steadily. Preserve exact geometry. No deformation.")
+        p = [x for x in valider(raw) if x.code == "ETAT"]
+        self.assertTrue(p)
+        self.assertIn("d'où elle part", str(p[0]).replace("d'ou", "d'où"))
+
+    def test_une_animation_qui_dit_son_debut_et_sa_fin_passe(self):
+        self.assertEqual([x for x in valider(board()) if x.code == "ETAT"], [])
+
+
 class TestPhysique(unittest.TestCase):
     """L'energie ne tourne pas en rond, et ce n'est pas de la fumee."""
 

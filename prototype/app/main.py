@@ -20,7 +20,12 @@ if __package__ in (None, ""):
     __package__ = "app"
 
 from . import analyzer, config, montage, validator  # noqa: E402
-from .models import EXPLICATION_FIELDS, Storyboard, StoryboardError  # noqa: E402
+from .models import (
+    EXPLICATION_FIELDS,
+    FACT_SHEET_FIELDS,
+    Storyboard,
+    StoryboardError,  # noqa: E402
+)
 from .openai_client import OpenAIError, generate_storyboard  # noqa: E402
 
 EXTENSIONS_VIDEO = (".mp4", ".mov", ".webm", ".m4v")
@@ -95,6 +100,21 @@ def ecrire_elements(sb: Storyboard) -> Path:
         f"# {sb.subject}",
         "",
         f"{sb.duration_seconds:g} secondes · {sb.shot_count} plans",
+        "",
+        "## Ce que le sujet EST",
+        "",
+        "Établi **avant** le script. Le storyboard suit cette chaîne.",
+        "",
+    ]
+    lignes += [f"- **{c.replace('_', ' ')}** : {getattr(sb.fact_sheet, c)}"
+               for c in FACT_SHEET_FIELDS]
+    lignes += [
+        "",
+        "**Chaîne causale**",
+        "",
+    ]
+    lignes += [f"{n}. {maillon}" for n, maillon in enumerate(sb.fact_sheet.causal_chain, 1)]
+    lignes += [
         "",
         "## Script",
         "",

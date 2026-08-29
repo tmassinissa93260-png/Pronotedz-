@@ -9,12 +9,18 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from .models import COLOR_NOTION, EXPLICATION_FIELDS, NOTIONS_EN_MOUVEMENT, QUALITY_AXES, Storyboard
+from .models import (
+    COLOR_NOTION,
+    EXPLICATION_FIELDS,
+    MIN_QUALITY,
+    NOTIONS_EN_MOUVEMENT,
+    QUALITY_AXES,
+    Storyboard,
+)
 from .prompts import STYLE_FINGERPRINT, STYLE_PAR_DEFAUT
 
 MIN_WORDS_PER_SECOND = 1.8
 MAX_WORDS_PER_SECOND = 4.0
-MIN_QUALITY = 0.8
 MIN_IMAGE_PROMPT_CHARS = 260
 MIN_ANIMATION_PROMPT_CHARS = 120
 DURATION_TOLERANCE_S = 0.5
@@ -80,6 +86,13 @@ MIN_COMPOSANTS_MOBILES = 2
 # trajet ou la destination — pas l'acteur du mouvement.
 ROLE_PASSIF = ("from", "along", "through", "via", "out of", "between", "across",
                "toward", "towards", "into", "back to", "onto", "up to", "down to")
+
+# UN PLAN RACONTE UN CHANGEMENT. L'animation doit dire d'ou elle part et ou
+# elle arrive, sinon le spectateur ne voit pas ce qui a change.
+DEBUT = ("initially", "at first", "begins", "begin", "starts", "start",
+         "from rest", "stationary", "at the start", "still at first")
+FIN = ("by the end", "finally", "ends", "settles", "stable", "steadily",
+       "until", "come to", "comes to", "has reached", "now turns", "at a stable")
 
 # Les mouvements doivent etre lies, pas juxtaposes : le prompt doit dire le
 # lien a voix haute.
@@ -221,6 +234,8 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _ancrage(sb)
     problems += _dynamique(sb)
     problems += _physique(sb)
+    problems += _chaine(sb)
+    problems += _etat(sb)
     problems += _qualite(sb)
     return problems
 
@@ -760,6 +775,67 @@ def _physique(sb: Storyboard) -> list[Problem]:
                                    f"near-black electric sedan in every shot — same geometry, "
                                    f"proportions, wheels, glass, materials. Never redesign, "
                                    f"replace or recolour it between shots."))
+    return out
+
+
+def _chaine(sb: Storyboard) -> list[Problem]:
+    """Les plans marchent le long de la chaine causale, ils n'en sortent pas."""
+    out = []
+    chaine = " ".join(sb.fact_sheet.causal_chain).lower()
+
+    if any(b in chaine for b in BOUCLE):
+        out.append(Problem("CHAINE", "fact_sheet",
+                           "la chaine causale tourne en rond",
+                           "The causal chain is one-way: each link causes the next. "
+                           "Regenerative braking is a separate chain that runs the other "
+                           "way, not a loop closing the first one."))
+
+    # Chaque plan doit s'accrocher a un maillon : le storyboard raconte le
+    # mecanisme etabli, il n'en invente pas un autre en cours de route.
+    for s in sb.shots:
+        porte = f"{s.visual_explanation.get('information', '')} " \
+                f"{s.visual_explanation.get('cause', '')} " \
+                f"{s.visual_explanation.get('effect', '')} {s.visual_concept}".lower()
+        mots = {m for m in re.findall(r"[^\W\d_]+", porte, re.UNICODE)
+                if len(m) > 3 and m not in GENERIQUES}
+        if not any(_mot_present(m, chaine) for m in mots):
+            out.append(Problem("CHAINE", s.slug,
+                               "le plan ne s'accroche a aucun maillon de la chaine causale",
+                               f"Shot {s.id}: every shot walks one link of the causal chain "
+                               f"you established in fact_sheet. Name that link — the "
+                               f"component, the conversion or the transfer it shows — or "
+                               f"drop the shot."))
+    return out
+
+
+def _etat(sb: Storyboard) -> list[Problem]:
+    """Qu'est-ce qui change pendant ces quelques secondes, et pourquoi ?"""
+    out = []
+    for s in sb.shots:
+        debut = s.visual_explanation.get("initial_state", "").strip().lower()
+        fin = s.visual_explanation.get("final_state", "").strip().lower()
+        if debut and fin and debut == fin:
+            out.append(Problem("ETAT", s.slug,
+                               "l'etat final est identique a l'etat initial : rien ne change",
+                               f"Shot {s.id}: if nothing has changed between the first frame "
+                               f"and the last, the shot explains nothing. State what is at "
+                               f"rest at the start and what has moved, lit up, turned or "
+                               f"reversed by the end."))
+            continue
+
+        bas = s.animation_prompt.lower()
+        if not any(d in bas for d in DEBUT):
+            out.append(Problem("ETAT", s.slug,
+                               "l'animation ne dit pas d'ou elle part",
+                               f"Shot {s.id}: open the animation on its initial state — what "
+                               f"is stationary, dark or empty before anything happens — so "
+                               f"the change is readable."))
+        if not any(f in bas for f in FIN):
+            out.append(Problem("ETAT", s.slug,
+                               "l'animation ne dit pas ou elle arrive",
+                               f"Shot {s.id}: close the animation on its final state — what "
+                               f"turns steadily, what is lit, where the energy has arrived — "
+                               f"so the viewer sees what changed."))
     return out
 
 

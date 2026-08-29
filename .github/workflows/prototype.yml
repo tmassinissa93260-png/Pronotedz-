@@ -46,9 +46,12 @@ on:
         default: "16"
         type: string
       plans:
-        description: "Nombre de plans"
+        description: >-
+          Nombre de plans. Le defaut est 20 ; 4, 6, 8, 10 ou 15 marchent aussi.
+          Le nombre est une contrainte, jamais un but : aucun plan n'existe
+          pour atteindre le compte.
         required: false
-        default: "4"
+        default: "20"
         type: string
       style:
         description: >-

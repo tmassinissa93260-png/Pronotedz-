@@ -155,6 +155,34 @@ class TestConditionsDuPrompt(unittest.TestCase):
             self.assertIn(etape, self.texte)
         self.assertIn("sound off", self.texte)
 
+    def test_la_recherche_precede_l_ecriture(self):
+        self.assertIn("UNDERSTAND BEFORE YOU WRITE", self.texte)
+        for champ in ("components", "functions", "energy_direction", "transformations",
+                      "acceptable_simplifications", "common_errors", "causal_chain"):
+            self.assertIn(champ, self.texte)
+        # La chaine reelle, onduleur compris, et le retour du freinage.
+        self.assertIn("converts DC to AC", self.texte)
+        self.assertIn("motor acting as a generator", self.texte)
+        # L'ordre des priorites.
+        self.assertIn("Accuracy comes first", self.texte)
+        # Et l'honnetete sur ce que le systeme ne peut pas faire.
+        self.assertIn("no browsing tool", self.texte)
+
+    def test_les_deux_regles_au_sommet(self):
+        self.assertIn("NEVER optimise only for the beauty of an image", self.texte)
+        self.assertIn("WHAT CHANGES during these few seconds", self.texte)
+
+    def test_l_animation_dit_son_debut_et_sa_fin(self):
+        for temps in ("INITIAL STATE", "PRIMARY MOTION", "SECONDARY MOTION",
+                      "CAUSAL RELATION", "FINAL STATE"):
+            self.assertIn(temps, self.texte)
+        self.assertIn("IS THIS IMAGE WORTH ANIMATING?", self.texte)
+
+    def test_les_retours_de_l_auteur_entrent_dans_le_prompt(self):
+        """Une regle apprise une fois ne doit pas etre reapprise."""
+        self.assertIn("WHAT THE AUTHOR HAS ALREADY REJECTED", self.texte)
+        self.assertIn("camera-only movement is not an animation", self.texte)
+
     def test_on_ne_part_jamais_d_une_belle_image(self):
         """L'image est le premier plan de l'animation, pas une illustration."""
         self.assertIn("NEVER START FROM A BEAUTIFUL IMAGE", self.texte)
@@ -314,7 +342,8 @@ class TestConfigEtCli(unittest.TestCase):
         from app import config
 
         self.assertEqual(config.DURATION, 16)
-        self.assertEqual(config.SHOT_COUNT, 4)
+        # 20 plans par defaut : le nombre reste une contrainte, pas un but.
+        self.assertEqual(config.SHOT_COUNT, 20)
         self.assertIn("voiture", config.SUBJECT)
 
     def test_aucune_cle_en_dur(self):
