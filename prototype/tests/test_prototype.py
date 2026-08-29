@@ -337,6 +337,47 @@ class TestCerveau(unittest.TestCase):
         self.assertIn("OPENAI_API_KEY manquante dans .env", str(ctx.exception))
 
 
+class TestBoucleDeCorrection(unittest.TestCase):
+    """Un tour de correction ne renvoie pas tout le storyboard a chaque fois."""
+
+    def test_seuls_les_plans_fautifs_repartent(self):
+        from app.openai_client import _demande_de_correction
+        from app.validator import Problem
+        from fixtures import board
+
+        brut = board(4)
+        problemes = [Problem("DYNAMIQUE", "shot_02", "message", "fix pour le plan 2"),
+                     Problem("ETAT", "shot_04", "message", "fix pour le plan 4")]
+        messages, partielle = _demande_de_correction(brut, problemes)
+        self.assertTrue(partielle)
+        charge = messages[-1]["content"]
+        self.assertIn("fix pour le plan 2", charge)
+        # Les quatre autres plans ne sont pas renvoyes.
+        self.assertEqual(charge.count('"animation_prompt"'), 2)
+
+    def test_un_manquement_global_fait_repartir_l_ensemble(self):
+        from app.openai_client import _demande_de_correction
+        from app.validator import Problem
+        from fixtures import board
+
+        messages, partielle = _demande_de_correction(
+            board(4), [Problem("DUREE", "storyboard", "message", "fix global"),
+                       Problem("ETAT", "shot_04", "message", "fix plan 4")])
+        self.assertFalse(partielle)
+        self.assertEqual(messages[-1]["content"].count('"animation_prompt"'), 4)
+
+    def test_les_plans_corriges_reprennent_leur_place(self):
+        from app.openai_client import _fusionner
+        from fixtures import board
+
+        brut = board(4)
+        corriges = {"shots": [{"id": 3, "voice": "corrigé"}]}
+        fusion = _fusionner(brut, corriges)
+        self.assertEqual(len(fusion["shots"]), 4)
+        self.assertEqual(fusion["shots"][2]["voice"], "corrigé")
+        self.assertEqual(fusion["shots"][0], brut["shots"][0])
+
+
 class TestConfigEtCli(unittest.TestCase):
     def test_les_trois_valeurs_d_entree(self):
         from app import config

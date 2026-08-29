@@ -7,6 +7,7 @@ que la voix explique.
 
 from __future__ import annotations
 
+import json
 import os
 
 from .models import MIN_MAILLONS, MIN_QUALITY, MOTION_INTENTS, NOTION_SENS
@@ -551,6 +552,40 @@ concretely, e.g. yellow energy flow entering the stator windings",
   }}
 }}
 "shots" holds exactly {shot_count} objects, ids 1 to {shot_count}.{retours()}"""
+
+
+def correction_user(charge: dict, consignes: str, partielle: bool) -> str:
+    """La demande de correction, sans renvoyer tout l'historique.
+
+    Empiler les tours dans la conversation faisait grossir la requete d'une
+    copie entiere du storyboard a chaque aller-retour : a vingt plans, le
+    troisieme tour demandait 41 000 jetons pour une limite de 30 000 par
+    minute. Chaque tour repart donc d'un message neuf, et quand tous les
+    manquements sont locaux a des plans, seuls ces plans sont renvoyes.
+    """
+    quoi = ("the shots listed below, and nothing else" if partielle
+            else "the storyboard below")
+    forme = ('{"shots": [ ... the corrected shots, same shape, same ids ... ]}'
+             if partielle else "the SAME JSON shape you were given, corrected")
+    return f"""\
+An automatic validator rejected {quoi}. Fix every point listed, and return only
+JSON: {forme}.
+Do not explain, do not apologise, do not add fields, do not renumber anything.
+
+WHAT TO FIX
+{consignes}
+
+REMINDERS THAT STILL APPLY
+Every image_prompt ends with this sentence, copied VERBATIM:
+{STYLE_DIRECTIVE}
+The image is the first frame of its animation and already contains every
+element the animation moves. The animation carries at least two coordinated
+movements, says the causal link out loud, and states where it starts and where
+it ends. A camera move is never the main motion. The energy is yellow/orange,
+directional, and never runs in a loop.
+
+WHAT YOU MUST CORRECT
+{json.dumps(charge, ensure_ascii=False, indent=1)}"""
 
 
 # ---------------------------------------------------------------------------
