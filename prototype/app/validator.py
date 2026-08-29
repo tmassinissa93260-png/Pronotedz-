@@ -80,6 +80,17 @@ COMPOSANTS_MOBILES = ("rotor", "stator", "gear", "transmission", "drivetrain",
                       "car", "vehicle", "chassis", "piston", "crankshaft")
 MIN_COMPOSANTS_MOBILES = 2
 
+# UN SEUL MOUVEMENT PRINCIPAL. Trop de transformations simultanees rendent la
+# generation instable : le modele video ne sait plus ce qu'il doit tenir.
+# Un mouvement principal, un secondaire, eventuellement un tertiaire — pas la
+# chaine entiere dans un plan de quatre secondes.
+MAX_COMPOSANTS_MOBILES = 4
+
+# L'ENERGIE N'EST PAS UNE SUBSTANCE. Le flux jaune est une VISUALISATION
+# pedagogique, pas un liquide qui coule dans un tuyau.
+SUBSTANCE = ("liquid", "fluid", "molten", "liquid-like", "poured", "pouring",
+             "dripping", "splashing", "viscous", "gel", "plasma blob")
+
 # Une piece n'est pas « en mouvement » parce qu'un flux part d'elle, passe par
 # elle ou va vers elle : « travels along the cables from the battery toward the
 # motor » ne fait bouger que le flux. Ces prepositions marquent l'origine, le
@@ -266,6 +277,7 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _separation(sb)
     problems += _progressif(sb)
     problems += _enchainement(sb)
+    problems += _composants_particuliers(sb)
     problems += _qualite(sb)
     return problems
 
@@ -749,6 +761,22 @@ def _dynamique(sb: Storyboard) -> list[Problem]:
                                f"just to look spectacular: each one must explain something."))
             continue
 
+        # On compte les ENSEMBLES qui bougent, pas les mots : « motor » et
+        # « rotor » sont la meme piece, « transmission » et « gear » aussi.
+        # Sans ce regroupement, la chaine rotor -> transmission -> roues —
+        # le meilleur plan du run 17 — serait refusee a tort.
+        ensembles = {next((f[0] for f in FAMILLES if c in f), c) for c in composants}
+        if len(ensembles) > MAX_COMPOSANTS_MOBILES:
+            out.append(Problem("DYNAMIQUE", s.slug,
+                               f"{len(ensembles)} ensembles bougent en meme temps "
+                               f"({', '.join(sorted(ensembles))}) : "
+                               f"la generation devient instable",
+                               f"Shot {s.id}: one primary motion, one secondary that follows "
+                               f"from it, at most one further consequence. Animating the "
+                               f"whole chain at once in a few seconds makes the video model "
+                               f"lose the geometry. Split the chain across shots."))
+            continue
+
         if not any(mot in monde for mot in LIAISON):
             out.append(Problem("DYNAMIQUE", s.slug,
                                f"les mouvements ({', '.join(familles)}) sont juxtaposes, "
@@ -780,6 +808,18 @@ def _physique(sb: Storyboard) -> list[Problem]:
                                    f"shot summarises the whole chain, animate the "
                                    f"yellow/orange energy from the battery to the wheels, "
                                    f"then briefly the green flow the opposite way."))
+
+            substances = [m for m in SUBSTANCE if m in bas]
+            if substances:
+                out.append(Problem("PHYSIQUE", s.slug,
+                                   f"{ou} traite l'energie comme une substance "
+                                   f"(« {substances[0]} »)",
+                                   f"Shot {s.id}: the yellow/orange flow is a PEDAGOGICAL "
+                                   f"VISUALISATION of an invisible phenomenon, never a "
+                                   f"substance. It is light — travelling particles, a moving "
+                                   f"glow, pulses propagating, directional streaks along the "
+                                   f"real electrical path — never a liquid running through a "
+                                   f"pipe."))
 
             decoratifs = [d for d in DECORATIF if d in bas]
             if decoratifs:
@@ -946,6 +986,49 @@ def _enchainement(sb: Storyboard) -> list[Problem]:
                                f"ONE visual chain — the energy that left the battery is the "
                                f"same energy that arrives in the cable. Name that carried-"
                                f"over element in initial_state."))
+    return out
+
+
+def _composants_particuliers(sb: Storyboard) -> list[Problem]:
+    """Deux composants ont un comportement propre, et il doit se voir."""
+    out = []
+    for s in sb.shots:
+        contexte = f"{s.voice} {s.visual_concept} {own_part(s.image_prompt)}".lower()
+        anim = s.animation_prompt.lower()
+
+        # L'ONDULEUR CHANGE LE COURANT. Un flux qui le traverse sans changer de
+        # comportement en fait un tuyau, et l'onduleur n'est pas un tuyau.
+        if any(_mot_present(m, contexte) for m in ("inverter", "onduleur")):
+            if not any(m in anim for m in ("alternating", "pulsed", "pulsing", "switching",
+                                           "oscillat", "waveform", "changes from",
+                                           "converts", "conversion", "becomes")):
+                out.append(Problem("COMPOSANT", s.slug,
+                                   "le flux traverse l'onduleur sans changer de comportement",
+                                   f"Shot {s.id}: the inverter converts direct current into "
+                                   f"alternating current and controls the power. Show the "
+                                   f"flow CHANGE as it passes through — continuous before, "
+                                   f"switching pulses inside, alternating after — otherwise "
+                                   f"the inverter reads as a pipe."))
+
+        # LA VOITURE QUI AVANCE AVANCE VRAIMENT, ET SES ROUES TOURNENT.
+        avance = any(m in s.voice.lower() for m in
+                     ("avance", "avancer", "propuls", "roule", "démarre", "demarre",
+                      "se déplace", "se deplace", "accélère", "accelere"))
+        if avance:
+            manque = []
+            if not any(m in anim for m in ("wheel", "tyre", "tire")):
+                manque.append("les roues qui tournent")
+            if not any(m in anim for m in ("forward", "moves off", "pulls away",
+                                           "advances", "accelerat", "travels forward")):
+                manque.append("le vehicule qui se deplace")
+            if manque:
+                out.append(Problem("COMPOSANT", s.slug,
+                                   f"la voix dit que la voiture avance, l'animation ne montre "
+                                   f"pas {' ni '.join(manque)}",
+                                   f"Shot {s.id}: when the narration says the vehicle moves, "
+                                   f"the vehicle must actually move and its wheels must turn, "
+                                   f"synchronised. A camera pushing in on a stationary car is "
+                                   f"not a car moving. Prefer a tracking shot alongside it."))
     return out
 
 

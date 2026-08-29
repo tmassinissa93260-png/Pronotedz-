@@ -179,6 +179,37 @@ class TestConditionsDuPrompt(unittest.TestCase):
             self.assertIn(mot, self.texte)
         self.assertIn('Never "cinematic movement"', self.texte)
 
+    def test_un_seul_mouvement_principal(self):
+        self.assertIn("ONE PRIMARY MOTION", self.texte)
+        self.assertIn("SPLIT IT ACROSS SHOTS", self.texte)
+        self.assertIn("four moving assemblies is the", self.texte)
+
+    def test_les_deux_couches(self):
+        self.assertIn("THE TWO LAYERS", self.texte)
+        self.assertIn("PHYSICAL LAYER", self.texte)
+        self.assertIn("EDUCATIONAL VISUALISATION LAYER", self.texte)
+        self.assertIn("NEVER a substance", self.texte)
+
+    def test_le_rythme_en_quatre_temps(self):
+        self.assertIn("PACING, IN FOUR BEATS", self.texte)
+        for borne in ("0-25 %", "25-60 %", "60-85 %", "85-100 %"):
+            self.assertIn(borne, self.texte)
+
+    def test_le_cadrage_vient_de_l_information(self):
+        self.assertIn("CHOOSE THE FRAMING FROM THE INFORMATION", self.texte)
+        self.assertIn("wide technical cutaway", self.texte)
+        self.assertIn("sectional shot showing rotor AND stator", self.texte)
+
+    def test_les_composants_ont_leur_regle(self):
+        self.assertIn("THE INVERTER IS NOT A PIPE", self.texte)
+        self.assertIn("THE MOTOR IS NOT A METAL BOX", self.texte)
+        self.assertIn("THE TRANSMISSION TRANSMITS", self.texte)
+        self.assertIn("A CAR THAT MOVES, MOVES", self.texte)
+
+    def test_grouper_les_maillons_jamais_en_sauter(self):
+        self.assertIn("GROUP adjacent links", self.texte)
+        self.assertIn("never SKIP a link", self.texte)
+
     def test_la_physique_du_mouvement(self):
         self.assertIn("THE PHYSICS OF MOVEMENT", self.texte)
         self.assertIn("Nothing starts instantaneously", self.texte)

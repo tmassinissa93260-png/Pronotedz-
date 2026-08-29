@@ -436,6 +436,69 @@ class TestEnchainement(unittest.TestCase):
         self.assertEqual([x for x in valider(board()) if x.code == "ENCHAINEMENT"], [])
 
 
+class TestUnSeulMouvementPrincipal(unittest.TestCase):
+    """Trop de transformations simultanees rendent la generation instable."""
+
+    def test_toute_la_chaine_dans_un_plan_est_refusee(self):
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "Yellow energy progressively flows from the cells along the busbars, the "
+            "inverter switches it, the rotor accelerates, the transmission gears turn, "
+            "the wheels rotate and the car moves forward, while the brake discs slow. "
+            "Everything else remains rigid. By the end all of it turns steadily.")
+        p = [x for x in valider(raw) if x.code == "DYNAMIQUE"]
+        self.assertTrue(p)
+        self.assertIn("instable", str(p[0]))
+
+    def test_une_chaine_de_trois_ensembles_passe(self):
+        """Rotor, transmission, roues : le meilleur plan du run 17. Compter
+        les mots aurait donne cinq pieces — moteur, rotor, transmission,
+        engrenage, roue — et l'aurait refuse a tort."""
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "The motor rotor starts stationary and progressively accelerates, which "
+            "makes the transmission gears rotate, and the wheels begin to turn in "
+            "synchronisation. The chassis remains rigid. By the end everything turns "
+            "steadily. Preserve exact geometry.")
+        self.assertEqual([x for x in valider(raw) if x.code == "DYNAMIQUE"], [])
+
+
+class TestComposantsParticuliers(unittest.TestCase):
+    """L'onduleur n'est pas un tuyau, et une voiture qui avance avance."""
+
+    def test_un_flux_qui_traverse_l_onduleur_sans_changer(self):
+        raw = board()
+        raw["shots"][0]["visual_concept"] = "yellow flow crossing the inverter unit"
+        raw["shots"][0]["animation_prompt"] = (
+            "The yellow energy progressively travels along the busbars through the "
+            "inverter and continues toward the stator, which makes the rotor "
+            "accelerate. The chassis remains rigid. By the end it turns steadily.")
+        p = [x for x in valider(raw) if x.code == "COMPOSANT"]
+        self.assertTrue(p)
+        self.assertIn("sans changer de comportement", str(p[0]))
+
+    def test_un_onduleur_qui_convertit_passe(self):
+        raw = board()
+        raw["shots"][0]["visual_concept"] = "yellow flow entering the inverter unit"
+        raw["shots"][0]["animation_prompt"] = (
+            "The continuous yellow flow reaches the inverter and progressively becomes "
+            "alternating switching pulses, which then travel on toward the stator and "
+            "make the rotor accelerate. The chassis remains rigid. By the end the "
+            "rotor turns steadily.")
+        self.assertEqual([x for x in valider(raw) if x.code == "COMPOSANT"], [])
+
+    def test_une_voiture_qui_avance_sans_bouger(self):
+        raw = board()
+        raw["shots"][0]["voice"] = "La voiture avance, propulsée par son moteur électrique."
+        raw["shots"][0]["animation_prompt"] = (
+            "The rotor progressively accelerates as the yellow energy arrives, and the "
+            "camera performs a slow lateral tracking movement. The chassis remains "
+            "rigid. By the end the rotor turns steadily.")
+        p = [x for x in valider(raw) if x.code == "COMPOSANT"]
+        self.assertTrue(p)
+        self.assertIn("roues", str(p[0]))
+
+
 class TestPhysique(unittest.TestCase):
     """L'energie ne tourne pas en rond, et ce n'est pas de la fumee."""
 

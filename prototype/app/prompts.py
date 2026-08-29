@@ -165,7 +165,11 @@ Each sentence must prepare or explain what the viewer is about to see.
 
 ── PART 2 — THE STORYBOARD ──
 Cut the script into exactly {shot_count} shots, following the causal chain you
-just wrote: the shots walk the chain in order, and no shot exists outside it. A shot never exists just to
+just wrote: the shots walk the chain in order, and no shot exists outside it.
+When the chain has more links than you have shots, GROUP adjacent links into
+one shot — battery and inverter together, motor and transmission together —
+and never SKIP a link. Comprehension comes before tidiness: a shot may carry
+two links if the movement stays readable, but no link may vanish. A shot never exists just to
 reach {shot_count}. Each one earns its place by advancing understanding, and
 "educational_function" says in one sentence what the viewer understands after
 it that they did not understand before. Two shots never claim the same
@@ -511,6 +515,75 @@ leaves the battery in one shot is the same energy that travels the cable in
 the next, and reaches the inverter in the one after. Write initial_state so
 it names what the previous shot handed over. The shots are not six separate
 illustrations: they are one continuous visual chain.
+
+── ONE PRIMARY MOTION ──
+Every shot has ONE primary motion, ONE secondary motion that follows from it,
+and at most one further consequence. Not the whole chain at once.
+  WRONG: energy flows + rotor spins + gears spin + car drives + camera orbits
+         180 degrees + zoom. Too many simultaneous transformations make the
+         video model lose the geometry, and the result is unstable.
+  RIGHT: PRIMARY — an energy pulse travels through the cable.
+         SECONDARY — a small activation pulse reaches the motor.
+         CAMERA — minimal tracking.
+When the chain is long, SPLIT IT ACROSS SHOTS rather than cramming it into
+one. Two coordinated movements are the floor; four moving assemblies is the
+ceiling.
+
+── THE TWO LAYERS ──
+Keep them apart in your head, and never confuse them.
+  PHYSICAL LAYER — the real current in the cables, the electromagnetic field,
+    the voltage, the torque. This is what actually exists.
+  EDUCATIONAL VISUALISATION LAYER — the yellow/orange flow that lets a viewer
+    read the direction of the energy. This is a teaching device.
+The yellow/orange flow is NEVER a substance. It is light: travelling
+particles, a moving glow, pulses propagating, directional streaks. Never a
+liquid running through a pipe, never a yellow object, never something floating
+free of the conductors. It follows the real electrical paths.
+
+── PACING, IN FOUR BEATS ──
+Think of each animation on a timeline:
+   0-25 %   the initial state, at rest
+  25-60 %   the main transformation
+  60-85 %   its consequence
+  85-100 %  the final state, stable
+Say the order out loud in the prompt. A shot where everything happens at once
+reads as noise.
+
+── CHOOSE THE FRAMING FROM THE INFORMATION ──
+Never default to "close-up" or "cinematic camera". The framing is chosen so
+the phenomenon can be read:
+  introduction        wide technical cutaway
+  battery             macro or close-up on the cells
+  energy transfer     tracking shot following the path
+  inverter            medium technical shot: input, conversion, output
+  motor               sectional shot showing rotor AND stator
+  transmission        mechanical tracking shot on the gears
+  vehicle moving      exterior tracking shot alongside it
+  regenerative brake  a shot holding wheels, motor and the return path together
+
+── THE INVERTER IS NOT A PIPE ──
+It converts direct current into alternating current and controls the power.
+The flow must CHANGE as it passes through: continuous before, controlled
+switching pulses inside, alternating after. If the flow crosses it unchanged,
+the shot teaches nothing about it.
+
+── THE MOTOR IS NOT A METAL BOX ──
+Show the stator, the rotor, the shaft, the electrical input, the rotation and
+the mechanical output. The electromagnetic field may appear as subtle arcs or
+pulses around the rotor and stator — never as a solid object that deforms the
+motor. The causality must be visible: electrical input, electromagnetic
+interaction, rotor rotation, shaft, transmission, wheels.
+
+── THE TRANSMISSION TRANSMITS ──
+Never just "the transmission rotates". Show the mechanical causality: motor
+shaft, then reduction gear, then drivetrain, then wheel axle, then wheel. Gears
+turn consistently with their contact, and the wheel turns in the direction the
+vehicle travels.
+
+── A CAR THAT MOVES, MOVES ──
+When the narration says the vehicle advances, the vehicle actually advances
+and its wheels turn, synchronised. A camera pushing in on a stationary car is
+not a car moving. Prefer a tracking shot alongside it.
 
 ── MULTI-MOTION REQUIREMENT ──
 When it is physically relevant, an animation combines SEVERAL coherent
