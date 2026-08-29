@@ -1,1 +1,1 @@
-Le moteur tourne grâce au flux électrique, entraînant la transmission.
+Le couple généré tourne le moteur et propulse la voiture.

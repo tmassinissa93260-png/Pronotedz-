@@ -1,1 +1,1 @@
-Celle-ci passe par l'inverter qui régule le flux.
+L'électronique de puissance convertit cette énergie en courant alternatif et gère l'intensité.
