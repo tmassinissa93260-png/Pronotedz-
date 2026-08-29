@@ -16,6 +16,10 @@ app/output/*
 app/output/shots/*/*
 !app/output/shots/*/animation.json
 !app/output/shots/*/video_analysis.json
+# Un fichier par prompt : un lien par prompt, copiable depuis un telephone.
+!app/output/shots/*/image_prompt.txt
+!app/output/shots/*/animation_prompt.txt
+!app/output/shots/*/voice.txt
 
 # Le MP4 final et les rushes normalises ne sont pas versionnes.
 app/output/final.mp4

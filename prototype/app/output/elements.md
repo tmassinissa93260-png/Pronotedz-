@@ -242,5 +242,5 @@ Animate the wheels visibly decelerating while a green energy stream clearly trav
 
 1. Génère chaque **image** avec l'outil de ton choix, à partir du prompt image.
 2. Génère chaque **animation** à partir de ton image, avec le prompt animation.
-3. Dépose les vidéos dans `/home/runner/work/Pronotedz-/Pronotedz-/prototype/app/output/videos` nommées `shot_01.mp4`, `shot_02.mp4`…
+3. Dépose les vidéos dans `prototype/app/output/videos` nommées `shot_01.mp4`, `shot_02.mp4`…
 4. Reviens : `analyser-videos`, puis `timeline`, puis `montage`.

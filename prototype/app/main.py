@@ -77,6 +77,18 @@ def charger() -> Storyboard:
 # ---------------------------------------------------------------------------
 
 
+def _chemin_lisible(chemin: Path) -> str:
+    """Le chemin vu depuis le depot.
+
+    La feuille est ecrite sur le runner GitHub et relue par l'utilisateur sur
+    sa machine : un chemin absolu de runner n'y designe rien.
+    """
+    try:
+        return str(chemin.resolve().relative_to(Path(__file__).resolve().parents[2]))
+    except ValueError:
+        return str(chemin)
+
+
 def ecrire_elements(sb: Storyboard) -> Path:
     """Une feuille unique : script, bible, et pour chaque plan les deux prompts."""
     lignes = [
@@ -130,7 +142,8 @@ def ecrire_elements(sb: Storyboard) -> Path:
         "",
         "1. Génère chaque **image** avec l'outil de ton choix, à partir du prompt image.",
         "2. Génère chaque **animation** à partir de ton image, avec le prompt animation.",
-        f"3. Dépose les vidéos dans `{config.VIDEOS_DIR}` nommées `shot_01.mp4`, "
+        f"3. Dépose les vidéos dans `{_chemin_lisible(config.VIDEOS_DIR)}` "
+        "nommées `shot_01.mp4`, "
         "`shot_02.mp4`…",
         "4. Reviens : `analyser-videos`, puis `timeline`, puis `montage`.",
         "",

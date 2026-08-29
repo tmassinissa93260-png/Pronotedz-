@@ -183,6 +183,9 @@ jobs:
           # littéral absent resterait dans la liste et ferait échouer git add.
           candidats=(app/output/project.json app/output/elements.md
                      app/output/timeline.json app/output/sous_titres.srt
+                     app/output/shots/*/image_prompt.txt
+                     app/output/shots/*/animation_prompt.txt
+                     app/output/shots/*/voice.txt
                      app/output/shots/*/animation.json
                      app/output/shots/*/video_analysis.json)
           fichiers=()

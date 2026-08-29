@@ -1,0 +1,1 @@
+Animate the yellow/orange energy flow traveling convincingly through high-voltage cables from the battery toward the motor, causing visible electrical pulses in the motor as it reaches. The background remains dark, and the vehicle remains static.

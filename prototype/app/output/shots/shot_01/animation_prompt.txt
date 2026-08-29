@@ -1,0 +1,1 @@
+Animate the blue glowing cells progressively lighting up from left to right, and as the energy reaches critical points within the battery pack, the indication of forward energy transfer triggers. The flow of energy suggests potential motion implication. The car and other components remain still.
