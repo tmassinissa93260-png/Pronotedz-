@@ -378,6 +378,52 @@ class TestBoucleDeCorrection(unittest.TestCase):
         self.assertEqual(fusion["shots"][0], brut["shots"][0])
 
 
+class TestLaBoucleGardeLeMeilleur(unittest.TestCase):
+    """Un tour de correction peut degrader : il ne doit pas gagner pour autant."""
+
+    def _faux_client(self, reponses):
+        """Remplace l'appel reseau par une liste de reponses successives."""
+        from app import openai_client
+        suite = iter(reponses)
+        d_origine = openai_client.chat_json
+        openai_client.chat_json = lambda model, messages: next(suite)
+        self.addCleanup(setattr, openai_client, "chat_json", d_origine)
+
+    def test_une_correction_qui_perd_des_plans_est_refusee(self):
+        from app.openai_client import generate_storyboard
+        from fixtures import board
+
+        complet = board(4)
+        ampute = board(4)
+        ampute["shots"] = ampute["shots"][:1]      # le modele « corrige » en abregeant
+        # Le premier jet est bon mais fautif sur un point, le second ampute,
+        # le troisieme repare vraiment.
+        casse = board(4)
+        casse["shots"][0]["visual_explanation"]["composition"] = "plan large"
+        self._faux_client([casse, ampute, complet])
+
+        sb, problemes = generate_storyboard("sujet", 16, 4)
+        self.assertEqual(len(sb.shots), 4)
+        self.assertEqual(problemes, [])
+
+    def test_le_meilleur_est_garde_et_pas_le_dernier(self):
+        from app.openai_client import generate_storyboard
+        from fixtures import board
+
+        bon = board(4)
+        mauvais = board(4)
+        for s in mauvais["shots"]:
+            s["visual_explanation"]["composition"] = "flou"
+            s["visual_explanation"]["camera_position"] = "vague"
+        # Le bon arrive en premier, puis quatre reponses degradees.
+        self._faux_client([bon] + [mauvais] * 4)
+
+        sb, problemes = generate_storyboard("sujet", 16, 4)
+        self.assertEqual(problemes, [])
+        self.assertEqual(sb.shots[0].visual_explanation["composition"],
+                         bon["shots"][0]["visual_explanation"]["composition"])
+
+
 class TestConfigEtCli(unittest.TestCase):
     def test_les_trois_valeurs_d_entree(self):
         from app import config

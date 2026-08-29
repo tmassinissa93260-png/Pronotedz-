@@ -113,6 +113,7 @@ def generate_storyboard(subject: str, duration: float, shot_count: int,
         {"role": "user", "content": prompts.storyboard_user(subject, duration, shot_count)},
     ]
     storyboard, problems = None, []
+    meilleurs: list = []
     precedent: dict | None = None
     partielle = False
 
@@ -144,10 +145,35 @@ def generate_storyboard(subject: str, duration: float, shot_count: int,
         brut["shots"] = [dict(b, image_prompt=s.image_prompt)
                          for b, s in zip(brut["shots"], candidat.shots, strict=False)]
 
-        storyboard, precedent = candidat, brut
+        # UNE CORRECTION NE DOIT JAMAIS PERDRE DES PLANS. Le run 21 a rendu
+        # deux plans au lieu de vingt : le modele avait « corrige » en
+        # abregeant, et la boucle gardait la derniere reponse quoi qu'il
+        # arrive. Une reponse qui en perd est refusee comme hors contrat.
+        if precedent and len(candidat.shots) < len(precedent.get("shots", [])):
+            perdus = len(precedent["shots"]) - len(candidat.shots)
+            problems = [validator.Problem(
+                "FORME", "storyboard",
+                f"la correction a perdu {perdus} plan(s)",
+                f"Return ALL {len(precedent['shots'])} shots, ids 1 to "
+                f"{len(precedent['shots'])}. Correcting a shot never means "
+                f"deleting the others, shortening the list or summarising it.")]
+            if on_attempt:
+                on_attempt(tentative, problems)
+            if tentative > config.MAX_REPAIR_ATTEMPTS:
+                break
+            messages, partielle = _demande_de_correction(precedent, problems)
+            continue
+
+        precedent = brut
         problems = validator.validate(candidat, duration, shot_count)
         if on_attempt:
             on_attempt(tentative, problems)
+
+        # ON GARDE LE MEILLEUR, PAS LE DERNIER. Un tour de correction peut
+        # degrader : sans cela, la derniere reponse ecrasait la bonne.
+        if storyboard is None or len(problems) < len(meilleurs):
+            storyboard, meilleurs = candidat, problems
+
         if not problems or tentative > config.MAX_REPAIR_ATTEMPTS:
             break
 
@@ -155,4 +181,4 @@ def generate_storyboard(subject: str, duration: float, shot_count: int,
 
     if storyboard is None:
         raise OpenAIError("aucun storyboard exploitable")
-    return storyboard, problems
+    return storyboard, meilleurs
