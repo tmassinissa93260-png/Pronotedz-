@@ -41,7 +41,8 @@ def chat_json(model: str, messages: list[dict]) -> dict:
             "  Renseigne OPENAI_MODEL, ou OPENAI_VISION_MODEL pour l'analyse d'image.")
     try:
         reponse = client().chat.completions.create(
-            model=model, messages=messages, response_format={"type": "json_object"})
+            model=model, messages=messages, response_format={"type": "json_object"},
+            max_tokens=config.MAX_OUTPUT_TOKENS)
     except openai.AuthenticationError as exc:
         raise OpenAIError(f"cle refusee : {exc}") from exc
     except openai.NotFoundError as exc:
@@ -54,7 +55,12 @@ def chat_json(model: str, messages: list[dict]) -> dict:
     except openai.APIStatusError as exc:
         raise OpenAIError(f"le service a repondu {exc.status_code} : {exc}") from exc
 
-    contenu = (reponse.choices[0].message.content or "").strip()
+    choix = reponse.choices[0]
+    if choix.finish_reason == "length":
+        raise OpenAIError(
+            f"reponse coupee a {config.MAX_OUTPUT_TOKENS} jetons.\n"
+            "  Augmente MAX_OUTPUT_TOKENS, ou demande moins de plans.")
+    contenu = (choix.message.content or "").strip()
     if not contenu:
         raise OpenAIError("reponse vide")
     try:
@@ -98,6 +104,17 @@ def _demande_de_correction(brut: dict, problems: list) -> tuple[list, bool]:
              {"role": "user", "content": prompts.correction_user(charge, consignes,
                                                                  partielle)}],
             partielle)
+
+
+def _rang(sb: Storyboard, problems: list, shot_count: int) -> tuple[int, int]:
+    """Le rang d'un candidat : plus petit est meilleur.
+
+    Le nombre de plans passe AVANT le nombre de manquements. Sans cela, un
+    storyboard ampute gagnait mecaniquement : moins de plans veut dire moins
+    de manquements. Le run 23 a garde un plan unique avec six manquements
+    plutot que quatre plans avec douze.
+    """
+    return (0 if len(sb.shots) == shot_count else 1, len(problems))
 
 
 def generate_storyboard(subject: str, duration: float, shot_count: int,
@@ -171,7 +188,8 @@ def generate_storyboard(subject: str, duration: float, shot_count: int,
 
         # ON GARDE LE MEILLEUR, PAS LE DERNIER. Un tour de correction peut
         # degrader : sans cela, la derniere reponse ecrasait la bonne.
-        if storyboard is None or len(problems) < len(meilleurs):
+        if storyboard is None or (_rang(candidat, problems, shot_count)
+                                  < _rang(storyboard, meilleurs, shot_count)):
             storyboard, meilleurs = candidat, problems
 
         if not problems or tentative > config.MAX_REPAIR_ATTEMPTS:

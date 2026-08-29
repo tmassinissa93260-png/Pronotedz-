@@ -380,6 +380,7 @@ nothing. And the camera never replaces the pedagogical action.
 "animation_prompt", in English, written for THAT image, as continuous prose
 that carries these beats in this order:
   INITIAL STATE     what is at rest, and where everything starts
+  TRIGGER           what sets the sequence off, and where
   PRIMARY MOTION    the phenomenon being explained, moving
   SECONDARY MOTION  what that movement causes in turn
   MECHANICAL        the parts that respond, and how
@@ -484,6 +485,32 @@ PREFERRED — "Yellow-orange energy pulses begin inside the battery and travel
 Reach for that third level whenever the pedagogical content allows it. And
 never animate everything at once without logic: the causality appears
 progressively, one link setting off the next.
+
+── THE PHYSICS OF MOVEMENT ──
+Nothing starts instantaneously. Say how the movement builds: starts
+stationary, gradually accelerates, smoothly decelerates, continuous rotation,
+synchronised motion, constant direction.
+  WEAK:   "The rotor spins rapidly."
+  STRONG: "The rotor starts stationary, then progressively accelerates into a
+           smooth continuous rotation as electrical energy reaches the motor."
+A movement already at full speed on the first frame explains nothing: the
+viewer must see the transition.
+
+── THE CAMERA TEST ──
+For every shot ask: if I removed the camera movement entirely, would the
+viewer still understand the mechanism? If the answer is NO, the animation is
+not finished. The subject's movement explains the phenomenon; the camera only
+helps read it. And give the camera a reason: the energy travels left to
+right, so the camera tracks left to right; the car pulls away, so the camera
+follows at constant distance; the rotor turns, so a controlled arc reveals
+the rotation.
+
+── ONE CHAIN ACROSS THE SHOTS ──
+The final state of shot N is the initial state of shot N+1. The energy that
+leaves the battery in one shot is the same energy that travels the cable in
+the next, and reaches the inverter in the one after. Write initial_state so
+it names what the previous shot handed over. The shots are not six separate
+illustrations: they are one continuous visual chain.
 
 ── MULTI-MOTION REQUIREMENT ──
 When it is physically relevant, an animation combines SEVERAL coherent

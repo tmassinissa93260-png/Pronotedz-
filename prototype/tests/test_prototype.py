@@ -179,6 +179,22 @@ class TestConditionsDuPrompt(unittest.TestCase):
             self.assertIn(mot, self.texte)
         self.assertIn('Never "cinematic movement"', self.texte)
 
+    def test_la_physique_du_mouvement(self):
+        self.assertIn("THE PHYSICS OF MOVEMENT", self.texte)
+        self.assertIn("Nothing starts instantaneously", self.texte)
+        self.assertIn("The rotor spins rapidly", self.texte)
+        self.assertIn("TRIGGER", self.texte)
+
+    def test_le_test_de_la_camera(self):
+        """« Si je retirais la camera, comprendrait-on encore ? »"""
+        self.assertIn("THE CAMERA TEST", self.texte)
+        self.assertIn("would the\nviewer still understand the mechanism", self.texte)
+
+    def test_une_seule_chaine_a_travers_les_plans(self):
+        self.assertIn("ONE CHAIN ACROSS THE SHOTS", self.texte)
+        self.assertIn("final state of shot N is the initial state of shot N+1", self.texte)
+        self.assertIn("not six separate", self.texte)
+
     def test_les_trois_animations_classees(self):
         self.assertIn("THREE ANIMATIONS, RANKED", self.texte)
         self.assertIn("COMPLETE causal", self.texte)
@@ -485,6 +501,59 @@ class TestDossiersDesPlans(unittest.TestCase):
             config.ensure_dirs(2)
             config.ensure_dirs(5)
             self.assertEqual(len(list(config.SHOTS_DIR.glob("shot_*"))), 5)
+
+
+class TestLimiteDeSortie(unittest.TestCase):
+    """Un storyboard conforme depasse la limite par defaut de gpt-4o."""
+
+    def test_la_limite_est_fixee_et_large(self):
+        from app import config
+        self.assertGreaterEqual(config.MAX_OUTPUT_TOKENS, 8000)
+
+    def test_un_storyboard_a_quatre_plans_depasse_4096_jetons(self):
+        """La preuve du defaut : le defaut de gpt-4o est 4096 jetons de
+        sortie, et quatre plans conformes en pesent davantage. Le modele
+        tenait le contrat en rendant moins de plans."""
+        import json
+
+        from fixtures import board
+        jetons = len(json.dumps(board(4), ensure_ascii=False)) / 4
+        self.assertGreater(jetons, 4096)
+
+    def test_une_reponse_coupee_est_une_erreur(self):
+        from app import openai_client
+
+        class FauxChoix:
+            finish_reason = "length"
+            message = type("m", (), {"content": '{"partiel": true}'})()
+
+        class FausseReponse:
+            choices = [FauxChoix()]
+
+        def faux_create(**kwargs):
+            return FausseReponse()
+
+        class FauxClient:
+            chat = type("c", (), {"completions": type("cc", (), {"create": staticmethod(faux_create)})()})()
+
+        d_origine = openai_client.client
+        openai_client.client = lambda: FauxClient()
+        self.addCleanup(setattr, openai_client, "client", d_origine)
+
+        with self.assertRaises(openai_client.OpenAIError) as ctx:
+            openai_client.chat_json("gpt-4o", [])
+        self.assertIn("coupee", str(ctx.exception))
+
+    def test_un_storyboard_ampute_ne_gagne_jamais(self):
+        """Moins de plans veut mecaniquement dire moins de manquements : le
+        run 23 a garde UN plan avec six manquements plutot que quatre."""
+        from app.models import Storyboard
+        from app.openai_client import _rang
+        from fixtures import board
+
+        complet = Storyboard.from_dict(board(4))
+        ampute = Storyboard.from_dict(board(1))
+        self.assertLess(_rang(complet, ["a"] * 12, 4), _rang(ampute, ["a"] * 6, 4))
 
 
 class TestConfigEtCli(unittest.TestCase):

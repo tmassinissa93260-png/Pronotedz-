@@ -40,6 +40,12 @@ TEST_MODE = True
 # Combien de fois, au plus, on renvoie ses erreurs a OpenAI pour correction.
 MAX_REPAIR_ATTEMPTS = int(env("MAX_REPAIR_ATTEMPTS", "4"))
 
+# LA LIMITE DE SORTIE. Sans elle, gpt-4o s'arrete a 4096 jetons — or un
+# storyboard conforme a quatre plans en pese environ 4300. Le modele tenait
+# le contrat en RENDANT MOINS DE PLANS : un seul au run 23, deux au run 21.
+# Ce n'etait ni un caprice ni une regle mal ecrite, c'etait un plafond.
+MAX_OUTPUT_TOKENS = int(env("MAX_OUTPUT_TOKENS", "16000"))
+
 # ---------------------------------------------------------------------------
 # OpenAI - la cle vient de .env, JAMAIS du code
 # ---------------------------------------------------------------------------

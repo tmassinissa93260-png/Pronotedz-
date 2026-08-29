@@ -394,6 +394,48 @@ class TestSeparation(unittest.TestCase):
         self.assertEqual([x for x in valider(board()) if x.code == "SEPARATION"], [])
 
 
+class TestProgression(unittest.TestCase):
+    """Rien ne demarre instantanement."""
+
+    def test_un_mouvement_instantane_est_refuse(self):
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "The yellow energy travels along the busbars toward the stator and the "
+            "rotor suddenly spins rapidly. The chassis remains rigid. By the end "
+            "everything turns steadily.")
+        p = [x for x in valider(raw) if x.code == "PROGRESSION"]
+        self.assertTrue(p)
+        self.assertIn("instantane", str(p[0]))
+
+    def test_une_animation_sans_mise_en_route(self):
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "The yellow energy moves along the busbars toward the stator, which turns "
+            "the rotor and the transmission. The chassis remains rigid throughout. "
+            "By the end the rotor is in motion and the pack is emptier.")
+        p = [x for x in valider(raw) if x.code == "PROGRESSION"]
+        self.assertTrue(p)
+        self.assertIn("s'installe", str(p[0]))
+
+    def test_un_mouvement_progressif_passe(self):
+        self.assertEqual([x for x in valider(board()) if x.code == "PROGRESSION"], [])
+
+
+class TestEnchainement(unittest.TestCase):
+    """L'etat final d'un plan devient l'etat initial du suivant."""
+
+    def test_un_plan_qui_ne_reprend_rien_du_precedent(self):
+        raw = board()
+        raw["shots"][1]["visual_explanation"]["initial_state"] = (
+            "une roue arrière immobile, vue de profil, avant toute mise en mouvement")
+        p = [x for x in valider(raw) if x.code == "ENCHAINEMENT"]
+        self.assertTrue(p)
+        self.assertIn("etat final du plan 1", str(p[0]))
+
+    def test_une_chaine_continue_passe(self):
+        self.assertEqual([x for x in valider(board()) if x.code == "ENCHAINEMENT"], [])
+
+
 class TestPhysique(unittest.TestCase):
     """L'energie ne tourne pas en rond, et ce n'est pas de la fumee."""
 

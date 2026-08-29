@@ -97,14 +97,15 @@ def shot(i=1, **over):
             "physical_element": "les busbars en cuivre reliant le pack au stator",
             "secondary_elements": "le pack de cellules, le stator et son rotor",
             "visual_behavior": "un flux jaune lumineux parcourt les busbars vers l'avant",
-            "initial_state": "le pack est plein, les busbars sont éteints, "
-                             "le rotor est immobile",
+            "initial_state": "le pack est plein, les busbars sont éteints, le "
+                             "rotor est immobile, le flux jaune n'a pas encore "
+                             "quitté le stator du plan précédent",
             "animation_movement": "le flux jaune travels along the busbars toward the "
                                   "stator, puis le rotor commence à tourner",
             "secondary_motion": "le rotor entraîne à son tour la transmission visible "
                                 "derrière lui",
-            "final_state": "le flux atteint le stator, le rotor tourne à vitesse "
-                           "stable et le pack s'est vidé en partie",
+            "final_state": "le flux jaune atteint le stator, le rotor tourne à "
+                           "vitesse stable et le pack s'est vidé en partie",
             "camera_position": "macro en contre-plongée, assez près pour lire "
                                "tout le trajet dans un seul cadre",
             "composition": "le pack à gauche, le moteur à droite, les busbars "

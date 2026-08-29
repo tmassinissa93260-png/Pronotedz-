@@ -112,6 +112,15 @@ PRESERVATION = ("preserve", "preserving", "unchanged", "no deformation",
                 "geometry remains", "geometry stays", "keep the geometry",
                 "do not move", "does not move", "must not move")
 
+# LE MOUVEMENT EST PROGRESSIF. « The rotor spins rapidly » ne montre rien :
+# le spectateur doit voir la mise en route, pas un etat deja atteint.
+PROGRESSIF = ("progressively", "gradually", "smoothly", "starts stationary",
+              "begins to", "begins rotating", "starts to", "from rest",
+              "accelerates", "decelerates", "slowly", "continuous", "steadily",
+              "little by little", "step by step", "in turn", "one after")
+INSTANTANE = ("suddenly", "instantly", "immediately", "abruptly", "at once",
+              "spins rapidly", "spins fast", "snaps", "jumps to", "flashes")
+
 # Les mouvements doivent etre lies, pas juxtaposes : le prompt doit dire le
 # lien a voix haute.
 LIAISON = ("as ", "then", "which", "causing", "so that", "in turn", "powered by",
@@ -255,6 +264,8 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _chaine(sb)
     problems += _etat(sb)
     problems += _separation(sb)
+    problems += _progressif(sb)
+    problems += _enchainement(sb)
     problems += _qualite(sb)
     return problems
 
@@ -885,6 +896,56 @@ def _separation(sb: Storyboard) -> list[Problem]:
                                f"proportions, the vehicle identity, the components, the "
                                f"materials — otherwise the generator feels free to redraw "
                                f"the scene."))
+    return out
+
+
+def _progressif(sb: Storyboard) -> list[Problem]:
+    """La physique du mouvement : rien ne demarre instantanement."""
+    out = []
+    for s in sb.shots:
+        bas = s.animation_prompt.lower()
+
+        brusques = [m for m in INSTANTANE if m in bas]
+        if brusques:
+            out.append(Problem("PROGRESSION", s.slug,
+                               f"mouvement instantane (« {brusques[0]} »)",
+                               f"Shot {s.id}: movement is never instantaneous. Show it "
+                               f"starting: 'starts stationary, then progressively "
+                               f"accelerates into a smooth continuous rotation' — the "
+                               f"viewer must see the transition, not an end state."))
+
+        if not any(m in bas for m in PROGRESSIF):
+            out.append(Problem("PROGRESSION", s.slug,
+                               "l'animation ne dit pas que le mouvement s'installe",
+                               f"Shot {s.id}: say how the movement builds — progressively, "
+                               f"gradually, smoothly, from rest, accelerating, "
+                               f"decelerating. A movement already at full speed on the "
+                               f"first frame explains nothing."))
+    return out
+
+
+def _enchainement(sb: Storyboard) -> list[Problem]:
+    """L'etat final d'un plan doit devenir l'etat initial du suivant."""
+    out = []
+    for precedent, suivant in zip(sb.shots, sb.shots[1:], strict=False):
+        fin = precedent.visual_explanation.get("final_state", "")
+        debut = suivant.visual_explanation.get("initial_state", "")
+        if not fin or not debut:
+            continue
+
+        mots_fin = {m for m in re.findall(r"[^\W\d_]+", fin.lower(), re.UNICODE)
+                    if len(m) > 3 and m not in GENERIQUES}
+        if not mots_fin:
+            continue
+        if not any(_mot_present(m, debut.lower()) for m in mots_fin):
+            out.append(Problem("ENCHAINEMENT", suivant.slug,
+                               f"son etat initial ne reprend rien de l'etat final "
+                               f"du plan {precedent.id}",
+                               f"Shot {suivant.id}: the last state of shot {precedent.id} "
+                               f"must become the first state of this one, so the shots form "
+                               f"ONE visual chain — the energy that left the battery is the "
+                               f"same energy that arrives in the cable. Name that carried-"
+                               f"over element in initial_state."))
     return out
 
 
