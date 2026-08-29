@@ -1,1 +1,0 @@
-Lors du freinage, l'énergie est récupérée et renvoyée à la batterie.

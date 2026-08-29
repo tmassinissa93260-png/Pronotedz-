@@ -424,6 +424,41 @@ class TestLaBoucleGardeLeMeilleur(unittest.TestCase):
                          bon["shots"][0]["visual_explanation"]["composition"])
 
 
+class TestDossiersDesPlans(unittest.TestCase):
+    """Un run plus court ne laisse pas les plans du precedent derriere lui."""
+
+    def test_les_dossiers_en_trop_partent(self):
+        import tempfile
+        from pathlib import Path as P
+
+        from app import config
+
+        with tempfile.TemporaryDirectory() as tmp:
+            racine = P(tmp)
+            for nom in ("OUTPUT_DIR", "SHOTS_DIR", "SCREENSHOT_DIR"):
+                setattr(config, nom, racine / nom.lower())
+            config.ensure_dirs(6)
+            (config.SHOTS_DIR / "shot_06" / "image_prompt.txt").write_text("vieux")
+
+            config.ensure_dirs(4)
+            restants = sorted(d.name for d in config.SHOTS_DIR.glob("shot_*"))
+            self.assertEqual(restants, ["shot_01", "shot_02", "shot_03", "shot_04"])
+
+    def test_un_run_plus_long_cree_ce_qu_il_faut(self):
+        import tempfile
+        from pathlib import Path as P
+
+        from app import config
+
+        with tempfile.TemporaryDirectory() as tmp:
+            racine = P(tmp)
+            for nom in ("OUTPUT_DIR", "SHOTS_DIR", "SCREENSHOT_DIR"):
+                setattr(config, nom, racine / nom.lower())
+            config.ensure_dirs(2)
+            config.ensure_dirs(5)
+            self.assertEqual(len(list(config.SHOTS_DIR.glob("shot_*"))), 5)
+
+
 class TestConfigEtCli(unittest.TestCase):
     def test_les_trois_valeurs_d_entree(self):
         from app import config

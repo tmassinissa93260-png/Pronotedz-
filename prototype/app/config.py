@@ -107,7 +107,21 @@ def shot_dir(shot_id: int) -> Path:
     return SHOTS_DIR / f"shot_{shot_id:02d}"
 
 def ensure_dirs(shot_count: int = SHOT_COUNT) -> None:
+    """Les dossiers des plans, et EUX SEULS.
+
+    Un run plus court que le precedent laissait les dossiers en trop : la
+    branche a porte un shot_05 et un shot_06 du run a six plans alors que le
+    storyboard courant n'en avait que quatre. Les prompts perimes restaient
+    lisibles et copiables, mais ils appartenaient a une autre video.
+    """
+    import shutil
+
     for path in (OUTPUT_DIR, SHOTS_DIR, SCREENSHOT_DIR):
         path.mkdir(parents=True, exist_ok=True)
     for i in range(1, shot_count + 1):
         shot_dir(i).mkdir(parents=True, exist_ok=True)
+
+    for reste in sorted(SHOTS_DIR.glob("shot_*")):
+        numero = reste.name.removeprefix("shot_")
+        if reste.is_dir() and numero.isdigit() and int(numero) > shot_count:
+            shutil.rmtree(reste)

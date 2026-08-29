@@ -1,1 +1,0 @@
-Animate the vehicle's wheels visibly turning, driven by the transmission, matched with a corresponding light forward motion of the whole car to illustrate causal link between transmission mechanics and vehicle movement. Camera slightly follows horizontal car motion.

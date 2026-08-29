@@ -96,6 +96,9 @@ def _chemin_lisible(chemin: Path) -> str:
 
 def ecrire_elements(sb: Storyboard) -> Path:
     """Une feuille unique : script, bible, et pour chaque plan les deux prompts."""
+    # Les dossiers d'un run plus long ne doivent pas survivre a un run plus
+    # court : leurs prompts appartiennent a une autre video.
+    config.ensure_dirs(len(sb.shots))
     lignes = [
         f"# {sb.subject}",
         "",
