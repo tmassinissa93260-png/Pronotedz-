@@ -282,6 +282,60 @@ class TestFlexions(unittest.TestCase):
         self.assertFalse(_mot_present("cell", "cellular structure"))
 
 
+class TestPhysique(unittest.TestCase):
+    """L'energie ne tourne pas en rond, et ce n'est pas de la fumee."""
+
+    def test_l_energie_ne_boucle_pas(self):
+        """Le plan 6 du run 18 : « energy flows cyclically », « a continuous
+        loop », « a synchronized energy cycle ». Scientifiquement faux : la
+        chaine est a sens unique, et le freinage la remonte."""
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "Synchronize the yellow energy circulating through the battery, motor, "
+            "transmission and wheels, creating a continuous loop. The flow activates "
+            "the motor, resulting in rotation of the transmission and the wheels.")
+        p = [x for x in valider(raw) if x.code == "PHYSIQUE"]
+        self.assertTrue(p)
+        self.assertIn("en rond", str(p[0]))
+
+    def test_un_aller_retour_n_est_pas_une_boucle(self):
+        """Le freinage regeneratif remonte la chaine : c'est un sens inverse,
+        pas un cycle. Il doit passer."""
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            "The green energy flow reverses from the spinning wheels and travels back "
+            "toward the battery as the vehicle decelerates, which makes the cells "
+            "light up again. Preserve exact geometry. No deformation.")
+        self.assertEqual([x for x in valider(raw) if x.code == "PHYSIQUE"], [])
+
+    def test_l_energie_n_est_pas_de_la_fumee(self):
+        raw = board()
+        raw["shots"][0]["image_prompt"] = raw["shots"][0]["image_prompt"].replace(
+            "Controlled yellow", "Yellow sparkle particles and soft smoke, plus yellow")
+        p = [x for x in valider(raw) if x.code == "PHYSIQUE"]
+        self.assertTrue(p)
+        self.assertIn("decor", str(p[0]))
+
+
+class TestVehiculeVerrouille(unittest.TestCase):
+    """La meme voiture sombre, du premier au dernier plan."""
+
+    def test_une_carrosserie_claire_est_refusee(self):
+        raw = board()
+        raw["shots"][0]["image_prompt"] = raw["shots"][0]["image_prompt"].replace(
+            "dark near-black compact electric sedan", "white compact electric sedan")
+        p = [x for x in valider(raw) if x.code == "VEHICULE"]
+        self.assertTrue(p)
+        self.assertIn("white", str(p[0]))
+
+    def test_le_blanc_d_un_eclairage_ne_compte_pas(self):
+        """« cinematic blue and white lighting » est la direction artistique."""
+        raw = board()
+        raw["shots"][0]["image_prompt"] = raw["shots"][0]["image_prompt"].replace(
+            "Cool key lighting", "Cool blue and white key lighting")
+        self.assertEqual([x for x in valider(raw) if x.code == "VEHICULE"], [])
+
+
 class TestAnimationDynamique(unittest.TestCase):
     """Le zoom n'est jamais le mouvement principal."""
 

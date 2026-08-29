@@ -10,14 +10,14 @@ from app.prompts import STYLE_DIRECTIVE  # noqa: E402
 # Un prompt photo qui satisfait les cinq familles de specificite ET rend
 # visible un phenomene invisible, avec sa couleur du code.
 IMAGE = (
-    "Macro shot of the battery pack beneath the floor of the white compact electric sedan, "
+    "Macro shot of the battery pack beneath the floor of the dark near-black compact electric sedan, "
     "prismatic cells running left to right at centre frame, copper busbars above them "
     "leading forward toward the electric motor, its stator windings and the central rotor "
     "they surround. Controlled yellow "
     "luminous energy streams travel along the busbars, clearly representing the electrical "
     "current leaving the pack. Camera at low angle, 50mm lens feel, shallow depth so the "
     "nearest module is sharp and the rear of the pack falls off. Cool key lighting from the "
-    "upper left with soft volumetric haze in the dark studio. Materials: matte white paint, "
+    "upper left with soft volumetric haze in the dark studio. Materials: matte near-black paint, "
     "brushed aluminium casing, dark composite tray. Preserve the cell geometry. No text. "
     f"{STYLE_DIRECTIVE}"
 )
@@ -45,7 +45,7 @@ def shot(i=1, **over):
         "id": i,
         "duration_seconds": 4.0,
         "voice": VOIX[i - 1],
-        "visual_description": f"Battery pack and motor of the white sedan, shot {i}.",
+        "visual_description": f"Battery pack and motor of the dark sedan, shot {i}.",
         "educational_function": f"Montre le maillon {i} de la chaîne causale, "
                                f"et pourquoi il alimente le suivant.",
         "visual_concept": "yellow energy flow travelling along the busbars into the "
@@ -78,13 +78,13 @@ def board(n=4, **over):
         "script": "Une voiture électrique ne brûle rien. Elle transporte son énergie, "
                   "la libère au bon moment, et la transforme en mouvement.",
         "visual_bible": {
-            "main_subject": "the powertrain of a white compact electric sedan",
+            "main_subject": "the powertrain of a dark near-black compact electric sedan",
             "characters_objects": "no characters, only the vehicle and its components",
-            "vehicle": "white compact electric sedan, modern design, realistic proportions",
+            "vehicle": "dark near-black compact electric sedan, modern design, realistic proportions",
             "colors": "yellow and orange for electrical energy, blue for the battery, "
                       "green for recovered energy, grey for mechanics",
             "environment": "dark technical studio, night-blue grey backdrop, concrete floor",
-            "materials": "matte white paint, brushed aluminium, dark composite, visible copper",
+            "materials": "matte near-black paint, brushed aluminium, dark composite, visible copper",
             "lighting": "cinematic key light, high contrast, subtle volumetric haze",
             "camera": "slow controlled moves, 35-85mm feel",
             "style_3d": "premium engineering visualization, physically accurate",

@@ -19,7 +19,8 @@ from .models import MOTION_INTENTS, NOTION_SENS
 # ---------------------------------------------------------------------------
 
 _DEFAUT = (
-    "Photorealistic premium 3D engineering visualization, modern car in technical "
+    "Photorealistic premium 3D engineering visualization, the same modern dark "
+    "near-black electric sedan in technical "
     "semi-cutaway view, realistic bodywork with internal components visible where the "
     "explanation needs them, dark premium studio environment, cinematic blue and white "
     "lighting, realistic detailed materials, physically credible automotive mechanics, "
@@ -29,6 +30,10 @@ _DEFAUT = (
 )
 
 STYLE_DIRECTIVE = (os.getenv("STYLE_DIRECTIVE") or "").strip() or _DEFAUT
+#: Vrai tant que personne n'a remplace la direction artistique. Les
+#: controles qui dependent de SON contenu — la voiture sombre — ne
+#: s'appliquent que dans ce cas.
+STYLE_PAR_DEFAUT = STYLE_DIRECTIVE == _DEFAUT
 STYLE_FINGERPRINT = "Photorealistic premium 3D engineering visualization"
 
 WORDS_PER_SECOND = 2.7
@@ -115,6 +120,27 @@ environment, the materials, the lighting, the camera, the 3D style, the level
 of realism, and — decisive — how invisible phenomena are represented.
 Every image prompt then restates that bible. A viewer must believe the
 {shot_count} shots are {shot_count} views of the same physical object.
+
+VEHICLE CONTINUITY:
+The exact same modern dark/black electric sedan must appear throughout the
+entire video. Maintain identical body geometry, proportions, wheel design,
+glass, interior, materials and mechanical architecture across all shots. The
+vehicle must always look like the same physical vehicle photographed from
+different camera positions. Never redesign, replace, morph or reinterpret the
+vehicle between shots.
+
+ENERGY VISUALIZATION:
+Electricity is invisible in reality, therefore represent it consistently using
+luminous yellow/orange energy streams. The yellow/orange energy must behave
+like a directional animated flow:
+  - clearly visible
+  - moving continuously
+  - following real electrical pathways
+  - entering and leaving components according to the explanation
+  - never randomly floating
+  - never behaving like smoke
+  - never forming decorative particles
+The energy visualization must always communicate direction and causality.
 
 ── THE MOST IMPORTANT RULE — PEDAGOGICAL VISUAL GRAMMAR ──
 Do NOT settle for showing objects.
@@ -208,6 +234,17 @@ BRAKING        to the motor, then to the battery
 THE FLOW IS NEVER STATIC. It always has a clear direction, so the viewer reads
 which way the energy goes.
 
+THE ENERGY NEVER RUNS IN A LOOP. In normal operation the chain is one-way:
+  battery -> inverter -> motor -> transmission -> wheels
+and under regenerative braking it runs the other way:
+  wheels -> motor -> inverter -> battery
+Never describe a cycle, a loop or energy "circulating continuously through the
+whole car": that is scientifically false and it destroys the direction the
+viewer needs to read. A shot that summarises the whole chain animates the
+yellow/orange energy moving continuously in ONE clear direction from the
+battery to the wheels, then briefly shows the green regenerative flow moving
+the opposite way.
+
 ── COLOUR CODE — one notion, one colour, stable throughout ──
 {color_block()}
 Never use a different colour for the same notion. Never reuse a colour for a
@@ -283,6 +320,38 @@ A zoom may be used, but only as a secondary movement.
 NEVER use "slow zoom in" as the only animation.
 Every animation must answer "WHAT IS MOVING IN THE WORLD?"
 and not only "HOW IS THE CAMERA MOVING?"
+
+── ANIMATION QUALITY RULE ──
+Never generate an animation whose primary movement is only:
+  - zoom in
+  - zoom out
+  - camera pan
+  - camera orbit
+  - static image movement.
+Camera movement is allowed only as a secondary movement. The primary animation
+must come from the physical or conceptual phenomenon being explained.
+  BATTERY       Cells illuminate progressively and energy pulses travel
+                between cells.
+  CABLES        Yellow/orange electrical energy visibly travels through the
+                cables.
+  ELECTRIC      Rotor rotates while the stator remains stationary. Energy
+  MOTOR         enters the motor and visibly activates the electromagnetic
+                system.
+  TRANSMISSION  Gears rotate at different speeds and transfer mechanical
+                rotation.
+  WHEELS        Wheels rotate and the vehicle moves.
+  REGENERATIVE  Vehicle decelerates and the energy flow visibly reverses from
+  BRAKING       the wheels and motor toward the battery.
+The animation must make the viewer understand the mechanism even without the
+voice-over.
+An animation exists to explain something, never merely because the image has
+to be animated. Every shot carries at least one significant physical or visual
+movement directly tied to the information the voice is telling.
+  BAD:  "Camera slowly pushes toward the battery."  It shows nothing.
+  GOOD: "Yellow/orange energy pulses travel progressively from one battery
+         cell to the next while the camera performs a subtle lateral tracking
+         movement."  The electricity moves AND the camera follows the
+         information.
 
 ── MULTI-MOTION REQUIREMENT ──
 When it is physically relevant, an animation combines SEVERAL coherent

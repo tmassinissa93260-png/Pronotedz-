@@ -10,7 +10,7 @@ import re
 from dataclasses import dataclass
 
 from .models import COLOR_NOTION, EXPLICATION_FIELDS, NOTIONS_EN_MOUVEMENT, QUALITY_AXES, Storyboard
-from .prompts import STYLE_FINGERPRINT
+from .prompts import STYLE_FINGERPRINT, STYLE_PAR_DEFAUT
 
 MIN_WORDS_PER_SECOND = 1.8
 MAX_WORDS_PER_SECOND = 4.0
@@ -132,6 +132,22 @@ DESTINATION = ("toward", "towards", "into", "back to", "up to", "down to", "onto
                "travels to", "flowing to", "back into")
 FENETRE_DESTINATION = 30
 
+# L'ENERGIE NE TOURNE PAS EN ROND. En fonctionnement normal la chaine est a
+# sens unique — batterie, onduleur, moteur, transmission, roues — et le
+# freinage regeneratif la remonte. Une boucle est scientifiquement fausse, et
+# elle efface la direction que le spectateur doit lire.
+BOUCLE = ("cyclical", "cyclically", "in a loop", "a loop", "continuous loop",
+          "closed loop", "energy cycle", "cycle of energy", "loops back", "endless")
+
+# L'energie n'est ni de la fumee ni des paillettes.
+DECORATIF = ("smoke", "sparkle", "glitter", "lens flare", "floating particle",
+             "randomly", "magical", "fairy")
+
+# La voiture est sombre, presque noire, et elle ne change pas de plan en plan.
+VEHICULE_NOMS = ("car", "sedan", "vehicle", "bodywork", "body", "chassis", "paint")
+TEINTE_CLAIRE = ("white", "silver", "ivory", "pearl", "beige", "cream", "light grey",
+                 "light gray")
+
 # Mots trop generiques pour ancrer quoi que ce soit dans le prompt photo.
 GENERIQUES = {"the", "a", "an", "and", "or", "with", "its", "that", "this", "which",
               "of", "in", "on", "to", "from", "for", "by", "at", "into", "through",
@@ -204,6 +220,7 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _explication(sb)
     problems += _ancrage(sb)
     problems += _dynamique(sb)
+    problems += _physique(sb)
     problems += _qualite(sb)
     return problems
 
@@ -695,6 +712,54 @@ def _dynamique(sb: Storyboard) -> list[Problem]:
                                f"related, and the prompt must say the link out loud — 'as the "
                                f"energy reaches the windings, the rotor begins to turn', "
                                f"'driven by that rotation, the wheels turn'."))
+    return out
+
+
+def _physique(sb: Storyboard) -> list[Problem]:
+    """Ce qui est montre doit rester vrai, et l'energie rester de l'energie."""
+    out = []
+    for s in sb.shots:
+        image, anim = own_part(s.image_prompt), s.animation_prompt
+        for ou, texte in (("le prompt photo", image), ("l'animation", anim)):
+            bas = texte.lower()
+
+            boucles = [b for b in BOUCLE if b in bas]
+            if boucles:
+                out.append(Problem("PHYSIQUE", s.slug,
+                                   f"{ou} fait tourner l'energie en rond "
+                                   f"(« {boucles[0]} »)",
+                                   f"Shot {s.id}: energy does not run in a loop. In normal "
+                                   f"operation it goes one way — battery, inverter, motor, "
+                                   f"transmission, wheels — and regenerative braking runs it "
+                                   f"back the other way. State ONE clear direction; if the "
+                                   f"shot summarises the whole chain, animate the "
+                                   f"yellow/orange energy from the battery to the wheels, "
+                                   f"then briefly the green flow the opposite way."))
+
+            decoratifs = [d for d in DECORATIF if d in bas]
+            if decoratifs:
+                out.append(Problem("PHYSIQUE", s.slug,
+                                   f"{ou} traite l'energie en decor "
+                                   f"(« {decoratifs[0]} »)",
+                                   f"Shot {s.id}: the energy representation must never look "
+                                   f"like smoke, sparkles or decorative particles, and must "
+                                   f"never float randomly. It follows real electrical "
+                                   f"pathways, enters and leaves components according to the "
+                                   f"explanation, and always communicates direction."))
+
+        if STYLE_PAR_DEFAUT:
+            claires = [t for t in TEINTE_CLAIRE
+                       for m in re.finditer(re.escape(t), image.lower())
+                       if any(n in image.lower()[m.end():m.end() + 30]
+                              for n in VEHICULE_NOMS)]
+            if claires:
+                out.append(Problem("VEHICULE", s.slug,
+                                   f"la carrosserie est claire (« {claires[0]} ») "
+                                   f"alors que la voiture de reference est sombre",
+                                   f"Shot {s.id}: the vehicle is the same modern dark, "
+                                   f"near-black electric sedan in every shot — same geometry, "
+                                   f"proportions, wheels, glass, materials. Never redesign, "
+                                   f"replace or recolour it between shots."))
     return out
 
 
