@@ -109,17 +109,18 @@ SHOT_TEXT_FIELDS = (
 # l'information a faire comprendre et on remonte jusqu'au cadre.
 EXPLICATION_FIELDS = (
     "information",          # 1. ce que la voix explique
-    "cause",                # 2. ce qui declenche le phenomene
-    "effect",               # 3. le changement qui doit devenir visible
-    "physical_element",     # 4. l'objet physique principal qui porte l'info
-    "secondary_elements",   # 5. les objets secondaires qui la rendent lisible
-    "visual_behavior",      # 6. le phenomene visible qui la represente
-    "initial_state",        # 7. l'etat du plan a la premiere image
-    "animation_movement",   # 8. le mouvement principal
-    "secondary_motion",     # 9. le mouvement qui en decoule
-    "final_state",          # 10. l'etat du plan a la derniere image
-    "camera_position",      # 11. la camera qui laisse voir tout cela
-    "composition",          # 12. le cadre que ce mouvement exige
+    "physical_mechanism",   # 2. le mecanisme physique reel, en une phrase
+    "cause",                # 3. ce qui declenche le phenomene
+    "effect",               # 4. le changement qui doit devenir visible
+    "physical_element",     # 5. l'objet physique principal qui porte l'info
+    "secondary_elements",   # 6. les objets secondaires qui la rendent lisible
+    "visual_behavior",      # 7. le phenomene visible qui la represente
+    "initial_state",        # 8. l'etat du plan a la premiere image
+    "animation_movement",   # 9. le mouvement principal
+    "secondary_motion",     # 10. le mouvement qui en decoule
+    "final_state",          # 11. l'etat du plan a la derniere image
+    "camera_position",      # 12. la camera qui laisse voir tout cela
+    "composition",          # 13. le cadre que ce mouvement exige
 )
 
 # Les axes du controle qualite. Une belle image ne rachete pas une mauvaise

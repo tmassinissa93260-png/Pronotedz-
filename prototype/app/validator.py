@@ -94,6 +94,24 @@ DEBUT = ("initially", "at first", "begins", "begin", "starts", "start",
 FIN = ("by the end", "finally", "ends", "settles", "stable", "steadily",
        "until", "come to", "comes to", "has reached", "now turns", "at a stable")
 
+# L'IMAGE DIT CE QUI EXISTE, L'ANIMATION DIT CE QUI CHANGE. Une animation qui
+# reprend la description de l'image gaspille sa place : le generateur a deja
+# l'image sous les yeux, c'est son ancre geometrique.
+RECOUVREMENT_MAX = 0.55
+
+# REGLE DE PRESERVATION : l'image source est l'ancre. L'animation doit dire ce
+# qui ne bouge pas, sinon le generateur se sent libre de tout redessiner.
+# Des tournures, pas des mots isoles : « the rotor is initially stationary »
+# est un ETAT DE DEPART, pas une preservation. Le run 22 passait grace a lui.
+PRESERVATION = ("preserve", "preserving", "unchanged", "no deformation",
+                "remain static", "remains static", "remain rigid", "remains rigid",
+                "stay rigid", "stays rigid", "remain fixed", "remains fixed",
+                "stay fixed", "stays fixed", "remain stable", "remains stable",
+                "remain physically", "remains physically", "physically fixed",
+                "perfectly rigid", "stay perfectly", "stays perfectly",
+                "geometry remains", "geometry stays", "keep the geometry",
+                "do not move", "does not move", "must not move")
+
 # Les mouvements doivent etre lies, pas juxtaposes : le prompt doit dire le
 # lien a voix haute.
 LIAISON = ("as ", "then", "which", "causing", "so that", "in turn", "powered by",
@@ -236,6 +254,7 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _physique(sb)
     problems += _chaine(sb)
     problems += _etat(sb)
+    problems += _separation(sb)
     problems += _qualite(sb)
     return problems
 
@@ -836,6 +855,36 @@ def _etat(sb: Storyboard) -> list[Problem]:
                                f"Shot {s.id}: close the animation on its final state — what "
                                f"turns steadily, what is lit, where the energy has arrived — "
                                f"so the viewer sees what changed."))
+    return out
+
+
+def _separation(sb: Storyboard) -> list[Problem]:
+    """L'image decrit ce qui EXISTE, l'animation ce qui CHANGE."""
+    out = []
+    for s in sb.shots:
+        image = set(re.findall(r"[^\W\d_]+", own_part(s.image_prompt).lower(),
+                               re.UNICODE))
+        anim_mots = re.findall(r"[^\W\d_]+", s.animation_prompt.lower(), re.UNICODE)
+        utiles = [m for m in anim_mots if len(m) > 3 and m not in GENERIQUES]
+        if utiles:
+            recouvrement = sum(1 for m in utiles if m in image) / len(utiles)
+            if recouvrement > RECOUVREMENT_MAX:
+                out.append(Problem("SEPARATION", s.slug,
+                                   f"l'animation redit l'image a {recouvrement:.0%} "
+                                   f"au lieu de dire ce qui change",
+                                   f"Shot {s.id}: the image is the anchor and the generator "
+                                   f"already has it. Do not restate the scene — describe the "
+                                   f"transformation: what moves, in which direction, at what "
+                                   f"speed, what it causes, and what has changed by the end."))
+
+        if not any(mot in s.animation_prompt.lower() for mot in PRESERVATION):
+            out.append(Problem("SEPARATION", s.slug,
+                               "l'animation ne dit pas ce qui doit rester fixe",
+                               f"Shot {s.id}: the source image is the geometric anchor. Say "
+                               f"explicitly what must not move — the geometry, the "
+                               f"proportions, the vehicle identity, the components, the "
+                               f"materials — otherwise the generator feels free to redraw "
+                               f"the scene."))
     return out
 
 

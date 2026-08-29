@@ -236,20 +236,21 @@ The animation must then demonstrate HOW it happens.
 
 ── VISUAL EXPLANATION — the reasoning that comes BEFORE the prompt ──
 An image that is only beautiful is rejected. For EVERY shot, answer these
-twelve questions IN ORDER, and only then write the prompts. Fill
+thirteen questions IN ORDER, and only then write the prompts. Fill
 "visual_explanation" with the twelve answers:
    1. information        WHICH information must be understood, in one sentence
-   2. cause              WHAT triggers the phenomenon in this shot
-   3. effect             WHICH change must become visible because of it
-   4. physical_element   WHICH single object lets you show it
-   5. secondary_elements WHICH other objects are needed to make it readable
-   6. visual_behavior    WHICH visible phenomenon represents that information
-   7. initial_state      WHAT the scene looks like on the FIRST frame
-   8. animation_movement WHICH primary movement animates it
-   9. secondary_motion   WHICH movement follows from that one
-  10. final_state        WHAT the scene looks like on the LAST frame
-  11. camera_position    WHICH camera lets the viewer see all of that clearly
-  12. composition        WHICH framing that movement requires
+   2. physical_mechanism WHICH real physical mechanism is at work
+   3. cause              WHAT triggers the phenomenon in this shot
+   4. effect             WHICH change must become visible because of it
+   5. physical_element   WHICH single object lets you show it
+   6. secondary_elements WHICH other objects are needed to make it readable
+   7. visual_behavior    WHICH visible phenomenon represents that information
+   8. initial_state      WHAT the scene looks like on the FIRST frame
+   9. animation_movement WHICH primary movement animates it
+  10. secondary_motion   WHICH movement follows from that one
+  11. final_state        WHAT the scene looks like on the LAST frame
+  12. camera_position    WHICH camera lets the viewer see all of that clearly
+  13. composition        WHICH framing that movement requires
 initial_state and final_state must DIFFER. If nothing has changed between the
 first frame and the last, the shot explains nothing and must be redesigned.
 
@@ -354,6 +355,27 @@ picture, and a generator reads it as noise.
 End it with this sentence, copied VERBATIM:
 {STYLE_DIRECTIVE}
 
+── SEPARATE THE IMAGE FROM THE ANIMATION ──
+The IMAGE PROMPT describes what EXISTS in the scene.
+The ANIMATION PROMPT describes what CHANGES in the scene.
+Do not restate the whole image inside the animation prompt: the image is the
+geometric anchor and the generator already has it in front of its eyes. Spend
+the animation prompt on transformation — what moves, in which direction, at
+what speed, what it causes, what has changed by the end.
+
+── THE PRESERVATION RULE ──
+For image-to-video, the source image is the anchor. Never ask for the scene to
+be rebuilt. Always say explicitly what must NOT move: the geometry, the
+proportions, the vehicle identity, the components, the materials, the
+perspective, the structure. Without that sentence the generator feels free to
+redraw everything.
+
+── CAMERA VOCABULARY ──
+When a camera move helps, name it precisely — dolly push-in, dolly pull-out,
+tracking shot, lateral tracking, orbit, arc shot, pan, tilt, crane, pedestal.
+Never "cinematic movement", "subtle animation" or "dynamic camera": those say
+nothing. And the camera never replaces the pedagogical action.
+
 ── PART 5 — THE ANIMATION PROMPT ──
 "animation_prompt", in English, written for THAT image, as continuous prose
 that carries these beats in this order:
@@ -443,6 +465,26 @@ movement directly tied to the information the voice is telling.
          movement."  The electricity moves AND the camera follows the
          information.
 
+── THREE ANIMATIONS, RANKED ──
+INVALID — image: a battery. animation: "Slow zoom toward the battery."
+VALID — "The battery cells remain physically fixed. Blue energy illumination
+  propagates progressively from one group of cells to the next. Yellow-orange
+  energy pulses then begin exiting the battery through the visible
+  high-voltage connection. The camera performs a subtle controlled tracking
+  movement following the emerging energy path." It communicates the
+  transition from stored energy to active transfer.
+PREFERRED — "Yellow-orange energy pulses begin inside the battery and travel
+  directionally through the visible high-voltage cables. As the energy
+  reaches the motor, the windings illuminate progressively. The rotor begins
+  rotating slowly, then accelerates smoothly. The connected transmission
+  begins rotating in synchronisation. The camera performs a controlled
+  tracking movement following the energy path from battery to motor. The
+  vehicle geometry remains stable." It demonstrates a COMPLETE causal
+  sequence.
+Reach for that third level whenever the pedagogical content allows it. And
+never animate everything at once without logic: the causality appears
+progressively, one link setting off the next.
+
 ── MULTI-MOTION REQUIREMENT ──
 When it is physically relevant, an animation combines SEVERAL coherent
 movements. For an electric car:
@@ -529,6 +571,7 @@ concretely, e.g. yellow energy flow entering the stator windings",
       "motion_intent": "one value from the list above",
       "visual_explanation": {{
         "information": "which information must be understood here",
+        "physical_mechanism": "the real physical mechanism at work, in one sentence",
         "cause": "what triggers the phenomenon in this shot",
         "effect": "which change must become visible because of it",
         "physical_element": "the single object that lets you show it",
@@ -563,6 +606,18 @@ def correction_user(charge: dict, consignes: str, partielle: bool) -> str:
     minute. Chaque tour repart donc d'un message neuf, et quand tous les
     manquements sont locaux a des plans, seuls ces plans sont renvoyes.
     """
+    # REGLE DE REGENERATION : une mauvaise animation vient souvent d'une image
+    # mal concue. On ne rafistole pas des mots, on refait la conception.
+    a_refaire = any(c in consignes for c in ("must come from the physical",
+                                             "one movement is not enough",
+                                             "never introduce an important object",
+                                             "first frame of the animation",
+                                             "explains nothing"))
+    redesign = ("\nWhere a shot is rejected for its motion or for what its image "
+                "fails to show, do NOT patch a few words: go back to the motion "
+                "design, then to the image design, then rewrite BOTH prompts. A "
+                "weak animation usually comes from a badly designed image.\n"
+                if a_refaire else "")
     quoi = ("the shots listed below, and nothing else" if partielle
             else "the storyboard below")
     forme = ('{"shots": [ ... the corrected shots, same shape, same ids ... ]}'
@@ -571,6 +626,7 @@ def correction_user(charge: dict, consignes: str, partielle: bool) -> str:
 An automatic validator rejected {quoi}. Fix every point listed, and return only
 JSON: {forme}.
 Do not explain, do not apologise, do not add fields, do not renumber anything.
+{redesign}
 
 WHAT TO FIX
 {consignes}

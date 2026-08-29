@@ -168,6 +168,34 @@ class TestConditionsDuPrompt(unittest.TestCase):
         # Et l'honnetete sur ce que le systeme ne peut pas faire.
         self.assertIn("no browsing tool", self.texte)
 
+    def test_l_image_et_l_animation_sont_separees(self):
+        self.assertIn("SEPARATE THE IMAGE FROM THE ANIMATION", self.texte)
+        self.assertIn("describes what EXISTS", self.texte)
+        self.assertIn("describes what CHANGES", self.texte)
+        self.assertIn("THE PRESERVATION RULE", self.texte)
+        self.assertIn("CAMERA VOCABULARY", self.texte)
+        # Le vocabulaire precis, et le vague interdit.
+        for mot in ("dolly push-in", "tracking shot", "orbit", "pedestal"):
+            self.assertIn(mot, self.texte)
+        self.assertIn('Never "cinematic movement"', self.texte)
+
+    def test_les_trois_animations_classees(self):
+        self.assertIn("THREE ANIMATIONS, RANKED", self.texte)
+        self.assertIn("COMPLETE causal", self.texte)
+        self.assertIn("never animate everything at once without logic", self.texte)
+
+    def test_la_regeneration_plutot_que_le_rafistolage(self):
+        """Une mauvaise animation vient souvent d'une image mal concue."""
+        from app.prompts import correction_user
+        avec = correction_user({"shots": []},
+                               "- shot_01: one movement is not enough. Answer WHAT IS "
+                               "MOVING IN THE WORLD", True)
+        self.assertIn("go back to the motion design", avec)
+        self.assertIn("badly designed image", avec)
+        # Un manquement de forme n'entraine pas une refonte.
+        sans = correction_user({"shots": []}, "- storyboard: durations must sum to 16.", False)
+        self.assertNotIn("go back to the motion design", sans)
+
     def test_les_deux_regles_au_sommet(self):
         self.assertIn("NEVER optimise only for the beauty of an image", self.texte)
         self.assertIn("WHAT CHANGES during these few seconds", self.texte)

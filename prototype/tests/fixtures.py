@@ -90,6 +90,8 @@ def shot(i=1, **over):
         "motion_intent": INTENTS[i - 1],
         "visual_explanation": {
             "information": "l'énergie stockée quitte la batterie et rejoint le moteur",
+            "physical_mechanism": "les cellules libèrent un courant continu qui parcourt "
+                                  "les busbars jusqu'aux enroulements du stator",
             "cause": "les cellules du pack libèrent leur énergie vers les busbars",
             "effect": "le rotor du moteur se met à tourner sous l'effet du courant reçu",
             "physical_element": "les busbars en cuivre reliant le pack au stator",
