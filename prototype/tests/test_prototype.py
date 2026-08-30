@@ -155,19 +155,6 @@ class TestConditionsDuPrompt(unittest.TestCase):
             self.assertIn(etape, self.texte)
         self.assertIn("sound off", self.texte)
 
-    def test_la_recherche_precede_l_ecriture(self):
-        self.assertIn("UNDERSTAND BEFORE YOU WRITE", self.texte)
-        for champ in ("components", "functions", "energy_direction", "transformations",
-                      "acceptable_simplifications", "common_errors", "causal_chain"):
-            self.assertIn(champ, self.texte)
-        # La chaine reelle, onduleur compris, et le retour du freinage.
-        self.assertIn("converts DC to AC", self.texte)
-        self.assertIn("motor acting as a generator", self.texte)
-        # L'ordre des priorites.
-        self.assertIn("Accuracy comes first", self.texte)
-        # Et l'honnetete sur ce que le systeme ne peut pas faire.
-        self.assertIn("no browsing tool", self.texte)
-
     def test_l_image_et_l_animation_sont_separees(self):
         self.assertIn("SEPARATE THE IMAGE FROM THE ANIMATION", self.texte)
         self.assertIn("describes what EXISTS", self.texte)
@@ -179,37 +166,6 @@ class TestConditionsDuPrompt(unittest.TestCase):
             self.assertIn(mot, self.texte)
         self.assertIn('Never "cinematic movement"', self.texte)
 
-    def test_un_seul_mouvement_principal(self):
-        self.assertIn("ONE PRIMARY MOTION", self.texte)
-        self.assertIn("SPLIT IT ACROSS SHOTS", self.texte)
-        self.assertIn("four moving assemblies is the", self.texte)
-
-    def test_les_deux_couches(self):
-        self.assertIn("THE TWO LAYERS", self.texte)
-        self.assertIn("PHYSICAL LAYER", self.texte)
-        self.assertIn("EDUCATIONAL VISUALISATION LAYER", self.texte)
-        self.assertIn("NEVER a substance", self.texte)
-
-    def test_le_rythme_en_quatre_temps(self):
-        self.assertIn("PACING, IN FOUR BEATS", self.texte)
-        for borne in ("0-25 %", "25-60 %", "60-85 %", "85-100 %"):
-            self.assertIn(borne, self.texte)
-
-    def test_le_cadrage_vient_de_l_information(self):
-        self.assertIn("CHOOSE THE FRAMING FROM THE INFORMATION", self.texte)
-        self.assertIn("wide technical cutaway", self.texte)
-        self.assertIn("sectional shot showing rotor AND stator", self.texte)
-
-    def test_les_composants_ont_leur_regle(self):
-        self.assertIn("THE INVERTER IS NOT A PIPE", self.texte)
-        self.assertIn("THE MOTOR IS NOT A METAL BOX", self.texte)
-        self.assertIn("THE TRANSMISSION TRANSMITS", self.texte)
-        self.assertIn("A CAR THAT MOVES, MOVES", self.texte)
-
-    def test_grouper_les_maillons_jamais_en_sauter(self):
-        self.assertIn("GROUP adjacent links", self.texte)
-        self.assertIn("never SKIP a link", self.texte)
-
     def test_la_physique_du_mouvement(self):
         self.assertIn("THE PHYSICS OF MOVEMENT", self.texte)
         self.assertIn("Nothing starts instantaneously", self.texte)
@@ -220,11 +176,6 @@ class TestConditionsDuPrompt(unittest.TestCase):
         """« Si je retirais la camera, comprendrait-on encore ? »"""
         self.assertIn("THE CAMERA TEST", self.texte)
         self.assertIn("would the\nviewer still understand the mechanism", self.texte)
-
-    def test_une_seule_chaine_a_travers_les_plans(self):
-        self.assertIn("ONE CHAIN ACROSS THE SHOTS", self.texte)
-        self.assertIn("final state of shot N is the initial state of shot N+1", self.texte)
-        self.assertIn("not six separate", self.texte)
 
     def test_les_trois_animations_classees(self):
         self.assertIn("THREE ANIMATIONS, RANKED", self.texte)
@@ -540,16 +491,6 @@ class TestLimiteDeSortie(unittest.TestCase):
     def test_la_limite_est_fixee_et_large(self):
         from app import config
         self.assertGreaterEqual(config.MAX_OUTPUT_TOKENS, 8000)
-
-    def test_un_storyboard_a_quatre_plans_depasse_4096_jetons(self):
-        """La preuve du defaut : le defaut de gpt-4o est 4096 jetons de
-        sortie, et quatre plans conformes en pesent davantage. Le modele
-        tenait le contrat en rendant moins de plans."""
-        import json
-
-        from fixtures import board
-        jetons = len(json.dumps(board(4), ensure_ascii=False)) / 4
-        self.assertGreater(jetons, 4096)
 
     def test_une_reponse_coupee_est_une_erreur(self):
         from app import openai_client

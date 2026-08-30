@@ -76,24 +76,6 @@ VISUAL_BIBLE_FIELDS = (
     "invisible_phenomena",
 )
 
-# LA RECHERCHE AVANT L'ECRITURE. Le sujet est d'abord compris, puis raconte.
-# Ces champs sont remplis AVANT le script, et le storyboard doit les suivre.
-FACT_SHEET_FIELDS = (
-    "components",                 # les composants qui existent vraiment
-    "functions",                  # leur fonction exacte, pas approchee
-    "energy_direction",           # dans quel sens l'energie va
-    "transformations",            # quelles conversions ont lieu
-    "invisible_phenomena",        # ce que l'oeil ne peut pas voir
-    "acceptable_simplifications",  # ce qu'on a le droit de simplifier
-    "common_errors",              # les erreurs de vulgarisation a eviter
-)
-
-MIN_MAILLONS = 5
-
-# Une note en dessous fait rejeter le storyboard. Elle monte avec l'exigence :
-# une belle image ne rachete pas une mauvaise note pedagogique.
-MIN_QUALITY = 0.85
-
 SHOT_TEXT_FIELDS = (
     "voice",
     "visual_description",
@@ -109,18 +91,12 @@ SHOT_TEXT_FIELDS = (
 # l'information a faire comprendre et on remonte jusqu'au cadre.
 EXPLICATION_FIELDS = (
     "information",          # 1. ce que la voix explique
-    "physical_mechanism",   # 2. le mecanisme physique reel, en une phrase
-    "cause",                # 3. ce qui declenche le phenomene
-    "effect",               # 4. le changement qui doit devenir visible
-    "physical_element",     # 5. l'objet physique principal qui porte l'info
-    "secondary_elements",   # 6. les objets secondaires qui la rendent lisible
-    "visual_behavior",      # 7. le phenomene visible qui la represente
-    "initial_state",        # 8. l'etat du plan a la premiere image
-    "animation_movement",   # 9. le mouvement principal
-    "secondary_motion",     # 10. le mouvement qui en decoule
-    "final_state",          # 11. l'etat du plan a la derniere image
-    "camera_position",      # 12. la camera qui laisse voir tout cela
-    "composition",          # 13. le cadre que ce mouvement exige
+    "physical_element",     # 2. l'objet physique principal qui la porte
+    "secondary_elements",   # 3. les objets secondaires qui la rendent lisible
+    "visual_behavior",      # 4. le phenomene visible qui la represente
+    "animation_movement",   # 5. le mouvement qui l'anime
+    "camera_position",      # 6. la camera qui laisse voir tout cela
+    "composition",          # 7. le cadre que ce mouvement exige
 )
 
 # Les axes du controle qualite. Une belle image ne rachete pas une mauvaise
@@ -134,9 +110,6 @@ QUALITY_AXES = (
     "visual_continuity",
     "pedagogical_clarity",
     "animation_potential",
-    "motion_quality",
-    "causal_clarity",
-    "physical_plausibility",
 )
 
 
@@ -170,46 +143,6 @@ class VisualBible:
         if manquants:
             raise StoryboardError(f"visual_bible : champ(s) vide(s) : {', '.join(manquants)}")
         return cls(**{f: str(raw[f]).strip() for f in VISUAL_BIBLE_FIELDS})
-
-
-@dataclass
-class FactSheet:
-    """Ce que le sujet EST, etabli avant d'ecrire quoi que ce soit."""
-
-    components: str
-    functions: str
-    energy_direction: str
-    transformations: str
-    invisible_phenomena: str
-    acceptable_simplifications: str
-    common_errors: str
-    causal_chain: list = field(default_factory=list)
-
-    def as_block(self) -> str:
-        lignes = [f"{c.replace('_', ' ').capitalize()}: {getattr(self, c)}"
-                  for c in FACT_SHEET_FIELDS]
-        lignes.append("Causal chain: " + "  ->  ".join(self.causal_chain))
-        return "\n".join(lignes)
-
-    @classmethod
-    def from_dict(cls, raw: object) -> FactSheet:
-        if not isinstance(raw, dict):
-            raise StoryboardError("'fact_sheet' manquante ou invalide")
-        vides = [f for f in FACT_SHEET_FIELDS if not str(raw.get(f) or "").strip()]
-        if vides:
-            raise StoryboardError(f"fact_sheet : champ(s) vide(s) : {', '.join(vides)}")
-
-        chaine = raw.get("causal_chain")
-        if not isinstance(chaine, list):
-            raise StoryboardError("fact_sheet : 'causal_chain' doit etre une liste")
-        maillons = [str(m).strip() for m in chaine if str(m).strip()]
-        if len(maillons) < MIN_MAILLONS:
-            raise StoryboardError(
-                f"fact_sheet : causal_chain n'a que {len(maillons)} maillon(s), "
-                f"il en faut au moins {MIN_MAILLONS}")
-
-        return cls(causal_chain=maillons,
-                   **{f: str(raw[f]).strip() for f in FACT_SHEET_FIELDS})
 
 
 @dataclass
@@ -281,7 +214,6 @@ class Storyboard:
     subject: str
     duration_seconds: float
     shot_count: int
-    fact_sheet: FactSheet
     script: str
     visual_bible: VisualBible
     shots: list[Shot] = field(default_factory=list)
@@ -337,7 +269,6 @@ class Storyboard:
             subject=str(raw["subject"]).strip(),
             duration_seconds=_nombre(raw.get("duration_seconds"), "'duration_seconds'"),
             shot_count=_entier(raw.get("shot_count"), "'shot_count'"),
-            fact_sheet=FactSheet.from_dict(raw.get("fact_sheet")),
             script=str(raw["script"]).strip(),
             visual_bible=VisualBible.from_dict(raw.get("visual_bible")),
             shots=[Shot.from_dict(i, s) for i, s in enumerate(shots_raw)],

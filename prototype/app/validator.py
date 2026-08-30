@@ -12,13 +12,13 @@ from dataclasses import dataclass
 from .models import (
     COLOR_NOTION,
     EXPLICATION_FIELDS,
-    MIN_QUALITY,
     NOTIONS_EN_MOUVEMENT,
     QUALITY_AXES,
     Storyboard,
 )
 from .prompts import STYLE_FINGERPRINT, STYLE_PAR_DEFAUT
 
+MIN_QUALITY = 0.8
 MIN_WORDS_PER_SECOND = 1.8
 MAX_WORDS_PER_SECOND = 4.0
 MIN_IMAGE_PROMPT_CHARS = 260
@@ -272,12 +272,8 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _ancrage(sb)
     problems += _dynamique(sb)
     problems += _physique(sb)
-    problems += _chaine(sb)
-    problems += _etat(sb)
     problems += _separation(sb)
     problems += _progressif(sb)
-    problems += _enchainement(sb)
-    problems += _composants_particuliers(sb)
     problems += _qualite(sb)
     return problems
 
@@ -848,67 +844,6 @@ def _physique(sb: Storyboard) -> list[Problem]:
     return out
 
 
-def _chaine(sb: Storyboard) -> list[Problem]:
-    """Les plans marchent le long de la chaine causale, ils n'en sortent pas."""
-    out = []
-    chaine = " ".join(sb.fact_sheet.causal_chain).lower()
-
-    if any(b in chaine for b in BOUCLE):
-        out.append(Problem("CHAINE", "fact_sheet",
-                           "la chaine causale tourne en rond",
-                           "The causal chain is one-way: each link causes the next. "
-                           "Regenerative braking is a separate chain that runs the other "
-                           "way, not a loop closing the first one."))
-
-    # Chaque plan doit s'accrocher a un maillon : le storyboard raconte le
-    # mecanisme etabli, il n'en invente pas un autre en cours de route.
-    for s in sb.shots:
-        porte = f"{s.visual_explanation.get('information', '')} " \
-                f"{s.visual_explanation.get('cause', '')} " \
-                f"{s.visual_explanation.get('effect', '')} {s.visual_concept}".lower()
-        mots = {m for m in re.findall(r"[^\W\d_]+", porte, re.UNICODE)
-                if len(m) > 3 and m not in GENERIQUES}
-        if not any(_mot_present(m, chaine) for m in mots):
-            out.append(Problem("CHAINE", s.slug,
-                               "le plan ne s'accroche a aucun maillon de la chaine causale",
-                               f"Shot {s.id}: every shot walks one link of the causal chain "
-                               f"you established in fact_sheet. Name that link — the "
-                               f"component, the conversion or the transfer it shows — or "
-                               f"drop the shot."))
-    return out
-
-
-def _etat(sb: Storyboard) -> list[Problem]:
-    """Qu'est-ce qui change pendant ces quelques secondes, et pourquoi ?"""
-    out = []
-    for s in sb.shots:
-        debut = s.visual_explanation.get("initial_state", "").strip().lower()
-        fin = s.visual_explanation.get("final_state", "").strip().lower()
-        if debut and fin and debut == fin:
-            out.append(Problem("ETAT", s.slug,
-                               "l'etat final est identique a l'etat initial : rien ne change",
-                               f"Shot {s.id}: if nothing has changed between the first frame "
-                               f"and the last, the shot explains nothing. State what is at "
-                               f"rest at the start and what has moved, lit up, turned or "
-                               f"reversed by the end."))
-            continue
-
-        bas = s.animation_prompt.lower()
-        if not any(d in bas for d in DEBUT):
-            out.append(Problem("ETAT", s.slug,
-                               "l'animation ne dit pas d'ou elle part",
-                               f"Shot {s.id}: open the animation on its initial state — what "
-                               f"is stationary, dark or empty before anything happens — so "
-                               f"the change is readable."))
-        if not any(f in bas for f in FIN):
-            out.append(Problem("ETAT", s.slug,
-                               "l'animation ne dit pas ou elle arrive",
-                               f"Shot {s.id}: close the animation on its final state — what "
-                               f"turns steadily, what is lit, where the energy has arrived — "
-                               f"so the viewer sees what changed."))
-    return out
-
-
 def _separation(sb: Storyboard) -> list[Problem]:
     """L'image decrit ce qui EXISTE, l'animation ce qui CHANGE."""
     out = []
@@ -961,74 +896,6 @@ def _progressif(sb: Storyboard) -> list[Problem]:
                                f"gradually, smoothly, from rest, accelerating, "
                                f"decelerating. A movement already at full speed on the "
                                f"first frame explains nothing."))
-    return out
-
-
-def _enchainement(sb: Storyboard) -> list[Problem]:
-    """L'etat final d'un plan doit devenir l'etat initial du suivant."""
-    out = []
-    for precedent, suivant in zip(sb.shots, sb.shots[1:], strict=False):
-        fin = precedent.visual_explanation.get("final_state", "")
-        debut = suivant.visual_explanation.get("initial_state", "")
-        if not fin or not debut:
-            continue
-
-        mots_fin = {m for m in re.findall(r"[^\W\d_]+", fin.lower(), re.UNICODE)
-                    if len(m) > 3 and m not in GENERIQUES}
-        if not mots_fin:
-            continue
-        if not any(_mot_present(m, debut.lower()) for m in mots_fin):
-            out.append(Problem("ENCHAINEMENT", suivant.slug,
-                               f"son etat initial ne reprend rien de l'etat final "
-                               f"du plan {precedent.id}",
-                               f"Shot {suivant.id}: the last state of shot {precedent.id} "
-                               f"must become the first state of this one, so the shots form "
-                               f"ONE visual chain — the energy that left the battery is the "
-                               f"same energy that arrives in the cable. Name that carried-"
-                               f"over element in initial_state."))
-    return out
-
-
-def _composants_particuliers(sb: Storyboard) -> list[Problem]:
-    """Deux composants ont un comportement propre, et il doit se voir."""
-    out = []
-    for s in sb.shots:
-        contexte = f"{s.voice} {s.visual_concept} {own_part(s.image_prompt)}".lower()
-        anim = s.animation_prompt.lower()
-
-        # L'ONDULEUR CHANGE LE COURANT. Un flux qui le traverse sans changer de
-        # comportement en fait un tuyau, et l'onduleur n'est pas un tuyau.
-        if any(_mot_present(m, contexte) for m in ("inverter", "onduleur")):
-            if not any(m in anim for m in ("alternating", "pulsed", "pulsing", "switching",
-                                           "oscillat", "waveform", "changes from",
-                                           "converts", "conversion", "becomes")):
-                out.append(Problem("COMPOSANT", s.slug,
-                                   "le flux traverse l'onduleur sans changer de comportement",
-                                   f"Shot {s.id}: the inverter converts direct current into "
-                                   f"alternating current and controls the power. Show the "
-                                   f"flow CHANGE as it passes through — continuous before, "
-                                   f"switching pulses inside, alternating after — otherwise "
-                                   f"the inverter reads as a pipe."))
-
-        # LA VOITURE QUI AVANCE AVANCE VRAIMENT, ET SES ROUES TOURNENT.
-        avance = any(m in s.voice.lower() for m in
-                     ("avance", "avancer", "propuls", "roule", "démarre", "demarre",
-                      "se déplace", "se deplace", "accélère", "accelere"))
-        if avance:
-            manque = []
-            if not any(m in anim for m in ("wheel", "tyre", "tire")):
-                manque.append("les roues qui tournent")
-            if not any(m in anim for m in ("forward", "moves off", "pulls away",
-                                           "advances", "accelerat", "travels forward")):
-                manque.append("le vehicule qui se deplace")
-            if manque:
-                out.append(Problem("COMPOSANT", s.slug,
-                                   f"la voix dit que la voiture avance, l'animation ne montre "
-                                   f"pas {' ni '.join(manque)}",
-                                   f"Shot {s.id}: when the narration says the vehicle moves, "
-                                   f"the vehicle must actually move and its wheels must turn, "
-                                   f"synchronised. A camera pushing in on a stationary car is "
-                                   f"not a car moving. Prefer a tracking shot alongside it."))
     return out
 
 

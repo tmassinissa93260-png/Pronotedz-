@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import os
 
-from .models import MIN_MAILLONS, MIN_QUALITY, MOTION_INTENTS, NOTION_SENS
+from .models import MOTION_INTENTS, NOTION_SENS
 
 # ---------------------------------------------------------------------------
 # STYLE VISUEL DE BASE
@@ -90,8 +90,6 @@ def retours() -> str:
 def storyboard_user(subject: str, duration: float, shot_count: int) -> str:
     par_plan = round(duration / shot_count, 1)
     mots = int(par_plan * WORDS_PER_SECOND)
-    maillons = MIN_MAILLONS
-    seuil = MIN_QUALITY
     return f"""\
 Write the complete pre-production of a vertical 9:16 educational video.
 
@@ -120,37 +118,6 @@ animation when a subject, a component or a phenomenon could move instead.
 Every shot must answer, visually: WHAT CHANGES during these few seconds, AND
 WHY DOES IT CHANGE?
 
-── PART 0 — UNDERSTAND BEFORE YOU WRITE ──
-Do not invent scenes from the subject. Establish what the subject IS first,
-and fill "fact_sheet" BEFORE the script:
-  components                 which parts actually exist
-  functions                  what each one does, exactly — not approximately
-  energy_direction           which way the energy goes
-  transformations            which conversions happen, and where
-  invisible_phenomena        what the eye cannot see and must be represented
-  acceptable_simplifications what may fairly be simplified for a lay viewer
-  common_errors              the popular-science mistakes to avoid here
-Then write "causal_chain": the mechanism as an ordered list of at least
-{maillons} links, each one causing the next. For an electric car:
-  battery chemical energy -> electrical energy in the circuit -> power
-  electronics / inverter converts DC to AC and controls the power ->
-  electromagnetic torque in the motor -> motor rotation -> reduction gear and
-  drivetrain -> wheel rotation -> vehicle motion
-and under regenerative braking:
-  vehicle kinetic energy -> motor acting as a generator -> electrical energy
-  -> power electronics -> battery charging
-Accuracy comes first, then clarity, then visual power, then style. Never trade
-away a real physical relation to obtain a spectacular animation.
-A simplification is allowed; a falsehood is not. "The battery powers the
-motor" is fair vulgarisation. Saying the inverter is a mere stage on the way
-is not: it converts the battery's direct current into alternating current AND
-controls the torque and speed of the motor. The motor is not a black box
-either: stator and rotor interact electromagnetically to turn electrical
-energy into mechanical energy, and the same motor runs as a generator during
-regenerative braking.
-You have no browsing tool here: answer from established engineering knowledge,
-and state a mechanism only when you are confident it is right.
-
 ── PART 1 — THE SCRIPT ──
 Write "script": the full narration, in French, as one continuous spoken text.
 It must:
@@ -164,12 +131,8 @@ It must:
 Each sentence must prepare or explain what the viewer is about to see.
 
 ── PART 2 — THE STORYBOARD ──
-Cut the script into exactly {shot_count} shots, following the causal chain you
-just wrote: the shots walk the chain in order, and no shot exists outside it.
-When the chain has more links than you have shots, GROUP adjacent links into
-one shot — battery and inverter together, motor and transmission together —
-and never SKIP a link. Comprehension comes before tidiness: a shot may carry
-two links if the movement stays readable, but no link may vanish. A shot never exists just to
+Cut the script into exactly {shot_count} shots that follow the real order of
+the mechanism: each shot advances one step, and no shot exists just to
 reach {shot_count}. Each one earns its place by advancing understanding, and
 "educational_function" says in one sentence what the viewer understands after
 it that they did not understand before. Two shots never claim the same
@@ -239,24 +202,16 @@ The viewer must understand WHAT is happening from the image alone.
 The animation must then demonstrate HOW it happens.
 
 ── VISUAL EXPLANATION — the reasoning that comes BEFORE the prompt ──
-An image that is only beautiful is rejected. For EVERY shot, answer these
-thirteen questions IN ORDER, and only then write the prompts. Fill
-"visual_explanation" with the twelve answers:
-   1. information        WHICH information must be understood, in one sentence
-   2. physical_mechanism WHICH real physical mechanism is at work
-   3. cause              WHAT triggers the phenomenon in this shot
-   4. effect             WHICH change must become visible because of it
-   5. physical_element   WHICH single object lets you show it
-   6. secondary_elements WHICH other objects are needed to make it readable
-   7. visual_behavior    WHICH visible phenomenon represents that information
-   8. initial_state      WHAT the scene looks like on the FIRST frame
-   9. animation_movement WHICH primary movement animates it
-  10. secondary_motion   WHICH movement follows from that one
-  11. final_state        WHAT the scene looks like on the LAST frame
-  12. camera_position    WHICH camera lets the viewer see all of that clearly
-  13. composition        WHICH framing that movement requires
-initial_state and final_state must DIFFER. If nothing has changed between the
-first frame and the last, the shot explains nothing and must be redesigned.
+An image that is only beautiful is rejected. For EVERY shot, answer these seven
+questions IN ORDER, and only then write the prompts. Fill
+"visual_explanation" with the seven answers:
+  1. information        WHICH information must be understood, in one sentence
+  2. physical_element   WHICH single object lets you show it
+  3. secondary_elements WHICH other objects are needed to make it readable
+  4. visual_behavior    WHICH visible phenomenon represents that information
+  5. animation_movement WHICH movement will animate it
+  6. camera_position    WHICH camera lets the viewer see all of that clearly
+  7. composition        WHICH framing that movement requires
 
 ── IS THIS IMAGE WORTH ANIMATING? ──
 Before you keep an image prompt, ask: does this image allow a pedagogically
@@ -509,82 +464,6 @@ right, so the camera tracks left to right; the car pulls away, so the camera
 follows at constant distance; the rotor turns, so a controlled arc reveals
 the rotation.
 
-── ONE CHAIN ACROSS THE SHOTS ──
-The final state of shot N is the initial state of shot N+1. The energy that
-leaves the battery in one shot is the same energy that travels the cable in
-the next, and reaches the inverter in the one after. Write initial_state so
-it names what the previous shot handed over. The shots are not six separate
-illustrations: they are one continuous visual chain.
-
-── ONE PRIMARY MOTION ──
-Every shot has ONE primary motion, ONE secondary motion that follows from it,
-and at most one further consequence. Not the whole chain at once.
-  WRONG: energy flows + rotor spins + gears spin + car drives + camera orbits
-         180 degrees + zoom. Too many simultaneous transformations make the
-         video model lose the geometry, and the result is unstable.
-  RIGHT: PRIMARY — an energy pulse travels through the cable.
-         SECONDARY — a small activation pulse reaches the motor.
-         CAMERA — minimal tracking.
-When the chain is long, SPLIT IT ACROSS SHOTS rather than cramming it into
-one. Two coordinated movements are the floor; four moving assemblies is the
-ceiling.
-
-── THE TWO LAYERS ──
-Keep them apart in your head, and never confuse them.
-  PHYSICAL LAYER — the real current in the cables, the electromagnetic field,
-    the voltage, the torque. This is what actually exists.
-  EDUCATIONAL VISUALISATION LAYER — the yellow/orange flow that lets a viewer
-    read the direction of the energy. This is a teaching device.
-The yellow/orange flow is NEVER a substance. It is light: travelling
-particles, a moving glow, pulses propagating, directional streaks. Never a
-liquid running through a pipe, never a yellow object, never something floating
-free of the conductors. It follows the real electrical paths.
-
-── PACING, IN FOUR BEATS ──
-Think of each animation on a timeline:
-   0-25 %   the initial state, at rest
-  25-60 %   the main transformation
-  60-85 %   its consequence
-  85-100 %  the final state, stable
-Say the order out loud in the prompt. A shot where everything happens at once
-reads as noise.
-
-── CHOOSE THE FRAMING FROM THE INFORMATION ──
-Never default to "close-up" or "cinematic camera". The framing is chosen so
-the phenomenon can be read:
-  introduction        wide technical cutaway
-  battery             macro or close-up on the cells
-  energy transfer     tracking shot following the path
-  inverter            medium technical shot: input, conversion, output
-  motor               sectional shot showing rotor AND stator
-  transmission        mechanical tracking shot on the gears
-  vehicle moving      exterior tracking shot alongside it
-  regenerative brake  a shot holding wheels, motor and the return path together
-
-── THE INVERTER IS NOT A PIPE ──
-It converts direct current into alternating current and controls the power.
-The flow must CHANGE as it passes through: continuous before, controlled
-switching pulses inside, alternating after. If the flow crosses it unchanged,
-the shot teaches nothing about it.
-
-── THE MOTOR IS NOT A METAL BOX ──
-Show the stator, the rotor, the shaft, the electrical input, the rotation and
-the mechanical output. The electromagnetic field may appear as subtle arcs or
-pulses around the rotor and stator — never as a solid object that deforms the
-motor. The causality must be visible: electrical input, electromagnetic
-interaction, rotor rotation, shaft, transmission, wheels.
-
-── THE TRANSMISSION TRANSMITS ──
-Never just "the transmission rotates". Show the mechanical causality: motor
-shaft, then reduction gear, then drivetrain, then wheel axle, then wheel. Gears
-turn consistently with their contact, and the wheel turns in the direction the
-vehicle travels.
-
-── A CAR THAT MOVES, MOVES ──
-When the narration says the vehicle advances, the vehicle actually advances
-and its wheels turn, synchronised. A camera pushing in on a stationary car is
-not a car moving. Prefer a tracking shot alongside it.
-
 ── MULTI-MOTION REQUIREMENT ──
 When it is physically relevant, an animation combines SEVERAL coherent
 movements. For an electric car:
@@ -630,13 +509,12 @@ When the explanation contains a transformation, the animation shows it:
 ── PART 6 — QUALITY CONTROL, BEFORE YOU ANSWER ──
 Score yourself honestly from 0 to 1 on each axis in "quality_check":
 narrative_quality, visual_quality, scientific_accuracy, voice_visual_alignment,
-visual_continuity, pedagogical_clarity, animation_potential, motion_quality,
-causal_clarity, physical_plausibility.
+visual_continuity, pedagogical_clarity, animation_potential.
 For every shot ask: "does the viewer understand the subject better thanks to
 this shot?" If the answer is no, REWRITE the shot before answering. Do not
-return a storyboard you scored below {seuil} on any axis. A good visual score
-never compensates for a poor pedagogical one: if motion_quality or
-causal_clarity is low, redesign the shot rather than repolishing the image.
+return a storyboard you scored below 0.8 on any axis. A good visual score
+never compensates for a poor pedagogical one: if animation_potential is low,
+redesign the shot rather than repolishing the image.
 
 ── ANSWER FORMAT ──
 Return only this JSON:
@@ -644,12 +522,6 @@ Return only this JSON:
   "subject": "{subject}",
   "duration_seconds": {duration},
   "shot_count": {shot_count},
-  "fact_sheet": {{
-    "components": "...", "functions": "...", "energy_direction": "...",
-    "transformations": "...", "invisible_phenomena": "...",
-    "acceptable_simplifications": "...", "common_errors": "...",
-    "causal_chain": ["first link", "second link", "... at least {maillons}"]
-  }},
   "script": "the full narration in French",
   "visual_bible": {{
     "main_subject": "...", "characters_objects": "...", "vehicle": "...",
@@ -671,16 +543,10 @@ concretely, e.g. yellow energy flow entering the stator windings",
       "motion_intent": "one value from the list above",
       "visual_explanation": {{
         "information": "which information must be understood here",
-        "physical_mechanism": "the real physical mechanism at work, in one sentence",
-        "cause": "what triggers the phenomenon in this shot",
-        "effect": "which change must become visible because of it",
         "physical_element": "the single object that lets you show it",
         "secondary_elements": "the other objects needed to make it readable",
         "visual_behavior": "the visible phenomenon that represents it",
-        "initial_state": "what the scene looks like on the first frame",
-        "animation_movement": "the primary movement that animates it",
-        "secondary_motion": "the movement that follows from that one",
-        "final_state": "what the scene looks like on the last frame",
+        "animation_movement": "the movement that will animate it",
         "camera_position": "the camera that lets all of it be seen clearly",
         "composition": "the framing that movement requires"
       }}
@@ -690,8 +556,7 @@ concretely, e.g. yellow energy flow entering the stator windings",
     "narrative_quality": 0.9, "visual_quality": 0.9,
     "scientific_accuracy": 0.9, "voice_visual_alignment": 0.9,
     "visual_continuity": 0.9, "pedagogical_clarity": 0.9,
-    "animation_potential": 0.9, "motion_quality": 0.9,
-    "causal_clarity": 0.9, "physical_plausibility": 0.9
+    "animation_potential": 0.9
   }}
 }}
 "shots" holds exactly {shot_count} objects, ids 1 to {shot_count}.{retours()}"""
