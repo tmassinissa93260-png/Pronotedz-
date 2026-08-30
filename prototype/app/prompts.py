@@ -121,13 +121,18 @@ of realism, and — decisive — how invisible phenomena are represented.
 Every image prompt then restates that bible. A viewer must believe the
 {shot_count} shots are {shot_count} views of the same physical object.
 
-VEHICLE CONTINUITY:
-The exact same modern dark/black electric sedan must appear throughout the
-entire video. Maintain identical body geometry, proportions, wheel design,
-glass, interior, materials and mechanical architecture across all shots. The
-vehicle must always look like the same physical vehicle photographed from
-different camera positions. Never redesign, replace, morph or reinterpret the
-vehicle between shots.
+SUBJECT CONTINUITY:
+The exact same physical object must appear throughout the entire video.
+Maintain identical geometry, proportions, materials and internal architecture
+across all shots. It must always look like the same object photographed from
+different camera positions. Never redesign, replace, morph or reinterpret it
+between shots.
+
+EVERYTHING BELOW IS WORKED ON ONE EXAMPLE SUBJECT — an electric car. Yours may
+be entirely different. Transpose the METHOD, never the components: never name
+a car, a battery, a motor, a wheel or braking unless YOUR subject really
+contains them. Find the equivalent parts of your own subject and apply the
+same reasoning to them.
 
 ENERGY VISUALIZATION:
 Electricity is invisible in reality, therefore represent it consistently using

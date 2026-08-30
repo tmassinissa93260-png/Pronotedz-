@@ -317,6 +317,22 @@ class TestCerveau(unittest.TestCase):
         self.assertIn("OPENAI_API_KEY manquante dans .env", str(ctx.exception))
 
 
+class TestAutreSujet(unittest.TestCase):
+    """Le prompt est ecrit sur une voiture ; la methode doit se transposer."""
+
+    def test_la_continuite_ne_nomme_plus_de_vehicule(self):
+        from app.prompts import storyboard_user
+        texte = storyboard_user("Fonctionnement des écouteurs sans fil", 24, 6)
+        self.assertIn("SUBJECT CONTINUITY", texte)
+        self.assertNotIn("VEHICLE CONTINUITY", texte)
+
+    def test_l_exemple_est_annonce_comme_un_exemple(self):
+        from app.prompts import storyboard_user
+        texte = storyboard_user("Fonctionnement des écouteurs sans fil", 24, 6)
+        self.assertIn("WORKED ON ONE EXAMPLE SUBJECT", texte)
+        self.assertIn("Transpose the METHOD, never the components", texte)
+
+
 class TestConfigEtCli(unittest.TestCase):
     def test_les_trois_valeurs_d_entree(self):
         from app import config
