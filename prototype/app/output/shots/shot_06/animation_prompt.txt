@@ -1,1 +1,1 @@
-Both yellow and green energy flows encircle and pulse around the car, visually suggesting energy efficiency and environmental conservation.
+Subtle coordinated animation shows one-directional energy flow from battery to motor, through transmission to wheels and briefly displays recovery from wheels back to battery. Yellow/orange flow signifies power usage, and camera tracks this flow smoothly, ensuring clear directionality without looping.

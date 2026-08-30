@@ -1,1 +1,1 @@
-Le moteur reçoit cette énergie et fait tourner les roues.
+Lors du freinage, le système récupère l'énergie perdue.

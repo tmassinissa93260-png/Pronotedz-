@@ -1,1 +1,1 @@
-Display the energy flow smoothly transitioning inside the inverter, visually indicating conversion. The converted energy flow then moves towards the motor.
+As the yellow-orange energy from the motor reaches the transmission, visible mechanical rotation begins. The gears turn progressively, synchronized with the energy flow, finally moving the wheels. Driven by the rotations and energy transfer, the camera tracks these transformations to focus on the interaction between elements.

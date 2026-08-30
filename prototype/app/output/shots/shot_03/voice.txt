@@ -1,1 +1,1 @@
-L'inverseur transforme ce courant pour nourrir le moteur.
+Ce mouvement est transmis aux roues, faisant avancer la voiture.

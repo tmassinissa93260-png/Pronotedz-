@@ -1,1 +1,1 @@
-La batterie, c'est le cœur, elle envoie de l'énergie à l'inverseur.
+L'énergie de la batterie alimente le moteur, qui transforme l'électricité en mouvement.

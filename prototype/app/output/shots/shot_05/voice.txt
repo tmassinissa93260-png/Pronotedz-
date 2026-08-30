@@ -1,1 +1,1 @@
-Lorsque vous freinez, l'énergie est récupérée et renvoyée à la batterie.
+Cette énergie est renvoyée vers la batterie, prolongeant l'autonomie.

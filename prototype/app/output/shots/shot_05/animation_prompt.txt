@@ -1,1 +1,1 @@
-Animate the wheels decelerating and the directional energy flow reversing in green, visibly traveling back to the battery pack.
+Green energy travels into the battery cells, lighting them up in sequence. As each cell charges, the subtle green glow progresses. The cells pulse in response to the energy flow, showing active charging and returning energy to the system.

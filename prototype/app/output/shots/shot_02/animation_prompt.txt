@@ -1,1 +1,1 @@
-Yellow-orange energy streams visibly exit the battery in a clear directional path towards the inverter. The battery remains static while the energy flow creates the movement.
+Animate the yellow-orange energy stream moving continuously from the battery through the high-voltage cables toward the electric motor. As the energy reaches the motor, subtle electrical pulses appear inside it. The camera performs a subtle tracking movement along the energy path.
