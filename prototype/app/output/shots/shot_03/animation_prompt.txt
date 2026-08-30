@@ -1,1 +1,1 @@
-Energy flow is shown traveling from the battery and into the inverter where a color transformation from blue to yellow/orange occurs, representing the conversion of energy. As the converted energy becomes usable motor energy, the path is illuminated and moves clearly into the motor, with the camera subtly following the directional energy flow.
+Display the energy flow smoothly transitioning inside the inverter, visually indicating conversion. The converted energy flow then moves towards the motor.

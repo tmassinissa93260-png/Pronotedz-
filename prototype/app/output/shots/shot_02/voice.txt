@@ -1,1 +1,1 @@
-La batterie, cœur du système, stocke l'énergie sous forme électrique.
+La batterie, c'est le cœur, elle envoie de l'énergie à l'inverseur.

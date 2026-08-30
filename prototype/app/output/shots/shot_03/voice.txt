@@ -1,1 +1,1 @@
-Cette énergie passe ensuite à travers un onduleur qui la convertit pour alimenter le moteur.
+L'inverseur transforme ce courant pour nourrir le moteur.

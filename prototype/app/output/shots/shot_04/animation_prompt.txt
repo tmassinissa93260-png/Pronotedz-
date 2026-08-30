@@ -1,1 +1,1 @@
-As the yellow/orange energy flows into the motor, it visibly activates the rotor, causing it to rotate within the stator. This motion symbolizes energy being converted into rotation, with the camera maintaining a fixed position to capture the dynamic interaction.
+Animate the energy flow entering the motor, triggering the rotor to rotate. This, in turn, results in the wheels beginning to spin.

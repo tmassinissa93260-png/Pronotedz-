@@ -1,1 +1,1 @@
-Le moteur utilise cette énergie pour faire tourner le rotor et générer le mouvement.
+Le moteur reçoit cette énergie et fait tourner les roues.

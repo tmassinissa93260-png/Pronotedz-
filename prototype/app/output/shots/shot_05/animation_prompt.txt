@@ -1,1 +1,1 @@
-The gear transmission rotates as it receives energy from the motor, visibly spinning to transmit the motion onward to the car's wheels. As the wheels begin to turn, gears synchronize with visible interconnected movement. The camera stays fixed on the flow of mechanical linkage from motor, through gears, to wheels, ensuring viewers understand the entire mechanical process.
+Animate the wheels decelerating and the directional energy flow reversing in green, visibly traveling back to the battery pack.

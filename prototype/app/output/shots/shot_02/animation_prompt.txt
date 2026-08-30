@@ -1,1 +1,1 @@
-As the battery stores energy, blue energy pulses light up inside the battery cells, traveling progressively across the pack to indicate energy storage. The pulsations are rhythmic, symbolizing the containment and readiness of the energy within the cells while the camera maintains a steady focus on the pack.
+Yellow-orange energy streams visibly exit the battery in a clear directional path towards the inverter. The battery remains static while the energy flow creates the movement.
