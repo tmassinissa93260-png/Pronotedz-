@@ -20,3 +20,8 @@
   studio hides exactly what the shot is meant to explain: render the outer body
   as a thin ghosted glass skin, keep the silhouette readable, and light the
   internal components brighter than the shell so the mechanism reads first.
+- Yellow and orange mark the electrical path ONLY: the battery cells, the
+  high-voltage cable, the inverter, the motor windings. Never a tyre, a spring,
+  a brake, a rim or the bodywork. A glowing ring inside a tyre teaches nothing
+  — no current runs there — and a yellow suspension spring announces
+  electricity where there is only mechanical force. Those parts stay grey.

@@ -270,6 +270,11 @@ the opposite way.
 {color_block()}
 Never use a different colour for the same notion. Never reuse a colour for a
 different notion.
+AND THE ENERGY COLOUR MARKS ONLY THE ELECTRICAL PATH: the cells, the
+high-voltage cable, the inverter, the windings. Never a tyre, a spring, a
+brake, a rim or the bodywork. A glowing ring inside a tyre teaches nothing —
+no current runs there — and a yellow suspension spring says "electricity"
+where there is only mechanical force. Those parts are grey.
 
 ── VISUALISING THE INVISIBLE ──
 Electricity, current, magnetic field, energy, signal, power transfer, energy

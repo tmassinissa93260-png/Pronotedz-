@@ -199,6 +199,13 @@ VEHICULE_NOMS = ("car", "sedan", "vehicle", "bodywork", "body", "chassis", "pain
 TEINTE_CLAIRE = ("white", "silver", "ivory", "pearl", "beige", "cream", "light grey",
                  "light gray")
 
+# LA COULEUR DE L'ENERGIE NE SE POSE PAS SUR UNE PIECE MECANIQUE. Un anneau
+# jaune dans un pneu n'explique rien — aucun courant n'y circule — et un
+# ressort jaune annonce de l'electricite la ou il n'y a qu'un effort.
+PIECES_GRISES = ("tyre", "tire", "spring", "suspension", "rim", "brake",
+                 "disc", "caliper", "bodywork", "paint", "damper", "shock")
+COULEURS_ENERGIE = ("yellow", "orange", "amber")
+
 # Mots trop generiques pour ancrer quoi que ce soit dans le prompt photo.
 GENERIQUES = {"the", "a", "an", "and", "or", "with", "its", "that", "this", "which",
               "of", "in", "on", "to", "from", "for", "by", "at", "into", "through",
@@ -272,6 +279,7 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _ancrage(sb)
     problems += _dynamique(sb)
     problems += _physique(sb)
+    problems += _couleur(sb)
     problems += _qualite(sb)
     return problems
 
@@ -839,6 +847,41 @@ def _physique(sb: Storyboard) -> list[Problem]:
                                    f"near-black electric sedan in every shot — same geometry, "
                                    f"proportions, wheels, glass, materials. Never redesign, "
                                    f"replace or recolour it between shots."))
+    return out
+
+
+def _couleur_mal_posee(texte: str) -> list[str]:
+    """Les endroits ou la couleur de l'energie qualifie une piece mecanique."""
+    bas = texte.lower()
+    fautes = []
+    pieces = "|".join(PIECES_GRISES)
+    for couleur in COULEURS_ENERGIE:
+        # « yellow suspension spring », « orange brake caliper »
+        for m in re.finditer(rf"\b{couleur}[\w\-/]*\s+(?:\w+\s+){{0,2}}({pieces})s?\b", bas):
+            fautes.append(m.group(0).strip())
+        # « yellow glow inside the tyre », « orange light within the rim »
+        for m in re.finditer(rf"\b{couleur}\b.{{0,50}}?\b(?:inside|within|in)\s+the\s+"
+                             rf"({pieces})s?\b", bas):
+            fautes.append(m.group(0).strip())
+    return fautes
+
+
+def _couleur(sb: Storyboard) -> list[Problem]:
+    """La couleur de l'energie ne marque que le chemin electrique."""
+    out = []
+    for s in sb.shots:
+        for ou, texte in (("le prompt photo", own_part(s.image_prompt)),
+                          ("l'animation", s.animation_prompt)):
+            fautes = _couleur_mal_posee(texte)
+            if fautes:
+                out.append(Problem("COULEUR", s.slug,
+                                   f"{ou} pose la couleur de l'energie sur une piece "
+                                   f"mecanique : « {fautes[0]} »",
+                                   f"Shot {s.id}: yellow and orange mark the electrical path "
+                                   f"only — the cells, the high-voltage cable, the inverter, "
+                                   f"the windings. A tyre, a spring, a brake, a rim or the "
+                                   f"bodywork are grey: no current runs through them, so a "
+                                   f"glow there teaches nothing."))
     return out
 
 
