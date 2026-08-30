@@ -1,1 +1,1 @@
-Ce mouvement est transmis aux roues, faisant avancer la voiture.
+Ce signal est converti pour transmettre la musique.

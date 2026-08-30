@@ -1,26 +1,26 @@
-# Fonctionnement d'une voiture électrique
+# Fonctionnement des écouteurs sans fil
 
 24 secondes · 6 plans
 
 ## Script
 
-Une voiture électrique utilise de l'énergie stockée pour se déplacer silencieusement. L'énergie de la batterie alimente le moteur, qui transforme l'électricité en mouvement. Ce mouvement est transmis aux roues, faisant avancer la voiture. Lors du freinage, le système récupère l'énergie perdue. Cette énergie est renvoyée vers la batterie, prolongeant l'autonomie. Ainsi, chaque partie joue un rôle clé dans l'efficacité de la voiture.
+Les écouteurs sans fil sont indispensables au quotidien. Un signal Bluetooth est capté par les écouteurs. Ce signal est converti pour transmettre la musique. L'énergie est fournie par une batterie rechargeable interne. Dans le boîtier, les écouteurs se rechargent automatiquement grâce à un flux d'énergie. Un amplificateur transforme le signal en son pour vos oreilles.
 
 ## Visual bible
 
 À réutiliser dans **chaque** image. Les couleurs ont un sens fixe.
 
-- **main subject** : electric car energy system
-- **characters objects** : battery, electric motor, transmission, wheels
-- **vehicle** : modern dark/black electric sedan
-- **colors** : yellow/orange for energy, blue for battery, green for recovery, grey for mechanical components
+- **main subject** : modern dark near-black wireless earbud
+- **characters objects** : signal emitter, battery, amplifier
+- **vehicle** : N/A
+- **colors** : blue, yellow/orange, grey, green
 - **environment** : dark premium studio
-- **materials** : high-end car with realistic detailed materials
+- **materials** : translucent, high-grade plastic
 - **lighting** : cinematic blue and white lighting
-- **camera** : dynamic with subtle tracking
-- **style 3d** : technical semi-cutaway view
-- **realism** : photorealistic
-- **invisible phenomena** : electricity represented by yellow/orange flow
+- **camera** : various angles to understand internal systems
+- **style 3d** : premium 3D engineering visualization
+- **realism** : high realistic detail
+- **invisible phenomena** : Bluetooth signal as pulsing blue waves, electricity as yellow/orange flow
 
 ## Contrôle qualité
 
@@ -36,204 +36,204 @@ Une voiture électrique utilise de l'énergie stockée pour se déplacer silenci
 
 ## Plan 01 — 4s
 
-**Voix** : Une voiture électrique utilise de l'énergie stockée pour se déplacer silencieusement.
+**Voix** : Les écouteurs sans fil sont indispensables au quotidien.
 
-**Fonction** : introduce the concept of stored energy in the car
+**Fonction** : Introduce the concept of wireless earbuds and their importance.
 
-**Élément pédagogique** : battery cells pulsating with yellow light to represent stored energy
+**Élément pédagogique** : earbud design
 
-**Intention de mouvement** : `energy_storage`
+**Intention de mouvement** : `reveal`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : energy stored within the battery
-2. **physical element** : battery pack
-3. **secondary elements** : other battery cells
-4. **visual behavior** : pulsating yellow light
-5. **animation movement** : energy pulse moving between cells
-6. **camera position** : close up on the battery to show the energy flow clearly
-7. **composition** : battery in the center, pulsating light visible throughout
+1. **information** : Introduction to wireless earbuds and their design importance.
+2. **physical element** : wireless earbud
+3. **secondary elements** : internal LED light
+4. **visual behavior** : spread of light highlighting design
+5. **animation movement** : internal LED and surface light spreading
+6. **camera position** : centered on earbud
+7. **composition** : close-up framing
 
 ### Prompt image
 
 ```
-A technical semi-cutaway view of a modern dark electric sedan centered on the battery pack. The battery cells are visible and the main subject, emitting a soft pulsing yellow light to indicate stored energy. Camera is positioned to focus clearly on the battery area. The environment is a dark premium studio with cinematic blue and white lighting. Materials are high-end, realistic, and detailed, emphasizing the premium finish of the car. Photorealistic premium 3D engineering visualization, the same modern dark near-black electric sedan in technical semi-cutaway view, translucent ghosted bodywork with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A close-up semi-cutaway view of a modern dark near-black wireless earbud, highlighting its sleek design and semi-visible internal structure. The camera is positioned to clearly show the contours and design. The materials are translucent and high-grade plastic. The environment is a dark premium studio with cinematic blue and white lighting, enhancing the high-end appearance. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud in technical semi-cutaway view, translucent ghosted shell with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible micro-electronics and acoustics, clearly visible electronic and acoustic components, cinematic depth of field, high contrast, premium high-end product commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Yellow-orange energy pulses travel progressively from one battery cell to the next, glowing softly to depict stored energy. As the energy reaches the cell, it briefly illuminates, showing the activation. The rest of the vehicle remains static, with the camera performing a subtle lateral movement to visually follow the pulsation.
+A subtle pulse of internal LED light moves across the earbud, followed by an organic spread of soft light across its surface indicating functionality.
 ```
 
 ---
 
 ## Plan 02 — 4s
 
-**Voix** : L'énergie de la batterie alimente le moteur, qui transforme l'électricité en mouvement.
+**Voix** : Un signal Bluetooth est capté par les écouteurs.
 
-**Fonction** : explain how battery energy powers the motor
+**Fonction** : Explain how Bluetooth signals enable wireless functionality.
 
-**Élément pédagogique** : yellow flow traveling from battery to motor
+**Élément pédagogique** : Bluetooth signal
 
 **Intention de mouvement** : `energy_transfer`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : battery energy powers the motor
-2. **physical element** : electric motor
-3. **secondary elements** : high-voltage cables, battery
-4. **visual behavior** : yellow energy flow
-5. **animation movement** : continuous yellow flow travelling from battery to motor
-6. **camera position** : angle to see the flow path clearly
-7. **composition** : battery to motor with flow emphasized
+1. **information** : Bluetooth signal enables wireless operation.
+2. **physical element** : smartphone and earbud icons
+3. **secondary elements** : pulsing blue signal
+4. **visual behavior** : blue waves represent Bluetooth connection
+5. **animation movement** : signal traveling and lighting circuitry
+6. **camera position** : show full path from device to earbud
+7. **composition** : wider view to capture signal path
 
 ### Prompt image
 
 ```
-The framing captures the energy path between the battery and the electric motor. The battery pack is clearly visible on one side with high-voltage cables leading to the motor on the other side. The yellow-orange electrical energy stream is vivid within the cables to the motor. The environment's cinematic lighting highlights the energy flow, and materials are high-end with detailed mechanic visualization. Camera captures the full energy transfer path from the battery to the motor. Photorealistic premium 3D engineering visualization, the same modern dark near-black electric sedan in technical semi-cutaway view, translucent ghosted bodywork with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A semi-cutaway view of a modern dark near-black wireless earbud receiving a pulsing blue wave, representing a Bluetooth signal from a smartphone. The materials are translucent and high-grade plastic. The camera is wide and positioned to capture both the earbud and a smartphone icon at a distance. The environment is a dark premium studio with cinematic blue and white lighting. The earbud captures these waves indicating wireless connection. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud in technical semi-cutaway view, translucent ghosted shell with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible micro-electronics and acoustics, clearly visible electronic and acoustic components, cinematic depth of field, high contrast, premium high-end product commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Animate the yellow-orange energy stream moving continuously from the battery through the high-voltage cables toward the electric motor. As the energy reaches the motor, subtle electrical pulses appear inside it. The camera performs a subtle tracking movement along the energy path.
+Pulsing blue waves travel from the smartphone to the earbud, causing the internal circuitry to sequentially light up as the signal progresses through it.
 ```
 
 ---
 
 ## Plan 03 — 4s
 
-**Voix** : Ce mouvement est transmis aux roues, faisant avancer la voiture.
+**Voix** : Ce signal est converti pour transmettre la musique.
 
-**Fonction** : show the conversion of electrical energy to mechanical movement
+**Fonction** : Demonstrate how signals carry music to earbuds.
 
-**Élément pédagogique** : motor activates transmission, causing wheel rotation
+**Élément pédagogique** : Signal conversion to music
 
-**Intention de mouvement** : `mechanical_rotation`
+**Intention de mouvement** : `energy_flow`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : conversion of energy to mechanical movement
-2. **physical element** : transmission system
-3. **secondary elements** : motor, wheels
-4. **visual behavior** : rotating gears
-5. **animation movement** : gears turning, driving wheels
-6. **camera position** : to see rotation transfer to wheels
-7. **composition** : motor to transmission to wheel movement
+1. **information** : Signal to music conversion inside the earbud.
+2. **physical element** : internal electronics
+3. **secondary elements** : blue signal waves
+4. **visual behavior** : electronics light up with signal's arrival
+5. **animation movement** : sequential lighting of components
+6. **camera position** : close-up inside the earbud
+7. **composition** : focused on internal transformation
 
 ### Prompt image
 
 ```
-A technical view of the car's transmission system connected to the motor. The motor, positioned center-left, is linked to the gears of the transmission system. Yellow-orange energy enters the motor, while the rotation of internal components is visible. Wheels are at the far end, directly driven by the transmission. The environment is a dark premium studio. Materials are realistic high-end. Lighting highlights the rotational mechanics and energy flow. Camera is positioned to ensure visibility of the energy entering the motor and the subsequent rotation of gears driving the wheels. Photorealistic premium 3D engineering visualization, the same modern dark near-black electric sedan in technical semi-cutaway view, translucent ghosted bodywork with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A close-up semi-cutaway view inside a modern dark near-black wireless earbud showing internal components like a microprocessor lighting up as blue waves, representing a Bluetooth signal, hit it. The camera is positioned to focus on the transmission of the signal and the activation of its internals. The materials are translucent and high-grade plastic. The environment is a dark premium studio with cinematic blue and white lighting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud in technical semi-cutaway view, translucent ghosted shell with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible micro-electronics and acoustics, clearly visible electronic and acoustic components, cinematic depth of field, high contrast, premium high-end product commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-As the yellow-orange energy from the motor reaches the transmission, visible mechanical rotation begins. The gears turn progressively, synchronized with the energy flow, finally moving the wheels. Driven by the rotations and energy transfer, the camera tracks these transformations to focus on the interaction between elements.
+As blue signal waves reach the microprocessor, it lights up in sequence showing the conversion to music. Simultaneously, a soft vibration is depicted across components to represent the music generation.
 ```
 
 ---
 
 ## Plan 04 — 4s
 
-**Voix** : Lors du freinage, le système récupère l'énergie perdue.
+**Voix** : L'énergie est fournie par une batterie rechargeable interne.
 
-**Fonction** : explain energy recovery during braking
+**Fonction** : Illustrate how battery supplies power to earbud.
 
-**Élément pédagogique** : green energy flow from wheels back to battery
+**Élément pédagogique** : battery power
 
-**Intention de mouvement** : `regenerative_braking`
+**Intention de mouvement** : `energy_storage`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : energy recovery in braking
-2. **physical element** : wheels
-3. **secondary elements** : motor, battery
-4. **visual behavior** : reversing green energy flow
-5. **animation movement** : flow from wheels to battery
-6. **camera position** : angle emphasizing the reverse flow
-7. **composition** : wheels to battery with reverse emphasis
+1. **information** : Battery as energy source for earbuds.
+2. **physical element** : battery compartment
+3. **secondary elements** : yellow pulsing light
+4. **visual behavior** : pulsing light represents energy storage
+5. **animation movement** : energy pulses flowing along the battery
+6. **camera position** : focus on battery section
+7. **composition** : centered on battery dynamics
 
 ### Prompt image
 
 ```
-The car's wheels and electric motor are under focus, illustrating regenerative braking. The wheels, center-lower, show a green energy flow reversing back towards the motor and subsequently the battery. Digital visual cues signify the capturing of energy. The environment is a dark premium studio, matching the continuity. Materials are realistic high-end. Lighting highlights the green energy flow to emphasize the direction of recovery. Camera is positioned to capture the reversal of energy movement clearly, showing the path from wheels to battery. Framing ensures focus remains on the process of energy reversal. Photorealistic premium 3D engineering visualization, the same modern dark near-black electric sedan in technical semi-cutaway view, translucent ghosted bodywork with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A close-up semi-cutaway view of a modern dark near-black wireless earbud's battery compartment, emitting a soft pulsing yellow light indicating stored energy. The translucent shell allows for clear visibility of the battery. The camera is positioned to clearly show the battery section. The materials are translucent and high-grade plastic. The environment is a dark premium studio with cinematic blue and white lighting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud in technical semi-cutaway view, translucent ghosted shell with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible micro-electronics and acoustics, clearly visible electronic and acoustic components, cinematic depth of field, high contrast, premium high-end product commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Green energy flow now visibly moves from the wheels back to the motor and battery. As the energy reverses, the internal components respond with minor adjustments to energy direction, ensuring coordinated movements. Highlight the reversal with clear direction and speed, as the camera subtly follows the return path.
+Yellow-orange energy pulses travel from the battery to powering nodes inside the earbud, synchronizing the internal processes like LED lighting up intermittently driven by this flow.
 ```
 
 ---
 
 ## Plan 05 — 4s
 
-**Voix** : Cette énergie est renvoyée vers la batterie, prolongeant l'autonomie.
+**Voix** : Dans le boîtier, les écouteurs se rechargent automatiquement grâce à un flux d'énergie.
 
-**Fonction** : demonstrate energy returning to extend range
+**Fonction** : Show automatic recharging in the case.
 
-**Élément pédagogique** : green energy re-entering battery cells
+**Élément pédagogique** : charging process
 
-**Intention de mouvement** : `energy_storage`
+**Intention de mouvement** : `energy_transfer`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : energy stored extends range
-2. **physical element** : battery pack
-3. **secondary elements** : battery cells
-4. **visual behavior** : green energy entering cells
-5. **animation movement** : cells lighting up sequentially
-6. **camera position** : close on the battery with green energy
-7. **composition** : battery focus with energy flow emphasis
+1. **information** : Earbud charging from the case.
+2. **physical element** : charging case and earbuds
+3. **secondary elements** : yellow/orange energy flow
+4. **visual behavior** : continuous flow from case to earbuds
+5. **animation movement** : flow of energy from case to earbud
+6. **camera position** : wide view capturing both case and earbuds
+7. **composition** : demonstrates energy transfer in rest position
 
 ### Prompt image
 
 ```
-Focus returns to the battery pack, now visualizing the entrance of green energy into the cells. The battery becomes the primary subject, illustrating energy being stored. Each cell lights up sequentially in a soft green pulse as energy flows into the pack. Environment matches the dark premium studio with realistic high-end materials. Camera is close to show the energy entering and being stored clearly. Framing centers the battery with emphasis on energy flow. Photorealistic premium 3D engineering visualization, the same modern dark near-black electric sedan in technical semi-cutaway view, translucent ghosted bodywork with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A semi-cutaway view showing modern dark near-black wireless earbuds at rest in their charging case, with a translucent shell illustrating the yellow/orange energy flow from the case into each earbud. The camera is positioned to capture the full case with earbuds, including the battery area clearly visible within the shell. The materials are translucent and high-grade plastic. The environment is a dark premium studio with cinematic blue and white lighting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud in technical semi-cutaway view, translucent ghosted shell with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible micro-electronics and acoustics, clearly visible electronic and acoustic components, cinematic depth of field, high contrast, premium high-end product commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Green energy travels into the battery cells, lighting them up in sequence. As each cell charges, the subtle green glow progresses. The cells pulse in response to the energy flow, showing active charging and returning energy to the system.
+Yellow-orange energy flows continuously from the case into the earbuds, charging them. After they are fully charged, small LEDs in the earbuds light up to indicate status, synchronized with the battery charge flow.
 ```
 
 ---
 
 ## Plan 06 — 4s
 
-**Voix** : Ainsi, chaque partie joue un rôle clé dans l'efficacité de la voiture.
+**Voix** : Un amplificateur transforme le signal en son pour vos oreilles.
 
-**Fonction** : summarize unified systems enhancing car efficiency
+**Fonction** : Explain signal to sound transformation via amplifier.
 
-**Élément pédagogique** : full energy cycle with component interaction
+**Élément pédagogique** : amplification process
 
 **Intention de mouvement** : `cause_effect`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : interaction of components enhances efficiency
-2. **physical element** : battery pack
-3. **secondary elements** : motor, transmission, wheels
-4. **visual behavior** : flow of yellow and green energy
-5. **animation movement** : unidirectional flow cycles
-6. **camera position** : wide to capture full system interaction
-7. **composition** : complete system view with flow emphasized
+1. **information** : Amplifier converts signal to sound waves.
+2. **physical element** : internal amplifier
+3. **secondary elements** : sound wave representation
+4. **visual behavior** : amplifier lighting up with wave pulsations
+5. **animation movement** : pulsations depicting sound generation
+6. **camera position** : focused on the amplifier section
+7. **composition** : shows conversion process effect
 
 ### Prompt image
 
 ```
-A wide semi-cutaway view encapsulating the electric car's complete system. Focus on the battery pack, with all major components, the electric motor, transmission, and wheels, visible in their roles. Small yellow and green arrows subtly indicate the two-way flow of energy. The environment is consistent with the dark premium studio, using realistic high-end materials. Positioning is above, highlighting energy transfer from battery to motor to transmission and wheels. Lighting highlights the chain from battery to wheels showing energy pathways. Camera is wide to capture full system interaction with high depth of field. Framing ensures a clear directionality from battery to components and briefly motions back. Photorealistic premium 3D engineering visualization, the same modern dark near-black electric sedan in technical semi-cutaway view, translucent ghosted bodywork with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A detailed semi-cutaway of a modern dark near-black wireless earbud focusing on its internal amplifier, which receives the pulsing blue signal and converts it into colorful wave-like pulsations depicting sound waves. The camera is positioned to highlight the amplifier section, with close-up framing. The materials are translucent and high-grade plastic. The environment is a dark premium studio with cinematic blue and white lighting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud in technical semi-cutaway view, translucent ghosted shell with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible micro-electronics and acoustics, clearly visible electronic and acoustic components, cinematic depth of field, high contrast, premium high-end product commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Subtle coordinated animation shows one-directional energy flow from battery to motor, through transmission to wheels and briefly displays recovery from wheels back to battery. Yellow/orange flow signifies power usage, and camera tracks this flow smoothly, ensuring clear directionality without looping.
+The internal amplifier lights up as it converts signal into sound waves, which spread across surrounding components. This synchronized energy conversion is accompanied by vibration to illustrate sound emission.
 ```
 
 ---

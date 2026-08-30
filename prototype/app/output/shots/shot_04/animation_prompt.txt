@@ -1,1 +1,1 @@
-Green energy flow now visibly moves from the wheels back to the motor and battery. As the energy reverses, the internal components respond with minor adjustments to energy direction, ensuring coordinated movements. Highlight the reversal with clear direction and speed, as the camera subtly follows the return path.
+Yellow-orange energy pulses travel from the battery to powering nodes inside the earbud, synchronizing the internal processes like LED lighting up intermittently driven by this flow.

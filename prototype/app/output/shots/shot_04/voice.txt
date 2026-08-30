@@ -1,1 +1,1 @@
-Lors du freinage, le système récupère l'énergie perdue.
+L'énergie est fournie par une batterie rechargeable interne.

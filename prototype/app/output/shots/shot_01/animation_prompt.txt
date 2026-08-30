@@ -1,1 +1,1 @@
-Yellow-orange energy pulses travel progressively from one battery cell to the next, glowing softly to depict stored energy. As the energy reaches the cell, it briefly illuminates, showing the activation. The rest of the vehicle remains static, with the camera performing a subtle lateral movement to visually follow the pulsation.
+A subtle pulse of internal LED light moves across the earbud, followed by an organic spread of soft light across its surface indicating functionality.

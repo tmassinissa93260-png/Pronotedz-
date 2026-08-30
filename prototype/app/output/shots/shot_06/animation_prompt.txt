@@ -1,1 +1,1 @@
-Subtle coordinated animation shows one-directional energy flow from battery to motor, through transmission to wheels and briefly displays recovery from wheels back to battery. Yellow/orange flow signifies power usage, and camera tracks this flow smoothly, ensuring clear directionality without looping.
+The internal amplifier lights up as it converts signal into sound waves, which spread across surrounding components. This synchronized energy conversion is accompanied by vibration to illustrate sound emission.

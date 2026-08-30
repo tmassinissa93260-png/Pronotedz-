@@ -1,1 +1,1 @@
-Green energy travels into the battery cells, lighting them up in sequence. As each cell charges, the subtle green glow progresses. The cells pulse in response to the energy flow, showing active charging and returning energy to the system.
+Yellow-orange energy flows continuously from the case into the earbuds, charging them. After they are fully charged, small LEDs in the earbuds light up to indicate status, synchronized with the battery charge flow.
