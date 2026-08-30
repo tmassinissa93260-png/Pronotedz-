@@ -1,0 +1,16 @@
+{
+  "shot_id": 3,
+  "measured_duration": 5.208,
+  "content": "The images show a transparent view of a vehicle's front section focusing on the motor. Bright yellow/orange streams are visible within the motor area, suggesting an electricity flow.",
+  "framing": "The camera is positioned at a three-quarters view from the front-left of the vehicle, capturing both the motor and a part of the front wheel.",
+  "movement": "There is no visible movement of electricity flow or rotor spin across the frames; the images are static.",
+  "quality": "The images are sharp and clear with no visible artefacts. The frames seem stable and well-rendered.",
+  "voice_match": "There is a partial match as the energy streams suggest power input, but the rotor does not visibly start or spin as per the narration.",
+  "pedagogical_elements": [
+    "electricity flow entering the motor"
+  ],
+  "defects": [
+    "lack of rotor spin, static frames, not showing motion"
+  ],
+  "matches_plan": false
+}

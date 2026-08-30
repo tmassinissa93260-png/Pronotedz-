@@ -4,23 +4,23 @@
 
 ## Script
 
-Imaginez un monde silencieux où chaque voiture est électrique. La batterie, c'est le cœur, elle envoie de l'énergie à l'inverseur. L'inverseur transforme ce courant pour nourrir le moteur. Le moteur reçoit cette énergie et fait tourner les roues. Lorsque vous freinez, l'énergie est récupérée et renvoyée à la batterie. Ce cycle rend les voitures électriques efficaces et respectueuses de l'environnement.
+Imaginons un monde où les voitures roulent silencieusement, sans bruit de moteur. L'énergie commence son voyage dans la batterie, illuminant les cellules. Ensuite, elle se déplace le long des câbles, activant efficacement le moteur électrique. Le moteur tourne les roues par la transmission, provoquant le mouvement du véhicule. Lors du freinage, l'énergie est récupérée et elle revient dans la batterie. C'est ainsi qu'une voiture électrique fonctionne efficacement, intégrant toutes ces étapes.
 
 ## Visual bible
 
 À réutiliser dans **chaque** image. Les couleurs ont un sens fixe.
 
-- **main subject** : modern dark electric sedan
-- **characters objects** : battery, inverter, motor, wheels
-- **vehicle** : dark/black electric sedan
-- **colors** : yellow/orange for energy, blue for battery, green for regeneration, gray for mechanical parts
-- **environment** : dark premium studio
-- **materials** : realistic detailed materials
-- **lighting** : cinematic blue and white lighting
-- **camera** : cinematic depth of field, high contrast
-- **style 3d** : technical semi-cutaway view
-- **realism** : photorealistic premium 3D
-- **invisible phenomena** : luminous yellow/orange energy streams
+- **main subject** : Electric car mechanism
+- **characters objects** : Battery, cables, electric motor, transmission, wheels
+- **vehicle** : Modern electric car, dark blue body
+- **colors** : Jaune/orange for energy, bleu for battery, gris for mechanical components, vert for energy recovery
+- **environment** : Dark premium studio
+- **materials** : Realistic car materials, metal, plastic, rubber
+- **lighting** : Cinematic blue and white lighting with high contrast
+- **camera** : Cinematic camera angles with subtle depth of field
+- **style 3d** : Photorealistic premium 3D engineering visualization
+- **realism** : High
+- **invisible phenomena** : Electricity and energy as yellow/orange flows, regenerative braking as green flow
 
 ## Contrôle qualité
 
@@ -36,204 +36,204 @@ Imaginez un monde silencieux où chaque voiture est électrique. La batterie, c'
 
 ## Plan 01 — 4s
 
-**Voix** : Imaginez un monde silencieux où chaque voiture est électrique.
+**Voix** : Imaginons un monde où les voitures roulent silencieusement, sans bruit de moteur.
 
-**Fonction** : Introduces the concept of electric cars in a captivating way.
+**Fonction** : Introduces the concept of silent operation in electric cars, showing engine presence.
 
-**Élément pédagogique** : electric car in a quiet, futuristic environment
+**Élément pédagogique** : Electric car with visible motor, indicating silent movement
 
-**Intention de mouvement** : `reveal`
+**Intention de mouvement** : `cause_effect`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : electric cars operate silently
-2. **physical element** : electric sedan
-3. **secondary elements** : none
-4. **visual behavior** : subtle lighting reflections
-5. **animation movement** : reflective lighting
-6. **camera position** : side view capturing the entire car
-7. **composition** : framed to include the full silhouette of the car
+1. **information** : Electric cars operate silently, motor presence.
+2. **physical element** : Electric car motor
+3. **secondary elements** : Wheels, environment
+4. **visual behavior** : Smooth, silent forward motion
+5. **animation movement** : The car travels forward quietly, driven by turning wheels
+6. **camera position** : A full side view, showing the entire car and its serene motion
+7. **composition** : Car centered, environment secondary, to highlight quiet operation
 
 ### Prompt image
 
 ```
-The modern dark electric sedan in a technical semi-cutaway view is set in a dark premium studio environment, with cinematic blue and white lighting. The car is presented in full length, showing its sleek silhouette. Photorealistic premium 3D engineering visualization, its outer bodywork rendered as a translucent ghosted shell.
+A modern electric car viewed in a semi-cutaway style, showing it silently moving on a smooth road with the electric motor visible. The camera is positioned to show the internal components clearly, highlighting the motor. The car's body, made of metal and plastic materials, glistens under cinematic blue and white lighting. Wheels are visible, showing synchronization with movement. Photorealistic premium 3D engineering visualization, modern car in technical semi-cutaway view, realistic bodywork with internal components visible where the explanation needs them, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The car remains static, while the lighting creates subtle reflections on the bodywork to emphasize the futuristic aspect.
+Animate the car softly moving forward with silent operation. The visible motor remains static as a silent power source while the wheels turn slightly, showing their synchronized role in car propulsion. Camera follows the serene movement.
 ```
 
 ---
 
 ## Plan 02 — 4s
 
-**Voix** : La batterie, c'est le cœur, elle envoie de l'énergie à l'inverseur.
+**Voix** : L'énergie commence son voyage dans la batterie, illuminant les cellules.
 
-**Fonction** : Explains the battery as the power source sending energy to the inverter.
+**Fonction** : Shows how the battery initiates the energy flow.
 
-**Élément pédagogique** : yellow/orange energy flow leaving the battery
+**Élément pédagogique** : Battery cells lighting up with energy flow
 
 **Intention de mouvement** : `energy_flow`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : the battery sends energy to the inverter
-2. **physical element** : battery pack
-3. **secondary elements** : inverter, energy flow
-4. **visual behavior** : yellow/orange energy stream
-5. **animation movement** : energy stream moving towards inverter
-6. **camera position** : close-up highlighting battery and initial path
-7. **composition** : battery on left, energy flow moving right
+1. **information** : The battery initiates energy flow.
+2. **physical element** : Battery cells
+3. **secondary elements** : Internal battery structure
+4. **visual behavior** : Pulsing yellow/orange light
+5. **animation movement** : Light pulses progressively through battery cells, illuminating them
+6. **camera position** : Close-up of battery pack emphasizing the cells
+7. **composition** : Battery centered with visible linked cells lighting up
 
 ### Prompt image
 
 ```
-A close-up of the battery pack inside the electric sedan, accompanied by a bright yellow-orange energy stream moving towards the inverter. The battery cells are highlighted in blue, with the translucent car body providing context. Photorealistic premium 3D engineering visualization, the same modern dark electric sedan in technical semi-cutaway view, its outer bodywork rendered as a translucent ghosted shell — a thin dark glass skin that keeps the silhouette readable while the internal components are clearly seen THROUGH it, brightly lit against the darker body so the mechanism reads first and the shell second, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+Close-up technical view of a modern electric car's battery pack in a semi-cutaway. The camera focuses on the battery cells made of metal casing and internal conducting materials. These cells are visibly connected, with pulsing yellow/orange lights representing stored energy. The cinematic blue lighting enhances the appearing energy glow inside the cells. Photorealistic premium 3D engineering visualization, modern car in technical semi-cutaway view, realistic bodywork with internal components visible where the explanation needs them, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Yellow-orange energy streams visibly exit the battery in a clear directional path towards the inverter. The battery remains static while the energy flow creates the movement.
+Animate the yellow/orange energy light pulsing from cell to cell, simulating energy flow initiation through the battery. As the lights move, they illuminate the next row of cells, creating a continuous circuit of energy flow within the battery.
 ```
 
 ---
 
 ## Plan 03 — 4s
 
-**Voix** : L'inverseur transforme ce courant pour nourrir le moteur.
+**Voix** : Ensuite, elle se déplace le long des câbles, activant efficacement le moteur électrique.
 
-**Fonction** : Shows how the inverter converts the energy current for motor use.
+**Fonction** : Illustrates energy transfer from battery to motor.
 
-**Élément pédagogique** : transformation in the inverter to power the motor
+**Élément pédagogique** : Yellow energy stream travels along cables to motor
 
 **Intention de mouvement** : `energy_transfer`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : the inverter converts energy for the motor
-2. **physical element** : inverter
-3. **secondary elements** : motor, energy flow
-4. **visual behavior** : conversion of energy depicted as a change in flow
-5. **animation movement** : energy transforming and traveling
-6. **camera position** : medium shot focused on inverter
-7. **composition** : centered on inverter, leading to motor
+1. **information** : Energy travels through cables to activate the motor.
+2. **physical element** : Cables
+3. **secondary elements** : Battery, electric motor
+4. **visual behavior** : Yellow energy stream
+5. **animation movement** : Energy flow moves along cables, activating motor rotors
+6. **camera position** : Wide enough to include both battery and motor connected by cables
+7. **composition** : Battery on one side, motor on other, with cables linking them
 
 ### Prompt image
 
 ```
-Focus on the inverter unit within the vehicle, with the yellow-orange energy stream visibly change its quality before moving onward to the motor. Inverter elements are highlighted to signify the transformation taking place. Photorealistic premium 3D engineering visualization, the same modern dark electric sedan in technical semi-cutaway view, its outer bodywork rendered as a translucent ghosted shell — a thin dark glass skin that keeps the silhouette readable while the internal components are clearly seen THROUGH it, brightly lit against the darker body so the mechanism reads first and the shell second, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+View showing both battery and electric motor with connecting high-voltage cables in the semi-cutaway car. The camera, positioned to get an isometric view, captures battery and motor ends with visible, sleek metal casing. Cinematic blue lighting brightens the conduits as a bright yellow/orange energy stream visually travels along the cables from battery to motor, activating it. Photorealistic premium 3D engineering visualization, modern car in technical semi-cutaway view, realistic bodywork with internal components visible where the explanation needs them, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Display the energy flow smoothly transitioning inside the inverter, visually indicating conversion. The converted energy flow then moves towards the motor.
+Animate the yellow/orange electrical energy stream traveling directionally from the battery along the cables to the electric motor. As the energy reaches the motor, it activates the rotor, causing it to turn and signal the motor's engagement driven by that energy arrival.
 ```
 
 ---
 
 ## Plan 04 — 4s
 
-**Voix** : Le moteur reçoit cette énergie et fait tourner les roues.
+**Voix** : Le moteur tourne les roues par la transmission, provoquant le mouvement du véhicule.
 
-**Fonction** : Demonstrates how the motor uses the energy to rotate the wheels.
+**Fonction** : Explains how the motor's rotation is transmitted to the wheels.
 
-**Élément pédagogique** : energy entering motor and creating wheel rotation
+**Élément pédagogique** : Electromagnetic rotation of the motor and mechanical rotation of wheels
 
 **Intention de mouvement** : `mechanical_rotation`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : motor uses energy to rotate wheels
-2. **physical element** : motor
-3. **secondary elements** : wheels, energy flow
-4. **visual behavior** : energy entry and mechanical rotation
-5. **animation movement** : energy flows in, rotor and wheels turn
-6. **camera position** : angled to show motor and wheels together
-7. **composition** : motor on left, wheels on right, connected by flow
+1. **information** : The motor transmits power to the wheels via the transmission.
+2. **physical element** : Motor and transmission
+3. **secondary elements** : Wheels
+4. **visual behavior** : Electromagnetic and mechanical rotation
+5. **animation movement** : Rotation of motor, transmission gears, driving wheels, and vehicle
+6. **camera position** : Focused on motor and transmission with clear connection to wheels
+7. **composition** : Motor in foreground, transmission connecting to visible wheels
 
 ### Prompt image
 
 ```
-The view shifts to the motor of the electric sedan, with the yellow-orange energy flow entering and causing the rotor to turn. The wheels are shown engaged in rotation, powered by the motor. Photorealistic premium 3D engineering visualization, the same modern dark electric sedan in technical semi-cutaway view, its outer bodywork rendered as a translucent ghosted shell — a thin dark glass skin that keeps the silhouette readable while the internal components are clearly seen THROUGH it, brightly lit against the darker body so the mechanism reads first and the shell second, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+Emphasizing the electric motor with its rotor and stator, the camera in a cross-sectional side view. Positioned to capture the ongoing transition from motor to wheels. As the motor, made from steel, receives the yellow/orange energy, it rotates. The rotation of gears within the steel transmission is captured, mechanically connecting to the wheels, then activating the vehicle's forward momentum. Cinematic blue and white lighting highlights moving parts. Full sequence visualized in one frame. Photorealistic premium 3D engineering visualization, modern car in technical semi-cutaway view, realistic bodywork with internal components visible where the explanation needs them, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Animate the energy flow entering the motor, triggering the rotor to rotate. This, in turn, results in the wheels beginning to spin.
+Animate the yellow/orange energy flow entering the motor, causing rotor rotation that engages the transmission system, activating wheels. As the motor rotates, wheels follow, visibly synchronizing motor action to vehicle motion. Fixed camera captures full mechanical operation.
 ```
 
 ---
 
 ## Plan 05 — 4s
 
-**Voix** : Lorsque vous freinez, l'énergie est récupérée et renvoyée à la batterie.
+**Voix** : Lors du freinage, l'énergie est récupérée et elle revient dans la batterie.
 
-**Fonction** : Demonstrates regenerative braking and energy recovery.
+**Fonction** : Demonstrates energy recovery during braking.
 
-**Élément pédagogique** : energy reversal during braking shown by green flow
+**Élément pédagogique** : Reversing energy flow during regenerative braking
 
 **Intention de mouvement** : `regenerative_braking`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : energy recovery through regenerative braking
-2. **physical element** : wheels
-3. **secondary elements** : motor, battery, energy flow
-4. **visual behavior** : green energy flow indicating recovery
-5. **animation movement** : wheels slow, energy flow reverses
-6. **camera position** : aligned with flow reversal path
-7. **composition** : wheels foreground, motor, then battery
+1. **information** : Energy is recovered and sent back to the battery during braking.
+2. **physical element** : Transmission and wheels
+3. **secondary elements** : Battery
+4. **visual behavior** : Reversing green energy flow
+5. **animation movement** : Energy travels backward from wheels to battery during braking
+6. **camera position** : Centered on wheels and transmission path to battery
+7. **composition** : Wheels as starting point with the flow ending at battery
 
 ### Prompt image
 
 ```
-Showcase the wheels slowing with a green energy flow reversing from the motor back towards the battery. The battery receives the flow, now highlighted with green energy. Photorealistic premium 3D engineering visualization, the same modern dark electric sedan in technical semi-cutaway view, its outer bodywork rendered as a translucent ghosted shell — a thin dark glass skin that keeps the silhouette readable while the internal components are clearly seen THROUGH it, brightly lit against the darker body so the mechanism reads first and the shell second, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+Highlight the wheel and transmission during braking in a semi-cutaway view of the modern car. The camera captures a broad sectional view positioned to emphasize braking mechanics and energy recovery path. Green energy flow reverses direction from the wheels, through braking systems, with metallic and carbon-fiber constructed parts visible, and back into the battery. This setup includes a clear view of the battery, visibly showing the energy's destination. Subject: Electric car mechanism. Environment: Dark premium studio. Materials: Realistic car materials, metal, plastic, rubber. Photorealistic premium 3D engineering visualization, modern car in technical semi-cutaway view, realistic bodywork with internal components visible where the explanation needs them, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Animate the wheels decelerating and the directional energy flow reversing in green, visibly traveling back to the battery pack.
+Animate the green flow of regenerative energy starting from the wheels, reversing through the braking and transmission systems, and traveling back to the battery. As the brake engages, this energy flow synchronizes with the deceleration, visually demonstrating energy recuperation and return to the battery.
 ```
 
 ---
 
 ## Plan 06 — 4s
 
-**Voix** : Ce cycle rend les voitures électriques efficaces et respectueuses de l'environnement.
+**Voix** : C'est ainsi qu'une voiture électrique fonctionne efficacement, intégrant toutes ces étapes.
 
-**Fonction** : Summarizes the process showing efficiency and sustainability.
+**Fonction** : Summarizes how all systems work in harmony for efficient operation.
 
-**Élément pédagogique** : combined yellow and green flows symbolize efficiency
+**Élément pédagogique** : Complete energy system working synchronously
 
-**Intention de mouvement** : `cause_effect`
+**Intention de mouvement** : `energy_flow`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : electric cars offer efficiency and eco-friendliness
-2. **physical element** : entire car
-3. **secondary elements** : energy flows
-4. **visual behavior** : combined energy flow representation
-5. **animation movement** : flows encircle and pulse suggestively
-6. **camera position** : frontal view of entire car
-7. **composition** : centered view with energy flows surrounding
+1. **information** : The car's systems work together for efficient operation.
+2. **physical element** : Full drivetrain system
+3. **secondary elements** : Energy flows linking components
+4. **visual behavior** : Harmonious yellow/orange flow
+5. **animation movement** : Continuous energy circuit linking drivetrain components
+6. **camera position** : Wide sweep showing component interaction, from above
+7. **composition** : Complete energy chain within car layout, depicting all elements
 
 ### Prompt image
 
 ```
-Display the entire electric sedan from a frontal angle. Yellow-orange and green energy flows encircle the car, symbolizing complete system efficiency and eco-friendliness. Photorealistic premium 3D engineering visualization, the same modern dark electric sedan in technical semi-cutaway view, its outer bodywork rendered as a translucent ghosted shell — a thin dark glass skin that keeps the silhouette readable while the internal components are clearly seen THROUGH it, brightly lit against the darker body so the mechanism reads first and the shell second, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A comprehensive view of the entire electric drivetrain system. The camera, positioned above, encompasses battery, motor, transmission, and wheels. Yellow/orange energy flows cyclically represent active operations. Blue lighting on vehicle highlights integrated systems, and the metallic and plastic components complete the drivetrain visual unitedly. Photorealistic premium 3D engineering visualization, modern car in technical semi-cutaway view, realistic bodywork with internal components visible where the explanation needs them, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible automotive mechanics, clearly visible electrical and mechanical components, cinematic depth of field, high contrast, premium high-end car commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Both yellow and green energy flows encircle and pulse around the car, visually suggesting energy efficiency and environmental conservation.
+Synchronize the movement of yellow/orange energy circulating through the battery, motor, transmission systems, and wheels, creating a continuous loop. The flow continues to activate the motor, resulting in mechanical rotation of the transmission and wheels. Together, all components highlight the car's efficient operation in a synchronized energy cycle.
 ```
 
 ---
@@ -242,5 +242,5 @@ Both yellow and green energy flows encircle and pulse around the car, visually s
 
 1. Génère chaque **image** avec l'outil de ton choix, à partir du prompt image.
 2. Génère chaque **animation** à partir de ton image, avec le prompt animation.
-3. Dépose les vidéos dans `prototype/app/output/videos` nommées `shot_01.mp4`, `shot_02.mp4`…
+3. Dépose les vidéos dans `/home/runner/work/Pronotedz-/Pronotedz-/prototype/app/output/videos` nommées `shot_01.mp4`, `shot_02.mp4`…
 4. Reviens : `analyser-videos`, puis `timeline`, puis `montage`.

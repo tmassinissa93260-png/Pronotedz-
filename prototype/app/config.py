@@ -30,7 +30,7 @@ load_dotenv(APP_DIR / ".env")
 
 SUBJECT = "Fonctionnement d'une voiture électrique"
 DURATION = 16
-SHOT_COUNT = 20
+SHOT_COUNT = 4
 
 # True  : on s'arrete apres avoir colle le prompt du SHOT 01 (preuve de boucle).
 # False : les 4 plans s'enchainent automatiquement.
@@ -40,10 +40,8 @@ TEST_MODE = True
 # Combien de fois, au plus, on renvoie ses erreurs a OpenAI pour correction.
 MAX_REPAIR_ATTEMPTS = int(env("MAX_REPAIR_ATTEMPTS", "4"))
 
-# LA LIMITE DE SORTIE. Sans elle, gpt-4o s'arrete a 4096 jetons — or un
-# storyboard conforme a quatre plans en pese environ 4300. Le modele tenait
-# le contrat en RENDANT MOINS DE PLANS : un seul au run 23, deux au run 21.
-# Ce n'etait ni un caprice ni une regle mal ecrite, c'etait un plafond.
+# Sans limite explicite, gpt-4o s'arrete a 4096 jetons de sortie, et le modele
+# tient le contrat en RENDANT MOINS DE PLANS — un seul au run 23, deux au 21.
 MAX_OUTPUT_TOKENS = int(env("MAX_OUTPUT_TOKENS", "16000"))
 
 # ---------------------------------------------------------------------------
@@ -90,10 +88,6 @@ def cerveau() -> str:
 # ---------------------------------------------------------------------------
 
 OUTPUT_DIR = Path(env("OUTPUT_DIR") or APP_DIR / "output")
-
-# Ce que tu as deja refuse. Le fichier est versionne : ecris-y une ligne,
-# elle vaut pour tous les runs suivants. C'est la memoire du systeme.
-FEEDBACK_FILE = Path(env("FEEDBACK_FILE") or ROOT_DIR / "feedback.md")
 PROJECT_FILE = OUTPUT_DIR / "project.json"
 STATUS_FILE = OUTPUT_DIR / "status.json"
 PASTE_SHEET = OUTPUT_DIR / "prompts_a_coller.txt"
@@ -113,21 +107,7 @@ def shot_dir(shot_id: int) -> Path:
     return SHOTS_DIR / f"shot_{shot_id:02d}"
 
 def ensure_dirs(shot_count: int = SHOT_COUNT) -> None:
-    """Les dossiers des plans, et EUX SEULS.
-
-    Un run plus court que le precedent laissait les dossiers en trop : la
-    branche a porte un shot_05 et un shot_06 du run a six plans alors que le
-    storyboard courant n'en avait que quatre. Les prompts perimes restaient
-    lisibles et copiables, mais ils appartenaient a une autre video.
-    """
-    import shutil
-
     for path in (OUTPUT_DIR, SHOTS_DIR, SCREENSHOT_DIR):
         path.mkdir(parents=True, exist_ok=True)
     for i in range(1, shot_count + 1):
         shot_dir(i).mkdir(parents=True, exist_ok=True)
-
-    for reste in sorted(SHOTS_DIR.glob("shot_*")):
-        numero = reste.name.removeprefix("shot_")
-        if reste.is_dir() and numero.isdigit() and int(numero) > shot_count:
-            shutil.rmtree(reste)

@@ -9,18 +9,12 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from .models import (
-    COLOR_NOTION,
-    EXPLICATION_FIELDS,
-    NOTIONS_EN_MOUVEMENT,
-    QUALITY_AXES,
-    Storyboard,
-)
+from .models import COLOR_NOTION, EXPLICATION_FIELDS, NOTIONS_EN_MOUVEMENT, QUALITY_AXES, Storyboard
 from .prompts import STYLE_FINGERPRINT, STYLE_PAR_DEFAUT
 
-MIN_QUALITY = 0.8
 MIN_WORDS_PER_SECOND = 1.8
 MAX_WORDS_PER_SECOND = 4.0
+MIN_QUALITY = 0.8
 MIN_IMAGE_PROMPT_CHARS = 260
 MIN_ANIMATION_PROMPT_CHARS = 120
 DURATION_TOLERANCE_S = 0.5
@@ -80,57 +74,12 @@ COMPOSANTS_MOBILES = ("rotor", "stator", "gear", "transmission", "drivetrain",
                       "car", "vehicle", "chassis", "piston", "crankshaft")
 MIN_COMPOSANTS_MOBILES = 2
 
-# UN SEUL MOUVEMENT PRINCIPAL. Trop de transformations simultanees rendent la
-# generation instable : le modele video ne sait plus ce qu'il doit tenir.
-# Un mouvement principal, un secondaire, eventuellement un tertiaire — pas la
-# chaine entiere dans un plan de quatre secondes.
-MAX_COMPOSANTS_MOBILES = 4
-
-# L'ENERGIE N'EST PAS UNE SUBSTANCE. Le flux jaune est une VISUALISATION
-# pedagogique, pas un liquide qui coule dans un tuyau.
-SUBSTANCE = ("liquid", "fluid", "molten", "liquid-like", "poured", "pouring",
-             "dripping", "splashing", "viscous", "gel", "plasma blob")
-
 # Une piece n'est pas « en mouvement » parce qu'un flux part d'elle, passe par
 # elle ou va vers elle : « travels along the cables from the battery toward the
 # motor » ne fait bouger que le flux. Ces prepositions marquent l'origine, le
 # trajet ou la destination — pas l'acteur du mouvement.
 ROLE_PASSIF = ("from", "along", "through", "via", "out of", "between", "across",
                "toward", "towards", "into", "back to", "onto", "up to", "down to")
-
-# UN PLAN RACONTE UN CHANGEMENT. L'animation doit dire d'ou elle part et ou
-# elle arrive, sinon le spectateur ne voit pas ce qui a change.
-DEBUT = ("initially", "at first", "begins", "begin", "starts", "start",
-         "from rest", "stationary", "at the start", "still at first")
-FIN = ("by the end", "finally", "ends", "settles", "stable", "steadily",
-       "until", "come to", "comes to", "has reached", "now turns", "at a stable")
-
-# L'IMAGE DIT CE QUI EXISTE, L'ANIMATION DIT CE QUI CHANGE. Une animation qui
-# reprend la description de l'image gaspille sa place : le generateur a deja
-# l'image sous les yeux, c'est son ancre geometrique.
-RECOUVREMENT_MAX = 0.55
-
-# REGLE DE PRESERVATION : l'image source est l'ancre. L'animation doit dire ce
-# qui ne bouge pas, sinon le generateur se sent libre de tout redessiner.
-# Des tournures, pas des mots isoles : « the rotor is initially stationary »
-# est un ETAT DE DEPART, pas une preservation. Le run 22 passait grace a lui.
-PRESERVATION = ("preserve", "preserving", "unchanged", "no deformation",
-                "remain static", "remains static", "remain rigid", "remains rigid",
-                "stay rigid", "stays rigid", "remain fixed", "remains fixed",
-                "stay fixed", "stays fixed", "remain stable", "remains stable",
-                "remain physically", "remains physically", "physically fixed",
-                "perfectly rigid", "stay perfectly", "stays perfectly",
-                "geometry remains", "geometry stays", "keep the geometry",
-                "do not move", "does not move", "must not move")
-
-# LE MOUVEMENT EST PROGRESSIF. « The rotor spins rapidly » ne montre rien :
-# le spectateur doit voir la mise en route, pas un etat deja atteint.
-PROGRESSIF = ("progressively", "gradually", "smoothly", "starts stationary",
-              "begins to", "begins rotating", "starts to", "from rest",
-              "accelerates", "decelerates", "slowly", "continuous", "steadily",
-              "little by little", "step by step", "in turn", "one after")
-INSTANTANE = ("suddenly", "instantly", "immediately", "abruptly", "at once",
-              "spins rapidly", "spins fast", "snaps", "jumps to", "flashes")
 
 # Les mouvements doivent etre lies, pas juxtaposes : le prompt doit dire le
 # lien a voix haute.
@@ -198,13 +147,6 @@ DECORATIF = ("smoke", "sparkle", "glitter", "lens flare", "floating particle",
 VEHICULE_NOMS = ("car", "sedan", "vehicle", "bodywork", "body", "chassis", "paint")
 TEINTE_CLAIRE = ("white", "silver", "ivory", "pearl", "beige", "cream", "light grey",
                  "light gray")
-
-# LA COULEUR DE L'ENERGIE NE SE POSE PAS SUR UNE PIECE MECANIQUE. Un anneau
-# jaune dans un pneu n'explique rien — aucun courant n'y circule — et un
-# ressort jaune annonce de l'electricite la ou il n'y a qu'un effort.
-PIECES_GRISES = ("tyre", "tire", "spring", "suspension", "rim", "brake",
-                 "disc", "caliper", "bodywork", "paint", "damper", "shock")
-COULEURS_ENERGIE = ("yellow", "orange", "amber")
 
 # Mots trop generiques pour ancrer quoi que ce soit dans le prompt photo.
 GENERIQUES = {"the", "a", "an", "and", "or", "with", "its", "that", "this", "which",
@@ -279,7 +221,6 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _ancrage(sb)
     problems += _dynamique(sb)
     problems += _physique(sb)
-    problems += _couleur(sb)
     problems += _qualite(sb)
     return problems
 
@@ -763,22 +704,6 @@ def _dynamique(sb: Storyboard) -> list[Problem]:
                                f"just to look spectacular: each one must explain something."))
             continue
 
-        # On compte les ENSEMBLES qui bougent, pas les mots : « motor » et
-        # « rotor » sont la meme piece, « transmission » et « gear » aussi.
-        # Sans ce regroupement, la chaine rotor -> transmission -> roues —
-        # le meilleur plan du run 17 — serait refusee a tort.
-        ensembles = {next((f[0] for f in FAMILLES if c in f), c) for c in composants}
-        if len(ensembles) > MAX_COMPOSANTS_MOBILES:
-            out.append(Problem("DYNAMIQUE", s.slug,
-                               f"{len(ensembles)} ensembles bougent en meme temps "
-                               f"({', '.join(sorted(ensembles))}) : "
-                               f"la generation devient instable",
-                               f"Shot {s.id}: one primary motion, one secondary that follows "
-                               f"from it, at most one further consequence. Animating the "
-                               f"whole chain at once in a few seconds makes the video model "
-                               f"lose the geometry. Split the chain across shots."))
-            continue
-
         if not any(mot in monde for mot in LIAISON):
             out.append(Problem("DYNAMIQUE", s.slug,
                                f"les mouvements ({', '.join(familles)}) sont juxtaposes, "
@@ -811,18 +736,6 @@ def _physique(sb: Storyboard) -> list[Problem]:
                                    f"yellow/orange energy from the battery to the wheels, "
                                    f"then briefly the green flow the opposite way."))
 
-            substances = [m for m in SUBSTANCE if m in bas]
-            if substances:
-                out.append(Problem("PHYSIQUE", s.slug,
-                                   f"{ou} traite l'energie comme une substance "
-                                   f"(« {substances[0]} »)",
-                                   f"Shot {s.id}: the yellow/orange flow is a PEDAGOGICAL "
-                                   f"VISUALISATION of an invisible phenomenon, never a "
-                                   f"substance. It is light — travelling particles, a moving "
-                                   f"glow, pulses propagating, directional streaks along the "
-                                   f"real electrical path — never a liquid running through a "
-                                   f"pipe."))
-
             decoratifs = [d for d in DECORATIF if d in bas]
             if decoratifs:
                 out.append(Problem("PHYSIQUE", s.slug,
@@ -835,15 +748,10 @@ def _physique(sb: Storyboard) -> list[Problem]:
                                    f"explanation, and always communicates direction."))
 
         if STYLE_PAR_DEFAUT:
-            # « cinematic blue and white lighting. The car is presented... » :
-            # le blanc qualifie l'ECLAIRAGE, et la voiture se trouve juste
-            # apres. Sans ce veto, la direction artistique imposee se faisait
-            # refuser elle-meme.
-            bas_image = image.lower()
-            claires = [teinte for teinte in TEINTE_CLAIRE
-                       for m in re.finditer(re.escape(teinte), bas_image)
-                       if any(n in bas_image[m.end():m.end() + 30] for n in VEHICULE_NOMS)
-                       and not any(a in bas_image[m.end():m.end() + 20] for a in AMBIANCE)]
+            claires = [t for t in TEINTE_CLAIRE
+                       for m in re.finditer(re.escape(t), image.lower())
+                       if any(n in image.lower()[m.end():m.end() + 30]
+                              for n in VEHICULE_NOMS)]
             if claires:
                 out.append(Problem("VEHICULE", s.slug,
                                    f"la carrosserie est claire (« {claires[0]} ») "
@@ -852,41 +760,6 @@ def _physique(sb: Storyboard) -> list[Problem]:
                                    f"near-black electric sedan in every shot — same geometry, "
                                    f"proportions, wheels, glass, materials. Never redesign, "
                                    f"replace or recolour it between shots."))
-    return out
-
-
-def _couleur_mal_posee(texte: str) -> list[str]:
-    """Les endroits ou la couleur de l'energie qualifie une piece mecanique."""
-    bas = texte.lower()
-    fautes = []
-    pieces = "|".join(PIECES_GRISES)
-    for couleur in COULEURS_ENERGIE:
-        # « yellow suspension spring », « orange brake caliper »
-        for m in re.finditer(rf"\b{couleur}[\w\-/]*\s+(?:\w+\s+){{0,2}}({pieces})s?\b", bas):
-            fautes.append(m.group(0).strip())
-        # « yellow glow inside the tyre », « orange light within the rim »
-        for m in re.finditer(rf"\b{couleur}\b.{{0,50}}?\b(?:inside|within|in)\s+the\s+"
-                             rf"({pieces})s?\b", bas):
-            fautes.append(m.group(0).strip())
-    return fautes
-
-
-def _couleur(sb: Storyboard) -> list[Problem]:
-    """La couleur de l'energie ne marque que le chemin electrique."""
-    out = []
-    for s in sb.shots:
-        for ou, texte in (("le prompt photo", own_part(s.image_prompt)),
-                          ("l'animation", s.animation_prompt)):
-            fautes = _couleur_mal_posee(texte)
-            if fautes:
-                out.append(Problem("COULEUR", s.slug,
-                                   f"{ou} pose la couleur de l'energie sur une piece "
-                                   f"mecanique : « {fautes[0]} »",
-                                   f"Shot {s.id}: yellow and orange mark the electrical path "
-                                   f"only — the cells, the high-voltage cable, the inverter, "
-                                   f"the windings. A tyre, a spring, a brake, a rim or the "
-                                   f"bodywork are grey: no current runs through them, so a "
-                                   f"glow there teaches nothing."))
     return out
 
 

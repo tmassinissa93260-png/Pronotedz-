@@ -7,7 +7,6 @@ que la voix explique.
 
 from __future__ import annotations
 
-import json
 import os
 
 from .models import MOTION_INTENTS, NOTION_SENS
@@ -21,9 +20,9 @@ from .models import MOTION_INTENTS, NOTION_SENS
 
 _DEFAUT = (
     "Photorealistic premium 3D engineering visualization, the same modern dark "
-    "electric sedan in technical semi-cutaway view, translucent ghosted bodywork with "
-    "the internal components brightly visible through it, "
-    "dark premium studio environment, cinematic blue and white "
+    "near-black electric sedan in technical "
+    "semi-cutaway view, translucent ghosted bodywork with the internal components "
+    "clearly visible through it, dark premium studio environment, cinematic blue and white "
     "lighting, realistic detailed materials, physically credible automotive mechanics, "
     "clearly visible electrical and mechanical components, cinematic depth of field, high "
     "contrast, premium high-end car commercial rendering, vertical 9:16 composition, no "
@@ -67,24 +66,6 @@ it, and you keep that representation identical for the whole video.
 
 You answer with a single valid JSON object and nothing else: no markdown, no
 code fence, no commentary."""
-
-
-def retours() -> str:
-    """Ce que l'auteur a deja refuse, relu a chaque run.
-
-    Une regle apprise une fois ne doit pas etre reapprise : le fichier est
-    versionne, et son contenu entre dans le prompt.
-    """
-    from . import config
-
-    if not config.FEEDBACK_FILE.is_file():
-        return ""
-    texte = config.FEEDBACK_FILE.read_text(encoding="utf-8").strip()
-    if not texte:
-        return ""
-    return ("\n\n── WHAT THE AUTHOR HAS ALREADY REJECTED ──\n"
-            "These are corrections made on earlier videos. They are not suggestions.\n"
-            f"{texte}\n")
 
 
 def storyboard_user(subject: str, duration: float, shot_count: int) -> str:
@@ -268,11 +249,6 @@ the opposite way.
 {color_block()}
 Never use a different colour for the same notion. Never reuse a colour for a
 different notion.
-AND THE ENERGY COLOUR MARKS ONLY THE ELECTRICAL PATH: the cells, the
-high-voltage cable, the inverter, the windings. Never a tyre, a spring, a
-brake, a rim or the bodywork. A glowing ring inside a tyre teaches nothing —
-no current runs there — and a yellow suspension spring says "electricity"
-where there is only mechanical force. Those parts are grey.
 
 ── VISUALISING THE INVISIBLE ──
 Electricity, current, magnetic field, energy, signal, power transfer, energy
@@ -470,54 +446,7 @@ concretely, e.g. yellow energy flow entering the stator windings",
     "animation_potential": 0.9
   }}
 }}
-"shots" holds exactly {shot_count} objects, ids 1 to {shot_count}.{retours()}"""
-
-
-def correction_user(charge: dict, consignes: str, partielle: bool) -> str:
-    """La demande de correction, sans renvoyer tout l'historique.
-
-    Empiler les tours dans la conversation faisait grossir la requete d'une
-    copie entiere du storyboard a chaque aller-retour : a vingt plans, le
-    troisieme tour demandait 41 000 jetons pour une limite de 30 000 par
-    minute. Chaque tour repart donc d'un message neuf, et quand tous les
-    manquements sont locaux a des plans, seuls ces plans sont renvoyes.
-    """
-    # REGLE DE REGENERATION : une mauvaise animation vient souvent d'une image
-    # mal concue. On ne rafistole pas des mots, on refait la conception.
-    a_refaire = any(c in consignes for c in ("must come from the physical",
-                                             "one movement is not enough",
-                                             "never introduce an important object",
-                                             "first frame of the animation",
-                                             "explains nothing"))
-    redesign = ("\nWhere a shot is rejected for its motion or for what its image "
-                "fails to show, do NOT patch a few words: go back to the motion "
-                "design, then to the image design, then rewrite BOTH prompts. A "
-                "weak animation usually comes from a badly designed image.\n"
-                if a_refaire else "")
-    quoi = ("the shots listed below, and nothing else" if partielle
-            else "the storyboard below")
-    forme = ('{"shots": [ ... the corrected shots, same shape, same ids ... ]}'
-             if partielle else "the SAME JSON shape you were given, corrected")
-    return f"""\
-An automatic validator rejected {quoi}. Fix every point listed, and return only
-JSON: {forme}.
-Do not explain, do not apologise, do not add fields, do not renumber anything.
-{redesign}
-
-WHAT TO FIX
-{consignes}
-
-REMINDERS THAT STILL APPLY
-Every image_prompt ends with this sentence, copied VERBATIM:
-{STYLE_DIRECTIVE}
-The image is the first frame of its animation and already contains every
-element the animation moves. The animation carries at least two coordinated
-movements, says the causal link out loud, and states where it starts and where
-it ends. A camera move is never the main motion. The energy is yellow/orange,
-directional, and never runs in a loop.
-
-WHAT YOU MUST CORRECT
-{json.dumps(charge, ensure_ascii=False, indent=1)}"""
+"shots" holds exactly {shot_count} objects, ids 1 to {shot_count}."""
 
 
 # ---------------------------------------------------------------------------

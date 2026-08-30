@@ -27,8 +27,7 @@ ANIMATION = (
     "from the battery pack toward the motor. As the pulses reach the stator windings, the "
     "central rotor progressively begins to rotate. The cells, the busbars and the chassis "
     "stay perfectly rigid. The camera performs a slow secondary macro tracking move. "
-    "Preserve exact geometry, proportions and materials. No deformation, no floating parts. "
-    "By the end, the rotor turns steadily and the pack is visibly emptier."
+    "Preserve exact geometry, proportions and materials. No deformation, no floating parts."
 )
 
 VOIX = [

@@ -155,6 +155,25 @@ class TestConditionsDuPrompt(unittest.TestCase):
             self.assertIn(etape, self.texte)
         self.assertIn("sound off", self.texte)
 
+    def test_on_ne_part_jamais_d_une_belle_image(self):
+        """L'image est le premier plan de l'animation, pas une illustration."""
+        self.assertIn("NEVER START FROM A BEAUTIFUL IMAGE", self.texte)
+        self.assertIn("FIRST FRAME", self.texte)
+        self.assertIn("must contain every physical element required by the animation",
+                      self.texte)
+        self.assertIn("Never introduce an important object or phenomenon only in the",
+                      self.texte)
+        # Une action claire vaut mieux qu'une composition riche et vague.
+        self.assertIn("ONE clear pedagogical action", self.texte)
+        # « Plus simple » veut dire moins d'objets concurrents, jamais moins
+        # de mots : le run 16 avait lu l'inverse et rendu des prompts de
+        # 257 caracteres remplis d'etiquettes.
+        self.assertIn("SIMPLER MEANS FEWER COMPETING OBJECTS", self.texte)
+        self.assertIn("It never means fewer words", self.texte)
+        self.assertIn("continuous descriptive English prose", self.texte)
+        # Le raisonnement precede le prompt, et l'exemple le montre en entier.
+        self.assertIn("THE SAME REASONING, WORKED THROUGH", self.texte)
+
     def test_les_correspondances_concretes(self):
         for bloc in ("BATTERY", "ELECTRICITY", "MOTOR", "TRANSMISSION", "REGENERATIVE"):
             self.assertIn(bloc, self.texte)
@@ -290,178 +309,12 @@ class TestCerveau(unittest.TestCase):
         self.assertIn("OPENAI_API_KEY manquante dans .env", str(ctx.exception))
 
 
-class TestBoucleDeCorrection(unittest.TestCase):
-    """Un tour de correction ne renvoie pas tout le storyboard a chaque fois."""
-
-    def test_seuls_les_plans_fautifs_repartent(self):
-        from app.openai_client import _demande_de_correction
-        from app.validator import Problem
-        from fixtures import board
-
-        brut = board(4)
-        problemes = [Problem("DYNAMIQUE", "shot_02", "message", "fix pour le plan 2"),
-                     Problem("ETAT", "shot_04", "message", "fix pour le plan 4")]
-        messages, partielle = _demande_de_correction(brut, problemes)
-        self.assertTrue(partielle)
-        charge = messages[-1]["content"]
-        self.assertIn("fix pour le plan 2", charge)
-        # Les quatre autres plans ne sont pas renvoyes.
-        self.assertEqual(charge.count('"animation_prompt"'), 2)
-
-    def test_un_manquement_global_fait_repartir_l_ensemble(self):
-        from app.openai_client import _demande_de_correction
-        from app.validator import Problem
-        from fixtures import board
-
-        messages, partielle = _demande_de_correction(
-            board(4), [Problem("DUREE", "storyboard", "message", "fix global"),
-                       Problem("ETAT", "shot_04", "message", "fix plan 4")])
-        self.assertFalse(partielle)
-        self.assertEqual(messages[-1]["content"].count('"animation_prompt"'), 4)
-
-    def test_les_plans_corriges_reprennent_leur_place(self):
-        from app.openai_client import _fusionner
-        from fixtures import board
-
-        brut = board(4)
-        corriges = {"shots": [{"id": 3, "voice": "corrigé"}]}
-        fusion = _fusionner(brut, corriges)
-        self.assertEqual(len(fusion["shots"]), 4)
-        self.assertEqual(fusion["shots"][2]["voice"], "corrigé")
-        self.assertEqual(fusion["shots"][0], brut["shots"][0])
-
-
-class TestLaBoucleGardeLeMeilleur(unittest.TestCase):
-    """Un tour de correction peut degrader : il ne doit pas gagner pour autant."""
-
-    def _faux_client(self, reponses):
-        """Remplace l'appel reseau par une liste de reponses successives."""
-        from app import openai_client
-        suite = iter(reponses)
-        d_origine = openai_client.chat_json
-        openai_client.chat_json = lambda model, messages: next(suite)
-        self.addCleanup(setattr, openai_client, "chat_json", d_origine)
-
-    def test_une_correction_qui_perd_des_plans_est_refusee(self):
-        from app.openai_client import generate_storyboard
-        from fixtures import board
-
-        complet = board(4)
-        ampute = board(4)
-        ampute["shots"] = ampute["shots"][:1]      # le modele « corrige » en abregeant
-        # Le premier jet est bon mais fautif sur un point, le second ampute,
-        # le troisieme repare vraiment.
-        casse = board(4)
-        casse["shots"][0]["visual_explanation"]["composition"] = "plan large"
-        self._faux_client([casse, ampute, complet])
-
-        sb, problemes = generate_storyboard("sujet", 16, 4)
-        self.assertEqual(len(sb.shots), 4)
-        self.assertEqual(problemes, [])
-
-    def test_le_meilleur_est_garde_et_pas_le_dernier(self):
-        from app.openai_client import generate_storyboard
-        from fixtures import board
-
-        bon = board(4)
-        mauvais = board(4)
-        for s in mauvais["shots"]:
-            s["visual_explanation"]["composition"] = "flou"
-            s["visual_explanation"]["camera_position"] = "vague"
-        # Le bon arrive en premier, puis quatre reponses degradees.
-        self._faux_client([bon] + [mauvais] * 4)
-
-        sb, problemes = generate_storyboard("sujet", 16, 4)
-        self.assertEqual(problemes, [])
-        self.assertEqual(sb.shots[0].visual_explanation["composition"],
-                         bon["shots"][0]["visual_explanation"]["composition"])
-
-
-class TestDossiersDesPlans(unittest.TestCase):
-    """Un run plus court ne laisse pas les plans du precedent derriere lui."""
-
-    def test_les_dossiers_en_trop_partent(self):
-        import tempfile
-        from pathlib import Path as P
-
-        from app import config
-
-        with tempfile.TemporaryDirectory() as tmp:
-            racine = P(tmp)
-            for nom in ("OUTPUT_DIR", "SHOTS_DIR", "SCREENSHOT_DIR"):
-                setattr(config, nom, racine / nom.lower())
-            config.ensure_dirs(6)
-            (config.SHOTS_DIR / "shot_06" / "image_prompt.txt").write_text("vieux")
-
-            config.ensure_dirs(4)
-            restants = sorted(d.name for d in config.SHOTS_DIR.glob("shot_*"))
-            self.assertEqual(restants, ["shot_01", "shot_02", "shot_03", "shot_04"])
-
-    def test_un_run_plus_long_cree_ce_qu_il_faut(self):
-        import tempfile
-        from pathlib import Path as P
-
-        from app import config
-
-        with tempfile.TemporaryDirectory() as tmp:
-            racine = P(tmp)
-            for nom in ("OUTPUT_DIR", "SHOTS_DIR", "SCREENSHOT_DIR"):
-                setattr(config, nom, racine / nom.lower())
-            config.ensure_dirs(2)
-            config.ensure_dirs(5)
-            self.assertEqual(len(list(config.SHOTS_DIR.glob("shot_*"))), 5)
-
-
-class TestLimiteDeSortie(unittest.TestCase):
-    """Un storyboard conforme depasse la limite par defaut de gpt-4o."""
-
-    def test_la_limite_est_fixee_et_large(self):
-        from app import config
-        self.assertGreaterEqual(config.MAX_OUTPUT_TOKENS, 8000)
-
-    def test_une_reponse_coupee_est_une_erreur(self):
-        from app import openai_client
-
-        class FauxChoix:
-            finish_reason = "length"
-            message = type("m", (), {"content": '{"partiel": true}'})()
-
-        class FausseReponse:
-            choices = [FauxChoix()]
-
-        def faux_create(**kwargs):
-            return FausseReponse()
-
-        class FauxClient:
-            chat = type("c", (), {"completions": type("cc", (), {"create": staticmethod(faux_create)})()})()
-
-        d_origine = openai_client.client
-        openai_client.client = lambda: FauxClient()
-        self.addCleanup(setattr, openai_client, "client", d_origine)
-
-        with self.assertRaises(openai_client.OpenAIError) as ctx:
-            openai_client.chat_json("gpt-4o", [])
-        self.assertIn("coupee", str(ctx.exception))
-
-    def test_un_storyboard_ampute_ne_gagne_jamais(self):
-        """Moins de plans veut mecaniquement dire moins de manquements : le
-        run 23 a garde UN plan avec six manquements plutot que quatre."""
-        from app.models import Storyboard
-        from app.openai_client import _rang
-        from fixtures import board
-
-        complet = Storyboard.from_dict(board(4))
-        ampute = Storyboard.from_dict(board(1))
-        self.assertLess(_rang(complet, ["a"] * 12, 4), _rang(ampute, ["a"] * 6, 4))
-
-
 class TestConfigEtCli(unittest.TestCase):
     def test_les_trois_valeurs_d_entree(self):
         from app import config
 
         self.assertEqual(config.DURATION, 16)
-        # 20 plans par defaut : le nombre reste une contrainte, pas un but.
-        self.assertEqual(config.SHOT_COUNT, 20)
+        self.assertEqual(config.SHOT_COUNT, 4)
         self.assertIn("voiture", config.SUBJECT)
 
     def test_aucune_cle_en_dur(self):

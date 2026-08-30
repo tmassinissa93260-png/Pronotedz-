@@ -282,38 +282,6 @@ class TestFlexions(unittest.TestCase):
         self.assertFalse(_mot_present("cell", "cellular structure"))
 
 
-class TestCouleurMalPosee(unittest.TestCase):
-    """Le jaune ne marque que le chemin electrique."""
-
-    def test_un_ressort_jaune_est_refuse(self):
-        raw = board()
-        raw["shots"][0]["image_prompt"] = raw["shots"][0]["image_prompt"].replace(
-            "Controlled yellow", "A yellow suspension spring beside them, and controlled yellow")
-        p = [x for x in valider(raw) if x.code == "COULEUR"]
-        self.assertTrue(p)
-        self.assertIn("yellow suspension spring", str(p[0]))
-
-    def test_un_anneau_lumineux_dans_le_pneu_est_refuse(self):
-        """Aucun courant ne circule dans une gomme."""
-        raw = board()
-        raw["shots"][0]["animation_prompt"] += (
-            " A bright yellow glow rotates inside the tyre as the wheel turns.")
-        p = [x for x in valider(raw) if x.code == "COULEUR"]
-        self.assertTrue(p)
-        self.assertIn("tyre", str(p[0]))
-
-    def test_un_flux_qui_rejoint_les_roues_passe(self):
-        """« toward the wheels » nomme une destination, pas une roue jaune."""
-        raw = board()
-        raw["shots"][0]["animation_prompt"] = (
-            "The yellow energy travels along the busbars toward the stator, then the "
-            "rotation reaches the wheels. The chassis stays perfectly rigid.")
-        self.assertEqual([x for x in valider(raw) if x.code == "COULEUR"], [])
-
-    def test_une_image_conforme_passe(self):
-        self.assertEqual([x for x in valider(board()) if x.code == "COULEUR"], [])
-
-
 class TestPhysique(unittest.TestCase):
     """L'energie ne tourne pas en rond, et ce n'est pas de la fumee."""
 

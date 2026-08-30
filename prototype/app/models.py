@@ -99,9 +99,7 @@ EXPLICATION_FIELDS = (
     "composition",          # 7. le cadre que ce mouvement exige
 )
 
-# Les axes du controle qualite. Une belle image ne rachete pas une mauvaise
-# note pedagogique : c'est pour cela que motion_quality et causal_clarity
-# comptent autant que visual_quality.
+# Les sept axes du controle qualite.
 QUALITY_AXES = (
     "narrative_quality",
     "visual_quality",
