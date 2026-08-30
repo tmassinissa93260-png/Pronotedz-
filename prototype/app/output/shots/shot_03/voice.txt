@@ -1,1 +1,1 @@
-En freinage, l'énergie est renvoyée vers la batterie.
+Cette énergie est ensuite acheminée vers le moteur par des câbles.
