@@ -16,3 +16,7 @@
   lighting. The generator never reads the bible, only the prompt.
 - A shot that only announces the subject, or only concludes it, wastes seconds
   that could carry a link of the mechanism.
+- The dark bodywork must stay translucent. A near-black opaque shell on a dark
+  studio hides exactly what the shot is meant to explain: render the outer body
+  as a thin ghosted glass skin, keep the silhouette readable, and light the
+  internal components brighter than the shell so the mechanism reads first.

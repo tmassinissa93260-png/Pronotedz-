@@ -21,9 +21,11 @@ from .models import MOTION_INTENTS, NOTION_SENS
 
 _DEFAUT = (
     "Photorealistic premium 3D engineering visualization, the same modern dark "
-    "near-black electric sedan in technical "
-    "semi-cutaway view, realistic bodywork with internal components visible where the "
-    "explanation needs them, dark premium studio environment, cinematic blue and white "
+    "electric sedan in technical semi-cutaway view, its outer bodywork rendered as a "
+    "translucent ghosted shell — a thin dark glass skin that keeps the silhouette "
+    "readable while the internal components are clearly seen THROUGH it, brightly lit "
+    "against the darker body so the mechanism reads first and the shell second, "
+    "dark premium studio environment, cinematic blue and white "
     "lighting, realistic detailed materials, physically credible automotive mechanics, "
     "clearly visible electrical and mechanical components, cinematic depth of field, high "
     "contrast, premium high-end car commercial rendering, vertical 9:16 composition, no "
