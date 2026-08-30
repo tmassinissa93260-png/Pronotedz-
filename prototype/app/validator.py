@@ -272,8 +272,6 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _ancrage(sb)
     problems += _dynamique(sb)
     problems += _physique(sb)
-    problems += _separation(sb)
-    problems += _progressif(sb)
     problems += _qualite(sb)
     return problems
 
@@ -841,61 +839,6 @@ def _physique(sb: Storyboard) -> list[Problem]:
                                    f"near-black electric sedan in every shot — same geometry, "
                                    f"proportions, wheels, glass, materials. Never redesign, "
                                    f"replace or recolour it between shots."))
-    return out
-
-
-def _separation(sb: Storyboard) -> list[Problem]:
-    """L'image decrit ce qui EXISTE, l'animation ce qui CHANGE."""
-    out = []
-    for s in sb.shots:
-        image = set(re.findall(r"[^\W\d_]+", own_part(s.image_prompt).lower(),
-                               re.UNICODE))
-        anim_mots = re.findall(r"[^\W\d_]+", s.animation_prompt.lower(), re.UNICODE)
-        utiles = [m for m in anim_mots if len(m) > 3 and m not in GENERIQUES]
-        if utiles:
-            recouvrement = sum(1 for m in utiles if m in image) / len(utiles)
-            if recouvrement > RECOUVREMENT_MAX:
-                out.append(Problem("SEPARATION", s.slug,
-                                   f"l'animation redit l'image a {recouvrement:.0%} "
-                                   f"au lieu de dire ce qui change",
-                                   f"Shot {s.id}: the image is the anchor and the generator "
-                                   f"already has it. Do not restate the scene — describe the "
-                                   f"transformation: what moves, in which direction, at what "
-                                   f"speed, what it causes, and what has changed by the end."))
-
-        if not any(mot in s.animation_prompt.lower() for mot in PRESERVATION):
-            out.append(Problem("SEPARATION", s.slug,
-                               "l'animation ne dit pas ce qui doit rester fixe",
-                               f"Shot {s.id}: the source image is the geometric anchor. Say "
-                               f"explicitly what must not move — the geometry, the "
-                               f"proportions, the vehicle identity, the components, the "
-                               f"materials — otherwise the generator feels free to redraw "
-                               f"the scene."))
-    return out
-
-
-def _progressif(sb: Storyboard) -> list[Problem]:
-    """La physique du mouvement : rien ne demarre instantanement."""
-    out = []
-    for s in sb.shots:
-        bas = s.animation_prompt.lower()
-
-        brusques = [m for m in INSTANTANE if m in bas]
-        if brusques:
-            out.append(Problem("PROGRESSION", s.slug,
-                               f"mouvement instantane (« {brusques[0]} »)",
-                               f"Shot {s.id}: movement is never instantaneous. Show it "
-                               f"starting: 'starts stationary, then progressively "
-                               f"accelerates into a smooth continuous rotation' — the "
-                               f"viewer must see the transition, not an end state."))
-
-        if not any(m in bas for m in PROGRESSIF):
-            out.append(Problem("PROGRESSION", s.slug,
-                               "l'animation ne dit pas que le mouvement s'installe",
-                               f"Shot {s.id}: say how the movement builds — progressively, "
-                               f"gradually, smoothly, from rest, accelerating, "
-                               f"decelerating. A movement already at full speed on the "
-                               f"first frame explains nothing."))
     return out
 
 

@@ -110,14 +110,6 @@ high contrast. The finish of a high-end car commercial. Vertical 9:16.
 CONTINUITY: the same car throughout — same silhouette, same colour, same
 proportions, same materials, same environment, same visual language.
 
-── THE TWO RULES ABOVE ALL OTHERS ──
-NEVER optimise only for the beauty of an image. Every image is designed as the
-FIRST STATE of an animated sequence. Every animation represents a physical or
-causal transformation the viewer can follow. A camera move alone is not an
-animation when a subject, a component or a phenomenon could move instead.
-Every shot must answer, visually: WHAT CHANGES during these few seconds, AND
-WHY DOES IT CHANGE?
-
 ── PART 1 — THE SCRIPT ──
 Write "script": the full narration, in French, as one continuous spoken text.
 It must:
@@ -131,8 +123,7 @@ It must:
 Each sentence must prepare or explain what the viewer is about to see.
 
 ── PART 2 — THE STORYBOARD ──
-Cut the script into exactly {shot_count} shots that follow the real order of
-the mechanism: each shot advances one step, and no shot exists just to
+Cut the script into exactly {shot_count} shots. A shot never exists just to
 reach {shot_count}. Each one earns its place by advancing understanding, and
 "educational_function" says in one sentence what the viewer understands after
 it that they did not understand before. Two shots never claim the same
@@ -212,11 +203,6 @@ questions IN ORDER, and only then write the prompts. Fill
   5. animation_movement WHICH movement will animate it
   6. camera_position    WHICH camera lets the viewer see all of that clearly
   7. composition        WHICH framing that movement requires
-
-── IS THIS IMAGE WORTH ANIMATING? ──
-Before you keep an image prompt, ask: does this image allow a pedagogically
-interesting animation? An image with nothing to move is a bad image — go back
-and redesign it around something that transforms.
 Write the image prompt only after those seven answers, and make it carry every
 element you just named. The viewer must understand how it works even with the
 sound off.
@@ -314,50 +300,11 @@ picture, and a generator reads it as noise.
 End it with this sentence, copied VERBATIM:
 {STYLE_DIRECTIVE}
 
-── SEPARATE THE IMAGE FROM THE ANIMATION ──
-The IMAGE PROMPT describes what EXISTS in the scene.
-The ANIMATION PROMPT describes what CHANGES in the scene.
-Do not restate the whole image inside the animation prompt: the image is the
-geometric anchor and the generator already has it in front of its eyes. Spend
-the animation prompt on transformation — what moves, in which direction, at
-what speed, what it causes, what has changed by the end.
-
-── THE PRESERVATION RULE ──
-For image-to-video, the source image is the anchor. Never ask for the scene to
-be rebuilt. Always say explicitly what must NOT move: the geometry, the
-proportions, the vehicle identity, the components, the materials, the
-perspective, the structure. Without that sentence the generator feels free to
-redraw everything.
-
-── CAMERA VOCABULARY ──
-When a camera move helps, name it precisely — dolly push-in, dolly pull-out,
-tracking shot, lateral tracking, orbit, arc shot, pan, tilt, crane, pedestal.
-Never "cinematic movement", "subtle animation" or "dynamic camera": those say
-nothing. And the camera never replaces the pedagogical action.
-
 ── PART 5 — THE ANIMATION PROMPT ──
-"animation_prompt", in English, written for THAT image, as continuous prose
-that carries these beats in this order:
-  INITIAL STATE     what is at rest, and where everything starts
-  TRIGGER           what sets the sequence off, and where
-  PRIMARY MOTION    the phenomenon being explained, moving
-  SECONDARY MOTION  what that movement causes in turn
-  MECHANICAL        the parts that respond, and how
-  CAMERA            a secondary move, following the information
-  CAUSAL RELATION   said out loud: this causes that, which causes that
-  FINAL STATE       what has changed by the last frame
-It must also say what stays perfectly still, the geometry to preserve, and the
-deformations forbidden.
-Worked example, a motor shot:
-  "The rotor is initially stationary. Yellow-orange electrical pulses enter
-  the motor windings and travel around the stator; as they arrive, the
-  electromagnetic activity intensifies and the rotor progressively
-  accelerates, and that rotation carries through into the drivetrain, which
-  begins turning in synchrony. The camera performs a slow tracking movement
-  following the energy path toward the rotor. The stator, the casing and the
-  chassis stay perfectly rigid. By the end, the rotor and the drivetrain turn
-  smoothly at a stable speed. No deformation, no invented parts, no arbitrary
-  camera zoom as the main movement."
+"animation_prompt", in English, written for THAT image. It must state: which
+element moves, in which direction, at what speed, along what path; the
+mechanical motion; the energy motion; the camera motion; what stays perfectly
+still; the geometry to preserve; the deformations forbidden.
 
 ── IMAGE → ANIMATION CORRESPONDENCE — non negotiable ──
 Every pedagogical element introduced in the image prompt MUST move in the
@@ -425,45 +372,6 @@ movement directly tied to the information the voice is telling.
          movement."  The electricity moves AND the camera follows the
          information.
 
-── THREE ANIMATIONS, RANKED ──
-INVALID — image: a battery. animation: "Slow zoom toward the battery."
-VALID — "The battery cells remain physically fixed. Blue energy illumination
-  propagates progressively from one group of cells to the next. Yellow-orange
-  energy pulses then begin exiting the battery through the visible
-  high-voltage connection. The camera performs a subtle controlled tracking
-  movement following the emerging energy path." It communicates the
-  transition from stored energy to active transfer.
-PREFERRED — "Yellow-orange energy pulses begin inside the battery and travel
-  directionally through the visible high-voltage cables. As the energy
-  reaches the motor, the windings illuminate progressively. The rotor begins
-  rotating slowly, then accelerates smoothly. The connected transmission
-  begins rotating in synchronisation. The camera performs a controlled
-  tracking movement following the energy path from battery to motor. The
-  vehicle geometry remains stable." It demonstrates a COMPLETE causal
-  sequence.
-Reach for that third level whenever the pedagogical content allows it. And
-never animate everything at once without logic: the causality appears
-progressively, one link setting off the next.
-
-── THE PHYSICS OF MOVEMENT ──
-Nothing starts instantaneously. Say how the movement builds: starts
-stationary, gradually accelerates, smoothly decelerates, continuous rotation,
-synchronised motion, constant direction.
-  WEAK:   "The rotor spins rapidly."
-  STRONG: "The rotor starts stationary, then progressively accelerates into a
-           smooth continuous rotation as electrical energy reaches the motor."
-A movement already at full speed on the first frame explains nothing: the
-viewer must see the transition.
-
-── THE CAMERA TEST ──
-For every shot ask: if I removed the camera movement entirely, would the
-viewer still understand the mechanism? If the answer is NO, the animation is
-not finished. The subject's movement explains the phenomenon; the camera only
-helps read it. And give the camera a reason: the energy travels left to
-right, so the camera tracks left to right; the car pulls away, so the camera
-follows at constant distance; the rotor turns, so a controlled arc reveals
-the rotation.
-
 ── MULTI-MOTION REQUIREMENT ──
 When it is physically relevant, an animation combines SEVERAL coherent
 movements. For an electric car:
@@ -512,9 +420,7 @@ narrative_quality, visual_quality, scientific_accuracy, voice_visual_alignment,
 visual_continuity, pedagogical_clarity, animation_potential.
 For every shot ask: "does the viewer understand the subject better thanks to
 this shot?" If the answer is no, REWRITE the shot before answering. Do not
-return a storyboard you scored below 0.8 on any axis. A good visual score
-never compensates for a poor pedagogical one: if animation_potential is low,
-redesign the shot rather than repolishing the image.
+return a storyboard you scored below 0.8 on any axis.
 
 ── ANSWER FORMAT ──
 Return only this JSON:
