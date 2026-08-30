@@ -1,1 +1,1 @@
-Yellow-orange energy flows continuously from the case into the earbuds, charging them. After they are fully charged, small LEDs in the earbuds light up to indicate status, synchronized with the battery charge flow.
+Upward-flowing green arrows beneath the wings animate to show increasing lift. As arrows intensify in rhythm, the wheels begin rotating to demonstrate motion, while they leave the ground, illustrating the lift surpassing weight. The articulated wheel rotation, together with intensified lifting forces, provides the primary animation movement.

@@ -1,26 +1,26 @@
-# Fonctionnement des écouteurs sans fil
+# Comment un avion arrive à décoller
 
 24 secondes · 6 plans
 
 ## Script
 
-Les écouteurs sans fil sont indispensables au quotidien. Un signal Bluetooth est capté par les écouteurs. Ce signal est converti pour transmettre la musique. L'énergie est fournie par une batterie rechargeable interne. Dans le boîtier, les écouteurs se rechargent automatiquement grâce à un flux d'énergie. Un amplificateur transforme le signal en son pour vos oreilles.
+Un avion décolle grâce à la poussée créée par ses moteurs. Les moteurs aspirent de l'air et le compressent. Ensuite, ils brûlent le carburant, générant une poussée vers l'arrière. Cette réaction propulse l'avion vers l'avant. Les ailes fournissent une portance en déviant l'air vers le bas. Cette portance dépasse le poids de l'avion, le soulevant du sol. Enfin, l'avion monte dans le ciel, équilibrant sa poussée et sa portance.
 
 ## Visual bible
 
 À réutiliser dans **chaque** image. Les couleurs ont un sens fixe.
 
-- **main subject** : modern dark near-black wireless earbud
-- **characters objects** : signal emitter, battery, amplifier
-- **vehicle** : N/A
-- **colors** : blue, yellow/orange, grey, green
-- **environment** : dark premium studio
-- **materials** : translucent, high-grade plastic
-- **lighting** : cinematic blue and white lighting
-- **camera** : various angles to understand internal systems
-- **style 3d** : premium 3D engineering visualization
-- **realism** : high realistic detail
-- **invisible phenomena** : Bluetooth signal as pulsing blue waves, electricity as yellow/orange flow
+- **main subject** : un avion de ligne moderne
+- **characters objects** : moteurs, ailes
+- **vehicle** : avion de ligne
+- **colors** : bleu, gris, jaune/orange pour l'énergie, vert pour la portance
+- **environment** : piste de décollage dans un aéroport
+- **materials** : métalliques réalistes
+- **lighting** : éclairage cinématographique bleu et blanc
+- **camera** : angles variés pour capturer différentes parties de l'avion
+- **style 3d** : visualisation d'ingénierie 3D premium photoréaliste
+- **realism** : très élevé avec détails précis
+- **invisible phenomena** : flux d'air représentés par des flèches lumineuses
 
 ## Contrôle qualité
 
@@ -36,204 +36,204 @@ Les écouteurs sans fil sont indispensables au quotidien. Un signal Bluetooth es
 
 ## Plan 01 — 4s
 
-**Voix** : Les écouteurs sans fil sont indispensables au quotidien.
+**Voix** : Un avion décolle grâce à la poussée créée par ses moteurs.
 
-**Fonction** : Introduce the concept of wireless earbuds and their importance.
+**Fonction** : Introduce the role of thrust in takeoff.
 
-**Élément pédagogique** : earbud design
+**Élément pédagogique** : yellow/orange thrust flow exiting the engines
 
-**Intention de mouvement** : `reveal`
+**Intention de mouvement** : `energy_flow`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Introduction to wireless earbuds and their design importance.
-2. **physical element** : wireless earbud
-3. **secondary elements** : internal LED light
-4. **visual behavior** : spread of light highlighting design
-5. **animation movement** : internal LED and surface light spreading
-6. **camera position** : centered on earbud
-7. **composition** : close-up framing
+1. **information** : Thrust generation from the engines
+2. **physical element** : Jet engines
+3. **secondary elements** : Runway, airliner body
+4. **visual behavior** : Yellow/orange flow exiting the engines
+5. **animation movement** : Flow moving backward from the engines
+6. **camera position** : Positioned to focus on the engines and airflow
+7. **composition** : Centered on engines with the runway visible
 
 ### Prompt image
 
 ```
-A close-up semi-cutaway view of a modern dark near-black wireless earbud, highlighting its sleek design and semi-visible internal structure. The camera is positioned to clearly show the contours and design. The materials are translucent and high-grade plastic. The environment is a dark premium studio with cinematic blue and white lighting, enhancing the high-end appearance. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud in technical semi-cutaway view, translucent ghosted shell with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible micro-electronics and acoustics, clearly visible electronic and acoustic components, cinematic depth of field, high contrast, premium high-end product commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A technical view of a modern dark near-black commercial airliner centrally positioned on a runway. The main focus is on the jet engines which emit a yellow/orange thrust flow to indicate the force propelling the aircraft. High-end materials reflect the cinematic blue and white lighting, emphasizing the thrust mechanism. The camera is set to clearly depict both the engines and the runway environment. Photorealistic premium 3D engineering visualization, the same modern dark near-black commercial airliner, technical semi-cutaway where the explanation needs it, translucent ghosted surfaces with the internal structure clearly visible through them, dark premium night runway and hangar environment, cinematic blue and white lighting, realistic detailed materials, physically credible aerodynamics and turbine mechanics, clearly visible airflow and mechanical components, cinematic depth of field, high contrast, premium high-end aviation commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-A subtle pulse of internal LED light moves across the earbud, followed by an organic spread of soft light across its surface indicating functionality.
+Yellow/orange energy flow visibly exits the engines, illustrating the thrust created. As the flow exits the engines, the aircraft begins to move slightly forward. The camera remains static to emphasize the energy transition.
 ```
 
 ---
 
 ## Plan 02 — 4s
 
-**Voix** : Un signal Bluetooth est capté par les écouteurs.
+**Voix** : Les moteurs aspirent de l'air et le compressent.
 
-**Fonction** : Explain how Bluetooth signals enable wireless functionality.
+**Fonction** : Show how air is drawn and compressed in the engine.
 
-**Élément pédagogique** : Bluetooth signal
+**Élément pédagogique** : Representation of air intake and compression within the engine.
 
 **Intention de mouvement** : `energy_transfer`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Bluetooth signal enables wireless operation.
-2. **physical element** : smartphone and earbud icons
-3. **secondary elements** : pulsing blue signal
-4. **visual behavior** : blue waves represent Bluetooth connection
-5. **animation movement** : signal traveling and lighting circuitry
-6. **camera position** : show full path from device to earbud
-7. **composition** : wider view to capture signal path
+1. **information** : Air intake and compression within the engine
+2. **physical element** : Jet engine cutaway
+3. **secondary elements** : Fan blades, compressors
+4. **visual behavior** : Blue flow entering and compressing in the engine
+5. **animation movement** : Flowing towards the core of the engine
+6. **camera position** : Close to engine intake and compressors
+7. **composition** : Focused on the engine’s internal process
 
 ### Prompt image
 
 ```
-A semi-cutaway view of a modern dark near-black wireless earbud receiving a pulsing blue wave, representing a Bluetooth signal from a smartphone. The materials are translucent and high-grade plastic. The camera is wide and positioned to capture both the earbud and a smartphone icon at a distance. The environment is a dark premium studio with cinematic blue and white lighting. The earbud captures these waves indicating wireless connection. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud in technical semi-cutaway view, translucent ghosted shell with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible micro-electronics and acoustics, clearly visible electronic and acoustic components, cinematic depth of field, high contrast, premium high-end product commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A detailed cutaway view focusing on the modern engine of the airliner. The internal components, including the fan blades and compressors, are visible and highlighted. Flowing lines representing air drawn into the engine are shown in translucent blue color. Materiaux métalliques réalistes are emphasized under the cinematic blue and white lighting. The camera captures the engine's inner workings closely, emphasizing the material texture and air intake process. Photorealistic premium 3D engineering visualization, the same modern dark near-black commercial airliner, technical semi-cutaway where the explanation needs it, translucent ghosted surfaces with the internal structure clearly visible through them, dark premium night runway and hangar environment, cinematic blue and white lighting, realistic detailed materials, physically credible aerodynamics and turbine mechanics, clearly visible airflow and mechanical components, cinematic depth of field, high contrast, premium high-end aviation commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Pulsing blue waves travel from the smartphone to the earbud, causing the internal circuitry to sequentially light up as the signal progresses through it.
+Blue lines representing air flow into the engine move through the compressor stages, illustrating how the air is drawn in and compressed. As the air compresses, fan blades rotate, driven by that motion, enhancing understanding of the collective intake and compression function. The camera remains static to portray the internal process efficiently.
 ```
 
 ---
 
 ## Plan 03 — 4s
 
-**Voix** : Ce signal est converti pour transmettre la musique.
+**Voix** : Ils brûlent le carburant, générant une poussée vers l'arrière.
 
-**Fonction** : Demonstrate how signals carry music to earbuds.
+**Fonction** : Explain how fuel combustion creates thrust.
 
-**Élément pédagogique** : Signal conversion to music
+**Élément pédagogique** : Combustion reaction inside engine with thrust flow
 
-**Intention de mouvement** : `energy_flow`
+**Intention de mouvement** : `energy_transfer`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Signal to music conversion inside the earbud.
-2. **physical element** : internal electronics
-3. **secondary elements** : blue signal waves
-4. **visual behavior** : electronics light up with signal's arrival
-5. **animation movement** : sequential lighting of components
-6. **camera position** : close-up inside the earbud
-7. **composition** : focused on internal transformation
+1. **information** : Fuel combustion creating thrust
+2. **physical element** : Engine’s combustion chamber
+3. **secondary elements** : Engine casing, exhaust flow
+4. **visual behavior** : Yellow/orange glow from combustion
+5. **animation movement** : Glow intensifying and exiting as thrust
+6. **camera position** : Internally focused on combustion
+7. **composition** : Center combustion and exhaust dynamics
 
 ### Prompt image
 
 ```
-A close-up semi-cutaway view inside a modern dark near-black wireless earbud showing internal components like a microprocessor lighting up as blue waves, representing a Bluetooth signal, hit it. The camera is positioned to focus on the transmission of the signal and the activation of its internals. The materials are translucent and high-grade plastic. The environment is a dark premium studio with cinematic blue and white lighting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud in technical semi-cutaway view, translucent ghosted shell with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible micro-electronics and acoustics, clearly visible electronic and acoustic components, cinematic depth of field, high contrast, premium high-end product commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A semi-cutaway view of the jet engine's combustion chamber. The primary subject is the active combustion process, depicted with a yellow/orange glow symbolizing energy release. This glow transitions into a directional thrust visually shown flowing out of the engine's rear. The flow originates from where the fuel combusts and extends out through the engine's exhaust. Realistic detailed high-end materials are highlighted under the cinematic lighting. The camera is stationed internally to emphasize the combustion and resulting thrust efficiently. Photorealistic premium 3D engineering visualization, the same modern dark near-black commercial airliner, technical semi-cutaway where the explanation needs it, translucent ghosted surfaces with the internal structure clearly visible through them, dark premium night runway and hangar environment, cinematic blue and white lighting, realistic detailed materials, physically credible aerodynamics and turbine mechanics, clearly visible airflow and mechanical components, cinematic depth of field, high contrast, premium high-end aviation commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-As blue signal waves reach the microprocessor, it lights up in sequence showing the conversion to music. Simultaneously, a soft vibration is depicted across components to represent the music generation.
+Inside the combustion chamber, a bright yellow/orange glow depicting energy release fills and intensifies, followed by a directional flow exiting the engine rear as thrust. The combustion causes the energy flow to accelerate in unison, propelling the aircraft forward. The camera remains stationary to keep focus on the combustion-to-thrust transition.
 ```
 
 ---
 
 ## Plan 04 — 4s
 
-**Voix** : L'énergie est fournie par une batterie rechargeable interne.
+**Voix** : Les ailes fournissent une portance en déviant l'air vers le bas.
 
-**Fonction** : Illustrate how battery supplies power to earbud.
+**Fonction** : Show how wing design contributes to lift.
 
-**Élément pédagogique** : battery power
+**Élément pédagogique** : Airflow over and under the wings visualizing lift.
 
-**Intention de mouvement** : `energy_storage`
+**Intention de mouvement** : `energy_flow`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Battery as energy source for earbuds.
-2. **physical element** : battery compartment
-3. **secondary elements** : yellow pulsing light
-4. **visual behavior** : pulsing light represents energy storage
-5. **animation movement** : energy pulses flowing along the battery
-6. **camera position** : focus on battery section
-7. **composition** : centered on battery dynamics
+1. **information** : Lift created by airflow over the wings
+2. **physical element** : Aircraft wing
+3. **secondary elements** : Airflow represented by blue and green arrows
+4. **visual behavior** : Arrows moving over and under the wing
+5. **animation movement** : Fast movement over upper surface and slower under
+6. **camera position** : Above to show airflow effect on wings
+7. **composition** : Top-down on wing with focus on airflow
 
 ### Prompt image
 
 ```
-A close-up semi-cutaway view of a modern dark near-black wireless earbud's battery compartment, emitting a soft pulsing yellow light indicating stored energy. The translucent shell allows for clear visibility of the battery. The camera is positioned to clearly show the battery section. The materials are translucent and high-grade plastic. The environment is a dark premium studio with cinematic blue and white lighting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud in technical semi-cutaway view, translucent ghosted shell with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible micro-electronics and acoustics, clearly visible electronic and acoustic components, cinematic depth of field, high contrast, premium high-end product commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A semi-cutaway side view of the airliner’s wing, extending slightly in focus. Airflow lines are represented by translucent blue (above) and green (below) arrows twisting above and below the wing surface, illustrating lift generation. High-end metallic materials and the camera's close-up capture are showcased under the cinematic lighting to deliver a detailed understanding of aerodynamics. Photorealistic premium 3D engineering visualization, the same modern dark near-black commercial airliner, technical semi-cutaway where the explanation needs it, translucent ghosted surfaces with the internal structure clearly visible through them, dark premium night runway and hangar environment, cinematic blue and white lighting, realistic detailed materials, physically credible aerodynamics and turbine mechanics, clearly visible airflow and mechanical components, cinematic depth of field, high contrast, premium high-end aviation commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Yellow-orange energy pulses travel from the battery to powering nodes inside the earbud, synchronizing the internal processes like LED lighting up intermittently driven by this flow.
+Blue and green arrows dynamically flow over and beneath the wing, illustrating lift. As the arrows increase in speed above the wing, the wing begins to tilt upwards due to increased lift. Simultaneously, the aircraft starts gaining altitude slightly as the lifting force increases. The camera maintains its angle to closely follow these dynamics.
 ```
 
 ---
 
 ## Plan 05 — 4s
 
-**Voix** : Dans le boîtier, les écouteurs se rechargent automatiquement grâce à un flux d'énergie.
+**Voix** : Cette portance dépasse le poids de l'avion, le soulevant du sol.
 
-**Fonction** : Show automatic recharging in the case.
+**Fonction** : Illustrate the moment lift overcomes weight.
 
-**Élément pédagogique** : charging process
+**Élément pédagogique** : Aircraft lift-off with wheels leaving ground
 
-**Intention de mouvement** : `energy_transfer`
+**Intention de mouvement** : `energy_flow`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Earbud charging from the case.
-2. **physical element** : charging case and earbuds
-3. **secondary elements** : yellow/orange energy flow
-4. **visual behavior** : continuous flow from case to earbuds
-5. **animation movement** : flow of energy from case to earbud
-6. **camera position** : wide view capturing both case and earbuds
-7. **composition** : demonstrates energy transfer in rest position
+1. **information** : Lift exceeds weight, causing lift-off
+2. **physical element** : Entire aircraft
+3. **secondary elements** : Runway, wheels, lift arrows
+4. **visual behavior** : Lift arrows beneath the wings
+5. **animation movement** : Wheels rotate as they detach from the runway
+6. **camera position** : Profile with slight upward pan
+7. **composition** : Landscape capturing whole aircraft lift-off
 
 ### Prompt image
 
 ```
-A semi-cutaway view showing modern dark near-black wireless earbuds at rest in their charging case, with a translucent shell illustrating the yellow/orange energy flow from the case into each earbud. The camera is positioned to capture the full case with earbuds, including the battery area clearly visible within the shell. The materials are translucent and high-grade plastic. The environment is a dark premium studio with cinematic blue and white lighting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud in technical semi-cutaway view, translucent ghosted shell with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible micro-electronics and acoustics, clearly visible electronic and acoustic components, cinematic depth of field, high contrast, premium high-end product commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A ground-level profile of the entire aircraft poised at the edge of the runway. The front wheels are lifted slightly off the ground, demonstrating initial lift-off. Subtle green arrows flowing upwards are visible beneath the wings to indicate lift overcoming the weight. The camera captures a broad view of the full aircraft structure. Materials include high-end realistic metallic elements emphasized by cinematic lighting, which dramatizes this takeoff moment. Photorealistic premium 3D engineering visualization, the same modern dark near-black commercial airliner, technical semi-cutaway where the explanation needs it, translucent ghosted surfaces with the internal structure clearly visible through them, dark premium night runway and hangar environment, cinematic blue and white lighting, realistic detailed materials, physically credible aerodynamics and turbine mechanics, clearly visible airflow and mechanical components, cinematic depth of field, high contrast, premium high-end aviation commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Yellow-orange energy flows continuously from the case into the earbuds, charging them. After they are fully charged, small LEDs in the earbuds light up to indicate status, synchronized with the battery charge flow.
+Upward-flowing green arrows beneath the wings animate to show increasing lift. As arrows intensify in rhythm, the wheels begin rotating to demonstrate motion, while they leave the ground, illustrating the lift surpassing weight. The articulated wheel rotation, together with intensified lifting forces, provides the primary animation movement.
 ```
 
 ---
 
 ## Plan 06 — 4s
 
-**Voix** : Un amplificateur transforme le signal en son pour vos oreilles.
+**Voix** : Enfin, l'avion monte dans le ciel, équilibrant sa poussée et sa portance.
 
-**Fonction** : Explain signal to sound transformation via amplifier.
+**Fonction** : Show climb and balance between thrust and lift.
 
-**Élément pédagogique** : amplification process
+**Élément pédagogique** : Aircraft in ascent with balanced forces
 
-**Intention de mouvement** : `cause_effect`
+**Intention de mouvement** : `energy_flow`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Amplifier converts signal to sound waves.
-2. **physical element** : internal amplifier
-3. **secondary elements** : sound wave representation
-4. **visual behavior** : amplifier lighting up with wave pulsations
-5. **animation movement** : pulsations depicting sound generation
-6. **camera position** : focused on the amplifier section
-7. **composition** : shows conversion process effect
+1. **information** : Balance of lift and thrust during climb
+2. **physical element** : Airframe visible in the open sky
+3. **secondary elements** : Directional balance arrows
+4. **visual behavior** : Arrows signifying equilibrium in forces
+5. **animation movement** : Combination of upward motion and wing adjustments
+6. **camera position** : Branch-view ascent, tracking upward
+7. **composition** : Wide to show ascent path in context
 
 ### Prompt image
 
 ```
-A detailed semi-cutaway of a modern dark near-black wireless earbud focusing on its internal amplifier, which receives the pulsing blue signal and converts it into colorful wave-like pulsations depicting sound waves. The camera is positioned to highlight the amplifier section, with close-up framing. The materials are translucent and high-grade plastic. The environment is a dark premium studio with cinematic blue and white lighting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud in technical semi-cutaway view, translucent ghosted shell with the internal components clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible micro-electronics and acoustics, clearly visible electronic and acoustic components, cinematic depth of field, high contrast, premium high-end product commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A wide shot showing the full airliner ascending in the sky. Directional blue and green arrows depict the stability of lift and thrust forces as the aircraft continues to climb. The setting transitions into a broader night sky environment with high-end metallic textures accentuated by cinematic blue and white lighting capturing the complete ascent path. The camera is positioned to capture the ascent of the aircraft, maintaining a balanced perspective of the forces involved. Photorealistic premium 3D engineering visualization, the same modern dark near-black commercial airliner, technical semi-cutaway where the explanation needs it, translucent ghosted surfaces with the internal structure clearly visible through them, dark premium night runway and hangar environment, cinematic blue and white lighting, realistic detailed materials, physically credible aerodynamics and turbine mechanics, clearly visible airflow and mechanical components, cinematic depth of field, high contrast, premium high-end aviation commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The internal amplifier lights up as it converts signal into sound waves, which spread across surrounding components. This synchronized energy conversion is accompanied by vibration to illustrate sound emission.
+Bright blue and green arrows illustrate the forces of lift and thrust as the aircraft continues its climb. The aircraft moves upward as these visualized forces stabilize it. Simultaneously, sections of the wings subtly flex in response to aerodynamic forces, completing the coordinated physical movements, while the camera tracks this ascent upwards.
 ```
 
 ---
