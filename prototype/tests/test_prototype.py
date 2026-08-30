@@ -172,7 +172,15 @@ class TestConditionsDuPrompt(unittest.TestCase):
         self.assertIn("It never means fewer words", self.texte)
         self.assertIn("continuous descriptive English prose", self.texte)
         # Le raisonnement precede le prompt, et l'exemple le montre en entier.
-        self.assertIn("THE SAME REASONING, WORKED THROUGH", self.texte)
+        # Le gabarit est desormais donne par l'exemple choisi par l'auteur.
+        self.assertIn("THE SHAPE YOUR PROMPTS MUST HAVE", self.texte)
+        self.assertIn("A CLOSE IMAGE PROMPT", self.texte)
+        self.assertIn("A WIDE IMAGE PROMPT", self.texte)
+        self.assertIn("the framing, the main subject and what is visible", self.texte)
+        # L'animation : le phenomene d'abord, la camera en dernier.
+        self.assertIn("the moving phenomenon FIRST", self.texte)
+        self.assertIn("the camera LAST and discreet", self.texte)
+        self.assertIn("much shorter", self.texte)
 
     def test_les_correspondances_concretes(self):
         for bloc in ("BATTERY", "ELECTRICITY", "MOTOR", "TRANSMISSION", "REGENERATIVE"):
