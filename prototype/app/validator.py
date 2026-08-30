@@ -835,10 +835,15 @@ def _physique(sb: Storyboard) -> list[Problem]:
                                    f"explanation, and always communicates direction."))
 
         if STYLE_PAR_DEFAUT:
-            claires = [t for t in TEINTE_CLAIRE
-                       for m in re.finditer(re.escape(t), image.lower())
-                       if any(n in image.lower()[m.end():m.end() + 30]
-                              for n in VEHICULE_NOMS)]
+            # « cinematic blue and white lighting. The car is presented... » :
+            # le blanc qualifie l'ECLAIRAGE, et la voiture se trouve juste
+            # apres. Sans ce veto, la direction artistique imposee se faisait
+            # refuser elle-meme.
+            bas_image = image.lower()
+            claires = [teinte for teinte in TEINTE_CLAIRE
+                       for m in re.finditer(re.escape(teinte), bas_image)
+                       if any(n in bas_image[m.end():m.end() + 30] for n in VEHICULE_NOMS)
+                       and not any(a in bas_image[m.end():m.end() + 20] for a in AMBIANCE)]
             if claires:
                 out.append(Problem("VEHICULE", s.slug,
                                    f"la carrosserie est claire (« {claires[0]} ») "
