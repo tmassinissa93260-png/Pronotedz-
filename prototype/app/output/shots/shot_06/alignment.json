@@ -1,34 +1,35 @@
 {
-  "understanding": "L'électricité est efficacement transportée jusqu'à nos maisons modernes.",
+  "voice": "Enfin, elle est distribuée pour alimenter nos appareils quotidiens.",
+  "understanding": "L'énergie est distribuée des batteries aux appareils quotidiens via les câbles.",
   "candidates": [
     {
-      "action": "Yellow streams of electricity move from the generator, through wires, to illuminate a model home.",
-      "explains": "Electricity is generated and then delivered to homes, showing the complete path.",
-      "misses": "Doesn't highlight any transformation process involved in the delivery."
+      "action": "Energy flows visibly from red batteries through gray cables into silhouetted household devices, lighting them up.",
+      "explains": "It visually explains how energy travels from storage to devices.",
+      "misses": "It might not highlight the continuity of energy flow clearly."
     },
     {
-      "action": "A yellow flow represents electricity traveling through a transmission line from an industrial setting to a residential home.",
-      "explains": "The electricity's journey from the generator to the home is clear.",
-      "misses": "Lacks the illustration of the generator or turbine."
+      "action": "Household devices are initially dark and gradually illuminate as yellow/orange energy connects them from the batteries.",
+      "explains": "It shows energy activating appliances directly.",
+      "misses": "It may not clearly depict the travel path."
     },
     {
-      "action": "The model house lights up as yellow streams flow into it from the side representing electricity delivery.",
-      "explains": "The focus on electricity reaching the home is clear, emphasizing the end goal.",
-      "misses": "Doesn't show the source of electricity."
+      "action": "One device is highlighted as yellow/orange energy visibly reaches it from the battery, showing a complete energy circuit.",
+      "explains": "Demonstrates a full circuit of energy delivery clearly.",
+      "misses": "It may focus too narrowly on a single device."
     }
   ],
-  "chosen": "A yellow flow represents electricity traveling through a transmission line from an industrial setting to a residential home.",
-  "why_chosen": "It effectively shows the continuous path of electricity delivery while maintaining the focus and context on screen.",
-  "mute_test": 0.8,
-  "image_prompt": "In an expansive view, a distinct, continuous yellow stream of electricity emerges clearly from the modern dark near-black industrial turbine and generator unit, following a transmission line towards a brightly lit model home, situated within a blue-tinged, premium industrial hall environment. The lighting is cinematic, emphasizing the blue and white contrast while detailing realistic metallic materials and components throughout the industrial setup. The luminescence of the yellow flow enhances the visual clarity of the electricity's journey. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The yellow flow representing electricity begins at the generator, gradually extends along the transmission line towards the model home, steadily gaining intensity until it reaches and illuminates the home completely, signaling successful energy delivery.",
+  "chosen": "Energy flows visibly from red batteries through gray cables into silhouetted household devices, lighting them up.",
+  "why_chosen": "The viewer can rapidly understand the direct connection and distribution of energy from batteries to devices through visual energy flows and the activation of devices.",
+  "mute_test": 0.85,
+  "image_prompt": "A wide, clear view shows energy visibly flowing from red batteries through gray cables into various silhouetted household devices, indicating their activation with a visual glow. Yellow/orange energy flows dominate the scene against silhouetted devices, creating a strong visual emphasis on energy distribution. The metallic cables and diverse realistic finishes for devices reflect cinematic blue and white lighting, emphasizing the pathways from storage to consumption. The scene is set in a dark premium industrial hall with a consistent high-tech aesthetic, while the camera is placed to capture the full span of energy distribution as it moves visually to the devices. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "Initially, the household devices appear unlit and inactive. As the animation progresses, yellow/orange energy flows begin to emerge from the red batteries. Gradually, the energy travels through the gray cables, building in intensity as it approaches the devices. One by one, the devices light up, visually confirming their activation and the completion of the energy distribution circuit.",
   "visual_explanation": {
-    "information": "The effective delivery of electricity to homes.",
-    "physical_element": "The visible yellow stream traveling along wires.",
-    "secondary_elements": "The presence of a model home lighting up and the visible industrial generator components.",
-    "visual_behavior": "Electricity visibly flows through wires.",
-    "animation_movement": "The electricity starts at the generator, progresses along the wires, and finishes illuminating the home.",
-    "camera_position": "Positioned to capture both the industrial turbine and the target home, presenting a clear view of the electricity's path.",
-    "composition": "Wide angle ensuring the path's clarity, with emphasis on the movement from generator to home."
+    "information": "The shot explains energy distribution from storage (batteries) to end use (household devices).",
+    "physical_element": "The visible flow of yellow/orange energy from red batteries through gray cables.",
+    "secondary_elements": "Silhouetted household devices that light up as energy reaches them signify energy consumption.",
+    "visual_behavior": "Energy flow is depicted with glowing paths that light up devices, showcasing the journey of power.",
+    "animation_movement": "The flow begins at the batteries, gradually builds as it travels down the cables, steadily activating devices along the way.",
+    "camera_position": "A wide shot encompassing the batteries, the cable pathways, and the household devices.",
+    "composition": "The composition emphasizes energy movement, with devices framing the scene to show the full distribution process."
   }
 }

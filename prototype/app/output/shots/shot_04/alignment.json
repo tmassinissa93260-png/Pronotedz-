@@ -1,34 +1,35 @@
 {
-  "understanding": "Comment un capteur transforme une perturbation en signal électrique.",
+  "voice": "Ce champ magnétique permet de produire un flux d'électricité dans les fils.",
+  "understanding": "le champ magnétique peut générer un flux d'électricité dans les fils",
   "candidates": [
     {
-      "action": "A yellow disturbance hits the sensor, a blue light within the sensor lights up and creates a trail.",
-      "explains": "Shows the conversion from disturbance to electrical signal.",
-      "misses": "Doesn't show how the signal is sent away from the sensor."
+      "action": "Electricity flows visibly through wires highlighted in yellow/orange, surrounded by a green magnetic field.",
+      "explains": "how a magnetic field induces electricity flow in wires",
+      "misses": "the source or cause of the magnetic field"
     },
     {
-      "action": "A blue electric signal exits the sensor and travels through visible wires.",
-      "explains": "Shows the signal being sent away from the sensor.",
-      "misses": "Fails to show the initial disturbance and conversion inside the sensor."
+      "action": "A magnet moves near a coil of wires, which then shows yellow/orange electricity flow.",
+      "explains": "magnetic movement induces electricity in wires",
+      "misses": "constant magnetic presence causing continuous flow"
     },
     {
-      "action": "The motion sensor casing becomes translucent, showing both the yellow disruption hitting the sensor and a blue signal emitting from it.",
-      "explains": "Illustrates both the disruption causing the signal and the start of an electrical output.",
-      "misses": "Doesn't show how the signal propagates further than the sensor."
+      "action": "Energy impulses light up bulbs at the end of wires in presence of a magnetic field.",
+      "explains": "electric energy being generated and utilized",
+      "misses": "direct visibility of flow through wires due to magnetic induction"
     }
   ],
-  "chosen": "The motion sensor casing becomes translucent, showing both the yellow disruption hitting the sensor and a blue signal emitting from it.",
-  "why_chosen": "This action shows both the cause (disruption) and the initial conversion (electrical signal starting) within one frame, quickly understandable.",
+  "chosen": "Electricity flows visibly through wires highlighted in yellow/orange, surrounded by a green magnetic field.",
+  "why_chosen": "It clearly shows the interaction of the magnetic field with the wires, indicating the continuous flow of electricity, making the relationship between them easy to understand.",
   "mute_test": 0.8,
-  "image_prompt": "The motion sensor is centrally positioned with its translucent casing showing internal components through a detailed technical semi-cutaway view. The image captures the initial contact of a yellow disruption as it reaches the sensor, at which point a blue electrical signal is visibly generated within the circuitry. This demonstration of transformation is clear and immediate. The environment remains a dark premium indoor setting with cinematic blue and white lighting enhancing realism. Materials are of high quality, showing realistic plastic and metal construction of the sensor. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "As the yellow disruption hits the sensor, the blue electrical signal begins to form within the circuitry. Gradually, this blue signal builds in intensity, spreading through the internal components of the sensor. The signal maintains a steady propagation from the point of disruption, becoming more luminescent until it reaches the point where it would exit the sensor, indicating the conversion process.",
+  "image_prompt": "Close-up of wires with visible yellow/orange light flowing through them, surrounded by a vibrant green magnetic field. The camera captures this flow at a slight angle to emphasize the interaction between the magnetic field and the wires, with materials rendering their metallic shine against the dark industrial backdrop to highlight the flow. The flow is central to the frame, leading the viewer’s eye directly to the phenomenon of electricity being induced by the magnetic field. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "Watch as yellow/orange energy pulses progressively flow through the wires, starting from subtle charges that amplify into continuous streams. These streams interact dynamically with the surrounding green magnetic field, which visibly influences and sustains the flow through its entire course, demonstrating the process of electromagnetic induction over time.",
   "visual_explanation": {
-    "information": "The sensor detects a disturbance and sends an electrical signal.",
-    "physical_element": "The translucent casing of the motion sensor revealing internal electronics.",
-    "secondary_elements": "Yellow disturbance hitting the sensor, blue signal generated inside.",
-    "visual_behavior": "Disruption visibly triggers an internal response (signal generation).",
-    "animation_movement": "Signal begins at the disruption point, intensifies and moves through the sensor.",
-    "camera_position": "Dynamic close-up capturing the internal elements and the point of impact.",
-    "composition": "Focuses on the translucent view of the sensor showing the internal reaction and movement of the signal."
+    "information": "Electricity can be induced in wires by a magnetic field.",
+    "physical_element": "The wires showing the induced electricity flow.",
+    "secondary_elements": "The magnetic field depicted as green visuals around the wires.",
+    "visual_behavior": "The yellow/orange light moving through the wires.",
+    "animation_movement": "Progressive flow and interaction between electricity and magnetic field.",
+    "camera_position": "Slight angle focusing on the wires and field interaction.",
+    "composition": "Central focus on electricity flowing through wires, framed with magnetic field interaction to the forefront."
   }
 }

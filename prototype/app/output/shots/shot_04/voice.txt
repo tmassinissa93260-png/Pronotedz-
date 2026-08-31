@@ -1,1 +1,1 @@
-Le mouvement mécanique entraîne des générateurs produisant un flux électrique.
+Ce champ magnétique permet de produire un flux d'électricité dans les fils.

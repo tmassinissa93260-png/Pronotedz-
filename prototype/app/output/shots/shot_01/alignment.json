@@ -1,34 +1,35 @@
 {
-  "understanding": "Imaginez un système qui détecte votre présence sans contact direct.",
+  "voice": "L'électricité commence par la capture de l'énergie mécanique.",
+  "understanding": "L'énergie mécanique est convertie en mouvement.",
   "candidates": [
     {
-      "action": "Red infrared waves are emitted from a human figure and travel towards the motion sensor, activating an internal component visible through the translucent casing as it lights up blue.",
-      "explains": "It makes the viewer understand that infrared radiation is detected by the sensor without direct contact.",
-      "misses": "Doesn't clearly show the response of the device once the motion is detected."
+      "action": "Turbine blades spin while yellow/orange energy streams flow along them.",
+      "explains": "Mechanical energy is turned into dynamic motion.",
+      "misses": "Does not show the source of mechanical energy."
     },
     {
-      "action": "Yellow electrical signals are generated and move through the internal circuitry when the sensor detects the red infrared waves.",
-      "explains": "Shows the process of detection leading to an electrical response inside the sensor.",
-      "misses": "Lacks the initial detection process and only focuses on the circuitry."
+      "action": "A hand turns a crank that starts the turbine blades spinning.",
+      "explains": "Initiation of mechanical energy leads to turbine motion.",
+      "misses": "Focuses on human intervention rather than the energy itself."
     },
     {
-      "action": "The motion sensor's translucent casing lights up, illustrating the activation process while red and yellow pulses move within the device.",
-      "explains": "Indicates activation of the sensor and the subsequent response, combining both detection and action.",
-      "misses": "May not clearly specify that the initial detection is of infrared radiation from an external source."
+      "action": "Magnetic fields surround spinning turbine blades, interacting visibly.",
+      "explains": "Magnetic interaction as part of energy conversion.",
+      "misses": "Focus on magnetism rather than mechanical to motion conversion."
     }
   ],
-  "chosen": "Red infrared waves are emitted from a human figure and travel towards the motion sensor, activating an internal component visible through the translucent casing as it lights up blue.",
-  "why_chosen": "This action visually conveys the cause (infrared detection) and effect (sensor activation) clearly, making it easy to understand the function of a motion sensor.",
+  "chosen": "Turbine blades spin while yellow/orange energy streams flow along them.",
+  "why_chosen": "It directly shows mechanical energy being harnessed to create motion, which is intuitive with visuals alone.",
   "mute_test": 0.8,
-  "image_prompt": "Focused close-up of a modern dark near-black wall-mounted motion sensor, its translucent casing revealing electronic components inside. The camera is positioned to capture the sensor head-on, showing red infrared waves coming from a human figure and converging towards the sensor, which lights up in blue to indicate activation. The environment is a dark premium interior, illuminated with cinematic blue and white lighting that highlights the realistic material textures of translucent plastic and metals. The background remains subtly detailed to ensure the sensor is the main focus. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "Starting with the human figure emitting red infrared waves, these waves move towards the motion sensor. As they reach the sensor, the internal components gradually illuminate with a blue hue, showing a pulsing effect to signal activation. The camera performs a subtle zoom-in and lateral move to emphasize the motion and response sequence, highlighting the transition from infrared detection to sensor activation.",
+  "image_prompt": "A detailed, close-up shot of turbine blades spinning rapidly. Vivid yellow/orange energy streams are visibly flowing smoothly over the blades, emphasizing the capture and conversion of mechanical energy into motion. The camera angle captures the dynamic rotation, while blue and white lighting accentuates the metallic precision of the turbine. The setting is a dark premium industrial hall with photorealistic rendering to capture realistic materials and mechanics. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins with spinning turbine blades as yellow/orange energy streams intensify progressively over their surface. The camera follows these streams to highlight the rotational dynamics and energy transformation from mechanical to motion, building in intensity until the blades are fully energized.",
   "visual_explanation": {
-    "information": "A motion sensor detects infrared radiation and activates.",
-    "physical_element": "Red infrared waves and a blue glow on the internal sensor component.",
-    "secondary_elements": "Translucent casing showing electronic components, cinematic lighting.",
-    "visual_behavior": "Infrared waves travel and cause the internal sensor to light up.",
-    "animation_movement": "Red waves move, blue lights pulse, subtle zoom-in and lateral camera move.",
-    "camera_position": "Head-on close-up focusing on the sensor and incoming infrared waves.",
-    "composition": "Sensor centered with waves approaching from the side, contrasting lighting emphasizes the electronic glow."
+    "information": "Mechanical energy being converted into turbine motion.",
+    "physical_element": "Spinning turbine blades with flowing energy streams.",
+    "secondary_elements": "Blue and white lighting, metallic surfaces.",
+    "visual_behavior": "Rapid blade rotation with energy streams progressing over blades.",
+    "animation_movement": "Energy streams flowing and intensifying over spinning blades.",
+    "camera_position": "Close-up following the rotational movement of the blades.",
+    "composition": "Dynamic angle capturing the flow of energy across rapidly spinning blades, centered in focus."
   }
 }
