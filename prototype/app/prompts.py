@@ -116,10 +116,20 @@ Work in this order.
    · spoken French, said aloud in one breath, no written-essay turns
    · the last sentence lands on the result, not on a summary
 
-4. L'OBJECTION. Re-read your own script as a hostile engineer. For each
-   sentence that could be attacked, say what the objection is and how you
-   fixed it. If nothing can be attacked, say so for each sentence — but be
-   honest, this step is the reason the script is trustworthy.
+4. LA VÉRIFICATION. Re-read your own script as a hostile engineer, sentence
+   by sentence. For each one, three things, in this order:
+   · "checks_out": WHICH link of the chain from step 1 this sentence states,
+     and what makes it true. Not a paraphrase of the sentence — the reason it
+     holds. "la vapeur pousse les aubes" holds because a pressure difference
+     across the blade produces a force; saying "parce que la vapeur pousse les
+     aubes" is repeating yourself, not verifying.
+   · "objection": what an engineer could dispute — a shortcut, a word that is
+     almost right, a step you skipped. "aucune" is an allowed answer, but only
+     after you have written the reason above and found it solid.
+   · "fix": what you changed, or "rien à changer".
+   This is the step that catches "l'électricité est stockée dans des
+   batteries" — no link of the chain says so, and the grid stores almost
+   nothing.
 
 Return only this JSON:
 {{
@@ -133,8 +143,10 @@ Return only this JSON:
   "why_chosen": "why the two others are weaker",
   "script": "the full narration, {sentences} sentences, one continuous text",
   "objections": [
-    {{"sentence": "the sentence concerned", "objection": "what an engineer \
-would object to, or 'aucune'", "fix": "what you changed, or 'rien à changer'"}}
+    {{"sentence": "the sentence concerned",
+      "checks_out": "which link of the chain it states, and why it holds",
+      "objection": "what an engineer could dispute, or 'aucune'",
+      "fix": "what you changed, or 'rien à changer'"}}
   ]
 }}"""
 

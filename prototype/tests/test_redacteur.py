@@ -41,7 +41,10 @@ def reponse(**over):
         "why_chosen": "elle démonte une croyance dès la première seconde",
         "script": SCRIPT,
         "objections": [
-            {"sentence": p, "objection": "aucune", "fix": "rien à changer"}
+            {"sentence": p,
+             "checks_out": "un maillon de la chaîne : une différence de pression "
+                           "de part et d'autre de l'aube produit une force",
+             "objection": "aucune", "fix": "rien à changer"}
             for p in validator.phrases(SCRIPT)
         ],
     }
@@ -74,7 +77,7 @@ class TestForme(unittest.TestCase):
     def test_une_objection_incomplete_est_refusee(self):
         with self.assertRaises(OpenAIError) as ctx:
             redacteur._normaliser(reponse(objections=[
-                {"sentence": "a", "objection": "b", "fix": ""}]))
+                {"sentence": "a", "checks_out": "c", "objection": "b", "fix": ""}]))
         self.assertIn("fix", str(ctx.exception))
 
 
@@ -89,7 +92,8 @@ class TestControles(unittest.TestCase):
         court = " ".join(validator.phrases(SCRIPT)[:3])
         problemes = self.verifier(
             script=court,
-            objections=[{"sentence": p, "objection": "aucune", "fix": "rien"}
+            objections=[{"sentence": p, "checks_out": "la pression pousse l'aube",
+                         "objection": "aucune", "fix": "rien"}
                         for p in validator.phrases(court)])
         self.assertTrue(any("sentences" in p for p in problemes))
 
@@ -99,7 +103,8 @@ class TestControles(unittest.TestCase):
 
     def test_chaque_phrase_doit_etre_relue(self):
         problemes = self.verifier(objections=[
-            {"sentence": "une seule", "objection": "aucune", "fix": "rien"}])
+            {"sentence": "une seule", "checks_out": "la pression pousse",
+             "objection": "aucune", "fix": "rien"}])
         self.assertTrue(any("hostile engineer" in p for p in problemes))
 
     def test_les_controles_du_storyboard_s_appliquent_au_texte(self):
@@ -112,10 +117,39 @@ class TestControles(unittest.TestCase):
                 "Il est enfin distribué chez nous.")
         problemes = self.verifier(
             script=plat,
-            objections=[{"sentence": p, "objection": "aucune", "fix": "rien"}
+            objections=[{"sentence": p, "checks_out": "la pression pousse l'aube",
+                         "objection": "aucune", "fix": "rien"}
                         for p in validator.phrases(plat)])
         self.assertTrue(any("could open any video" in p for p in problemes))
         self.assertTrue(any("active voice" in p for p in problemes))
+
+
+class TestLaVerificationNePeutPasSeTaire(unittest.TestCase):
+    """Run 42 : « aucune » six fois sur six. On exige la raison, pas l'aveu."""
+
+    def verifier(self, objections):
+        return redacteur._problemes(
+            redacteur._normaliser(reponse(objections=objections)), 24, 6)
+
+    def test_une_raison_qui_repete_la_phrase_est_refusee(self):
+        problemes = self.verifier([
+            {"sentence": p, "checks_out": p, "objection": "aucune", "fix": "rien"}
+            for p in validator.phrases(SCRIPT)])
+        self.assertTrue(any("repeats the sentence" in x for x in problemes))
+
+    def test_une_vraie_raison_passe(self):
+        self.assertEqual(self.verifier([
+            {"sentence": p,
+             "checks_out": "une différence de pression produit une force sur l'aube",
+             "objection": "aucune", "fix": "rien"}
+            for p in validator.phrases(SCRIPT)]), [])
+
+    def test_la_raison_est_un_champ_obligatoire(self):
+        with self.assertRaises(OpenAIError) as ctx:
+            redacteur._normaliser(reponse(objections=[
+                {"sentence": "a", "checks_out": "", "objection": "aucune",
+                 "fix": "rien"}]))
+        self.assertIn("checks_out", str(ctx.exception))
 
 
 class TestPassif(unittest.TestCase):
@@ -138,6 +172,36 @@ class TestPassif(unittest.TestCase):
                        "Le courant file vers le transformateur."):
             with self.subTest(phrase=phrase):
                 self.assertFalse(validator.est_passive(phrase))
+
+
+class TestActeur(unittest.TestCase):
+    """« Cette énergie est transférée » ne montre personne à filmer."""
+
+    def valider(self, script):
+        raw = board()
+        raw["script"] = script
+        return [p.code for p in validator._texte(Storyboard.from_dict(raw))]
+
+    def test_les_phrases_qui_ne_nomment_personne(self):
+        sans = ("La vapeur frappe les aubes de la turbine. "
+                "Cette énergie est ensuite convertie. "
+                "Ce processus alimente un alternateur. "
+                "Enfin, elle arrive chez nous.")
+        self.assertIn("ACTEUR", self.valider(sans))
+
+    def test_un_demonstratif_qui_nomme_une_chose_passe(self):
+        avec = ("La vapeur frappe les aubes de la turbine. "
+                "Cette vapeur pousse le rotor aimanté. "
+                "Ce champ magnétique balaie les bobines de cuivre. "
+                "Ce mouvement induit un courant dans le fil.")
+        self.assertNotIn("ACTEUR", self.valider(avec))
+
+    def test_une_seule_anaphore_est_toleree(self):
+        une = ("La vapeur frappe les aubes de la turbine. "
+               "Le rotor aimanté tourne devant les bobines. "
+               "Ce mouvement induit un courant dans le fil. "
+               "Elle arrive enfin chez nous.")
+        self.assertNotIn("ACTEUR", self.valider(une))
 
 
 class TestLesControlesDuTexte(unittest.TestCase):

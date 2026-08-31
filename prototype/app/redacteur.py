@@ -16,6 +16,8 @@ passer au storyboard.
 
 from __future__ import annotations
 
+from difflib import SequenceMatcher
+
 from . import config, prompts, validator
 from .openai_client import OpenAIError, chat_json
 
@@ -26,8 +28,11 @@ ECART_PHRASES = 1
 #: En deca, ce n'est pas une chaine physique, c'est une affirmation.
 MIN_MAILLONS = 3
 
+#: Au-dela, « la raison » n'est qu'une paraphrase de la phrase verifiee.
+PARAPHRASE = 0.7
+
 CHAMPS_OUVERTURE = ("sentence", "why_it_holds")
-CHAMPS_OBJECTION = ("sentence", "objection", "fix")
+CHAMPS_OBJECTION = ("sentence", "checks_out", "objection", "fix")
 
 
 def ecrire(subject: str, duration: float, sentences: int,
@@ -132,6 +137,18 @@ def _problemes(texte: dict, duration: float, sentences: int) -> list[str]:
     if texte["chosen_opening"] not in script:
         out.append("the script does not start with the opening you chose. The chosen "
                    "opening must be its first sentence, word for word.")
+
+    # Le run 42 a repondu « aucune » six fois sur six. On n'exige pas qu'il
+    # trouve un defaut — on lui interdit de se taire : il doit dire sur quoi
+    # chaque phrase repose, et cette raison ne peut pas etre la phrase.
+    paraphrases = [o["sentence"] for o in texte["objections"]
+                   if SequenceMatcher(None, o["sentence"].lower(),
+                                      o["checks_out"].lower()).ratio() > PARAPHRASE]
+    if paraphrases:
+        out.append(f"for {len(paraphrases)} sentence(s), 'checks_out' repeats the "
+                   f"sentence instead of giving the reason it holds — starting with "
+                   f"« {paraphrases[0]} ». Name the link of the chain it states and "
+                   f"the physics that makes it true.")
 
     if len(texte["objections"]) < len(dites):
         out.append(f"you examined {len(texte['objections'])} sentences out of "

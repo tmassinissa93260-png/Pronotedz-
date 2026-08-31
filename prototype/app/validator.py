@@ -167,6 +167,16 @@ def est_passive(phrase: str) -> bool:
             return True
     return False
 
+# Une phrase qui commence par « cette energie », « ce processus » ou « elle »
+# ne nomme personne : elle renvoie a la precedente. Enchainer trois de ces
+# phrases, c'est expliquer sans jamais montrer qui agit — et l'image, elle, a
+# besoin d'un acteur physique a filmer.
+ANAPHORE = re.compile(
+    r"^(?:enfin,?\s+|puis,?\s+|ensuite,?\s+|alors,?\s+|ainsi,?\s+)?"
+    r"(?:(?:ce|cet|cette|ces)\s+(?:énergie|processus|système|mécanisme|"
+    r"phénomène|principe|dispositif|élément|ensemble|opération|transformation)"
+    r"|cela|ceci|ça|celui-ci|celle-ci|il|elle|ils|elles)\b")
+
 # Des mots qui promettent sans montrer. Un seul passe ; deux, c'est un style.
 VAGUE = ("notamment", "principalement", "généralement", "différentes formes",
          "diverses", "plusieurs types", "certains types", "permet de",
@@ -896,6 +906,17 @@ def _texte(sb: Storyboard) -> list[Problem]:
                            "'la vapeur pousse les aubes', never 'les aubes sont poussées "
                            "par la vapeur'. The thing that acts is the thing the image "
                            "must show."))
+
+    sans_acteur = [p for p in toutes if ANAPHORE.match(p.lower())]
+    if len(sans_acteur) >= 2:
+        out.append(Problem("ACTEUR", "script",
+                           f"{len(sans_acteur)} phrases ne nomment personne "
+                           f"(« {sans_acteur[0][:40]}… »)",
+                           "These sentences point back at the previous one instead of "
+                           "naming who acts. Every sentence needs a physical actor doing "
+                           "something — the steam, a blade, a magnet, a wire — because "
+                           "that actor is what the image has to show. 'Cette énergie est "
+                           "transférée' shows nothing; 'la vapeur pousse les aubes' does."))
 
     bas = sb.script.lower()
     flous = [m for m in VAGUE if m in bas]

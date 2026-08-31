@@ -177,6 +177,11 @@ def ecrire_elements(sb: Storyboard) -> Path:
                 lignes += [f"- « {o['sentence']} » — {o['objection']}",
                            f"  → {o['fix']}"]
             lignes += [""]
+        fondees = [o for o in dossier["objections"] if o.get("checks_out")]
+        if fondees:
+            lignes += ["### Sur quoi chaque phrase repose", ""]
+            lignes += [f"- « {o['sentence']} » — {o['checks_out']}" for o in fondees]
+            lignes += [""]
     lignes += [
         "## Visual bible",
         "",
