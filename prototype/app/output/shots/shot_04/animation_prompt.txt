@@ -1,1 +1,1 @@
-Blue and green arrows dynamically flow over and beneath the wing, illustrating lift. As the arrows increase in speed above the wing, the wing begins to tilt upwards due to increased lift. Simultaneously, the aircraft starts gaining altitude slightly as the lifting force increases. The camera maintains its angle to closely follow these dynamics.
+The yellow pulse begins at the sensor, increasing in intensity as it travels to the circuit board, culminating in a bright flash upon impact, symbolizing successful transmission.

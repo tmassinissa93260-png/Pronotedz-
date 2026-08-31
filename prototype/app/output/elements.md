@@ -1,35 +1,35 @@
-# Comment un avion arrive à décoller
+# Fonctionnement d'un capteur de mouvement
 
 24 secondes · 6 plans
 
 ## Script
 
-Un avion décolle grâce à la poussée créée par ses moteurs. Les moteurs aspirent de l'air et le compressent. Ensuite, ils brûlent le carburant, générant une poussée vers l'arrière. Cette réaction propulse l'avion vers l'avant. Les ailes fournissent une portance en déviant l'air vers le bas. Cette portance dépasse le poids de l'avion, le soulevant du sol. Enfin, l'avion monte dans le ciel, équilibrant sa poussée et sa portance.
+Imaginez que votre maison perçoit vos mouvements grâce à un capteur de mouvement. Ce capteur émet un signal infrarouge invisible qui détecte toute perturbation. Lorsqu'un objet se déplace, il perturbe ce signal infrarouge rouge. Le capteur, en détectant cette perturbation, envoie un signal électrique jaune. Cette impulsion active un circuit vert qui transmet l'information à un système central. Résultat: votre maison adapte l'ambiance lumineuse automatiquement selon votre présence.
 
 ## Visual bible
 
 À réutiliser dans **chaque** image. Les couleurs ont un sens fixe.
 
-- **main subject** : un avion de ligne moderne
-- **characters objects** : moteurs, ailes
-- **vehicle** : avion de ligne
-- **colors** : bleu, gris, jaune/orange pour l'énergie, vert pour la portance
-- **environment** : piste de décollage dans un aéroport
-- **materials** : métalliques réalistes
-- **lighting** : éclairage cinématographique bleu et blanc
-- **camera** : angles variés pour capturer différentes parties de l'avion
-- **style 3d** : visualisation d'ingénierie 3D premium photoréaliste
-- **realism** : très élevé avec détails précis
-- **invisible phenomena** : flux d'air représentés par des flèches lumineuses
+- **main subject** : motion sensor
+- **characters objects** : infrared signal, electrical signal
+- **vehicle** : not applicable
+- **colors** : blue, red, yellow, green
+- **environment** : interior studio
+- **materials** : high-end plastic and electronics
+- **lighting** : cinematic blue and white
+- **camera** : dynamic with depth of field
+- **style 3d** : technical semi-cutaway
+- **realism** : photorealistic
+- **invisible phenomena** : luminous streams
 
 ## Code couleur
 
 Une notion, une couleur, la même du début à la fin.
 
-- **yellow/orange** = energie — électricité, courant, flux d'énergie — jaune/orange lumineux  *(se déplace)*
-- **blue** = batterie — batterie, système électrique, technologie — bleu
-- **green** = recuperation — énergie récupérée, efficacité, recharge — vert  *(se déplace)*
-- **grey** = mecanique — mécanique, structure, composants — gris
+- **jaune** = energie — flux électronique  *(se déplace)*
+- **rouge** = signal_infra — signal infrarouge  *(se déplace)*
+- **bleu** = capteur — système de détection
+- **vert** = circuit — circuits électroniques
 
 ## Contrôle qualité
 
@@ -45,204 +45,204 @@ Une notion, une couleur, la même du début à la fin.
 
 ## Plan 01 — 4s
 
-**Voix** : Un avion décolle grâce à la poussée créée par ses moteurs.
+**Voix** : Imaginez que votre maison perçoit vos mouvements grâce à un capteur.
 
-**Fonction** : Introduce the role of thrust in takeoff.
+**Fonction** : Introduce the concept of a motion sensor and its integration.
 
-**Élément pédagogique** : yellow/orange thrust flow exiting the engines
+**Élément pédagogique** : dark near-black motion sensor with internal electronics visible
 
 **Intention de mouvement** : `energy_flow`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Thrust generation from the engines
-2. **physical element** : Jet engines
-3. **secondary elements** : Runway, airliner body
-4. **visual behavior** : Yellow/orange flow exiting the engines
-5. **animation movement** : Flow moving backward from the engines
-6. **camera position** : Positioned to focus on the engines and airflow
-7. **composition** : Centered on engines with the runway visible
+1. **information** : Introducing the presence and concept of the motion sensor.
+2. **physical element** : motion sensor
+3. **secondary elements** : wall, premium interior environment
+4. **visual behavior** : internal electronics visible to suggest functionality
+5. **animation movement** : internal component glow and signal emission
+6. **camera position** : close-up framing with dynamic angle
+7. **composition** : centered on the sensor with emphasis on detail
 
 ### Prompt image
 
 ```
-A technical view of a modern dark near-black commercial airliner centrally positioned on a runway. The main focus is on the jet engines which emit a yellow/orange thrust flow to indicate the force propelling the aircraft. High-end materials reflect the cinematic blue and white lighting, emphasizing the thrust mechanism. The camera is set to clearly depict both the engines and the runway environment. Photorealistic premium 3D engineering visualization, the same modern dark near-black commercial airliner, technical semi-cutaway where the explanation needs it, translucent ghosted surfaces with the internal structure clearly visible through them, dark premium night runway and hangar environment, cinematic blue and white lighting, realistic detailed materials, physically credible aerodynamics and turbine mechanics, clearly visible airflow and mechanical components, cinematic depth of field, high contrast, premium high-end aviation commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A front-facing close-up view of the wall-mounted motion sensor, centered, showing internal electronics. The environment is a high-end interior studio with cinematic blue and white lighting. Materials are high-end plastics and electronics. The camera is positioned at eye level to maximize visibility of components. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where needed, translucent ghosting, cinematic blue and white lighting, realistic detailed materials, no text, no labels.
 ```
 
 ### Prompt animation
 
 ```
-Yellow/orange energy flow visibly exits the engines, illustrating the thrust created. As the flow exits the engines, the aircraft begins to move slightly forward. The camera remains static to emphasize the energy transition.
+The sensor's internal components glow blue and start to pulse rhythmically, indicating activation. The red infrared signal begins to emit outward steadily as the camera subtly adjusts to follow its path.
 ```
 
 ---
 
 ## Plan 02 — 4s
 
-**Voix** : Les moteurs aspirent de l'air et le compressent.
+**Voix** : Ce capteur émet un signal infrarouge invisible qui détecte toute perturbation.
 
-**Fonction** : Show how air is drawn and compressed in the engine.
+**Fonction** : Show how the sensor emits an invisible infrared signal.
 
-**Élément pédagogique** : Representation of air intake and compression within the engine.
+**Élément pédagogique** : infrared signal as a controlled red luminous stream
 
-**Intention de mouvement** : `energy_transfer`
+**Intention de mouvement** : `energy_flow`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Air intake and compression within the engine
-2. **physical element** : Jet engine cutaway
-3. **secondary elements** : Fan blades, compressors
-4. **visual behavior** : Blue flow entering and compressing in the engine
-5. **animation movement** : Flowing towards the core of the engine
-6. **camera position** : Close to engine intake and compressors
-7. **composition** : Focused on the engine’s internal process
+1. **information** : The sensor emits an infrared signal.
+2. **physical element** : infrared signal
+3. **secondary elements** : sensor emitting the signal
+4. **visual behavior** : red glow simulating the invisible infrared emission
+5. **animation movement** : continuous outward flow from the sensor
+6. **camera position** : medium close focusing on the signal
+7. **composition** : emphasize the signal's direction and source
 
 ### Prompt image
 
 ```
-A detailed cutaway view focusing on the modern engine of the airliner. The internal components, including the fan blades and compressors, are visible and highlighted. Flowing lines representing air drawn into the engine are shown in translucent blue color. Materiaux métalliques réalistes are emphasized under the cinematic blue and white lighting. The camera captures the engine's inner workings closely, emphasizing the material texture and air intake process. Photorealistic premium 3D engineering visualization, the same modern dark near-black commercial airliner, technical semi-cutaway where the explanation needs it, translucent ghosted surfaces with the internal structure clearly visible through them, dark premium night runway and hangar environment, cinematic blue and white lighting, realistic detailed materials, physically credible aerodynamics and turbine mechanics, clearly visible airflow and mechanical components, cinematic depth of field, high contrast, premium high-end aviation commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A broad view of the sensor on the wall, emitting a red glow outward symbolizing the infrared signal. Situated in a premium interior studio, maintaining cinematic blue and white lighting. High-end materials are evident in the sensor's construction. The camera captures a side angle to reveal the full extension of the red luminous stream. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where needed, translucent ghosting, cinematic blue and white lighting, realistic detailed materials, no text, no labels.
 ```
 
 ### Prompt animation
 
 ```
-Blue lines representing air flow into the engine move through the compressor stages, illustrating how the air is drawn in and compressed. As the air compresses, fan blades rotate, driven by that motion, enhancing understanding of the collective intake and compression function. The camera remains static to portray the internal process efficiently.
+The red luminous stream extends steadily from the sensor, sweeping across until an object enters, creating an immediate ripple effect.
 ```
 
 ---
 
 ## Plan 03 — 4s
 
-**Voix** : Ils brûlent le carburant, générant une poussée vers l'arrière.
+**Voix** : Lorsqu'un objet se déplace, il perturbe ce signal infrarouge rouge.
 
-**Fonction** : Explain how fuel combustion creates thrust.
+**Fonction** : Show the effect of movement on the infrared signal.
 
-**Élément pédagogique** : Combustion reaction inside engine with thrust flow
+**Élément pédagogique** : signal disruption represented by ripple effect with red coloration
 
-**Intention de mouvement** : `energy_transfer`
+**Intention de mouvement** : `cause_effect`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Fuel combustion creating thrust
-2. **physical element** : Engine’s combustion chamber
-3. **secondary elements** : Engine casing, exhaust flow
-4. **visual behavior** : Yellow/orange glow from combustion
-5. **animation movement** : Glow intensifying and exiting as thrust
-6. **camera position** : Internally focused on combustion
-7. **composition** : Center combustion and exhaust dynamics
+1. **information** : Movement disrupts the infrared signal.
+2. **physical element** : infrared signal
+3. **secondary elements** : human silhouette
+4. **visual behavior** : signal ripple effect representing disruption
+5. **animation movement** : ripple effect as silhouette moves through signal
+6. **camera position** : medium shot focused on interaction zone
+7. **composition** : show direct cause and effect clearly
 
 ### Prompt image
 
 ```
-A semi-cutaway view of the jet engine's combustion chamber. The primary subject is the active combustion process, depicted with a yellow/orange glow symbolizing energy release. This glow transitions into a directional thrust visually shown flowing out of the engine's rear. The flow originates from where the fuel combusts and extends out through the engine's exhaust. Realistic detailed high-end materials are highlighted under the cinematic lighting. The camera is stationed internally to emphasize the combustion and resulting thrust efficiently. Photorealistic premium 3D engineering visualization, the same modern dark near-black commercial airliner, technical semi-cutaway where the explanation needs it, translucent ghosted surfaces with the internal structure clearly visible through them, dark premium night runway and hangar environment, cinematic blue and white lighting, realistic detailed materials, physically credible aerodynamics and turbine mechanics, clearly visible airflow and mechanical components, cinematic depth of field, high contrast, premium high-end aviation commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A wide shot shows a semi-transparent silhouette encountering the red infrared rays, causing ripples. The consistent high-end studio environment features sophisticated materials and cinematic lighting. The camera is angled slightly above to capture the full interaction. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where necessary, translucent ghosting, cinematic blue and white lighting, realistic detailed materials, no text, no labels.
 ```
 
 ### Prompt animation
 
 ```
-Inside the combustion chamber, a bright yellow/orange glow depicting energy release fills and intensifies, followed by a directional flow exiting the engine rear as thrust. The combustion causes the energy flow to accelerate in unison, propelling the aircraft forward. The camera remains stationary to keep focus on the combustion-to-thrust transition.
+As the silhouette crosses into the red signal's path, it disrupts and ripples the red stream, creating visible distortions that build progressively through the frame.
 ```
 
 ---
 
 ## Plan 04 — 4s
 
-**Voix** : Les ailes fournissent une portance en déviant l'air vers le bas.
+**Voix** : Le capteur, en détectant cette perturbation, envoie un signal électrique jaune.
 
-**Fonction** : Show how wing design contributes to lift.
+**Fonction** : Explain transition from signal disruption to electric signal output.
 
-**Élément pédagogique** : Airflow over and under the wings visualizing lift.
+**Élément pédagogique** : electric pulse as a yellow stream directed toward electronics
 
-**Intention de mouvement** : `energy_flow`
+**Intention de mouvement** : `energy_transfer`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Lift created by airflow over the wings
-2. **physical element** : Aircraft wing
-3. **secondary elements** : Airflow represented by blue and green arrows
-4. **visual behavior** : Arrows moving over and under the wing
-5. **animation movement** : Fast movement over upper surface and slower under
-6. **camera position** : Above to show airflow effect on wings
-7. **composition** : Top-down on wing with focus on airflow
+1. **information** : Signal disruption causes an electrical signal emission.
+2. **physical element** : electrical pulse
+3. **secondary elements** : sensor core, circuit board
+4. **visual behavior** : yellow pulse represents transmission of information
+5. **animation movement** : fast, direct travel of pulse from sensor to board
+6. **camera position** : semi-cutaway medium shot for visibility
+7. **composition** : highlight the direct pathway of the signal
 
 ### Prompt image
 
 ```
-A semi-cutaway side view of the airliner’s wing, extending slightly in focus. Airflow lines are represented by translucent blue (above) and green (below) arrows twisting above and below the wing surface, illustrating lift generation. High-end metallic materials and the camera's close-up capture are showcased under the cinematic lighting to deliver a detailed understanding of aerodynamics. Photorealistic premium 3D engineering visualization, the same modern dark near-black commercial airliner, technical semi-cutaway where the explanation needs it, translucent ghosted surfaces with the internal structure clearly visible through them, dark premium night runway and hangar environment, cinematic blue and white lighting, realistic detailed materials, physically credible aerodynamics and turbine mechanics, clearly visible airflow and mechanical components, cinematic depth of field, high contrast, premium high-end aviation commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A close-up of the motion sensor emitting a bright yellow electric pulse toward a nearby circuit board. The premium interior studio maintains consistent cinematic lighting and high-end material use. The camera angle captures the path from the sensor to the circuit. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where needed, translucent ghosting, cinematic blue and white lighting, realistic detailed materials, no text, no labels.
 ```
 
 ### Prompt animation
 
 ```
-Blue and green arrows dynamically flow over and beneath the wing, illustrating lift. As the arrows increase in speed above the wing, the wing begins to tilt upwards due to increased lift. Simultaneously, the aircraft starts gaining altitude slightly as the lifting force increases. The camera maintains its angle to closely follow these dynamics.
+The yellow pulse begins at the sensor, increasing in intensity as it travels to the circuit board, culminating in a bright flash upon impact, symbolizing successful transmission.
 ```
 
 ---
 
 ## Plan 05 — 4s
 
-**Voix** : Cette portance dépasse le poids de l'avion, le soulevant du sol.
+**Voix** : Cette impulsion active un circuit vert qui transmet l'information à un système central.
 
-**Fonction** : Illustrate the moment lift overcomes weight.
+**Fonction** : Illustrate circuit activation and information transmission upon receiving the signal.
 
-**Élément pédagogique** : Aircraft lift-off with wheels leaving ground
+**Élément pédagogique** : circuit light-up in green indicating signal propagation
 
-**Intention de mouvement** : `energy_flow`
+**Intention de mouvement** : `energy_transfer`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Lift exceeds weight, causing lift-off
-2. **physical element** : Entire aircraft
-3. **secondary elements** : Runway, wheels, lift arrows
-4. **visual behavior** : Lift arrows beneath the wings
-5. **animation movement** : Wheels rotate as they detach from the runway
-6. **camera position** : Profile with slight upward pan
-7. **composition** : Landscape capturing whole aircraft lift-off
+1. **information** : Circuit activation and data transmission to a central system.
+2. **physical element** : circuit board
+3. **secondary elements** : central system icon
+4. **visual behavior** : green illumination simulating circuit activation
+5. **animation movement** : sequential ripple through the circuit
+6. **camera position** : close-up shot focusing on the activation
+7. **composition** : trace the signal's path clearly
 
 ### Prompt image
 
 ```
-A ground-level profile of the entire aircraft poised at the edge of the runway. The front wheels are lifted slightly off the ground, demonstrating initial lift-off. Subtle green arrows flowing upwards are visible beneath the wings to indicate lift overcoming the weight. The camera captures a broad view of the full aircraft structure. Materials include high-end realistic metallic elements emphasized by cinematic lighting, which dramatizes this takeoff moment. Photorealistic premium 3D engineering visualization, the same modern dark near-black commercial airliner, technical semi-cutaway where the explanation needs it, translucent ghosted surfaces with the internal structure clearly visible through them, dark premium night runway and hangar environment, cinematic blue and white lighting, realistic detailed materials, physically credible aerodynamics and turbine mechanics, clearly visible airflow and mechanical components, cinematic depth of field, high contrast, premium high-end aviation commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A high-resolution close-up of a circuit board, glowing progressively in green, connected in a wave toward an abstract central system icon. The environment remains premium with an elegant studio's cinematic lighting. Sophisticated materials are evident. The camera captures a side-angle view, showing spatial connectivity. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where needed, translucent ghosting, cinematic blue and white lighting, realistic detailed materials, no text, no labels.
 ```
 
 ### Prompt animation
 
 ```
-Upward-flowing green arrows beneath the wings animate to show increasing lift. As arrows intensify in rhythm, the wheels begin rotating to demonstrate motion, while they leave the ground, illustrating the lift surpassing weight. The articulated wheel rotation, together with intensified lifting forces, provides the primary animation movement.
+From the initial pulse's contact, green light spreads across the circuit board, intensifying and tracing connections to the central system until the entire network is active.
 ```
 
 ---
 
 ## Plan 06 — 4s
 
-**Voix** : Enfin, l'avion monte dans le ciel, équilibrant sa poussée et sa portance.
+**Voix** : Résultat: votre maison adapte l'ambiance lumineuse automatiquement selon votre présence.
 
-**Fonction** : Show climb and balance between thrust and lift.
+**Fonction** : Depict how adaptations occur in the environment due to sensor signals.
 
-**Élément pédagogique** : Aircraft in ascent with balanced forces
+**Élément pédagogique** : environment adapts by changing light hue
 
-**Intention de mouvement** : `energy_flow`
+**Intention de mouvement** : `reveal`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Balance of lift and thrust during climb
-2. **physical element** : Airframe visible in the open sky
-3. **secondary elements** : Directional balance arrows
-4. **visual behavior** : Arrows signifying equilibrium in forces
-5. **animation movement** : Combination of upward motion and wing adjustments
-6. **camera position** : Branch-view ascent, tracking upward
-7. **composition** : Wide to show ascent path in context
+1. **information** : Central system adapts environment in response to signal.
+2. **physical element** : room lighting
+3. **secondary elements** : central system interface
+4. **visual behavior** : gradual color shift of lighting
+5. **animation movement** : sweeping transition of light from cool to warm
+6. **camera position** : wide-angle shot capturing room ambiance
+7. **composition** : enhance the feeling of spatial transformation
 
 ### Prompt image
 
 ```
-A wide shot showing the full airliner ascending in the sky. Directional blue and green arrows depict the stability of lift and thrust forces as the aircraft continues to climb. The setting transitions into a broader night sky environment with high-end metallic textures accentuated by cinematic blue and white lighting capturing the complete ascent path. The camera is positioned to capture the ascent of the aircraft, maintaining a balanced perspective of the forces involved. Photorealistic premium 3D engineering visualization, the same modern dark near-black commercial airliner, technical semi-cutaway where the explanation needs it, translucent ghosted surfaces with the internal structure clearly visible through them, dark premium night runway and hangar environment, cinematic blue and white lighting, realistic detailed materials, physically credible aerodynamics and turbine mechanics, clearly visible airflow and mechanical components, cinematic depth of field, high contrast, premium high-end aviation commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A comprehensive view of the room lighting transitioning from blue to warm yellow, linked to the sensor system. Positioned in the same premium studio environment, emphasizing high-end design elements and consistent cinematic lighting. Materials across the room reflect high-grade finishes. The camera captures the entire room transformation from a central position. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where needed, translucent ghosting, cinematic blue and white lighting, realistic detailed materials, no text, no labels.
 ```
 
 ### Prompt animation
 
 ```
-Bright blue and green arrows illustrate the forces of lift and thrust as the aircraft continues its climb. The aircraft moves upward as these visualized forces stabilize it. Simultaneously, sections of the wings subtly flex in response to aerodynamic forces, completing the coordinated physical movements, while the camera tracks this ascent upwards.
+As the central system data processes, room lighting shifts from blue to warm yellow, spreading methodically throughout and enveloping the space in a welcoming glow.
 ```
 
 ---

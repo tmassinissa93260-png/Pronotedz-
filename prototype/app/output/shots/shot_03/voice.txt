@@ -1,1 +1,1 @@
-Ils brûlent le carburant, générant une poussée vers l'arrière.
+Lorsqu'un objet se déplace, il perturbe ce signal infrarouge rouge.

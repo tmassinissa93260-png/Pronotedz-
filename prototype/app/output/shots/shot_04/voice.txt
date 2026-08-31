@@ -1,1 +1,1 @@
-Les ailes fournissent une portance en déviant l'air vers le bas.
+Le capteur, en détectant cette perturbation, envoie un signal électrique jaune.

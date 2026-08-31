@@ -1,1 +1,1 @@
-Un avion décolle grâce à la poussée créée par ses moteurs.
+Imaginez que votre maison perçoit vos mouvements grâce à un capteur.
