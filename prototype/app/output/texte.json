@@ -1,0 +1,58 @@
+{
+  "chain": [
+    "La vapeur sous pression est générée en chauffant de l'eau.",
+    "Cette vapeur pousse les aubes d'une turbine.",
+    "La turbine en rotation entraîne la rotation d'un rotor dans un alternateur.",
+    "Le rotor qui tourne déplace un champ magnétique autour des bobines de fil.",
+    "Le mouvement du champ magnétique dans les bobines induit un courant électrique."
+  ],
+  "openings": [
+    {
+      "sentence": "Saviez-vous que faire tourner un simple aimant produit de l'électricité?",
+      "why_it_holds": "C'est inattendu que quelque chose d'aussi simple puisse générer de l'électricité, incitant à comprendre le 'comment'."
+    },
+    {
+      "sentence": "Chaque centrale électrique utilise le même principe de base pour produire de l'énergie.",
+      "why_it_holds": "L'uniformité des centrales intrigue, poussant à découvrir ce principe universel."
+    },
+    {
+      "sentence": "La magie de l'électricité commence par de la vapeur chaude.",
+      "why_it_holds": "Associer la familiarité de l'électricité à une source physique banale captivera l'attention."
+    }
+  ],
+  "chosen_opening": "Saviez-vous que faire tourner un simple aimant produit de l'électricité?",
+  "why_chosen": "Cette ouverture est intrigante car elle met en avant la simplicité du processus, ce qui est paradoxalement surprenant. Les autres sont moins directes et moins centrées sur un élément physique concret comme l'aimant.",
+  "script": "Saviez-vous que faire tourner un simple aimant produit de l'électricité? Le processus débute lorsque de la vapeur sous pression est créée en chauffant de l'eau. Cette vapeur pousse les aubes d'une turbine, la mettant en rotation. La rotation de la turbine entraîne celle d'un rotor dans un alternateur. Le rotor en mouvement déplace un champ magnétique autour des bobines de fil. Ce mouvement induit alors un courant électrique dans les bobines.",
+  "objections": [
+    {
+      "sentence": "Saviez-vous que faire tourner un simple aimant produit de l'électricité?",
+      "objection": "aucune",
+      "fix": "rien à changer"
+    },
+    {
+      "sentence": "Le processus débute lorsque de la vapeur sous pression est créée en chauffant de l'eau.",
+      "objection": "aucune",
+      "fix": "rien à changer"
+    },
+    {
+      "sentence": "Cette vapeur pousse les aubes d'une turbine, la mettant en rotation.",
+      "objection": "aucune",
+      "fix": "rien à changer"
+    },
+    {
+      "sentence": "La rotation de la turbine entraîne celle d'un rotor dans un alternateur.",
+      "objection": "aucune",
+      "fix": "rien à changer"
+    },
+    {
+      "sentence": "Le rotor en mouvement déplace un champ magnétique autour des bobines de fil.",
+      "objection": "aucune",
+      "fix": "rien à changer"
+    },
+    {
+      "sentence": "Ce mouvement induit alors un courant électrique dans les bobines.",
+      "objection": "aucune",
+      "fix": "rien à changer"
+    }
+  ]
+}
