@@ -51,6 +51,95 @@ def color_block() -> str:
 
 
 # ---------------------------------------------------------------------------
+# LE TEXTE, ECRIT SEUL
+#
+# Le script etait jusqu'ici un champ parmi dix-huit dans l'appel du
+# storyboard : le modele ecrivait la narration en meme temps que la visual
+# bible, les six plans et les douze prompts, et la narration prenait ce qui
+# restait de son attention. Ca donnait « L'electricite commence par la capture
+# de l'energie mecanique » — exact, plat, et faux deux phrases plus loin.
+#
+# Le texte est donc ecrit AVANT, seul, et verifie avant qu'un seul plan
+# n'existe. C'est l'etape 1 du pipeline, enfin traitee comme une etape.
+# ---------------------------------------------------------------------------
+
+SCRIPT_SYSTEM = """\
+You write the narration of short vertical videos that explain how something
+works, in French, for someone scrolling who owes you nothing.
+
+You have two masters and they never negotiate. The first is TRUTH: an engineer
+must be unable to object to a single sentence. The second is ATTENTION: a
+sentence that teaches nothing new, or that could open any video on any
+subject, is cut.
+
+You never write the flat encyclopaedia opening — "X est essentiel dans notre
+vie quotidienne", "X commence par...", "il existe plusieurs types de X". You
+start where the curiosity is.
+
+You answer with a single valid JSON object and nothing else."""
+
+
+def script_user(subject: str, duration: float, sentences: int) -> str:
+    mots = int(duration * WORDS_PER_SECOND)
+    return f"""\
+Write the narration of a vertical educational video, in French.
+
+SUBJECT: {subject}
+DURATION: {duration} seconds — about {mots} French words
+SENTENCES: {sentences}, one per shot
+
+Work in this order.
+
+1. LA VRAIE CHAÎNE. Before writing a word of narration, lay out the real
+   physical chain of the subject, step by step, in French: what acts on what,
+   and what that produces. Each step must be literally true. This is where you
+   catch yourself: "la rotation de la turbine génère un champ magnétique" is
+   false — the field is already there, the rotation moves it past the coils,
+   and THAT induces the current. Write the chain you can defend.
+
+2. TROIS OUVERTURES. Propose three first sentences, all different, none of
+   them a definition and none of them a generality. A good opening does one of
+   these: it names a number that surprises, it points at something the viewer
+   has seen a hundred times without understanding it, or it says out loud the
+   thing that seems impossible. For each, say why someone would keep watching.
+   Then keep one, and say why the two others are weaker.
+
+3. LE SCRIPT. Write the {sentences} sentences, the chosen opening first.
+   · one concrete fact per sentence, and a new one each time
+   · active voice: something DOES something. "la vapeur pousse les aubes",
+     never "les aubes sont poussées par la vapeur"
+   · a physical actor in every sentence — steam, a blade, a magnet, a wire —
+     never only "cette énergie", "ce processus", "ce système"
+   · each sentence is the cause of the next: the chain must be audible
+   · no filler: "notamment", "principalement", "différentes formes",
+     "permet de", "grâce à", "essentiel", "au quotidien"
+   · spoken French, said aloud in one breath, no written-essay turns
+   · the last sentence lands on the result, not on a summary
+
+4. L'OBJECTION. Re-read your own script as a hostile engineer. For each
+   sentence that could be attacked, say what the objection is and how you
+   fixed it. If nothing can be attacked, say so for each sentence — but be
+   honest, this step is the reason the script is trustworthy.
+
+Return only this JSON:
+{{
+  "chain": ["each real physical step, in French, in order"],
+  "openings": [
+    {{"sentence": "...", "why_it_holds": "why someone keeps watching"}},
+    {{"sentence": "...", "why_it_holds": "..."}},
+    {{"sentence": "...", "why_it_holds": "..."}}
+  ],
+  "chosen_opening": "the one you keep, word for word",
+  "why_chosen": "why the two others are weaker",
+  "script": "the full narration, {sentences} sentences, one continuous text",
+  "objections": [
+    {{"sentence": "the sentence concerned", "objection": "what an engineer \
+would object to, or 'aucune'", "fix": "what you changed, or 'rien à changer'"}}
+  ]
+}}"""
+
+
+# ---------------------------------------------------------------------------
 # STORYBOARD
 # ---------------------------------------------------------------------------
 
@@ -68,16 +157,24 @@ You answer with a single valid JSON object and nothing else: no markdown, no
 code fence, no commentary."""
 
 
-def storyboard_user(subject: str, duration: float, shot_count: int) -> str:
+def storyboard_user(subject: str, duration: float, shot_count: int,
+                    script: str = "") -> str:
     par_plan = round(duration / shot_count, 1)
     mots = int(par_plan * WORDS_PER_SECOND)
+    impose = f"""
+THE NARRATION IS ALREADY WRITTEN AND VALIDATED. Use it as it stands:
+"{script}"
+Do not rewrite it, do not reorder it, do not add or remove a sentence. Copy it
+verbatim into "script", and cut it into shots: each shot takes one sentence,
+in order, into its "voice". Your work starts at the storyboard.
+""" if script else ""
     return f"""\
 Write the complete pre-production of a vertical 9:16 educational video.
 
 SUBJECT: {subject}
 TOTAL DURATION: {duration} seconds
 SHOTS: {shot_count}
-
+{impose}
 Every rule below is mandatory. A storyboard that misses one is rejected.
 
 ── THE REFERENCE VISUAL LANGUAGE — the artistic reference for the whole video ──

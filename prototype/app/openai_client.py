@@ -69,11 +69,16 @@ def chat_json(model: str, messages: list[dict]) -> dict:
 
 
 def generate_storyboard(subject: str, duration: float, shot_count: int,
-                        on_attempt=None) -> tuple[Storyboard, list]:
-    """Genere puis fait corriger jusqu'a ce que le validateur accepte."""
+                        on_attempt=None, script: str = "") -> tuple[Storyboard, list]:
+    """Genere puis fait corriger jusqu'a ce que le validateur accepte.
+
+    `script` est la narration deja ecrite et verifiee par le redacteur : le
+    storyboard la decoupe au lieu de l'ecrire en meme temps que tout le reste.
+    """
     messages = [
         {"role": "system", "content": prompts.STORYBOARD_SYSTEM},
-        {"role": "user", "content": prompts.storyboard_user(subject, duration, shot_count)},
+        {"role": "user", "content": prompts.storyboard_user(subject, duration,
+                                                            shot_count, script)},
     ]
     storyboard, problems = None, []
 

@@ -1,6 +1,7 @@
 """Prototype semi-automatique.
 
     python main.py                              le storyboard complet
+    python -m app.main texte                    la narration seule, verifiee
     python -m app.main elements                 tout exporter pour produire
     python -m app.main aligner                  l'image doit EXPLIQUER la phrase
     python -m app.main affiner-tout             les images deposees -> animations
@@ -24,7 +25,17 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     __package__ = "app"
 
-from . import aligner, analyzer, config, juge, memoire, montage, prompts, validator  # noqa: E402
+from . import (  # noqa: E402
+    aligner,
+    analyzer,
+    config,
+    juge,
+    memoire,
+    montage,
+    prompts,
+    redacteur,
+    validator,
+)
 from .models import EXPLICATION_FIELDS, Shot, Storyboard, StoryboardError  # noqa: E402
 from .openai_client import OpenAIError, generate_storyboard  # noqa: E402
 
@@ -46,11 +57,51 @@ def montrer_problemes(problems: list) -> None:
 # ---------------------------------------------------------------------------
 
 
-def construire(subject: str, duration: float, shot_count: int) -> Storyboard:
+def ecrire_texte(subject: str, duration: float, sentences: int) -> dict:
+    """La narration, ecrite seule et verifiee avant qu'un plan n'existe."""
+    def a_chaque_tentative(numero: int, problemes: list) -> None:
+        if problemes:
+            log("TEXTE", f"tentative {numero} : {len(problemes)} point(s) à corriger")
+            for probleme in problemes:
+                print(f"  ! {probleme}", flush=True)
+
+    texte, restants = redacteur.ecrire(subject, duration, sentences,
+                                       on_attempt=a_chaque_tentative)
+    config.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    config.TEXTE_FILE.write_text(
+        json.dumps(texte, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    print()
+    print("  LA CHAÎNE PHYSIQUE")
+    for maillon in texte["chain"]:
+        print(f"    · {maillon}")
+    print()
+    print("  LES OUVERTURES ÉCARTÉES")
+    for ouverture in texte["openings"]:
+        if ouverture["sentence"] != texte["chosen_opening"]:
+            print(f"    · {ouverture['sentence']}")
+    print()
+    print(f"  RETENUE : {texte['chosen_opening']}")
+    print(f"  POURQUOI : {texte['why_chosen']}")
+    print()
+    for objection in texte["objections"]:
+        if objection["objection"].lower().strip(" .") not in ("aucune", "none", "aucun"):
+            print(f"  objection : {objection['sentence']}")
+            print(f"      → {objection['objection']}")
+            print(f"      corrigé : {objection['fix']}")
+    if restants:
+        log("ATTENTION", f"{len(restants)} point(s) non corrigé(s) sur le texte :")
+        for probleme in restants:
+            print(f"  ! {probleme}")
+    log("OUTPUT", str(config.TEXTE_FILE))
+    return texte
+
+
+def construire(subject: str, duration: float, shot_count: int,
+               script: str = "") -> Storyboard:
     log("INPUT")
     print(f"  {subject}\n  {duration:g} secondes\n  {shot_count} plans\n", flush=True)
 
-    log("OPENAI", "Écriture du script...")
     log("OPENAI", "Storyboard, visual bible et prompts...")
 
     def a_chaque_tentative(numero: int, problems: list) -> None:
@@ -60,7 +111,7 @@ def construire(subject: str, duration: float, shot_count: int) -> Storyboard:
             montrer_problemes(problems)
 
     sb, problems = generate_storyboard(subject, duration, shot_count,
-                                       on_attempt=a_chaque_tentative)
+                                       on_attempt=a_chaque_tentative, script=script)
     config.reset_shots()
     config.ensure_dirs(len(sb.shots))
     sb.save(config.PROJECT_FILE)
@@ -107,6 +158,26 @@ def ecrire_elements(sb: Storyboard) -> Path:
         "",
         sb.script,
         "",
+    ]
+    dossier = lire_texte()
+    if dossier and dossier.get("script", "").strip() == sb.script.strip():
+        lignes += ["### La chaîne physique derrière le texte", ""]
+        lignes += [f"{n}. {maillon}"
+                   for n, maillon in enumerate(dossier["chain"], start=1)]
+        lignes += ["", "### Les ouvertures écartées", ""]
+        lignes += [f"- {o['sentence']}" for o in dossier["openings"]
+                   if o["sentence"] != dossier["chosen_opening"]]
+        lignes += ["", f"*Retenue : {dossier['why_chosen']}*", ""]
+        reelles = [o for o in dossier["objections"]
+                   if o["objection"].lower().strip(" .") not in
+                   ("aucune", "aucun", "none")]
+        if reelles:
+            lignes += ["### Ce qu'un ingénieur aurait objecté", ""]
+            for o in reelles:
+                lignes += [f"- « {o['sentence']} » — {o['objection']}",
+                           f"  → {o['fix']}"]
+            lignes += [""]
+    lignes += [
         "## Visual bible",
         "",
         "À réutiliser dans **chaque** image. Les couleurs ont un sens fixe.",
@@ -257,6 +328,17 @@ def realigner(sb: Storyboard) -> list[tuple[int, list[str]]]:
     return restants
 
 
+def lire_texte() -> dict | None:
+    """Le dossier du redacteur, s'il existe."""
+    if not config.TEXTE_FILE.is_file():
+        return None
+    try:
+        dossier = json.loads(config.TEXTE_FILE.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+    return dossier if isinstance(dossier, dict) else None
+
+
 def lire_alignement(shot_id: int, voice: str = "") -> dict | None:
     """La fiche d'alignement du plan, si elle parle bien de CE plan.
 
@@ -372,8 +454,18 @@ def charger_analyses(sb: Storyboard) -> dict:
 # ---------------------------------------------------------------------------
 
 
+def cmd_texte(args) -> int:
+    ecrire_texte(args.subject, args.duration, args.shots)
+    return 0
+
+
 def cmd_storyboard(args) -> int:
-    sb = construire(args.subject, args.duration, args.shots)
+    script = ""
+    if not args.sans_texte:
+        log("RÉDACTEUR", "La narration, écrite seule et vérifiée.")
+        script = ecrire_texte(args.subject, args.duration, args.shots)["script"]
+        print()
+    sb = construire(args.subject, args.duration, args.shots, script)
     if not args.sans_alignement:
         print()
         log("AGENT", "L'image doit EXPLIQUER la phrase, pas l'illustrer.")
@@ -750,7 +842,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_sb = commun(sub.add_parser("storyboard", help="script, bible, plans, prompts"))
     p_sb.add_argument("--sans-alignement", dest="sans_alignement", action="store_true",
                       help="ne pas repasser chaque plan à l'agent d'alignement")
+    p_sb.add_argument("--sans-texte", dest="sans_texte", action="store_true",
+                      help="laisser le storyboard écrire lui-même la narration")
     p_sb.set_defaults(func=cmd_storyboard)
+    commun(sub.add_parser("texte", help="la narration seule, écrite et vérifiée")
+           ).set_defaults(func=cmd_texte)
     sub.add_parser("elements", help="tout réexporter pour produire"
                    ).set_defaults(func=cmd_elements)
     sub.add_parser("aligner", help="l'image doit EXPLIQUER la phrase, sans le son"

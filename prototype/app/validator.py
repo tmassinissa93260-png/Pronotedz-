@@ -115,6 +115,64 @@ RESUME = ("résum", "resum", "synthès", "synthes", "récapitul", "recapitul",
           "bilan", "vue d'ensemble", "summar", "overview", "recap", "wrap up",
           "to conclude", "conclusion")
 
+# ---------------------------------------------------------------------------
+# LE TEXTE
+#
+# Le validateur avait dix-huit controles sur l'image et presque aucun sur la
+# narration : le debit, et deux phrases identiques. Le run 41 est passe sans
+# un manquement avec « L'electricite commence par la capture de l'energie
+# mecanique » en ouverture, et une phrase fausse au milieu.
+# ---------------------------------------------------------------------------
+
+# Une premiere phrase qui pourrait ouvrir n'importe quelle video sur
+# n'importe quel sujet n'ouvre rien du tout.
+OUVERTURE_PLATE = (
+    "est un ", "est une ", "sont des ", "désigne", "s'appelle", "se définit",
+    "commence par", "il existe", "on utilise", "on appelle", "nous allons",
+    "on va voir", "dans cette vidéo", "essentiel", "essentielle", "important",
+    "dans notre vie", "au quotidien", "de nos jours", "aujourd'hui,",
+    "depuis toujours", "partout autour", "joue un rôle",
+)
+
+# Le passif efface celui qui agit. « les aubes sont poussées par la vapeur »
+# raconte la meme chose que « la vapeur pousse les aubes », en cachant la
+# vapeur — or c'est elle qu'il faut voir a l'image.
+AUXILIAIRE = re.compile(
+    r"\b(?:est|sont|était|étaient|a été|ont été|sera|seront)\s+"
+    r"([a-zà-ÿ]+)(?:\s+([a-zà-ÿ]+))?")
+
+# Un participe passe francais : au moins quatre lettres, et une terminaison
+# qui n'appartient qu'a lui.
+PARTICIPE = re.compile(r"^[a-zà-ÿ]{4,}(?:ée|ées|és|é|ies|ie|ues|ue|us|ises|ise|"
+                       r"ites|ite|is|it)$")
+
+# Ces mots-la se glissent entre l'auxiliaire et le participe — et « ensuite »
+# se termine comme un participe sans en etre un.
+ADVERBES = frozenset((
+    "ensuite", "alors", "puis", "également", "aussi", "enfin", "ainsi", "donc",
+    "souvent", "toujours", "déjà", "encore", "parfois", "désormais",
+    "maintenant", "directement", "immédiatement", "progressivement",
+    "généralement", "naturellement", "simplement", "rapidement", "lentement",
+    "très", "plus", "bien", "trop", "peu", "assez", "tout", "tous",
+))
+
+
+def est_passive(phrase: str) -> bool:
+    """« est transportée » oui ; « est ensuite transportée » aussi ;
+    « est essentielle », « est très rapide » et « est un moteur » non."""
+    for premier, second in AUXILIAIRE.findall(phrase.lower()):
+        if premier not in ADVERBES and PARTICIPE.match(premier):
+            return True
+        if premier in ADVERBES and second and PARTICIPE.match(second):
+            return True
+    return False
+
+# Des mots qui promettent sans montrer. Un seul passe ; deux, c'est un style.
+VAGUE = ("notamment", "principalement", "généralement", "différentes formes",
+         "diverses", "plusieurs types", "certains types", "permet de",
+         "permettent de", "essentiel", "quotidien", "moderne", "efficacement",
+         "de manière", "il est possible", "on peut dire")
+
 # Mouvements de camera : ils ne comptent pas comme mouvement pedagogique.
 CAMERA = ("camera", "zoom", "dolly", "pan", "tilt", "orbit", "push in", "pull out",
           "tracking shot")
@@ -242,6 +300,7 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _ancrage(sb)
     problems += _dynamique(sb)
     problems += _physique(sb)
+    problems += _texte(sb)
     problems += _temporel(sb)
     problems += _dernier_plan(sb)
     problems += _code_couleur(sb)
@@ -803,6 +862,49 @@ def _physique(sb: Storyboard) -> list[Problem]:
                                    f"near-black electric sedan in every shot — same geometry, "
                                    f"proportions, wheels, glass, materials. Never redesign, "
                                    f"replace or recolour it between shots."))
+    return out
+
+
+def phrases(texte: str) -> list[str]:
+    """Le script, phrase par phrase."""
+    return [p.strip() for p in re.split(r"(?<=[.!?])\s+", texte.strip()) if p.strip()]
+
+
+def _texte(sb: Storyboard) -> list[Problem]:
+    """La narration : l'ouverture, la voix active, et les mots qui ne montrent rien."""
+    out = []
+    toutes = phrases(sb.script)
+    if not toutes:
+        return out
+
+    premiere = toutes[0].lower()
+    plates = [m for m in OUVERTURE_PLATE if m in premiere]
+    if plates:
+        out.append(Problem("CROCHET", "script",
+                           f"l'ouverture est une generalite (« {plates[0].strip()} »)",
+                           "The first sentence could open any video on any subject. "
+                           "Replace it: name a number that surprises, point at something "
+                           "the viewer has seen a hundred times without understanding it, "
+                           "or say out loud the thing that seems impossible. Never a "
+                           "definition, never 'X est essentiel', never 'X commence par'."))
+
+    passives = [p for p in toutes if est_passive(p)]
+    if len(passives) > len(toutes) / 2:
+        out.append(Problem("PASSIF", "script",
+                           f"{len(passives)} phrases sur {len(toutes)} au passif",
+                           "The narration hides who acts. Rewrite in the active voice: "
+                           "'la vapeur pousse les aubes', never 'les aubes sont poussées "
+                           "par la vapeur'. The thing that acts is the thing the image "
+                           "must show."))
+
+    bas = sb.script.lower()
+    flous = [m for m in VAGUE if m in bas]
+    if len(flous) >= 2:
+        out.append(Problem("VAGUE", "script",
+                           f"mots qui promettent sans montrer : {', '.join(flous[:4])}",
+                           f"Remove {', '.join(flous[:4])}. Each sentence must carry one "
+                           f"concrete fact with a physical actor doing something — steam, "
+                           f"a blade, a magnet, a wire. 'permet de produire' is 'produit'."))
     return out
 
 
