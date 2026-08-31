@@ -1,34 +1,34 @@
 {
-  "understanding": "Le signal électrique active un système, illustré par l'allumage d'une lumière.",
+  "understanding": "Que le signal électrique est traité pour déclencher des appareils.",
   "candidates": [
     {
-      "action": "A blue electrical flow moves from the sensor to the bulb and lights it up.",
-      "explains": "Demonstrates how the signal travels and activates the light.",
-      "misses": "The direct interaction between signal and internal system components."
+      "action": "Yellow signal lines extend from the sensor to devices, causing each to light up in green.",
+      "explains": "The flow of the electrical signal from the sensor to the devices.",
+      "misses": "The concept of the signal being processed."
     },
     {
-      "action": "The bulb lights up as soon as a blue wave touches its base.",
-      "explains": "Highlights the activation of the system upon signal contact.",
-      "misses": "The journey and origin of the electrical signal."
+      "action": "Devices in the room begin to beep as the yellow signal reaches them.",
+      "explains": "The activation of the devices due to the signal.",
+      "misses": "The visual path of the signal transmission."
     },
     {
-      "action": "The signal travels through visible internal circuits before reaching the bulb.",
-      "explains": "Shows the electrical flow pathway through internal circuits.",
-      "misses": "The moment or location of actual system activation."
+      "action": "The motion sensor emits a yellow signal that triggers a glowing effect around each device.",
+      "explains": "The triggering effect of the sensor on devices.",
+      "misses": "The depiction of the signal's journey."
     }
   ],
-  "chosen": "A blue electrical flow moves from the sensor to the bulb and lights it up.",
-  "why_chosen": "This action clearly illustrates the cause-and-effect relationship of signal activation with immediate visualization.",
-  "mute_test": 0.8,
-  "image_prompt": "A close-up shot captures the dynamic journey of a blue electrical flow originating from the motion sensor, moving visibly across the frame towards a light bulb. The moment the flow touches the bulb, it visibly lights up, creating a sense of immediate activation. The camera is positioned at eye level with the path of the electrical flow placed in the center of the frame for maximum clarity. The lighting emphasizes the blue flow and the bulb's illumination, against the dark premium interior environment, ensuring the viewer's eyes go directly to the flow and the lit bulb. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The animation begins with a subtle emergence of a blue electrical flow from the motion sensor, gaining intensity and clarity as it travels across the frame. It progressively becomes sharper and brighter, illustrating its path and directionality as it nears a light bulb. Upon contact with the bulb, the flow triggers an immediate and vivid illumination, emphasizing the cause-and-effect relationship of the electrical activation in a smooth and visually satisfying progression.",
+  "chosen": "Yellow signal lines extend from the sensor to devices, causing each to light up in green.",
+  "why_chosen": "Because it clearly shows the cause-and-effect relationship of the signal triggering the devices, with visual flow and instant reaction.",
+  "mute_test": 0.85,
+  "image_prompt": "A wide view capturing the motion sensor with yellow signal lines steadily extending from it toward various electronic devices in the room, such as lights and alarms, which then light up with a green indicator. The signal emerges from the sensor and progresses to each device sequentially, illustrating activation. The composition includes high-quality plastics and metals for sensor and connected devices, with the environment set as a dark premium interior, cinematic blue and white lighting highlighting the signal paths and device reactions. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation displays yellow signal lines actively extending from the sensor, beginning with a faint glow that builds in intensity as they travel towards various devices. When the signals reach a device, it activates, lighting up with a green response, illustrating a chain reaction that unfolds sequentially across the scene.",
   "visual_explanation": {
-    "information": "The electrical signal activates a light upon contact.",
-    "physical_element": "A blue electrical flow from the sensor to the light bulb.",
-    "secondary_elements": "The light bulb lighting up upon the flow's contact.",
-    "visual_behavior": "The immediate illumination of the bulb upon signal contact.",
-    "animation_movement": "The progression of the blue electrical flow reaching the bulb.",
-    "camera_position": "Eye level with the central path of the electrical flow.",
-    "composition": "Flow and bulb aligned centrally to emphasize connection and activation."
+    "information": "The electrical signal triggers devices to activate.",
+    "physical_element": "Yellow signal lines that represent the electrical flow.",
+    "secondary_elements": "Devices in the room lighting up in response to the signal.",
+    "visual_behavior": "Signal lines extend and devices light up green.",
+    "animation_movement": "Signal lines initially faint, then build in intensity as they travel and activate devices.",
+    "camera_position": "Wide angle covering the entire scene, focusing on the progression of the signal flow.",
+    "composition": "The flow starts at the sensor, builds through the scene, concluding at activated devices, set within a coherent and realistic interior."
   }
 }

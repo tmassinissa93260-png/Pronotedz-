@@ -1,1 +1,1 @@
-Lorsqu'une personne ou un objet traverse ce signal, une perturbation est créée.
+Lorsqu'une source de chaleur se déplace, elle émet un rayonnement infrarouge.

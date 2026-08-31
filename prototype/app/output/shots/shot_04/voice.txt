@@ -1,1 +1,1 @@
-Cette perturbation est captée par le capteur, qui envoie alors un signal électrique.
+Le capteur capte ce rayonnement et génère un signal électrique.

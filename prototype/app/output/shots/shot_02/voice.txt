@@ -1,1 +1,1 @@
-Les capteurs de mouvement émettent un signal infrarouge.
+Voici le capteur de mouvement avec rayonnement infrarouge.

@@ -1,1 +1,1 @@
-Ce signal active un système, comme l'allumage d'une lumière.
+Ce signal est ensuite traité pour déclencher divers appareils.
