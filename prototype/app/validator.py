@@ -857,6 +857,20 @@ def _code_couleur(sb: Storyboard) -> list[Problem]:
     jamais = [e.notion for e in sb.color_code if e.moving
               and not any(e.notion in notions_pedagogiques(own_part(s.image_prompt), table)
                           for s in sb.shots)]
+    # Le code couleur est une convention VISUELLE : la voix ne la dit pas.
+    # Au run 34 le script annoncait « ce signal infrarouge rouge », ce qui
+    # revient a lire la legende a voix haute.
+    for shot in sb.shots:
+        dites = sorted({c for e in sb.color_code for c in e.couleurs
+                        if re.search(rf"\b{re.escape(c)}s?\b", shot.voice.lower())})
+        if dites:
+            out.append(Problem("COULEUR", shot.slug,
+                               f"la voix nomme la couleur du code (« {dites[0]} »)",
+                               f"Shot {shot.id}: the colour code is a visual convention, "
+                               f"for the eye only. Remove the colour from the French "
+                               f"narration — the voice says what happens, the image says "
+                               f"in which colour."))
+
     if jamais:
         out.append(Problem("COULEUR", "storyboard",
                            f"phenomene(s) declare(s) et jamais montre(s) : "

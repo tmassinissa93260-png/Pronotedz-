@@ -261,9 +261,13 @@ viewer needs to read.
 
 ── COLOUR CODE — you write it, for YOUR subject ──
 Fill "color_code": between 3 and 6 entries, each with "notion" (what it means
-in YOUR subject), "color", "meaning" and "moving" — true only when the notion
-is an invisible phenomenon that TRAVELS, false for an identity colour that
-simply names a part. At least one notion must be moving.
+in YOUR subject), "color" (an ENGLISH colour word — the prompts are English),
+"meaning" and "moving" — true only when the notion is an invisible phenomenon
+that TRAVELS, false for an identity colour that simply names a part. At least
+one notion must be moving.
+The colour code is a VISUAL convention, for the eye only: the French narration
+never names it. "il perturbe ce signal infrarouge rouge" is wrong — the voice
+says what happens, the image says in which colour.
 Never use a different colour for the same notion. Never reuse a colour for a
 different notion. Every notion you declare must be visible in at least one
 image prompt.

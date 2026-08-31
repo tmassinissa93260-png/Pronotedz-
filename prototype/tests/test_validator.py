@@ -579,6 +579,22 @@ class TestCodeCouleur(unittest.TestCase):
         self.assertEqual([x for x in valider(raw) if x.code == "COULEUR"], [])
         self.assertEqual([x for x in valider(raw) if x.code == "GRAMMAIRE"], [])
 
+    def test_un_code_en_francais_reste_lisible_dans_un_prompt_anglais(self):
+        """Run 34 : « rouge » declare, « red stream » ecrit — plus aveugle."""
+        raw = board()
+        raw["color_code"][0]["color"] = "jaune"
+        sb = Storyboard.from_dict(raw)
+        self.assertEqual(sb.notion_par_couleur()["yellow"], "energie")
+        self.assertEqual([x for x in valider(raw) if x.code == "COULEUR"], [])
+
+    def test_la_voix_ne_dit_pas_la_couleur(self):
+        raw = board()
+        raw["shots"][0]["voice"] = ("Le courant jaune quitte la batterie et "
+                                    "rejoint le moteur en un instant.")
+        p = [x for x in valider(raw) if x.code == "COULEUR"]
+        self.assertTrue(p)
+        self.assertIn("jaune", str(p[0]))
+
     def test_une_couleur_pour_deux_notions_est_refusee(self):
         from app.models import StoryboardError
         raw = board()

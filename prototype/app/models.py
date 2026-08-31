@@ -74,6 +74,27 @@ NOTION_SENS = {
 
 COLOR_CODE_FIELDS = ("notion", "color", "meaning")
 
+# Les prompts sont en anglais, le script en francais : au run 34 le modele a
+# declare « jaune » et « rouge » pendant qu'il ecrivait « yellow pulse » et
+# « red stream ». Le code couleur devenait aveugle. On accepte donc les deux
+# langues et on cherche les deux formes dans le texte.
+TRADUCTION_COULEUR = {
+    "jaune": "yellow", "orange": "orange", "rouge": "red", "bleu": "blue",
+    "vert": "green", "gris": "grey", "blanc": "white", "noir": "black",
+    "violet": "purple", "rose": "pink", "cyan": "cyan", "ambre": "amber",
+    "turquoise": "turquoise", "magenta": "magenta", "dore": "gold",
+    "doré": "gold", "argente": "silver", "argenté": "silver",
+}
+
+#: L'equivalence marche dans les deux sens : le code peut etre declare en
+#: anglais et la voix parler francais, ou l'inverse.
+EQUIVALENCE_COULEUR: dict[str, tuple[str, ...]] = {}
+for _fr, _en in TRADUCTION_COULEUR.items():
+    EQUIVALENCE_COULEUR.setdefault(_fr, ()) 
+    EQUIVALENCE_COULEUR[_fr] += (_en,)
+    EQUIVALENCE_COULEUR.setdefault(_en, ())
+    EQUIVALENCE_COULEUR[_en] += (_fr,)
+
 MIN_COLOR_NOTIONS = 3
 MAX_COLOR_NOTIONS = 6
 
@@ -87,8 +108,14 @@ class ColorEntry:
 
     @property
     def couleurs(self) -> tuple[str, ...]:
-        """« yellow/orange » -> ('yellow', 'orange')."""
-        return tuple(c for c in re.split(r"[^a-z]+", self.color.lower()) if c)
+        """« yellow/orange » -> ('yellow', 'orange') ; « jaune » -> les deux."""
+        mots = [c for c in re.split(r"[^a-zà-ÿ]+", self.color.lower()) if c]
+        toutes = list(mots)
+        for mot in mots:
+            for equivalent in EQUIVALENCE_COULEUR.get(mot, ()):
+                if equivalent not in toutes:
+                    toutes.append(equivalent)
+        return tuple(toutes)
 
     @classmethod
     def from_dict(cls, index: int, raw: object) -> ColorEntry:
