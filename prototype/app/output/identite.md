@@ -1,4 +1,4 @@
-# Verrouillage d'identite — Comment on produit de l'électricité
+# Verrouillage d'identite — Fonctionnement des écouteurs électriques sans fil
 
 Les plans ne sont pas six objets differents : c'est le MEME objet vu
 de six endroits. Produis d'abord l'image maitresse, puis derive les
@@ -6,11 +6,11 @@ autres a partir d'elle au lieu de les redecrire.
 
 ## 1. L'image maitresse
 
-C'est le plan 06 : celui qui montre l'objet le plus entier.
+C'est le plan 03 : celui qui montre l'objet le plus entier.
 Genere-le en premier, et garde-le.
 
 ```
-A wide, clear view shows energy visibly flowing from red batteries through gray cables into various silhouetted household devices, indicating their activation with a visual glow. Yellow/orange energy flows dominate the scene against silhouetted devices, creating a strong visual emphasis on energy distribution. The metallic cables and diverse realistic finishes for devices reflect cinematic blue and white lighting, emphasizing the pathways from storage to consumption. The scene is set in a dark premium industrial hall with a consistent high-tech aesthetic, while the camera is placed to capture the full span of energy distribution as it moves visually to the devices. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+An extended view from the phone to the earbud with distinct blue signal waves traveling directly through the air towards the earbud's receiver. The shot is centered on the journey of the blue signal waves, with the phone on one side and the earbud on the other, creating a clear visual connection between them. The camera is positioned to capture this journey from a close and wide angle for clarity. The environment is a dark premium studio with high-end materials, including modern dark near-black wireless earbud and smartphone materials made of high-quality plastics and metals. Cinematic blue and white lighting highlights the path of the signal waves. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ## 2. Les autres plans, derives de celle-la
@@ -25,7 +25,7 @@ Sinon, colle le prompt complet : il est ecrit pour tenir tout seul.
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up following the rotational movement of the blades. Dynamic angle capturing the flow of energy across rapidly spinning blades, centered in focus. Show: Rapid blade rotation with energy streams progressing over blades. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. close-up view of the earbud and phone framing focuses on the space between earbud and phone Show: blue signal waves Keep the reference lighting and art direction.
 ```
 
 ### Plan 02
@@ -34,16 +34,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. semi-cutaway close focus emphasize internal energy path Show: visible flow of energy paths and mechanical responses Keep the reference lighting and art direction.
-```
-
-### Plan 03
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. pull-back to encompass field effect focus on field strength and interactions Show: an expanding field animation around rotation Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. close-up from phone to earbud focus on signal pathway Show: emitting blue signal waves Keep the reference lighting and art direction.
 ```
 
 ### Plan 04
@@ -52,7 +43,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Slight angle focusing on the wires and field interaction. Central focus on electricity flowing through wires, framed with magnetic field interaction to the forefront. Show: The yellow/orange light moving through the wires. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Frontal, capturing the entry and interaction with clarity. Centered on the transformation inside the earbud with the signal's journey as the focal path. Show: The blue signal transforms into cyan data as it touches the chip, which then lights up. Keep the reference lighting and art direction.
 ```
 
 ### Plan 05
@@ -61,6 +52,78 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. focusing sharply on the battery cells centered on energy transition to storage Show: battery cells pulsating with incoming energy Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. inside view highlighting transformation focus on conversion process inside earbud Show: flow of yellow electricity replacing blue waves Keep the reference lighting and art direction.
+```
+
+### Plan 06
+
+**Depuis l'image maitresse** — meme objet, meme geometrie, memes
+materiaux, meme code couleur ; ne change que le point de vue :
+
+```
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up on the earbud's internals with a clear view of the transformation process. Central view emphasizing the flow from data to electricity within the earbud. Show: Data packets transform into electricity visible through the earbud's internals. Keep the reference lighting and art direction.
+```
+
+### Plan 07
+
+**Depuis l'image maitresse** — meme objet, meme geometrie, memes
+materiaux, meme code couleur ; ne change que le point de vue :
+
+```
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Slightly elevated side angle focusing on electricity's path and diaphragm response. Focus on creating a causal link between electrical flow and diaphragm movement, with clarity and depth. Show: Electricity visibly travels, causing vibration upon impact with the diaphragm. Keep the reference lighting and art direction.
+```
+
+### Plan 08
+
+**Depuis l'image maitresse** — meme objet, meme geometrie, memes
+materiaux, meme code couleur ; ne change que le point de vue :
+
+```
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up emphasizing the earbud diaphragm's motion and resulting air displacement. Centralized on the earbud's diaphragm with evenly spaced, expanding air waves around it. Show: Pulsing diaphragm, expanding ripple-like air movement. Keep the reference lighting and art direction.
+```
+
+### Plan 09
+
+**Depuis l'image maitresse** — meme objet, meme geometrie, memes
+materiaux, meme code couleur ; ne change que le point de vue :
+
+```
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. The camera angle captures the dynamic pathway of the electrical signal to the diaphragm, focusing on the transition between electrical and air wave motions. Cinematic close-up with focus on electric signal pathways and diaphragm motion, utilizing depth of field to center on dynamic interactions. Show: Electric signals visibly move to the diaphragm, causing it to vibrate and produce sound waves. Keep the reference lighting and art direction.
+```
+
+### Plan 10
+
+**Depuis l'image maitresse** — meme objet, meme geometrie, memes
+materiaux, meme code couleur ; ne change que le point de vue :
+
+```
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Wide angle focusing on flow dynamics within a semi-cutaway view. Starts wide with electricity flow beginning at the battery, composing a visual narrative that leads the viewer through the sequence of power distribution across components. Show: Electricity travels visibly from the battery to parts. Keep the reference lighting and art direction.
+```
+
+### Plan 11
+
+**Depuis l'image maitresse** — meme objet, meme geometrie, memes
+materiaux, meme code couleur ; ne change que le point de vue :
+
+```
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. focus on circuit and magnified results emphasize increase in signal size Show: enlarging sound waves Keep the reference lighting and art direction.
+```
+
+### Plan 12
+
+**Depuis l'image maitresse** — meme objet, meme geometrie, memes
+materiaux, meme code couleur ; ne change que le point de vue :
+
+```
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. A close-up view accentuating the path of sound waves from the earbud to the ear. Focused vertical composition with elements leading attention to the ear canal. Show: The musical notes and waves making a clear path to the ear. Keep the reference lighting and art direction.
+```
+
+### Plan 13
+
+**Depuis l'image maitresse** — meme objet, meme geometrie, memes
+materiaux, meme code couleur ; ne change que le point de vue :
+
+```
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close angle highlighting both the earbud's intricate internals and the moving signals. Focus on the earbud with surrounding dynamic signals in a cinematically lit environment. Show: Data packets dynamically flowing around, creating a sense of advanced technology. Keep the reference lighting and art direction.
 ```
 

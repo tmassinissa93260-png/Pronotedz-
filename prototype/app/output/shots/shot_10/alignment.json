@@ -1,0 +1,35 @@
+{
+  "voice": "Les batteries intégrées alimentent tout ce processus.",
+  "understanding": "que les batteries fournissent de l'énergie à toutes les fonctions",
+  "candidates": [
+    {
+      "action": "Yellow electricity flows from the battery to each earbud component sequentially, making each component glow as it receives energy.",
+      "explains": "It shows how electricity travels from the battery to power each part of the earbud.",
+      "misses": "It does not highlight the specific role of each component in the process."
+    },
+    {
+      "action": "The battery itself glows yellow, and lines of yellow energy snake towards each component, demonstrating connectivity.",
+      "explains": "This indicates that the battery's energy reaches all parts of the system.",
+      "misses": "It doesn't show the sequential nature of power distribution."
+    },
+    {
+      "action": "Battery pulses with yellow light that spreads outward, illuminating the entire earbud to signify complete energy distribution.",
+      "explains": "It emphasizes how the battery's energy encompasses the whole device.",
+      "misses": "It does not indicate the specific paths energy takes within the device."
+    }
+  ],
+  "chosen": "Yellow electricity flows from the battery to each component sequentially.",
+  "why_chosen": "This action visually explains the causal flow of electricity from the battery to each part of the earbud, showing the power distribution sequentially and comprehensively.",
+  "mute_test": 0.85,
+  "image_prompt": "A cross-sectional view of the earbud's internal battery system. Dark gray battery cells visibly supply bright yellow electrical energy through thin connectors, sequentially lighting each high-end component: chip, antenna, voice coil, and diaphragm. The camera angle directs emphasis on the chain of power distribution starting from the battery. Materials are premium grade, with realistic high-end plastics and metals fitting dark premium studio ambiance. Subtle cinematic blue and white lighting accentuates this causal distribution of power. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins with bright yellow electricity emitted from the battery, gradually traveling through connectors to illuminate each earbud component in sequence: starting with the chip, moving to the antenna, then the voice coil, and finally reaching the diaphragm, with energy building in intensity at each step until the entire earbud is lit up to demonstrate full power delivery.",
+  "visual_explanation": {
+    "information": "The battery supplies power to all earbud functions.",
+    "physical_element": "Yellow electricity flow from the battery to components.",
+    "secondary_elements": "High-end earbud components sequentially lighting up.",
+    "visual_behavior": "Electricity travels visibly from the battery to parts.",
+    "animation_movement": "Electricity starts from the battery, progresses through connectors, sequentially lighting each component.",
+    "camera_position": "Wide angle focusing on flow dynamics within a semi-cutaway view.",
+    "composition": "Starts wide with electricity flow beginning at the battery, composing a visual narrative that leads the viewer through the sequence of power distribution across components."
+  }
+}

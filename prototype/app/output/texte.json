@@ -1,56 +1,94 @@
 {
   "chain": [
-    "La vapeur sous pression est générée en chauffant de l'eau.",
-    "Cette vapeur pousse les aubes d'une turbine.",
-    "La turbine en rotation entraîne la rotation d'un rotor dans un alternateur.",
-    "Le rotor qui tourne déplace un champ magnétique autour des bobines de fil.",
-    "Le mouvement du champ magnétique dans les bobines induit un courant électrique."
+    "L'émetteur Bluetooth dans la source musicale envoie un signal numérique.",
+    "Ce signal est capté par le récepteur Bluetooth des écouteurs.",
+    "Les écouteurs convertissent ce signal numérique en signal audio électrique.",
+    "Les haut-parleurs des écouteurs transforment ce signal électrique en vibrations mécaniques.",
+    "Ces vibrations déplacent l'air autour de vos oreilles, produisant le son que vous entendez.",
+    "Les écouteurs possèdent des batteries pour alimenter le récepteur et les haut-parleurs.",
+    "Les signaux sont amplifiés par l'amplificateur intégré aux écouteurs pour être audibles."
   ],
   "openings": [
     {
-      "sentence": "Saviez-vous que faire tourner un simple aimant produit de l'électricité?",
-      "why_it_holds": "C'est inattendu que quelque chose d'aussi simple puisse générer de l'électricité, incitant à comprendre le 'comment'."
+      "sentence": "Saviez-vous que vos écouteurs sans fil communiquent en permanence avec votre téléphone ?",
+      "why_it_holds": "Cela suscite l'intérêt sur la technologie invisible opérant constamment."
     },
     {
-      "sentence": "Chaque centrale électrique utilise le même principe de base pour produire de l'énergie.",
-      "why_it_holds": "L'uniformité des centrales intrigue, poussant à découvrir ce principe universel."
+      "sentence": "Comment un simple signal sans fil se transforme-t-il en musique dans vos oreilles ?",
+      "why_it_holds": "Cette question intrigante invite à découvrir le processus technique."
     },
     {
-      "sentence": "La magie de l'électricité commence par de la vapeur chaude.",
-      "why_it_holds": "Associer la familiarité de l'électricité à une source physique banale captivera l'attention."
+      "sentence": "Vos écouteurs ne sont pas juste des morceaux de plastique, mais de petits ordinateurs.",
+      "why_it_holds": "Cela surprend ceux qui ignorent la complexité interne des écouteurs."
     }
   ],
-  "chosen_opening": "Saviez-vous que faire tourner un simple aimant produit de l'électricité?",
-  "why_chosen": "Cette ouverture est intrigante car elle met en avant la simplicité du processus, ce qui est paradoxalement surprenant. Les autres sont moins directes et moins centrées sur un élément physique concret comme l'aimant.",
-  "script": "Saviez-vous que faire tourner un simple aimant produit de l'électricité? Le processus débute lorsque de la vapeur sous pression est créée en chauffant de l'eau. Cette vapeur pousse les aubes d'une turbine, la mettant en rotation. La rotation de la turbine entraîne celle d'un rotor dans un alternateur. Le rotor en mouvement déplace un champ magnétique autour des bobines de fil. Ce mouvement induit alors un courant électrique dans les bobines.",
+  "chosen_opening": "Saviez-vous que vos écouteurs sans fil communiquent en permanence avec votre téléphone ?",
+  "why_chosen": "L'aspect de communication constante met en avant une interaction active que beaucoup ignorent, tandis que l'idée du 'simple signal' ne rend pas justice à la complexité et 'petits ordinateurs' est trop vague au début.",
+  "script": "Saviez-vous que vos écouteurs sans fil communiquent en permanence avec votre téléphone ? L'émetteur Bluetooth de votre téléphone envoie un signal à vos écouteurs. Ce signal traverse l'air jusqu'au récepteur Bluetooth de vos écouteurs. Ils captent alors le signal numérique qu'ils ont reçu. Vos écouteurs traduisent ce signal numérique en informations audio. Ces informations deviennent de l'électricité, prêtes à alimenter les haut-parleurs. Les haut-parleurs vibrent grâce à cette électricité. Les petites vibrations déplacent l'air autour de vos oreilles. Ce mouvement d'air crée le son que vous entendez. Les batteries intégrées alimentent tout ce processus. Chaque son est amplifié par un amplificateur miniature. Vous entendez alors chaque note et parole de vos morceaux préférés.",
   "objections": [
     {
-      "sentence": "Saviez-vous que faire tourner un simple aimant produit de l'électricité?",
+      "sentence": "L'émetteur Bluetooth de votre téléphone envoie un signal à vos écouteurs.",
+      "checks_out": "C'est le début du processus avec le signal Bluetooth émis, clairement observé dans la chaîne.",
       "objection": "aucune",
       "fix": "rien à changer"
     },
     {
-      "sentence": "Le processus débute lorsque de la vapeur sous pression est créée en chauffant de l'eau.",
+      "sentence": "Ce signal traverse l'air jusqu'au récepteur Bluetooth de vos écouteurs.",
+      "checks_out": "La transmission d'un signal sans fil entre deux dispositifs est courante avec Bluetooth.",
       "objection": "aucune",
       "fix": "rien à changer"
     },
     {
-      "sentence": "Cette vapeur pousse les aubes d'une turbine, la mettant en rotation.",
+      "sentence": "Ils captent alors le signal numérique qu'ils ont reçu.",
+      "checks_out": "La capture du signal par le récepteur est une fonction de base.",
       "objection": "aucune",
       "fix": "rien à changer"
     },
     {
-      "sentence": "La rotation de la turbine entraîne celle d'un rotor dans un alternateur.",
+      "sentence": "Vos écouteurs traduisent ce signal numérique en informations audio.",
+      "checks_out": "Conversion nécessaire du signal numérique pour traitement audio.",
       "objection": "aucune",
       "fix": "rien à changer"
     },
     {
-      "sentence": "Le rotor en mouvement déplace un champ magnétique autour des bobines de fil.",
+      "sentence": "Ces informations deviennent de l'électricité, prêtes à alimenter les haut-parleurs.",
+      "checks_out": "Les signaux audio doivent être convertis en impulsions électriques pour les haut-parleurs.",
       "objection": "aucune",
       "fix": "rien à changer"
     },
     {
-      "sentence": "Ce mouvement induit alors un courant électrique dans les bobines.",
+      "sentence": "Les haut-parleurs vibrent grâce à cette électricité.",
+      "checks_out": "Les haut-parleurs convertissent l'électricité en mouvement mécanique.",
+      "objection": "aucune",
+      "fix": "rien à changer"
+    },
+    {
+      "sentence": "Les petites vibrations déplacent l'air autour de vos oreilles.",
+      "checks_out": "Mouvement de l'air nécessaire pour produire du son.",
+      "objection": "aucune",
+      "fix": "rien à changer"
+    },
+    {
+      "sentence": "Ce mouvement d'air crée le son que vous entendez.",
+      "checks_out": "Le son est produit par la vibration de l'air.",
+      "objection": "aucune",
+      "fix": "rien à changer"
+    },
+    {
+      "sentence": "Les batteries intégrées alimentent tout ce processus.",
+      "checks_out": "Les batteries fournissent l'énergie nécessaire aux composants.",
+      "objection": "aucune",
+      "fix": "rien à changer"
+    },
+    {
+      "sentence": "Chaque son est amplifié par un amplificateur miniature.",
+      "checks_out": "L'amplification est nécessaire pour que le son soit audible.",
+      "objection": "aucune",
+      "fix": "rien à changer"
+    },
+    {
+      "sentence": "Vous entendez alors chaque note et parole de vos morceaux préférés.",
+      "checks_out": "La chaîne entière vise à restituer le son pour l'utilisateur.",
       "objection": "aucune",
       "fix": "rien à changer"
     }

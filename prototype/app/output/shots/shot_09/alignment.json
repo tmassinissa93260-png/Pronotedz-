@@ -1,0 +1,35 @@
+{
+  "voice": "Ce mouvement d'air crée le son que vous entendez.",
+  "understanding": "Le mouvement d'air crée le son que l'on entend.",
+  "candidates": [
+    {
+      "action": "Visible air waves move from the earbud to the eardrum, vibrating as they travel.",
+      "explains": "Shows how air movement reaches the ear to create sound.",
+      "misses": "Doesn't directly connect the wider electronic system producing the air waves."
+    },
+    {
+      "action": "A close-up on the inner earbud diaphragm visibly vibrating and creating air waves.",
+      "explains": "Shows the source of air movement as the diaphragm.",
+      "misses": "Doesn't directly show the air reaching the ear."
+    },
+    {
+      "action": "Electric signals in yellow travel to the diaphragm, which then creates air waves.",
+      "explains": "Links the electronic signal to air movement.",
+      "misses": "Doesn't convey these air waves reaching the eardrum to create sound."
+    }
+  ],
+  "chosen": "Electric signals in yellow travel to the diaphragm, which then creates air waves.",
+  "why_chosen": "It visually connects the cause (electrical signal) to the effect (air waves), making it clearer how air movement is directly related to sound creation.",
+  "mute_test": 0.8,
+  "image_prompt": "A tight close-up of the inner earbud displaying an electric signal depicted in yellow traveling along a visible circuit to the diaphragm. As the signal arrives, the diaphragm visibly vibrates, sending out concentric air waves shown in blue traveling towards the viewer. The earbud is shown in a technical semi-cutaway with a translucent ghosted shell, revealing internal components like the battery, chip, antenna, voice coil, and diaphragm within the scene. The lighting creates a high-contrast environment against a dark backdrop, emphasizing the movement and interaction of signals and waves. The camera is stationed at an angle that clearly displays the signal's journey and the subsequent air wave creation, capturing the dynamic interaction. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The scene begins with the earbud's internal circuit lighting up with an electric signal in yellow, clearly tracing its pathway to the diaphragm. Upon signal arrival, the diaphragm responds with visible vibrations, producing blue sound waves that ripple outwards toward the viewer, signifying the production of sound. As the movement progresses, this demonstrates the full chain of electronic to mechanical to audible action, linking the electronic signal's travel through the device to its final outcome of sound creation.",
+  "visual_explanation": {
+    "information": "The shot conveys that air movement, initiated by an electric signal, directly creates sound.",
+    "physical_element": "The internal components of the earbud, specifically the diaphragm and circuitry, are visible.",
+    "secondary_elements": "The visual portrayal of the electric signal and air waves as coordinated animations.",
+    "visual_behavior": "Electric signals visibly move to the diaphragm, causing it to vibrate and produce sound waves.",
+    "animation_movement": "Electric signals in yellow travel along circuits to the diaphragm, which visibly vibrates, sending air waves in blue towards the viewer.",
+    "camera_position": "The camera angle captures the dynamic pathway of the electrical signal to the diaphragm, focusing on the transition between electrical and air wave motions.",
+    "composition": "Cinematic close-up with focus on electric signal pathways and diaphragm motion, utilizing depth of field to center on dynamic interactions."
+  }
+}

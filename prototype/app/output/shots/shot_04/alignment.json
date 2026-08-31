@@ -1,35 +1,35 @@
 {
-  "voice": "Ce champ magnétique permet de produire un flux d'électricité dans les fils.",
-  "understanding": "le champ magnétique peut générer un flux d'électricité dans les fils",
+  "voice": "Ils captent alors le signal numérique qu'ils ont reçu.",
+  "understanding": "Les écouteurs peuvent décoder les signaux numériques entrants.",
   "candidates": [
     {
-      "action": "Electricity flows visibly through wires highlighted in yellow/orange, surrounded by a green magnetic field.",
-      "explains": "how a magnetic field induces electricity flow in wires",
-      "misses": "the source or cause of the magnetic field"
+      "action": "Cyan data packets enter the earbud and light up a microchip sequentially.",
+      "explains": "Shows digital data being processed by the chip.",
+      "misses": "Does not show how the incoming signal is captured."
     },
     {
-      "action": "A magnet moves near a coil of wires, which then shows yellow/orange electricity flow.",
-      "explains": "magnetic movement induces electricity in wires",
-      "misses": "constant magnetic presence causing continuous flow"
+      "action": "A blue signal enters the earbud, converts to cyan data packets, which then light up the microchip.",
+      "explains": "Visually represents the process of capturing and decoding an incoming signal.",
+      "misses": "The transformation from signal to data might be unclear."
     },
     {
-      "action": "Energy impulses light up bulbs at the end of wires in presence of a magnetic field.",
-      "explains": "electric energy being generated and utilized",
-      "misses": "direct visibility of flow through wires due to magnetic induction"
+      "action": "Electricity, as yellow lines, flows to the microchip just as blue signal arrives, chip lights up.",
+      "explains": "Illustrates simultaneous power activation and signal processing.",
+      "misses": "May confuse viewers by mixing power flow with signal processing."
     }
   ],
-  "chosen": "Electricity flows visibly through wires highlighted in yellow/orange, surrounded by a green magnetic field.",
-  "why_chosen": "It clearly shows the interaction of the magnetic field with the wires, indicating the continuous flow of electricity, making the relationship between them easy to understand.",
-  "mute_test": 0.8,
-  "image_prompt": "Close-up of wires with visible yellow/orange light flowing through them, surrounded by a vibrant green magnetic field. The camera captures this flow at a slight angle to emphasize the interaction between the magnetic field and the wires, with materials rendering their metallic shine against the dark industrial backdrop to highlight the flow. The flow is central to the frame, leading the viewer’s eye directly to the phenomenon of electricity being induced by the magnetic field. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "Watch as yellow/orange energy pulses progressively flow through the wires, starting from subtle charges that amplify into continuous streams. These streams interact dynamically with the surrounding green magnetic field, which visibly influences and sustains the flow through its entire course, demonstrating the process of electromagnetic induction over time.",
+  "chosen": "A blue signal enters the earbud, converts to cyan data packets, which then light up the microchip.",
+  "why_chosen": "It clearly demonstrates the conversion and processing of an incoming signal into digital data, making the sequence more comprehensible with minimal ambiguity.",
+  "mute_test": 0.85,
+  "image_prompt": "The image showcases a semi-transparent wireless earbud centrally positioned, revealing its internal workings. A dynamic blue signal visibly enters from the outside, immediately transforming into cyan data packets as it reaches the microchip. These packets actively engage with the chip, lighting it up as they pulse through. The design emphasizes the transformational phase where the signal becomes data, focusing sharply on the center to ensure the process is understood first. The materials and construction show high-end plastics and metals, set against a dark premium studio. Photos are captured with cinematic blue and white lighting, ensuring digital activity is highlighted as the focal point. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins with a blue signal seamlessly entering the wireless earbud, accentuating its approach towards the microchip. As the signal breaches the earbud's exterior, it transforms into cyan data packets. These packets then progress towards the microchip, sequentially lighting up as they are decoded through its circuits. This engaging visual shows the commencement, transformation, and processing, dynamically focusing on each step from entry to conversion, and finally to computational illumination, underscoring the ability to decode digital signals.",
   "visual_explanation": {
-    "information": "Electricity can be induced in wires by a magnetic field.",
-    "physical_element": "The wires showing the induced electricity flow.",
-    "secondary_elements": "The magnetic field depicted as green visuals around the wires.",
-    "visual_behavior": "The yellow/orange light moving through the wires.",
-    "animation_movement": "Progressive flow and interaction between electricity and magnetic field.",
-    "camera_position": "Slight angle focusing on the wires and field interaction.",
-    "composition": "Central focus on electricity flowing through wires, framed with magnetic field interaction to the forefront."
+    "information": "The earbuds decode digital signals.",
+    "physical_element": "The transformation of a blue signal into cyan data packets at the microchip.",
+    "secondary_elements": "The earbud shell, showing microchip and circuits.",
+    "visual_behavior": "The blue signal transforms into cyan data as it touches the chip, which then lights up.",
+    "animation_movement": "The blue signal moves towards the earbud and transforms at the chip.",
+    "camera_position": "Frontal, capturing the entry and interaction with clarity.",
+    "composition": "Centered on the transformation inside the earbud with the signal's journey as the focal path."
   }
 }

@@ -1,35 +1,35 @@
 {
-  "voice": "Enfin, elle est distribuée pour alimenter nos appareils quotidiens.",
-  "understanding": "L'énergie est distribuée des batteries aux appareils quotidiens via les câbles.",
+  "voice": "Ces informations deviennent de l'électricité, prêtes à alimenter les haut-parleurs.",
+  "understanding": "Les informations numériques se transforment en électricité pour alimenter les haut-parleurs.",
   "candidates": [
     {
-      "action": "Energy flows visibly from red batteries through gray cables into silhouetted household devices, lighting them up.",
-      "explains": "It visually explains how energy travels from storage to devices.",
-      "misses": "It might not highlight the continuity of energy flow clearly."
+      "action": "Yellow electrical energy is visibly flowing from a digital circuit to the speaker coil inside the earbud.",
+      "explains": "This demonstrates the conversion of digital signals into electricity to power the speakers.",
+      "misses": "The transformation from information to electricity is not directly shown."
     },
     {
-      "action": "Household devices are initially dark and gradually illuminate as yellow/orange energy connects them from the batteries.",
-      "explains": "It shows energy activating appliances directly.",
-      "misses": "It may not clearly depict the travel path."
+      "action": "A series of small, cyan data packets enter a chip within the earbud and burst into yellow electrical lines leading to the speakers.",
+      "explains": "It visually represents the transition of data to electricity.",
+      "misses": "The actual flow of electricity to the speaker is less emphasized."
     },
     {
-      "action": "One device is highlighted as yellow/orange energy visibly reaches it from the battery, showing a complete energy circuit.",
-      "explains": "Demonstrates a full circuit of energy delivery clearly.",
-      "misses": "It may focus too narrowly on a single device."
+      "action": "The phone sends a signal in blue to the earbud, then it transforms into yellow electricity flowing to the speaker.",
+      "explains": "Shows the entire process from wireless signal to electrical power delivery to the speaker.",
+      "misses": "The direct flow of electricity might be less clear due to multiple steps."
     }
   ],
-  "chosen": "Energy flows visibly from red batteries through gray cables into silhouetted household devices, lighting them up.",
-  "why_chosen": "The viewer can rapidly understand the direct connection and distribution of energy from batteries to devices through visual energy flows and the activation of devices.",
-  "mute_test": 0.85,
-  "image_prompt": "A wide, clear view shows energy visibly flowing from red batteries through gray cables into various silhouetted household devices, indicating their activation with a visual glow. Yellow/orange energy flows dominate the scene against silhouetted devices, creating a strong visual emphasis on energy distribution. The metallic cables and diverse realistic finishes for devices reflect cinematic blue and white lighting, emphasizing the pathways from storage to consumption. The scene is set in a dark premium industrial hall with a consistent high-tech aesthetic, while the camera is placed to capture the full span of energy distribution as it moves visually to the devices. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "Initially, the household devices appear unlit and inactive. As the animation progresses, yellow/orange energy flows begin to emerge from the red batteries. Gradually, the energy travels through the gray cables, building in intensity as it approaches the devices. One by one, the devices light up, visually confirming their activation and the completion of the energy distribution circuit.",
+  "chosen": "A series of small, cyan data packets enter a chip within the earbud and burst into yellow electrical lines leading to the speakers.",
+  "why_chosen": "This action directly shows the transformation of digital information into electricity, making the flow to the speaker clear and immediate.",
+  "mute_test": 0.75,
+  "image_prompt": "Inside the earbud, a photorealistic depiction shows small, bright cyan data packets entering a central chip, where they visibly transform into vivid yellow electrical lines that flow directly to the speaker coil. The scene is focused within the earbud's semi-cutaway, emphasizing the path of transformation from data packets to electricity leading to the audio component. High contrast accentuates the energy flow, while cinematic blue and white lighting in a dark premium studio environment enhances visualization. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation shows cyan data packets streaming into the earbud's central chip, where they swiftly convert into bold yellow electrical flows. The electricity visibly progresses through conductive paths towards the speaker coil, lighting up the routes sequentially as the power reaches its destination, triggering the speaker. This transforms gradually from data entry at the chip to electricity delivery at the speaker in a smooth sequence.",
   "visual_explanation": {
-    "information": "The shot explains energy distribution from storage (batteries) to end use (household devices).",
-    "physical_element": "The visible flow of yellow/orange energy from red batteries through gray cables.",
-    "secondary_elements": "Silhouetted household devices that light up as energy reaches them signify energy consumption.",
-    "visual_behavior": "Energy flow is depicted with glowing paths that light up devices, showcasing the journey of power.",
-    "animation_movement": "The flow begins at the batteries, gradually builds as it travels down the cables, steadily activating devices along the way.",
-    "camera_position": "A wide shot encompassing the batteries, the cable pathways, and the household devices.",
-    "composition": "The composition emphasizes energy movement, with devices framing the scene to show the full distribution process."
+    "information": "Digital information is converted into electricity.",
+    "physical_element": "Cyan data packets and yellow electricity within the earbud.",
+    "secondary_elements": "Central chip, speaker coil, translucent earbud cutaway.",
+    "visual_behavior": "Data packets transform into electricity visible through the earbud's internals.",
+    "animation_movement": "Data packets enter, transform into electricity, and flow to the speaker coil.",
+    "camera_position": "Close-up on the earbud's internals with a clear view of the transformation process.",
+    "composition": "Central view emphasizing the flow from data to electricity within the earbud."
   }
 }

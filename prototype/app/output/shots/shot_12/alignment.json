@@ -1,0 +1,35 @@
+{
+  "voice": "Vous entendez alors chaque note et parole de vos morceaux préférés.",
+  "understanding": "Les ondes sonores atteignent l'oreille et se transforment en une expérience musicale audible.",
+  "candidates": [
+    {
+      "action": "Sound waves depicted as visual blue and cyan waves travel from the wireless earbud and enter the ear canal, reaching the eardrum.",
+      "explains": "How sound waves move from the earbud to the ear and create sound.",
+      "misses": "The translation of sound waves into musical experience."
+    },
+    {
+      "action": "The internal components of the earbud light up and pulse in rhythm with visible sound waves traveling to the ear.",
+      "explains": "The process of sound production within the earbud.",
+      "misses": "The reception and understanding of the sound within the ear."
+    },
+    {
+      "action": "Musical notes transform into waves as they leave the earbud and clearly reach the eardrum inside the ear.",
+      "explains": "The transformation of musical data into sound waves and their journey to the ear.",
+      "misses": "The perception of the sound once inside the ear."
+    }
+  ],
+  "chosen": "Musical notes transform into waves as they leave the earbud and clearly reach the eardrum inside the ear.",
+  "why_chosen": "This action visualizes both the transformation of music into sound waves and their specific path to the ear, making the auditory experience clear.",
+  "mute_test": 0.8,
+  "image_prompt": "The frame shows the interior of an ear with colorful waves and musical notes transforming as they leave a nearby modern dark near-black wireless earbud, clearly reaching the eardrum. The background remains a dark premium studio environment. Materials are photorealistically detailed, highlighting high-end plastics and metals of the earbud. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins with musical notes visibly emanating from the wireless earbud, seamlessly transforming into sound waves as they travel towards and enter the ear canal, finally reaching and vibrating the eardrum. The waves and notes follow a rhythmic path, demonstrating the conversion of digital music into an auditory experience.",
+  "visual_explanation": {
+    "information": "The transformation of digital music into perceivable sound as it travels from the earbud to the ear.",
+    "physical_element": "Sound waves and musical notes visibly transforming and moving.",
+    "secondary_elements": "The earbud's internal components, lit and visible, enhancing understanding.",
+    "visual_behavior": "The musical notes and waves making a clear path to the ear.",
+    "animation_movement": "Notes transforming into waves and traveling to the eardrum, culminating in vibration.",
+    "camera_position": "A close-up view accentuating the path of sound waves from the earbud to the ear.",
+    "composition": "Focused vertical composition with elements leading attention to the ear canal."
+  }
+}

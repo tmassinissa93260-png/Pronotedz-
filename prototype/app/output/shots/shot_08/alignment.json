@@ -1,0 +1,35 @@
+{
+  "voice": "Les petites vibrations déplacent l'air autour de vos oreilles.",
+  "understanding": "Les vibrations provoquent un déplacement de l'air autour des oreilles.",
+  "candidates": [
+    {
+      "action": "The diaphragm of the earbud pulses, creating visible ripple-like movement in the surrounding air, showing waves radiating outward.",
+      "explains": "How vibrations from the earbud cause air displacement.",
+      "misses": "The connection between these waves and auditory perception."
+    },
+    {
+      "action": "A section of air in front of the earbud compresses and expands repeatedly, showing how air particles move back and forth.",
+      "explains": "The oscillation of air particles due to vibrations.",
+      "misses": "The continuous nature of wave propagation in all directions."
+    },
+    {
+      "action": "A cross-section view of the earbud with a visual representation of sound waves moving outward in concentric circles.",
+      "explains": "The radial movement of sound waves from the earbud.",
+      "misses": "The specific role of vibrations in generating these waves."
+    }
+  ],
+  "chosen": "The diaphragm of the earbud pulses, creating visible ripple-like movement in the surrounding air, showing waves radiating outward.",
+  "why_chosen": "This action most immediately visualizes how vibrations from the earbud result in air displacement with clear visual feedback of wave movement.",
+  "mute_test": 0.85,
+  "image_prompt": "A detailed view focusing on the diaphragm of the dark near-black wireless earbud. The diaphragm is visibly pulsing, causing the surrounding air to display defined ripple-like patterns emanating outward in visible concentric circles. The design prioritizes making the viewer understand how the earbud's vibrations lead to visible air distortion, illustrated by tangible wave-like movements in the air. The environment remains a dark premium studio space, the lighting cinematic with blue and white tones enhancing the clarity of the sound waves. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The diaphragm of the earbud visibly pulses back and forth, with each pulse creating a series of clear ripple-like concentric sound waves in the surrounding air. As the animation progresses, these waves radiate outward, illustrating the continuous air displacement caused by the vibration of the earbud. The movement is rhythmic and consistent, underpinning the persistent nature of sound wave propagation in all directions.",
+  "visual_explanation": {
+    "information": "Vibrations cause air to move, creating sound waves.",
+    "physical_element": "The diaphragm of the wireless earbud.",
+    "secondary_elements": "Ripple-like air patterns, concentric circles illustrating wave propagation.",
+    "visual_behavior": "Pulsing diaphragm, expanding ripple-like air movement.",
+    "animation_movement": "Pulsing diaphragm motion leading to outward wave propagation.",
+    "camera_position": "Close-up emphasizing the earbud diaphragm's motion and resulting air displacement.",
+    "composition": "Centralized on the earbud's diaphragm with evenly spaced, expanding air waves around it."
+  }
+}

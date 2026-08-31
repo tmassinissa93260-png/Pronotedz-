@@ -1,0 +1,35 @@
+{
+  "voice": "Votre expérience musicale sans fil est subtile et fascinante.",
+  "understanding": "Votre expérience musicale sans fil est avancée et impressionnante.",
+  "candidates": [
+    {
+      "action": "A tranquil earbud resting in its case, surrounded by diminishing blue and cyan waves.",
+      "explains": "The wireless experience is subtle and calm.",
+      "misses": "The fascination and advanced technology aspect."
+    },
+    {
+      "action": "The earbud in its case with visible inner components lit up, surrounded by an intricate dance of blue and cyan digital data and signals.",
+      "explains": "The advanced technology and intricate wireless functionality.",
+      "misses": "The subtlety and calm experience."
+    },
+    {
+      "action": "A close-up of the earbud with thin, elegant blue spirals moving outwards from it.",
+      "explains": "The subtle wireless transmission.",
+      "misses": "The advanced, fascinating technology."
+    }
+  ],
+  "chosen": "The earbud in its case with visible inner components lit up, surrounded by an intricate dance of blue and cyan digital data and signals.",
+  "why_chosen": "It visually expresses both the complex technology and creates the impression of a fascinating wireless experience with clear dynamic movement of data.",
+  "mute_test": 0.8,
+  "image_prompt": "In a dark premium studio environment, place the modern dark near-black wireless earbud resting in its open case, showing its internal components including the battery, chip, antenna, voice coil and diaphragm through a translucent shell. Surround it with an intricate dance of dynamic, flowing blue and cyan digital data and signals, suggesting complex wireless communication. Use cinematic blue and white lighting to highlight these elements, ensuring clear visibility against the dark backdrop. Position the camera at a close angle to capture the glowing and energetically moving signals around the earbud, emphasizing its advanced technology. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logo, no watermark.",
+  "animation_prompt": "As the earbud rests in its case, begin with its inner components lighting up to represent its active status. Gradually introduce an intricate dance of blue and cyan digital data and signals swirling around the earbud, gracefully moving in dynamic but subtle patterns. These signals start concentrated around the earbud and expand outward, depicting the wireless and advanced technological capabilities. As the signals extend, the flow should display the culmination of advanced wireless functions, before gently fading to signify the completion of the message.",
+  "visual_explanation": {
+    "information": "The sophisticated and fascinating nature of advanced wireless technology.",
+    "physical_element": "Wireless earbud with visible internal components.",
+    "secondary_elements": "Blue and cyan digital data signals visually expressing the wireless communication.",
+    "visual_behavior": "Data packets dynamically flowing around, creating a sense of advanced technology.",
+    "animation_movement": "Signals gracefully swirling and moving outward from the earbud.",
+    "camera_position": "Close angle highlighting both the earbud's intricate internals and the moving signals.",
+    "composition": "Focus on the earbud with surrounding dynamic signals in a cinematically lit environment."
+  }
+}

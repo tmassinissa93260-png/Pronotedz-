@@ -1,1 +1,1 @@
-La rotation de la turbine génère un champ magnétique.
+Ce signal traverse l'air jusqu'au récepteur Bluetooth de vos écouteurs.
