@@ -1,1 +1,1 @@
-Cette impulsion active un circuit vert qui transmet l'information à un système central.
+Ces composants commandent ensuite d'autres systèmes, comme une alarme ou une lumière.

@@ -1,1 +1,1 @@
-Lorsqu'un objet se déplace, il perturbe ce signal infrarouge rouge.
+Lorsqu'une personne traverse, le signal est perturbé et un courant électrique est déclenché.

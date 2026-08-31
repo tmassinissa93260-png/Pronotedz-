@@ -1,1 +1,1 @@
-Ce capteur émet un signal infrarouge invisible qui détecte toute perturbation.
+Le dispositif utilise un signal infrarouge pour détecter ce qui bouge devant lui.

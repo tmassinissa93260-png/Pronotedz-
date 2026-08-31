@@ -1,1 +1,1 @@
-Le capteur, en détectant cette perturbation, envoie un signal électrique jaune.
+Ce courant active efficacement les composants électroniques internes.

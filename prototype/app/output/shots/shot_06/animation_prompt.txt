@@ -1,1 +1,1 @@
-As the central system data processes, room lighting shifts from blue to warm yellow, spreading methodically throughout and enveloping the space in a welcoming glow.
+Both the infrared and blue currents travel dynamically within their paths, converging and activating systems simultaneously. The infrared streams pulse outward from the sensor, moving into the environment, while the current flows from sensor to LEDs, causing them to illuminate in sequence. The camera tracking subtly follows the simultaneous actions.

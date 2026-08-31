@@ -4,32 +4,31 @@
 
 ## Script
 
-Imaginez que votre maison perçoit vos mouvements grâce à un capteur de mouvement. Ce capteur émet un signal infrarouge invisible qui détecte toute perturbation. Lorsqu'un objet se déplace, il perturbe ce signal infrarouge rouge. Le capteur, en détectant cette perturbation, envoie un signal électrique jaune. Cette impulsion active un circuit vert qui transmet l'information à un système central. Résultat: votre maison adapte l'ambiance lumineuse automatiquement selon votre présence.
+Les yeux invisibles capturent chaque mouvement précisément grâce à un champ infrarouge. Ce dispositif utilise un signal infrarouge pour détecter ce qui bouge devant lui. Lorsqu'une personne traverse, le signal est perturbé et un courant électrique est déclenché. Ce courant active efficacement les composants électroniques internes. Ces composants commandent ensuite d'autres systèmes, comme une alarme ou une lumière. Avec une précision impressionnante, la technologie continue de suivre chaque geste automatiquement.
 
 ## Visual bible
 
 À réutiliser dans **chaque** image. Les couleurs ont un sens fixe.
 
 - **main subject** : motion sensor
-- **characters objects** : infrared signal, electrical signal
+- **characters objects** : infrared signal, electric current, electronic components
 - **vehicle** : not applicable
-- **colors** : blue, red, yellow, green
-- **environment** : interior studio
-- **materials** : high-end plastic and electronics
-- **lighting** : cinematic blue and white
-- **camera** : dynamic with depth of field
-- **style 3d** : technical semi-cutaway
-- **realism** : photorealistic
-- **invisible phenomena** : luminous streams
+- **colors** : consistent use of color code
+- **environment** : dark interior, minimalistic setting to highlight sensor
+- **materials** : high-tech materials mimicking commercial high-end products
+- **lighting** : cinematic blue and white lighting for technological emphasis
+- **camera** : varied from wide to close-up depending on shot necessity
+- **style 3d** : photorealistic premium 3D engineering visualization
+- **realism** : highly realistic to emphasize clarity and educational purpose
+- **invisible phenomena** : infrared signals visualized as luminous red streams, electrical currents as blue flows
 
 ## Code couleur
 
 Une notion, une couleur, la même du début à la fin.
 
-- **jaune** = energie — flux électronique  *(se déplace)*
-- **rouge** = signal_infra — signal infrarouge  *(se déplace)*
-- **bleu** = capteur — système de détection
-- **vert** = circuit — circuits électroniques
+- **red** = infrared_signal — detection signal  *(se déplace)*
+- **blue** = current_flow — electrical current  *(se déplace)*
+- **gray** = internal_components — electronic components
 
 ## Contrôle qualité
 
@@ -45,204 +44,204 @@ Une notion, une couleur, la même du début à la fin.
 
 ## Plan 01 — 4s
 
-**Voix** : Imaginez que votre maison perçoit vos mouvements grâce à un capteur.
+**Voix** : Les yeux invisibles capturent chaque mouvement précisément grâce à un champ infrarouge.
 
-**Fonction** : Introduce the concept of a motion sensor and its integration.
+**Fonction** : Introduce the existence of the motion sensor and its basic function.
 
-**Élément pédagogique** : dark near-black motion sensor with internal electronics visible
+**Élément pédagogique** : red infrared signal emanating from the sensor
 
 **Intention de mouvement** : `energy_flow`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Introducing the presence and concept of the motion sensor.
+1. **information** : Introduce the infrared detection capability of the sensor.
 2. **physical element** : motion sensor
-3. **secondary elements** : wall, premium interior environment
-4. **visual behavior** : internal electronics visible to suggest functionality
-5. **animation movement** : internal component glow and signal emission
-6. **camera position** : close-up framing with dynamic angle
-7. **composition** : centered on the sensor with emphasis on detail
+3. **secondary elements** : infrared beam extending into the environment
+4. **visual behavior** : the red illumination of the infrared beam
+5. **animation movement** : the beam expands across the field, creating an illuminated zone
+6. **camera position** : close-up directly facing the sensor
+7. **composition** : sensor centrally positioned showing beam extension
 
 ### Prompt image
 
 ```
-A front-facing close-up view of the wall-mounted motion sensor, centered, showing internal electronics. The environment is a high-end interior studio with cinematic blue and white lighting. Materials are high-end plastics and electronics. The camera is positioned at eye level to maximize visibility of components. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where needed, translucent ghosting, cinematic blue and white lighting, realistic detailed materials, no text, no labels.
+A technical semi-cutaway view of a modern dark near-black wall-mounted motion sensor. The camera is positioned to directly face the sensor, showcasing a prominent red infrared beam illustrating its detection capability expanding into the surrounding dark premium interior environment. The infrared beam is a bright red luminous stream moving within the sensor's field. Cinematic blue and white lighting highlights the sensor's structure. Materials are hyper-realistic to emphasize the sensor's premium design, and the infrared beam cuts through the dark, indicating its detection role. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The sensor's internal components glow blue and start to pulse rhythmically, indicating activation. The red infrared signal begins to emit outward steadily as the camera subtly adjusts to follow its path.
+The red infrared beam extends outward continuously from the sensor, while the sensor remains stable. As the beam scans, it travels across the field creating a red illuminated zone. The camera stays still, capturing the beam's path and its interaction with the surrounding environment.
 ```
 
 ---
 
 ## Plan 02 — 4s
 
-**Voix** : Ce capteur émet un signal infrarouge invisible qui détecte toute perturbation.
+**Voix** : Le dispositif utilise un signal infrarouge pour détecter ce qui bouge devant lui.
 
-**Fonction** : Show how the sensor emits an invisible infrared signal.
+**Fonction** : Explain how the infrared signal creates a detection field.
 
-**Élément pédagogique** : infrared signal as a controlled red luminous stream
+**Élément pédagogique** : infrared detection field visualized as red streams
 
 **Intention de mouvement** : `energy_flow`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The sensor emits an infrared signal.
-2. **physical element** : infrared signal
-3. **secondary elements** : sensor emitting the signal
-4. **visual behavior** : red glow simulating the invisible infrared emission
-5. **animation movement** : continuous outward flow from the sensor
-6. **camera position** : medium close focusing on the signal
-7. **composition** : emphasize the signal's direction and source
+1. **information** : Illustrate the detection field of the sensor using streams.
+2. **physical element** : infrared signal streams
+3. **secondary elements** : sensor mounted in environment
+4. **visual behavior** : pulsating red streams from the sensor expanding outward
+5. **animation movement** : streams pulse outward, moving from the sensor toward the environment
+6. **camera position** : wide angle slightly above
+7. **composition** : sensor in corner, streams flowing outward
 
 ### Prompt image
 
 ```
-A broad view of the sensor on the wall, emitting a red glow outward symbolizing the infrared signal. Situated in a premium interior studio, maintaining cinematic blue and white lighting. High-end materials are evident in the sensor's construction. The camera captures a side angle to reveal the full extension of the red luminous stream. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where needed, translucent ghosting, cinematic blue and white lighting, realistic detailed materials, no text, no labels.
+A wide semi-cutaway view showing the motion sensor's coverage area with the modern dark near-black wall-mounted motion sensor, using consistent high-tech materials. Multiple red infrared streams emanate from the sensor, creating a visible coverage field around it, flowing outward from the sensor towards the environment. The camera is positioned slightly above to capture how this field spreads across the environment. The luxurious studio lighting emphasizes the technological sophistication. Materials of the sensor are clear and detailed, showcasing the premium quality. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The red luminous stream extends steadily from the sensor, sweeping across until an object enters, creating an immediate ripple effect.
+The infrared streams pulse outward from the sensor, expanding and contracting rhythmically to simulate an active scan. As the streams travel from the sensor, they cover the space ahead, gradually reaching the far edges of the coverage area. The camera movement is minimal, keeping the streams in focus.
 ```
 
 ---
 
 ## Plan 03 — 4s
 
-**Voix** : Lorsqu'un objet se déplace, il perturbe ce signal infrarouge rouge.
+**Voix** : Lorsqu'une personne traverse, le signal est perturbé et un courant électrique est déclenché.
 
-**Fonction** : Show the effect of movement on the infrared signal.
+**Fonction** : Show how the signal reacts to motion.
 
-**Élément pédagogique** : signal disruption represented by ripple effect with red coloration
+**Élément pédagogique** : red signal field disruption by human movement
 
 **Intention de mouvement** : `cause_effect`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Movement disrupts the infrared signal.
-2. **physical element** : infrared signal
-3. **secondary elements** : human silhouette
-4. **visual behavior** : signal ripple effect representing disruption
-5. **animation movement** : ripple effect as silhouette moves through signal
-6. **camera position** : medium shot focused on interaction zone
-7. **composition** : show direct cause and effect clearly
+1. **information** : Explain how the sensor detects movement by signal disruption.
+2. **physical element** : infrared streams
+3. **secondary elements** : silhouette causing disruption
+4. **visual behavior** : darkened interruption of signal, blue activation flow
+5. **animation movement** : progressive break and restoration of signal, blue flow activating components
+6. **camera position** : fixed view from side, tracking motion
+7. **composition** : interaction between figure and streams
 
 ### Prompt image
 
 ```
-A wide shot shows a semi-transparent silhouette encountering the red infrared rays, causing ripples. The consistent high-end studio environment features sophisticated materials and cinematic lighting. The camera is angled slightly above to capture the full interaction. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where necessary, translucent ghosting, cinematic blue and white lighting, realistic detailed materials, no text, no labels.
+An important segment revealing an intruding figure partially breaking the red infrared streams cast by the motion sensor, creating areas of disruption with changing shades of red near the figure. The camera cadrage is a side angle view to capture both the figure and sensor in the frame, positioned at eye level to show real-time interaction in the dark premium interior environment with consistent high-tech materials. Cinematic lighting highlights the movement effect on the streams. Materials ensure that the sensor retains its premium design look with airy high-tech vibes. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-As the silhouette crosses into the red signal's path, it disrupts and ripples the red stream, creating visible distortions that build progressively through the frame.
+The silhouette moves steadily through the signal, progressively creating disruptions. As the red streams react visually by darkening upon contact, they then reform after the passage. Simultaneously, the nearby sensors activate a blue electrical flow indicating the detected movement, causing internal components to illuminate gradually.
 ```
 
 ---
 
 ## Plan 04 — 4s
 
-**Voix** : Le capteur, en détectant cette perturbation, envoie un signal électrique jaune.
+**Voix** : Ce courant active efficacement les composants électroniques internes.
 
-**Fonction** : Explain transition from signal disruption to electric signal output.
+**Fonction** : Show the transition from detection to electronic activation.
 
-**Élément pédagogique** : electric pulse as a yellow stream directed toward electronics
+**Élément pédagogique** : blue current activating internal electronics
 
-**Intention de mouvement** : `energy_transfer`
+**Intention de mouvement** : `energy_flow`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Signal disruption causes an electrical signal emission.
-2. **physical element** : electrical pulse
-3. **secondary elements** : sensor core, circuit board
-4. **visual behavior** : yellow pulse represents transmission of information
-5. **animation movement** : fast, direct travel of pulse from sensor to board
-6. **camera position** : semi-cutaway medium shot for visibility
-7. **composition** : highlight the direct pathway of the signal
+1. **information** : Demonstrate how the current activates electronic components.
+2. **physical element** : internal electronics
+3. **secondary elements** : blue energy flow initiating activation
+4. **visual behavior** : gradual illumination of components
+5. **animation movement** : blue flow initiates component lighting progressively
+6. **camera position** : close-up reveal of interior workings
+7. **composition** : tight focus on flow within sensor
 
 ### Prompt image
 
 ```
-A close-up of the motion sensor emitting a bright yellow electric pulse toward a nearby circuit board. The premium interior studio maintains consistent cinematic lighting and high-end material use. The camera angle captures the path from the sensor to the circuit. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where needed, translucent ghosting, cinematic blue and white lighting, realistic detailed materials, no text, no labels.
+The camera is positioned at a close-up view of the motion sensor with a cutaway reveal showing its internal electronics. A luminous blue flow emerges from the outer casing, moving from the sensor wall toward these internal components, symbolizing the activation process. This occurs within the dark premium interior setting with high-tech materials used steadily. The lighting shifts to emphasize the electronic details activated by the flow. Materials enhance the readability of the high-tech design. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The yellow pulse begins at the sensor, increasing in intensity as it travels to the circuit board, culminating in a bright flash upon impact, symbolizing successful transmission.
+As the blue flow enters the sensor, it spreads across the electronic board methodically. With each component it touches, they illuminate progressively from left to right. This synchronized activation builds importance until all key components are lit. The camera performs a subtle pan emphasizing the activation pathway.
 ```
 
 ---
 
 ## Plan 05 — 4s
 
-**Voix** : Cette impulsion active un circuit vert qui transmet l'information à un système central.
+**Voix** : Ces composants commandent ensuite d'autres systèmes, comme une alarme ou une lumière.
 
-**Fonction** : Illustrate circuit activation and information transmission upon receiving the signal.
+**Fonction** : Illustrate the sensor triggering external systems.
 
-**Élément pédagogique** : circuit light-up in green indicating signal propagation
+**Élément pédagogique** : blue flow triggering external LEDs
 
 **Intention de mouvement** : `energy_transfer`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Circuit activation and data transmission to a central system.
-2. **physical element** : circuit board
-3. **secondary elements** : central system icon
-4. **visual behavior** : green illumination simulating circuit activation
-5. **animation movement** : sequential ripple through the circuit
-6. **camera position** : close-up shot focusing on the activation
-7. **composition** : trace the signal's path clearly
+1. **information** : Show how the sensor triggers external actions.
+2. **physical element** : LED lighting system
+3. **secondary elements** : blue flow from sensor to LEDs
+4. **visual behavior** : sequential lighting of LEDs
+5. **animation movement** : propagation of blue flow lighting LEDs progressively
+6. **camera position** : wide static view of interaction path
+7. **composition** : overview of continuous path and reaction
 
 ### Prompt image
 
 ```
-A high-resolution close-up of a circuit board, glowing progressively in green, connected in a wave toward an abstract central system icon. The environment remains premium with an elegant studio's cinematic lighting. Sophisticated materials are evident. The camera captures a side-angle view, showing spatial connectivity. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where needed, translucent ghosting, cinematic blue and white lighting, realistic detailed materials, no text, no labels.
+Wide-angle view showing the modern dark near-black wall-mounted motion sensor on a wall with a clear path of luminous blue flow extending from its internals toward external systems. A series of LEDs light up sequentially to showcase the triggered command. The camera is set to capture both the origin sensor and the distant LEDs from a perspective that emphasizes the entire path of interaction, maintaining a dark premium interior environment with high-tech utilized materials. The premium lighting underlines the deployment of the blue flow with precision and clarity. Materials mirror the high-tech element of the sensor. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-From the initial pulse's contact, green light spreads across the circuit board, intensifying and tracing connections to the central system until the entire network is active.
+The path of the blue flow begins from the sensor and moves steadily through it towards the LED lights. As it reaches each light, they illuminate in quick succession, demonstrating the triggering effect, causing the field to become fully activated. The camera remains static while the eye follows the flow's journey.
 ```
 
 ---
 
 ## Plan 06 — 4s
 
-**Voix** : Résultat: votre maison adapte l'ambiance lumineuse automatiquement selon votre présence.
+**Voix** : Avec une précision impressionnante, la technologie continue de suivre chaque geste automatiquement.
 
-**Fonction** : Depict how adaptations occur in the environment due to sensor signals.
+**Fonction** : Conclude by visualizing efficient functioning together.
 
-**Élément pédagogique** : environment adapts by changing light hue
+**Élément pédagogique** : synchronized system movement
 
-**Intention de mouvement** : `reveal`
+**Intention de mouvement** : `energy_flow`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Central system adapts environment in response to signal.
-2. **physical element** : room lighting
-3. **secondary elements** : central system interface
-4. **visual behavior** : gradual color shift of lighting
-5. **animation movement** : sweeping transition of light from cool to warm
-6. **camera position** : wide-angle shot capturing room ambiance
-7. **composition** : enhance the feeling of spatial transformation
+1. **information** : Show the entire functioning process in an integrated manner.
+2. **physical element** : entire sensor system
+3. **secondary elements** : infrared and current flows, LEDs
+4. **visual behavior** : harmonious interaction flows
+5. **animation movement** : convergence of flows lighting LEDs methodically
+6. **camera position** : comprehensive view of the system capturing central details
+7. **composition** : highlight interaction; focus on entire process harmony
 
 ### Prompt image
 
 ```
-A comprehensive view of the room lighting transitioning from blue to warm yellow, linked to the sensor system. Positioned in the same premium studio environment, emphasizing high-end design elements and consistent cinematic lighting. Materials across the room reflect high-grade finishes. The camera captures the entire room transformation from a central position. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where needed, translucent ghosting, cinematic blue and white lighting, realistic detailed materials, no text, no labels.
+The camera captures a cohesive and dynamic visualization displaying the motion sensor with synchronous working elements at a central position. The camera position is central, capturing a perspective view showing both the sensor and the surrounding activation. The presence of both red infrared and blue current flows visually merges as the LEDs continue glowing in their activation sequence within the dark premium interior environment, maintaining materials and lighting diversified use. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-As the central system data processes, room lighting shifts from blue to warm yellow, spreading methodically throughout and enveloping the space in a welcoming glow.
+Both the infrared and blue currents travel dynamically within their paths, converging and activating systems simultaneously. The infrared streams pulse outward from the sensor, moving into the environment, while the current flows from sensor to LEDs, causing them to illuminate in sequence. The camera tracking subtly follows the simultaneous actions.
 ```
 
 ---
