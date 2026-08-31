@@ -1,25 +1,34 @@
 {
-  "understanding": "Le capteur de mouvement détecte une perturbation et déclenche un signal électrique en réponse.",
+  "understanding": "Quand quelque chose passe à travers le signal, cela cause une perturbation visible.",
   "candidates": [
     {
-      "action": "An orange perturbation wave visibly distorts as it enters the sensor, directly triggering a yellow signal from the sensor's core.",
-      "explains": "Shows the cause (perturbation) and effect (signal) relationship.",
-      "misses": "Does not detail how the signal travels in the circuit."
+      "action": "A person walks through the red infrared signal, and a yellow wave visibly disrupts the path of the signal.",
+      "explains": "The disruption occurs specifically at the point of contact, demonstrating cause and effect.",
+      "misses": "It does not show how the disruption propagates after the initial contact."
     },
     {
-      "action": "The sensor lights up internally, and a quick succession of yellow signals moves outward from the core.",
-      "explains": "Indicates the signal initiation and its pathway through the electronics.",
-      "misses": "Lacks emphasis on the initial perturbation causing this response."
+      "action": "An object crosses the signal, causing the red signal to flicker with a burst of yellow.",
+      "explains": "The moment of disruption is highlighted.",
+      "misses": "It lacks the depiction of progression and spreading of the disruption."
     },
     {
-      "action": "A yellow signal pulses from the sensor's core and travels through the visible electronic circuit parts, lighting them up sequentially.",
-      "explains": "Illustrates how the signal travels through the entire circuit.",
-      "misses": "Does not clearly connect the signal's initiation with a perturbation."
+      "action": "As the person moves through the signal, the red path deforms into chaotic yellow patterns.",
+      "explains": "It shows the visual change in the signal's shape, indicating disruption.",
+      "misses": "It doesn’t communicate how the deformation resolves or continues over time."
     }
   ],
-  "chosen": "An orange perturbation wave visibly distorts as it enters the sensor, directly triggering a yellow signal from the sensor's core.",
-  "why_chosen": "It clearly depicts the cause (perturbation) and effect (signal initiation) relationship, ensuring that the viewer sees why the signal is generated.",
+  "chosen": "A person walks through the red infrared signal, and a yellow wave visibly disrupts the path of the signal.",
+  "why_chosen": "It visually represents the disruption caused by a person crossing the signal in the clearest and most direct manner, showing both cause and immediate effect.",
   "mute_test": 0.8,
-  "image_prompt": "A highly detailed, semitransparent motion sensor mounted on a dark wall is shown with an orange wave distortion entering the sensor. Inside, a yellow signal is generated from the sensor's core, highlighted by a strong glow against the backdrop of blue circuitry. The translucent casing reveals intricate electronic components that are made from premium materials, emphasizing realistic optics and electronics. The cinematic lighting enhances the visibility of the orange disturbance and the emerging yellow signal, centering this dynamic as the focal action. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The animation begins as an orange wave distortion enters the sensor, representing a perturbation. Gradually, as the wave impacts the sensor's core, it triggers a yellow signal. The signal begins to emanate and build from the core, illuminating in a strong, vibrant glow. It continues to pulsate and expand through the blue circuitry components, activating them sequentially as it progresses, until it reaches the edges of the visible sensor electronics."
+  "image_prompt": "The camera is positioned slightly above at an angle focusing directly on the motion sensor and the person intersecting the red infrared signal. The image captures the moment where a yellow wave visibly emerges as the person crosses the signal's path. The interior environment is dark with cinematic blue and white lighting, ensuring the yellow disruption stands out against the red signal. Plastic and metal components of both the motion sensor and its internal mechanisms are visible, providing a realistic context to the cause-effect interaction. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The person begins to walk through the static red infrared signal, causing a yellow wave to gradually build at the point of contact. This wave flows outward along the path of the red signal, showcasing the disruption as it moves. The disruption starts strong, building in visibility as the person continues to move, then dissipates as it extends away from the source of contact.",
+  "visual_explanation": {
+    "information": "The disruption of a signal when an object passes through it.",
+    "physical_element": "Yellow wave emerging from the red infrared signal as a person crosses it.",
+    "secondary_elements": "Motion sensor, the person's silhouette, and the environment that highlights the interaction.",
+    "visual_behavior": "The red signal path is disrupted by a yellow wave.",
+    "animation_movement": "A yellow wave flows outward from the point of contact with the red signal.",
+    "camera_position": "Slightly above with an angle focusing on the intersection of the person and the signal.",
+    "composition": "The composition centers on the interaction between the person's action and the signal, ensuring clear visibility of the yellow disruption within a high-contrast environment."
+  }
 }

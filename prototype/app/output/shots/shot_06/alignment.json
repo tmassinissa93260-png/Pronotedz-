@@ -1,25 +1,34 @@
 {
-  "understanding": "Le capteur retourne à l'état de veille lorsque l'objet ne perturbe plus les ondes infrarouges.",
+  "understanding": "Que l'activation du système illumine toute la pièce en déclenchant les lumières.",
   "candidates": [
     {
-      "action": "The orange perturbations fade away as the silhouette exits the view.",
-      "explains": "Shows that the object is moving away and no longer affecting the sensor.",
-      "misses": "Does not directly show the sensor returning to standby."
+      "action": "A motion sensor detects a slight movement, sending a visible chain reaction of blue electrical flows lighting up the entire room.",
+      "explains": "The system initiates operation from a movement that ultimately illuminates the room.",
+      "misses": "The initial disruption caused by the infrared signal."
     },
     {
-      "action": "The internal electronics visibly power down, returning to a stable state.",
-      "explains": "Illustrates the sensor resetting to standby.",
-      "misses": "Does not show the disappearance of the object causing this state."
+      "action": "A person's gesture triggers a red infrared beam from the sensor, resulting in blue electrical signals activating and lighting up the room.",
+      "explains": "Shows how a simple human gesture activates the system, causing illumination.",
+      "misses": "The full sequence of signals beyond the initial infrared emission."
     },
     {
-      "action": "The red infrared waves return to uniform consistency as the silhouette leaves.",
-      "explains": "Demonstrates the sensor returning to normal function as the disruption disappears.",
-      "misses": "The action might be too subtle to clearly convey cause and effect without context."
+      "action": "A red infrared beam moves towards a sensor, quickly followed by a blue electrical flow that lights up several lamps in sequence, culminating in the entire room being illuminated.",
+      "explains": "The interaction of infrared and electrical signals in triggering full-room lighting.",
+      "misses": "Directly showing the initial movement causing the red signal."
     }
   ],
-  "chosen": "The red infrared waves return to uniform consistency as the silhouette leaves.",
-  "why_chosen": "It conveys both the cause and effect visually: as the silhouette disappears, the infrared waves stabilize, indicating the sensor's return to normal.",
+  "chosen": "A person's gesture triggers a red infrared beam from the sensor, resulting in blue electrical signals activating and lighting up the room.",
+  "why_chosen": "This sequence directly shows the cause (gesture) and the immediate effect (room lighting), easily readable without sound.",
   "mute_test": 0.8,
-  "image_prompt": "A view of the motion sensor where the red infrared waves are originally disrupted by orange perturbations due to the presence of a silhouette. As the silhouette exits the frame, the orange disruptions diminish, and the infrared waves return to a consistent red, visually indicating the sensor's reset to standby. The camera is positioned to clearly show the transition from disrupted to stable waves, emphasizing the change through high contrast and sharp focus on the waves’ transition. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "As the animation begins, the silhouette is present, causing orange perturbations in the infrared waves. Gradually, the silhouette moves out of the frame, reducing the orange disruptions. As this occurs, the red infrared waves slowly return to a uniform and stable consistency, symbolizing the sensor's reset to its standby state, indicating readiness for future detection."
+  "image_prompt": "A technical semi-cutaway view encompasses a person in mid-gesture with an outstretched hand towards the motion sensor. The central detail is the visible red infrared beam extending from the motion sensor to the person, while blue electrical flows trail from the sensor to surrounding lights, all progressively illuminating. The interior environment achieves realism with detailed plastic and metal textures, emphasizing clarity in the flow of signals. The cinematic blue and white lighting enhances visibility, illustrating the interaction of each component within this connection. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "A person raises their hand, and instantly, a red infrared beam extends from the sensor towards it, rapidly followed by blue electrical flows moving across the room. Lamps illuminate sequentially as the flow reaches them, showcasing the transformation from darkness to a fully lit space. The transition smoothly illustrates how each segment of the initialization sequence builds upon the previous, resulting in complete room activation.",
+  "visual_explanation": {
+    "information": "The motion sensor's activation due to movement lights up the room.",
+    "physical_element": "Person's gesture and interacting signals (red and blue beams).",
+    "secondary_elements": "Interior room lighting gradually increasing.",
+    "visual_behavior": "Progressive illumination associated with signal paths, connecting gesture to lighting.",
+    "animation_movement": "Red beam propagation initiating blue flow, illuminating lamps in sequence.",
+    "camera_position": "Dynamic, slightly above and angled to capture both the person and room lighting development.",
+    "composition": "Centered on gesture and sensor, keeping the lit areas within view."
+  }
 }

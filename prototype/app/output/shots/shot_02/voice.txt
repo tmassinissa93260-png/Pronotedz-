@@ -1,1 +1,1 @@
-Lorsqu'un objet chaud se déplace, il perturbe ces ondes.
+Les capteurs de mouvement émettent un signal infrarouge.

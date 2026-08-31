@@ -1,1 +1,1 @@
-Le capteur retourne à l'état de veille quand l'objet disparaît.
+Et voilà, tout se déclenche grâce à un simple mouvement!

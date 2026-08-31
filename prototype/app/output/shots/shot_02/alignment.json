@@ -1,25 +1,34 @@
 {
-  "understanding": "L'entrée d'un objet chaud perturbe les ondes infrarouges.",
+  "understanding": "Les capteurs de mouvement émettent un signal infrarouge à travers la pièce.",
   "candidates": [
     {
-      "action": "An orange wave deforms as a human silhouette approaches the red infrared waves.",
-      "explains": "The presence of a warm object causes a noticeable distortion in the infrared waves.",
-      "misses": "It may not clearly show the transition from no disturbance to disturbance."
+      "action": "The motion sensor emits a visible red infrared wave that spreads across a room, gradually expanding to cover the entire space.",
+      "explains": "The infrared signal being emitted and spreading across the room.",
+      "misses": "Does not explicitly show how the signal interacts with the room or objects within it."
     },
     {
-      "action": "A red wave line changes to orange when a warm object enters the frame.",
-      "explains": "A warm object entering the frame visibly alters the infrared waves.",
-      "misses": "It might not show the gradual impact of the object entering."
+      "action": "The motion sensor emits a series of expanding red pulses that bounce off walls and objects, creating a web of connections.",
+      "explains": "Shows how the infrared signal spreads and interacts with the environment.",
+      "misses": "Might confuse the viewer about the nature of a continuous signal versus pulses."
     },
     {
-      "action": "Infrared waves remain red until a hand reaches in and causes an orange ripple.",
-      "explains": "A direct correlation between the warm object entering and the wave disturbance.",
-      "misses": "The focus on a hand might detract from understanding object movement."
+      "action": "The red infrared signal starts at the sensor, expands outward, and highlights different areas and objects in its path.",
+      "explains": "Demonstrates infrared signal expansion and interaction with various objects.",
+      "misses": "Could be less clear without highlighting the sensor as the origin of the signal."
     }
   ],
-  "chosen": "An orange wave deforms as a human silhouette approaches the red infrared waves.",
-  "why_chosen": "This action is the clearest illustration of cause and effect, where the approach of the human silhouette visibly deforms the infrared waves, immediately conveying disturbance.",
-  "mute_test": 0.8,
-  "image_prompt": "In a dark premium interior environment, a human silhouette approaches from the side, creating a dramatic contrast as it interacts with a series of red infrared waves. The waves visibly deform into an orange hue where the silhouette is nearest, capturing the disturbance clearly. The motion sensor is translucent, revealing the internal electronics and emphasizing the dynamic interaction at the center of the frame. Cinematic blue and white lighting highlights the scene with high contrast and depth of field focusing on the wave distortion. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "As the human silhouette steadily approaches the series of red infrared waves from the side, the waves near the silhouette gradually deform, taking on an orange hue and creating a ripple effect that propagates. The transition from undisturbed to disturbed waves is clearly visible, illustrating the disturbance in real-time. The silhouette's movement towards the waves builds tension and highlights the causality of heat affecting the infrared waves, culminating in an orange ripple that transforms the scene before settling."
+  "chosen": "The motion sensor emits a visible red infrared wave that spreads across a room, gradually expanding to cover the entire space.",
+  "why_chosen": "This action clearly visualizes the concept of emission and expansion of an infrared signal, which is crucial to understanding the process with the sound off.",
+  "mute_test": 0.85,
+  "image_prompt": "In an indoor room, the primary focus is on a motion sensor mounted on the wall. From this sensor, a visible red infrared wave is shown actively expanding across the room, with the wave prominently highlighted to capture the viewer's attention. This cinematic depiction ensures the signal is perceived as emanating from the sensor and affects the room environment. The camera is angled to prioritize the wave's coverage area prominently. The 3D visualization uses a technical semi-cutaway, allowing the viewer to see the internal components with red light clearly emanating to depict the signal. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins with the motion sensor, which emits a clearly visible red infrared wave. This wave steadily expands outward and gradually fills the room, interacting with objects, such as furniture, which briefly light up in response to the wave, emphasizing the interaction. Simultaneously, the internal components seen in a semi-cutaway view also illuminate in red to indicate the origin of the emissions. The animation uses cinematic depth of field and high contrast to focus on the wave as it expands, continuously illuminating objects it touches.",
+  "visual_explanation": {
+    "information": "Les capteurs de mouvement émettent un signal infrarouge pour couvrir une pièce.",
+    "physical_element": "An expanding red infrared wave originating from the motion sensor.",
+    "secondary_elements": "Objects in the room that light up upon interaction with the wave.",
+    "visual_behavior": "The visible wave spreads across the room, interacting with environment elements as it progresses.",
+    "animation_movement": "The infrared wave expands outward while objects light up in response to the wave.",
+    "camera_position": "Predominantly captures the expanding wave's interaction with the room using a strategic angle focused on coverage.",
+    "composition": "The frame ensures the motion sensor is the source, with the spreading wave dominating the scene."
+  }
 }

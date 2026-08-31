@@ -1,25 +1,34 @@
 {
-  "understanding": "Que le signal électrique est traité et manipulé par un circuit électronique complexe.",
+  "understanding": "Comment un capteur transforme une perturbation en signal électrique.",
   "candidates": [
     {
-      "action": "A yellow signal pulses through a network of circuit pathways activating and lighting up components sequentially.",
-      "explains": "The signal is being processed as it moves through the circuit.",
-      "misses": "Might not clearly show the internal complexity of the circuit's interactions."
+      "action": "A yellow disturbance hits the sensor, a blue light within the sensor lights up and creates a trail.",
+      "explains": "Shows the conversion from disturbance to electrical signal.",
+      "misses": "Doesn't show how the signal is sent away from the sensor."
     },
     {
-      "action": "A yellow signal enters one side of the circuit, causing various components to flash and change colors before exiting.",
-      "explains": "Shows the circuit's role in transforming the signal.",
-      "misses": "Might not illustrate the sequential processing clearly."
+      "action": "A blue electric signal exits the sensor and travels through visible wires.",
+      "explains": "Shows the signal being sent away from the sensor.",
+      "misses": "Fails to show the initial disturbance and conversion inside the sensor."
     },
     {
-      "action": "The yellow signal splits into multiple paths, activating different parts of the circuit simultaneously.",
-      "explains": "The complexity of circuit processing and parallel paths.",
-      "misses": "Could be confused as the signal being copied, rather than processed."
+      "action": "The motion sensor casing becomes translucent, showing both the yellow disruption hitting the sensor and a blue signal emitting from it.",
+      "explains": "Illustrates both the disruption causing the signal and the start of an electrical output.",
+      "misses": "Doesn't show how the signal propagates further than the sensor."
     }
   ],
-  "chosen": "A yellow signal pulses through a network of circuit pathways activating and lighting up components sequentially.",
-  "why_chosen": "It clearly shows the path and sequential processing of the signal, emphasizing the circuit's dynamic functionality.",
-  "mute_test": 0.85,
-  "image_prompt": "A close-up view of the motion sensor's electronic circuit board, with a yellow signal visibly pulsing through intricate pathways. As the signal moves, different components light up in sequence, signifying processing throughout the board. The camera angle focuses on the pathway with high clarity to ensure the movement of the signal and its effect on each component is unmistakably clear. The lighting highlights the active paths, using sharp contrast and focused lighting, while the rest of the board remains subtly in the background. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The yellow signal dynamically pulses through the circuit, beginning at one corner and then traveling along the board. As it pulses, components light up in succession, one after the other, showcasing the processing movement. The signal travels with a rhythm, giving a visual cue of active processing and completion as it reaches the final component in the chain and exits the visible circuit section."
+  "chosen": "The motion sensor casing becomes translucent, showing both the yellow disruption hitting the sensor and a blue signal emitting from it.",
+  "why_chosen": "This action shows both the cause (disruption) and the initial conversion (electrical signal starting) within one frame, quickly understandable.",
+  "mute_test": 0.8,
+  "image_prompt": "The motion sensor is centrally positioned with its translucent casing showing internal components through a detailed technical semi-cutaway view. The image captures the initial contact of a yellow disruption as it reaches the sensor, at which point a blue electrical signal is visibly generated within the circuitry. This demonstration of transformation is clear and immediate. The environment remains a dark premium indoor setting with cinematic blue and white lighting enhancing realism. Materials are of high quality, showing realistic plastic and metal construction of the sensor. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "As the yellow disruption hits the sensor, the blue electrical signal begins to form within the circuitry. Gradually, this blue signal builds in intensity, spreading through the internal components of the sensor. The signal maintains a steady propagation from the point of disruption, becoming more luminescent until it reaches the point where it would exit the sensor, indicating the conversion process.",
+  "visual_explanation": {
+    "information": "The sensor detects a disturbance and sends an electrical signal.",
+    "physical_element": "The translucent casing of the motion sensor revealing internal electronics.",
+    "secondary_elements": "Yellow disturbance hitting the sensor, blue signal generated inside.",
+    "visual_behavior": "Disruption visibly triggers an internal response (signal generation).",
+    "animation_movement": "Signal begins at the disruption point, intensifies and moves through the sensor.",
+    "camera_position": "Dynamic close-up capturing the internal elements and the point of impact.",
+    "composition": "Focuses on the translucent view of the sensor showing the internal reaction and movement of the signal."
+  }
 }

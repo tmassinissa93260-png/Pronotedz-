@@ -1,1 +1,1 @@
-Enfin, une action se produit, déclenchée par le signal.
+Ce signal active un système, comme l'allumage d'une lumière.

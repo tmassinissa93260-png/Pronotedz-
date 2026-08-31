@@ -1,1 +1,1 @@
-Les capteurs de mouvement détectent notre présence grâce à des ondes infrarouges.
+Imaginez un capteur capable de détecter vos mouvements invisibles.

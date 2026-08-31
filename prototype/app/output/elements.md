@@ -4,31 +4,31 @@
 
 ## Script
 
-Les capteurs de mouvement détectent notre présence grâce à des ondes infrarouges. Lorsqu'un objet chaud se déplace, il perturbe ces ondes. Le capteur analyse cette perturbation et envoie un signal électrique. Ce signal est ensuite traité par un circuit électronique. Enfin, une action se produit, déclenchée par le signal. Le capteur retourne à l'état de veille quand l'objet disparaît.
+Imaginez un capteur capable de détecter vos mouvements invisibles. Les capteurs de mouvement émettent un signal infrarouge. Lorsqu'une personne ou un objet traverse ce signal, une perturbation est créée. Cette perturbation est captée par le capteur, qui envoie alors un signal électrique. Ce signal active un système, comme l'allumage d'une lumière. Et voilà, tout se déclenche grâce à un simple mouvement!
 
 ## Visual bible
 
 À réutiliser dans **chaque** image. Les couleurs ont un sens fixe.
 
-- **main subject** : un capteur de mouvement monté au mur
-- **characters objects** : ondes infrarouges, perturbations, signal électrique, circuit électronique
-- **vehicle** : none
-- **colors** : dark blue and white with the internal elements in defined colors
-- **environment** : dark premium interior environment
-- **materials** : translucent casing revealing internal electronics
-- **lighting** : cinematic blue and white lighting
-- **camera** : high contrast with cinematic depth of field
-- **style 3d** : premium 3D engineering visualization
-- **realism** : highly realistic optics and electronics
-- **invisible phenomena** : represented by defined color codes
+- **main subject** : motion sensor
+- **characters objects** : motion sensor, person
+- **vehicle** : N/A
+- **colors** : black, gray, blue, red, yellow
+- **environment** : indoor room
+- **materials** : plastic, metal
+- **lighting** : cinematic blue and white
+- **camera** : dynamic, close-up
+- **style 3d** : technical semi-cutaway
+- **realism** : highly realistic
+- **invisible phenomena** : infrared signal, electrical signal
 
 ## Code couleur
 
 Une notion, une couleur, la même du début à la fin.
 
-- **orange** = perturbation — perturbation des ondes infrarouges  *(se déplace)*
-- **yellow** = signal_electrique — signal électrique  *(se déplace)*
-- **blue** = circuit — circuit électronique
+- **red** = signal_infrarouge — signal émis par le capteur  *(se déplace)*
+- **yellow** = perturbation — perturbation causée par un mouvement  *(se déplace)*
+- **blue** = signal_electrique — signal électrique envoyé  *(se déplace)*
 
 ## Contrôle qualité
 
@@ -44,252 +44,252 @@ Une notion, une couleur, la même du début à la fin.
 
 ## Plan 01 — 4s
 
-**Voix** : Les capteurs de mouvement détectent notre présence grâce à des ondes infrarouges.
+**Voix** : Imaginez un capteur capable de détecter vos mouvements invisibles.
 
-**Fonction** : Introduce the major working principle of motion detectors—infrared waves.
+**Fonction** : To introduce the motion sensor as a device that can detect invisible movement.
 
-**Élément pédagogique** : red infrared signal waves emitted from the sensor
+**Élément pédagogique** : red infrared signal emitted from the sensor
 
 **Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-Les capteurs de mouvement détectent notre présence grâce à des ondes infrarouges.
+Imaginez un capteur capable de détecter des mouvements invisibles.
 
-**L'action qui l'explique** : Red infrared waves, symbolized by pulsing ripples, begin at the motion sensor and expand outward to cover an area.
+**L'action qui l'explique** : A red infrared signal originates from the motion sensor and disperses outward in a spreading fashion across the room.
 
-*Comprise sans le son : 0.8* — This action directly demonstrates the emission and range of the infrared waves from the sensor in the simplest, clearest way, focusing entirely on the principle of detection without unnecessary elements.
+*Comprise sans le son : 0.8* — This action most directly communicates that the sensor can detect movement by projecting an emission, making the concept of a wide detection field visually clear.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : How infrared waves detect presence
-2. **physical element** : infrared signal waves
-3. **secondary elements** : motion sensor
-4. **visual behavior** : red waves representing infrared signals
-5. **animation movement** : waves pulsing outward and electronics illuminating
-6. **camera position** : positioned to focus on sensor and wave emission
-7. **composition** : focus on the sensor and radiating waves
+1. **information** : A motion sensor can detect invisible movements through emitted infrared signals.
+2. **physical element** : The red infrared signal that originates from the motion sensor.
+3. **secondary elements** : The pulsating spread of the red signal around the sensor in the environment.
+4. **visual behavior** : The red signal begins at a point and disperses outwards covering more space.
+5. **animation movement** : A red infrared signal pulse travels outward in a dispersing pattern from the motion sensor.
+6. **camera position** : The camera is positioned to focus centrally on the motion sensor and its dispersing red signal emission.
+7. **composition** : The image centers around the motion sensor with a dynamic visual of the infrared signal spreading outward, highlighting the sensing technology.
 
 ### Prompt image
 
 ```
-A technical semi-cutaway view focuses on a dark near-black motion sensor mounted on a wall, with red waves symbolizing infrared radiation pulsing outward into the surrounding space. The camera is positioned to clearly center the wave emission area, using cinematic blue and white lighting to emphasize the waves and sensor. The sensor's translucent casing is ghosted to reveal the internal electronics, maintaining the visual bible and color code. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A close-up view of a motion sensor mounted on a dark near-black wall, with its red infrared signal represented by a spreading pulsating wave moving outward from the sensor’s origin. The camera focuses closely on the sensor and the red signal dispersion, capturing the interaction and movement of the signal as it occupies the space. Realistic detailed materials with emphasis on the translucent casing show the internal modern electronics in detail, set in an indoor room with cinematic blue and white lighting. The red signal stands out vividly against the dark background, emphasizing the sensing action. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The animation begins with red infrared waves subtly pulsing from the motion sensor and gradually expanding into the surrounding area, increasing in intensity until the waves are clearly visible spanning a wide range. Throughout, the motion sensor remains central in the frame, and the pulsing wave action repeats to demonstrate the continuous detection process.
+The motion begins at the central point of the sensor, where a red infrared signal gradually starts and then pulsates outward, visually expanding and covering the room in a spreading manner. The red signal wave moves fluidly from the sensor's center outward, continuously illustrating the sensor’s ability to detect invisible motion.
 ```
 
 ---
 
 ## Plan 02 — 4s
 
-**Voix** : Lorsqu'un objet chaud se déplace, il perturbe ces ondes.
+**Voix** : Les capteurs de mouvement émettent un signal infrarouge.
 
-**Fonction** : Show how the presence of a warm object disturbs infrared waves.
+**Fonction** : To visualize the infrared signal spreading across the room.
 
-**Élément pédagogique** : orange disturbance in red waves as a warm object enters
+**Élément pédagogique** : red infrared signal expanding into the room
 
-**Intention de mouvement** : `cause_effect`
+**Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-L'entrée d'un objet chaud perturbe les ondes infrarouges.
+Les capteurs de mouvement émettent un signal infrarouge à travers la pièce.
 
-**L'action qui l'explique** : An orange wave deforms as a human silhouette approaches the red infrared waves.
+**L'action qui l'explique** : The motion sensor emits a visible red infrared wave that spreads across a room, gradually expanding to cover the entire space.
 
-*Comprise sans le son : 0.8* — This action is the clearest illustration of cause and effect, where the approach of the human silhouette visibly deforms the infrared waves, immediately conveying disturbance.
+*Comprise sans le son : 0.85* — This action clearly visualizes the concept of emission and expansion of an infrared signal, which is crucial to understanding the process with the sound off.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : How warm objects disturb infrared waves
-2. **physical element** : infrared waves being distorted
-3. **secondary elements** : warm human silhouette
-4. **visual behavior** : orange perturbations in the waves
-5. **animation movement** : distortion follows silhouette movement
-6. **camera position** : clearly show interaction
-7. **composition** : waves and silhouette interacting
+1. **information** : Les capteurs de mouvement émettent un signal infrarouge pour couvrir une pièce.
+2. **physical element** : An expanding red infrared wave originating from the motion sensor.
+3. **secondary elements** : Objects in the room that light up upon interaction with the wave.
+4. **visual behavior** : The visible wave spreads across the room, interacting with environment elements as it progresses.
+5. **animation movement** : The infrared wave expands outward while objects light up in response to the wave.
+6. **camera position** : Predominantly captures the expanding wave's interaction with the room using a strategic angle focused on coverage.
+7. **composition** : The frame ensures the motion sensor is the source, with the spreading wave dominating the scene.
 
 ### Prompt image
 
 ```
-In a dark premium interior environment, a human silhouette approaches from the side, creating a dramatic contrast as it interacts with a series of red infrared waves. The waves visibly deform into an orange hue where the silhouette is nearest, capturing the disturbance clearly. The motion sensor is translucent, revealing the internal electronics and emphasizing the dynamic interaction at the center of the frame. Cinematic blue and white lighting highlights the scene with high contrast and depth of field focusing on the wave distortion. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+In an indoor room, the primary focus is on a motion sensor mounted on the wall. From this sensor, a visible red infrared wave is shown actively expanding across the room, with the wave prominently highlighted to capture the viewer's attention. This cinematic depiction ensures the signal is perceived as emanating from the sensor and affects the room environment. The camera is angled to prioritize the wave's coverage area prominently. The 3D visualization uses a technical semi-cutaway, allowing the viewer to see the internal components with red light clearly emanating to depict the signal. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-As the human silhouette steadily approaches the series of red infrared waves from the side, the waves near the silhouette gradually deform, taking on an orange hue and creating a ripple effect that propagates. The transition from undisturbed to disturbed waves is clearly visible, illustrating the disturbance in real-time. The silhouette's movement towards the waves builds tension and highlights the causality of heat affecting the infrared waves, culminating in an orange ripple that transforms the scene before settling.
+The animation begins with the motion sensor, which emits a clearly visible red infrared wave. This wave steadily expands outward and gradually fills the room, interacting with objects, such as furniture, which briefly light up in response to the wave, emphasizing the interaction. Simultaneously, the internal components seen in a semi-cutaway view also illuminate in red to indicate the origin of the emissions. The animation uses cinematic depth of field and high contrast to focus on the wave as it expands, continuously illuminating objects it touches.
 ```
 
 ---
 
 ## Plan 03 — 4s
 
-**Voix** : Le capteur analyse cette perturbation et envoie un signal électrique.
+**Voix** : Lorsqu'une personne ou un objet traverse ce signal, une perturbation est créée.
 
-**Fonction** : Display the sensor's electronic response to perturbation by sending an electrical signal.
+**Fonction** : To illustrate how the signal is disrupted when a person passes through.
 
-**Élément pédagogique** : yellow signal generated from the sensor's electronics
+**Élément pédagogique** : Yellow disruption in the red signal caused by motion
 
-**Intention de mouvement** : `energy_transfer`
+**Intention de mouvement** : `cause_effect`
 
 ### Ce que le spectateur doit comprendre
 
-Le capteur de mouvement détecte une perturbation et déclenche un signal électrique en réponse.
+Quand quelque chose passe à travers le signal, cela cause une perturbation visible.
 
-**L'action qui l'explique** : An orange perturbation wave visibly distorts as it enters the sensor, directly triggering a yellow signal from the sensor's core.
+**L'action qui l'explique** : A person walks through the red infrared signal, and a yellow wave visibly disrupts the path of the signal.
 
-*Comprise sans le son : 0.8* — It clearly depicts the cause (perturbation) and effect (signal initiation) relationship, ensuring that the viewer sees why the signal is generated.
+*Comprise sans le son : 0.8* — It visually represents the disruption caused by a person crossing the signal in the clearest and most direct manner, showing both cause and immediate effect.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : How the sensor sends an electrical signal
-2. **physical element** : internal electronics of the sensor
-3. **secondary elements** : yellow electrical signal
-4. **visual behavior** : signal travels through circuits
-5. **animation movement** : signal moves along electronic pathways
-6. **camera position** : focused on internal sensor components
-7. **composition** : signal travels from perturbation source
+1. **information** : The disruption of a signal when an object passes through it.
+2. **physical element** : Yellow wave emerging from the red infrared signal as a person crosses it.
+3. **secondary elements** : Motion sensor, the person's silhouette, and the environment that highlights the interaction.
+4. **visual behavior** : The red signal path is disrupted by a yellow wave.
+5. **animation movement** : A yellow wave flows outward from the point of contact with the red signal.
+6. **camera position** : Slightly above with an angle focusing on the intersection of the person and the signal.
+7. **composition** : The composition centers on the interaction between the person's action and the signal, ensuring clear visibility of the yellow disruption within a high-contrast environment.
 
 ### Prompt image
 
 ```
-A highly detailed, semitransparent motion sensor mounted on a dark wall is shown with an orange wave distortion entering the sensor. Inside, a yellow signal is generated from the sensor's core, highlighted by a strong glow against the backdrop of blue circuitry. The translucent casing reveals intricate electronic components that are made from premium materials, emphasizing realistic optics and electronics. The cinematic lighting enhances the visibility of the orange disturbance and the emerging yellow signal, centering this dynamic as the focal action. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+The camera is positioned slightly above at an angle focusing directly on the motion sensor and the person intersecting the red infrared signal. The image captures the moment where a yellow wave visibly emerges as the person crosses the signal's path. The interior environment is dark with cinematic blue and white lighting, ensuring the yellow disruption stands out against the red signal. Plastic and metal components of both the motion sensor and its internal mechanisms are visible, providing a realistic context to the cause-effect interaction. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The animation begins as an orange wave distortion enters the sensor, representing a perturbation. Gradually, as the wave impacts the sensor's core, it triggers a yellow signal. The signal begins to emanate and build from the core, illuminating in a strong, vibrant glow. It continues to pulsate and expand through the blue circuitry components, activating them sequentially as it progresses, until it reaches the edges of the visible sensor electronics.
+The person begins to walk through the static red infrared signal, causing a yellow wave to gradually build at the point of contact. This wave flows outward along the path of the red signal, showcasing the disruption as it moves. The disruption starts strong, building in visibility as the person continues to move, then dissipates as it extends away from the source of contact.
 ```
 
 ---
 
 ## Plan 04 — 4s
 
-**Voix** : Ce signal est ensuite traité par un circuit électronique.
+**Voix** : Cette perturbation est captée par le capteur, qui envoie alors un signal électrique.
 
-**Fonction** : Show processing of the electrical signal in the internal circuit.
+**Fonction** : To demonstrate how the sensor converts a disturbance into an electrical signal.
 
-**Élément pédagogique** : yellow signal traversing electronic circuitry
+**Élément pédagogique** : Blue electrical signal generated by the sensor
 
-**Intention de mouvement** : `energy_flow`
+**Intention de mouvement** : `energy_transfer`
 
 ### Ce que le spectateur doit comprendre
 
-Que le signal électrique est traité et manipulé par un circuit électronique complexe.
+Comment un capteur transforme une perturbation en signal électrique.
 
-**L'action qui l'explique** : A yellow signal pulses through a network of circuit pathways activating and lighting up components sequentially.
+**L'action qui l'explique** : The motion sensor casing becomes translucent, showing both the yellow disruption hitting the sensor and a blue signal emitting from it.
 
-*Comprise sans le son : 0.85* — It clearly shows the path and sequential processing of the signal, emphasizing the circuit's dynamic functionality.
+*Comprise sans le son : 0.8* — This action shows both the cause (disruption) and the initial conversion (electrical signal starting) within one frame, quickly understandable.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Signal processing within the circuit
-2. **physical element** : circuit board
-3. **secondary elements** : yellow signal's flow
-4. **visual behavior** : signal moves along circuit pathways
-5. **animation movement** : signal activates circuit components sequentially
-6. **camera position** : highlight the signal's path and component activation
-7. **composition** : movement through components
+1. **information** : The sensor detects a disturbance and sends an electrical signal.
+2. **physical element** : The translucent casing of the motion sensor revealing internal electronics.
+3. **secondary elements** : Yellow disturbance hitting the sensor, blue signal generated inside.
+4. **visual behavior** : Disruption visibly triggers an internal response (signal generation).
+5. **animation movement** : Signal begins at the disruption point, intensifies and moves through the sensor.
+6. **camera position** : Dynamic close-up capturing the internal elements and the point of impact.
+7. **composition** : Focuses on the translucent view of the sensor showing the internal reaction and movement of the signal.
 
 ### Prompt image
 
 ```
-A close-up view of the motion sensor's electronic circuit board, with a yellow signal visibly pulsing through intricate pathways. As the signal moves, different components light up in sequence, signifying processing throughout the board. The camera angle focuses on the pathway with high clarity to ensure the movement of the signal and its effect on each component is unmistakably clear. The lighting highlights the active paths, using sharp contrast and focused lighting, while the rest of the board remains subtly in the background. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+The motion sensor is centrally positioned with its translucent casing showing internal components through a detailed technical semi-cutaway view. The image captures the initial contact of a yellow disruption as it reaches the sensor, at which point a blue electrical signal is visibly generated within the circuitry. This demonstration of transformation is clear and immediate. The environment remains a dark premium indoor setting with cinematic blue and white lighting enhancing realism. Materials are of high quality, showing realistic plastic and metal construction of the sensor. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The yellow signal dynamically pulses through the circuit, beginning at one corner and then traveling along the board. As it pulses, components light up in succession, one after the other, showcasing the processing movement. The signal travels with a rhythm, giving a visual cue of active processing and completion as it reaches the final component in the chain and exits the visible circuit section.
+As the yellow disruption hits the sensor, the blue electrical signal begins to form within the circuitry. Gradually, this blue signal builds in intensity, spreading through the internal components of the sensor. The signal maintains a steady propagation from the point of disruption, becoming more luminescent until it reaches the point where it would exit the sensor, indicating the conversion process.
 ```
 
 ---
 
 ## Plan 05 — 4s
 
-**Voix** : Enfin, une action se produit, déclenchée par le signal.
+**Voix** : Ce signal active un système, comme l'allumage d'une lumière.
 
-**Fonction** : Demonstrates the final action triggered by the processed signal.
+**Fonction** : To illustrate how the electrical signal activates another system.
 
-**Élément pédagogique** : yellow signal triggering green action such as light
+**Élément pédagogique** : Blue electrical flow reaching the light
 
-**Intention de mouvement** : `energy_transfer`
+**Intention de mouvement** : `cause_effect`
 
 ### Ce que le spectateur doit comprendre
 
-Que l'action finale est déclenchée par le signal traité.
+Le signal électrique active un système, illustré par l'allumage d'une lumière.
 
-**L'action qui l'explique** : A yellow line of light moves through a circuit and lights up a green bulb at the end.
+**L'action qui l'explique** : A blue electrical flow moves from the sensor to the bulb and lights it up.
 
-*Comprise sans le son : 0.8* — The yellow line provides a visible journey from signal to action, making it intuitive that the signal's movement triggers the final action, even with the sound off.
+*Comprise sans le son : 0.8* — This action clearly illustrates the cause-and-effect relationship of signal activation with immediate visualization.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : How the processed signal triggers an action
-2. **physical element** : green component representing lighting action
-3. **secondary elements** : yellow signal
-4. **visual behavior** : signal reaching a triggering component
-5. **animation movement** : signal lights up final component
-6. **camera position** : focused on end-point activation
-7. **composition** : action activation center frame
+1. **information** : The electrical signal activates a light upon contact.
+2. **physical element** : A blue electrical flow from the sensor to the light bulb.
+3. **secondary elements** : The light bulb lighting up upon the flow's contact.
+4. **visual behavior** : The immediate illumination of the bulb upon signal contact.
+5. **animation movement** : The progression of the blue electrical flow reaching the bulb.
+6. **camera position** : Eye level with the central path of the electrical flow.
+7. **composition** : Flow and bulb aligned centrally to emphasize connection and activation.
 
 ### Prompt image
 
 ```
-Focus on the yellow signal traveling through the circuit's pathway, prominently highlighted, reaching a green component representing action and triggering it to light up. This point of contact between the yellow signal and the green lighting component is central in the frame, guiding the viewer's eye directly to the pivotal action moment. The background and other elements are subdued to enhance focus on this dynamic interaction. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A close-up shot captures the dynamic journey of a blue electrical flow originating from the motion sensor, moving visibly across the frame towards a light bulb. The moment the flow touches the bulb, it visibly lights up, creating a sense of immediate activation. The camera is positioned at eye level with the path of the electrical flow placed in the center of the frame for maximum clarity. The lighting emphasizes the blue flow and the bulb's illumination, against the dark premium interior environment, ensuring the viewer's eyes go directly to the flow and the lit bulb. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The animation begins with a steady yellow light traveling through the circuit, accelerating as it moves toward the green component. When the yellow light reaches the component, there's a deliberate pause before the green light spreads outward, indicating the trigger has been activated successfully. The journey from start to finish is smooth, emphasizing the causal link between signal propagation and action initiation.
+The animation begins with a subtle emergence of a blue electrical flow from the motion sensor, gaining intensity and clarity as it travels across the frame. It progressively becomes sharper and brighter, illustrating its path and directionality as it nears a light bulb. Upon contact with the bulb, the flow triggers an immediate and vivid illumination, emphasizing the cause-and-effect relationship of the electrical activation in a smooth and visually satisfying progression.
 ```
 
 ---
 
 ## Plan 06 — 4s
 
-**Voix** : Le capteur retourne à l'état de veille quand l'objet disparaît.
+**Voix** : Et voilà, tout se déclenche grâce à un simple mouvement!
 
-**Fonction** : Visualize the resetting motion detector returning to stand-by.
+**Fonction** : To show the operational result of the system working together.
 
-**Élément pédagogique** : restoration of normal red infrared waves as silhouette exits
+**Élément pédagogique** : The entire room lit up by the activated system
 
-**Intention de mouvement** : `reveal`
+**Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-Le capteur retourne à l'état de veille lorsque l'objet ne perturbe plus les ondes infrarouges.
+Que l'activation du système illumine toute la pièce en déclenchant les lumières.
 
-**L'action qui l'explique** : The red infrared waves return to uniform consistency as the silhouette leaves.
+**L'action qui l'explique** : A person's gesture triggers a red infrared beam from the sensor, resulting in blue electrical signals activating and lighting up the room.
 
-*Comprise sans le son : 0.8* — It conveys both the cause and effect visually: as the silhouette disappears, the infrared waves stabilize, indicating the sensor's return to normal.
+*Comprise sans le son : 0.8* — This sequence directly shows the cause (gesture) and the immediate effect (room lighting), easily readable without sound.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Return of the sensor to standby status
-2. **physical element** : red infrared waves
-3. **secondary elements** : fading perturbations, silhouette
-4. **visual behavior** : restored wave stability
-5. **animation movement** : resetting waves and sensor
-6. **camera position** : following silhouette, then stabilization
-7. **composition** : focus on stabilized waves
+1. **information** : The motion sensor's activation due to movement lights up the room.
+2. **physical element** : Person's gesture and interacting signals (red and blue beams).
+3. **secondary elements** : Interior room lighting gradually increasing.
+4. **visual behavior** : Progressive illumination associated with signal paths, connecting gesture to lighting.
+5. **animation movement** : Red beam propagation initiating blue flow, illuminating lamps in sequence.
+6. **camera position** : Dynamic, slightly above and angled to capture both the person and room lighting development.
+7. **composition** : Centered on gesture and sensor, keeping the lit areas within view.
 
 ### Prompt image
 
 ```
-A view of the motion sensor where the red infrared waves are originally disrupted by orange perturbations due to the presence of a silhouette. As the silhouette exits the frame, the orange disruptions diminish, and the infrared waves return to a consistent red, visually indicating the sensor's reset to standby. The camera is positioned to clearly show the transition from disrupted to stable waves, emphasizing the change through high contrast and sharp focus on the waves’ transition. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A technical semi-cutaway view encompasses a person in mid-gesture with an outstretched hand towards the motion sensor. The central detail is the visible red infrared beam extending from the motion sensor to the person, while blue electrical flows trail from the sensor to surrounding lights, all progressively illuminating. The interior environment achieves realism with detailed plastic and metal textures, emphasizing clarity in the flow of signals. The cinematic blue and white lighting enhances visibility, illustrating the interaction of each component within this connection. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-As the animation begins, the silhouette is present, causing orange perturbations in the infrared waves. Gradually, the silhouette moves out of the frame, reducing the orange disruptions. As this occurs, the red infrared waves slowly return to a uniform and stable consistency, symbolizing the sensor's reset to its standby state, indicating readiness for future detection.
+A person raises their hand, and instantly, a red infrared beam extends from the sensor towards it, rapidly followed by blue electrical flows moving across the room. Lamps illuminate sequentially as the flow reaches them, showcasing the transformation from darkness to a fully lit space. The transition smoothly illustrates how each segment of the initialization sequence builds upon the previous, resulting in complete room activation.
 ```
 
 ---

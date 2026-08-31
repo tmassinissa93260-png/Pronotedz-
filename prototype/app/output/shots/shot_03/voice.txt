@@ -1,1 +1,1 @@
-Le capteur analyse cette perturbation et envoie un signal électrique.
+Lorsqu'une personne ou un objet traverse ce signal, une perturbation est créée.

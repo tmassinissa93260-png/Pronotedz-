@@ -1,25 +1,34 @@
 {
-  "understanding": "Les capteurs de mouvement détectent notre présence grâce à des ondes infrarouges.",
+  "understanding": "Imaginez un capteur capable de détecter des mouvements invisibles.",
   "candidates": [
     {
-      "action": "Red infrared waves, symbolized by pulsing ripples, begin at the motion sensor and expand outward to cover an area.",
-      "explains": "It shows how infrared waves are emitted from the sensor to detect presence.",
-      "misses": "It doesn't clearly convey the role of the electronic components inside the sensor."
+      "action": "A red infrared signal originates from the motion sensor and disperses outward in a spreading fashion across the room.",
+      "explains": "Illustrates that the sensor can emit and project an invisible detection field over a wide area.",
+      "misses": "Fails to show how a movement is detected and turned into a signal."
     },
     {
-      "action": "The sensor's internal electronics light up each time the red infrared waves pulse outward.",
-      "explains": "It connects the emission of infrared waves with the functioning of the sensor's electronics.",
-      "misses": "It fails to visually indicate the coverage area of the infrared waves."
+      "action": "A yellow disturbance is created by a subtle movement and directly interacts with the red emissions, causing blue lines to extend back to the sensor.",
+      "explains": "Shows how movement causes a reaction detected by the sensor, represented by the return blue signal.",
+      "misses": "Fails to make the infrared emission itself seem central and continuous."
     },
     {
-      "action": "A figure moves into the range of expanding red waves, causing a yellow signal to travel along an electronic circuit inside the sensor.",
-      "explains": "This illustrates the detection process when someone steps into the infrared field.",
-      "misses": "It complicates the shot with additional elements that may distract from the main focus on infrared waves."
+      "action": "The motion sensor emits a red infrared light pulse outward, which interacts with a yellow disturbance causing the sensor’s internal blue lights to activate.",
+      "explains": "Demonstrates the emission, detection, and resulting activation of internal processes in the sensor.",
+      "misses": "Does not show the large scale spread of detection capability."
     }
   ],
-  "chosen": "Red infrared waves, symbolized by pulsing ripples, begin at the motion sensor and expand outward to cover an area.",
-  "why_chosen": "This action directly demonstrates the emission and range of the infrared waves from the sensor in the simplest, clearest way, focusing entirely on the principle of detection without unnecessary elements.",
+  "chosen": "A red infrared signal originates from the motion sensor and disperses outward in a spreading fashion across the room.",
+  "why_chosen": "This action most directly communicates that the sensor can detect movement by projecting an emission, making the concept of a wide detection field visually clear.",
   "mute_test": 0.8,
-  "image_prompt": "A technical semi-cutaway view focuses on a dark near-black motion sensor mounted on a wall, with red waves symbolizing infrared radiation pulsing outward into the surrounding space. The camera is positioned to clearly center the wave emission area, using cinematic blue and white lighting to emphasize the waves and sensor. The sensor's translucent casing is ghosted to reveal the internal electronics, maintaining the visual bible and color code. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The animation begins with red infrared waves subtly pulsing from the motion sensor and gradually expanding into the surrounding area, increasing in intensity until the waves are clearly visible spanning a wide range. Throughout, the motion sensor remains central in the frame, and the pulsing wave action repeats to demonstrate the continuous detection process."
+  "image_prompt": "A close-up view of a motion sensor mounted on a dark near-black wall, with its red infrared signal represented by a spreading pulsating wave moving outward from the sensor’s origin. The camera focuses closely on the sensor and the red signal dispersion, capturing the interaction and movement of the signal as it occupies the space. Realistic detailed materials with emphasis on the translucent casing show the internal modern electronics in detail, set in an indoor room with cinematic blue and white lighting. The red signal stands out vividly against the dark background, emphasizing the sensing action. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The motion begins at the central point of the sensor, where a red infrared signal gradually starts and then pulsates outward, visually expanding and covering the room in a spreading manner. The red signal wave moves fluidly from the sensor's center outward, continuously illustrating the sensor’s ability to detect invisible motion.",
+  "visual_explanation": {
+    "information": "A motion sensor can detect invisible movements through emitted infrared signals.",
+    "physical_element": "The red infrared signal that originates from the motion sensor.",
+    "secondary_elements": "The pulsating spread of the red signal around the sensor in the environment.",
+    "visual_behavior": "The red signal begins at a point and disperses outwards covering more space.",
+    "animation_movement": "A red infrared signal pulse travels outward in a dispersing pattern from the motion sensor.",
+    "camera_position": "The camera is positioned to focus centrally on the motion sensor and its dispersing red signal emission.",
+    "composition": "The image centers around the motion sensor with a dynamic visual of the infrared signal spreading outward, highlighting the sensing technology."
+  }
 }
