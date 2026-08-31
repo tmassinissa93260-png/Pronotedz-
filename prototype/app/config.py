@@ -91,6 +91,30 @@ def cerveau() -> str:
         return f"{OPENAI_BASE_URL} ({OPENAI_MODEL})"
     return f"OpenAI ({OPENAI_MODEL})"
 
+# La cadence (TPM) se compte par minute et se libere toute seule : une reprise
+# vaut mieux qu'un run perdu. Le run 43 est mort sur un 429 que le service
+# invitait lui-meme a retenter.
+MAX_RATE_RETRIES = int(env("MAX_RATE_RETRIES", "3"))
+RATE_RETRY_SECONDS = int(env("RATE_RETRY_SECONDS", "20"))
+
+# Le service compte max_tokens dans la cadence AVANT de repondre : reserver
+# 16 000 jetons pour un storyboard de 4 plans mange le quota pour rien, et
+# pour 13 plans ca depasse la limite a soi seul. Le budget suit le contrat.
+JETONS_PAR_PLAN = int(env("JETONS_PAR_PLAN", "900"))
+JETONS_DE_BASE = int(env("JETONS_DE_BASE", "1500"))
+
+
+def budget_storyboard(shot_count: int) -> int:
+    """Ce qu'un storyboard de N plans a vraiment besoin de rendre."""
+    return min(MAX_OUTPUT_TOKENS, JETONS_DE_BASE + JETONS_PAR_PLAN * max(1, shot_count))
+
+
+# Les appels qui rendent UN objet court : le texte, l'alignement d'un plan,
+# le regard du juge. Aucun n'a besoin du budget d'un storyboard entier.
+JETONS_TEXTE = int(env("JETONS_TEXTE", "4000"))
+JETONS_PLAN = int(env("JETONS_PLAN", "4000"))
+JETONS_REGARD = int(env("JETONS_REGARD", "1500"))
+
 # ---------------------------------------------------------------------------
 # Arborescence locale
 # ---------------------------------------------------------------------------

@@ -297,5 +297,10 @@ jobs:
             echo "Identique au précédent, rien à enregistrer."
           else
             git commit -m "${{ inputs.etape }} : run ${{ github.run_number }}"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
+            # La branche peut avoir bougé pendant le run : on rejoue le
+            # commit par-dessus au lieu de perdre le travail sur un rejet.
+            git push origin "HEAD:${GITHUB_REF_NAME}" || {
+              git pull --rebase origin "${GITHUB_REF_NAME}"
+              git push origin "HEAD:${GITHUB_REF_NAME}"
+            }
           fi

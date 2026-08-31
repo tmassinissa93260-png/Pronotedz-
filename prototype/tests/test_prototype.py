@@ -10,7 +10,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from app import montage, prompts  # noqa: E402
+from app import config, montage, prompts  # noqa: E402
 from app.models import (  # noqa: E402
     COLOR_NOTION,
     MOTION_INTENTS,
@@ -196,6 +196,24 @@ class TestImagesDeposees(unittest.TestCase):
         attendu = self.config.IMAGES_DIR / "shot_01.png"
         attendu.write_bytes(b"x")
         self.assertEqual(self.trouver()[1], attendu)
+
+
+class TestBudgetDeJetons(unittest.TestCase):
+    """Run 43 : 29 531 jetons demandes pour une limite de 30 000."""
+
+    def test_le_budget_suit_le_nombre_de_plans(self):
+        self.assertLess(config.budget_storyboard(4), config.budget_storyboard(13))
+
+    def test_un_gros_storyboard_reste_sous_le_plafond(self):
+        self.assertLessEqual(config.budget_storyboard(50), config.MAX_OUTPUT_TOKENS)
+
+    def test_un_plan_unique_a_quand_meme_de_quoi_repondre(self):
+        self.assertGreaterEqual(config.budget_storyboard(1), config.JETONS_DE_BASE)
+
+    def test_les_appels_courts_ne_reservent_pas_le_budget_d_un_storyboard(self):
+        for jetons in (config.JETONS_TEXTE, config.JETONS_PLAN, config.JETONS_REGARD):
+            with self.subTest(jetons=jetons):
+                self.assertLess(jetons, config.MAX_OUTPUT_TOKENS)
 
 
 class TestConditionsDuPrompt(unittest.TestCase):

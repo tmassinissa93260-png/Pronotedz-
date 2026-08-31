@@ -40,7 +40,7 @@ def regarder(video: Path, into: Path) -> dict:
     brut = chat_json(config.OPENAI_VISION_MODEL, [
         {"role": "system", "content": prompts.BLIND_SYSTEM},
         {"role": "user", "content": contenu},
-    ])
+    ], config.JETONS_REGARD)
     if not isinstance(brut, dict):
         raise OpenAIError("regard aveugle : la reponse doit etre un objet JSON")
     vides = [c for c in CHAMPS_VU if not str(brut.get(c) or "").strip()]
@@ -59,7 +59,7 @@ def comparer(shot: Shot, intention: str, vu: dict) -> dict:
     brut = chat_json(config.OPENAI_MODEL, [
         {"role": "system", "content": prompts.VERDICT_SYSTEM},
         {"role": "user", "content": prompts.verdict_user(intention, shot.voice, rapport)},
-    ])
+    ], config.JETONS_REGARD)
     if not isinstance(brut, dict):
         raise OpenAIError("verdict : la reponse doit etre un objet JSON")
     for champ in ("verdict", "fix"):

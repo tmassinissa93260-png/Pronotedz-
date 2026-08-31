@@ -32,7 +32,7 @@ def analyze_image(image: Path | str, visual_concept: str) -> dict:
             {"type": "text", "text": prompts.image_analysis_user(visual_concept)},
             {"type": "image_url", "image_url": {"url": image_payload(image)}},
         ]},
-    ])
+    ], config.JETONS_REGARD)
     for champ in ("visible_subjects", "composition", "camera", "lighting"):
         if not brut.get(champ):
             raise OpenAIError(f"analyse d'image inexploitable : '{champ}' vide")
@@ -46,7 +46,7 @@ def refine_animation(shot: Shot, analyse: dict) -> dict:
         {"role": "system", "content": prompts.ANIMATION_SYSTEM},
         {"role": "user", "content": prompts.animation_user(
             shot.voice, shot.educational_function, shot.visual_concept, bloc)},
-    ])
+    ], config.JETONS_PLAN)
     intent = str(brut.get("motion_intent") or "").strip()
     if intent not in MOTION_INTENTS:
         raise OpenAIError(f"motion_intent '{intent}' hors vocabulaire")
@@ -111,7 +111,7 @@ def analyze_video(shot: Shot, video: Path, into: Path) -> VideoAnalysis:
     brut = chat_json(config.OPENAI_VISION_MODEL, [
         {"role": "system", "content": prompts.VIDEO_ANALYSIS_SYSTEM},
         {"role": "user", "content": contenu},
-    ])
+    ], config.JETONS_REGARD)
     try:
         return VideoAnalysis.from_dict(shot.id, mesuree, brut)
     except StoryboardError as exc:

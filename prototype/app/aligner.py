@@ -46,7 +46,7 @@ def aligner_plan(sb: Storyboard, shot: Shot,
         messages = list(base)
         if meilleur is not None:
             messages.append({"role": "user", "content": _correction(restants)})
-        brut = chat_json(config.OPENAI_MODEL, messages)
+        brut = chat_json(config.OPENAI_MODEL, messages, config.JETONS_PLAN)
         try:
             plan = _normaliser(brut)
         except OpenAIError as exc:

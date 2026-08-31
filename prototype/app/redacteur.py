@@ -48,7 +48,7 @@ def ecrire(subject: str, duration: float, sentences: int,
         messages = list(base)
         if meilleur is not None:
             messages.append({"role": "user", "content": _correction(restants)})
-        brut = chat_json(config.OPENAI_MODEL, messages)
+        brut = chat_json(config.OPENAI_MODEL, messages, config.JETONS_TEXTE)
         try:
             texte = _normaliser(brut)
         except OpenAIError:
