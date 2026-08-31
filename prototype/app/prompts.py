@@ -589,6 +589,17 @@ Work in this order. Do not skip a step.
    redesigned. Then rewrite the animation prompt so it animates THAT action,
    and says how it progresses in time — where it starts, how it builds, where
    it arrives.
+   Rewriting around the action never means dropping what was already there:
+   the image prompt must still restate what the visual bible fixes — subject,
+   environment, materials — and still say the framing, the camera, where each
+   element sits, the light and the materials.
+
+6. THE REASONING. Redo the seven-step reasoning so it describes the shot you
+   have just written, not the previous one: the information, the physical
+   element that carries it, the secondary elements that make it readable, the
+   visible phenomenon, the movement that animates it — name a real motion,
+   something travelling, turning, spreading, lighting up, never a mood or a
+   camera position — the camera, and the framing that movement requires.
 
 Write both prompts as continuous descriptive English prose, never as a list of
 labels. End the image prompt with this sentence, copied VERBATIM:
@@ -608,7 +619,12 @@ Return only this JSON:
   "why_chosen": "why it beats the other two, with the sound off",
   "mute_test": 0.0,
   "image_prompt": "in English, very detailed, ending with the art direction",
-  "animation_prompt": "in English, that same action, moving, progressing in time"
+  "animation_prompt": "in English, that same action, moving, progressing in time",
+  "visual_explanation": {{
+    "information": "...", "physical_element": "...", "secondary_elements": "...",
+    "visual_behavior": "...", "animation_movement": "...",
+    "camera_position": "...", "composition": "..."
+  }}
 }}"""
 
 

@@ -12,8 +12,10 @@ le temps. Ce qui echoue repart chez OpenAI, comme partout ailleurs ici.
 
 from __future__ import annotations
 
+import copy
+
 from . import config, prompts, validator
-from .models import Shot, Storyboard
+from .models import EXPLICATION_FIELDS, Shot, Storyboard
 from .openai_client import OpenAIError, chat_json
 
 #: En dessous, le plan ne se comprend pas sans le son.
@@ -51,7 +53,7 @@ def aligner_plan(sb: Storyboard, shot: Shot,
             meilleur, restants = meilleur or {}, [str(exc)]
             continue
 
-        problemes = _verifier(plan)
+        problemes = _problemes(sb, shot, plan)
         if on_attempt:
             on_attempt(tentative, problemes)
         if not problemes:
@@ -102,6 +104,14 @@ def _normaliser(brut: object) -> dict:
     if not 0.0 <= note <= 1.0:
         raise OpenAIError(f"alignement : 'mute_test' hors bornes ({note})")
 
+    explication = brut.get("visual_explanation")
+    if not isinstance(explication, dict):
+        raise OpenAIError("alignement : 'visual_explanation' manquante")
+    vides = [f for f in EXPLICATION_FIELDS if not str(explication.get(f) or "").strip()]
+    if vides:
+        raise OpenAIError(f"alignement : visual_explanation, "
+                          f"champ(s) vide(s) : {', '.join(vides)}")
+
     return {
         "understanding": str(brut["understanding"]).strip(),
         "candidates": propres,
@@ -110,47 +120,47 @@ def _normaliser(brut: object) -> dict:
         "mute_test": note,
         "image_prompt": prompts.enforce_style(str(brut["image_prompt"]).strip()),
         "animation_prompt": str(brut["animation_prompt"]).strip(),
+        "visual_explanation": {f: str(explication[f]).strip()
+                               for f in EXPLICATION_FIELDS},
     }
 
 
-def _verifier(plan: dict) -> list[str]:
-    """Ce que la machine peut controler, elle le controle."""
-    out = []
-    image = validator.own_part(plan["image_prompt"])
-    anim = plan["animation_prompt"]
+def appliquer(shot: Shot, plan: dict) -> None:
+    """Poser le plan realigne sur le plan du storyboard."""
+    shot.image_prompt = plan["image_prompt"]
+    shot.animation_prompt = plan["animation_prompt"]
+    shot.visual_explanation = dict(plan["visual_explanation"])
 
+
+def _problemes(sb: Storyboard, shot: Shot, plan: dict) -> list[str]:
+    """Les manquements du plan realigne, dans la langue d'OpenAI.
+
+    Le run 37 a montre pourquoi il ne faut pas les reecrire ici : l'agent
+    touchait deux champs d'un contrat qui en verifie seize, et il cassait la
+    continuite, la precision et la correspondance en croyant bien faire. On
+    lui applique donc LE validateur du storyboard, sur une copie du plateau
+    ou sa proposition est posee, et on ne garde que ce qui concerne ce plan.
+    """
+    out = []
     if plan["mute_test"] < MIN_MUTE_TEST:
         out.append(f"the mute test scores {plan['mute_test']} — below "
                    f"{MIN_MUTE_TEST}. Go back to step 3 and choose an action a "
                    f"viewer reads faster with the sound off.")
 
-    if len(image) < validator.MIN_IMAGE_PROMPT_CHARS:
-        out.append(f"the image prompt is too short ({len(image)} characters "
-                   f"before the art direction). Say where each element sits, "
-                   f"the framing, the camera, the light, the materials.")
-
-    if len(anim) < validator.MIN_ANIMATION_PROMPT_CHARS:
-        out.append(f"the animation prompt is too short ({len(anim)} characters).")
-
-    absentes = validator.familles_absentes(plan["image_prompt"])
-    if absentes:
-        out.append(f"the image prompt says nothing about: {', '.join(absentes)}. "
-                   f"Rewriting around the chosen action must not drop what the "
-                   f"storyboard already required — state them explicitly.")
-
+    image = validator.own_part(plan["image_prompt"]).lower()
     mots = validator.mots_du_concept(plan["chosen"])
-    presents = [m for m in mots if validator.mot_present(m, image.lower())]
+    presents = [m for m in mots if validator.mot_present(m, image)]
     if mots and len(presents) < len(mots) * PART_ACTION_EXIGEE:
         absents = [m for m in mots if m not in presents]
         out.append(f"the image prompt does not show the action you chose: "
                    f"{', '.join(absents[:5])} appear nowhere in it. The chosen "
                    f"action must BE the picture, not a note beside it.")
 
-    if not any(m in anim.lower() for m in validator.PROGRESSION):
-        out.append("the animation prompt does not say how the movement "
-                   "progresses in time — where it starts, how it builds, where "
-                   "it arrives. Use 'gradually', 'begins to', 'building', "
-                   "'until'.")
+    essai = copy.deepcopy(sb)
+    appliquer(essai.shot(shot.id), plan)
+    out += [p.fix for p in validator.validate(essai, essai.duration_seconds,
+                                              len(essai.shots))
+            if p.where == shot.slug]
     return out
 
 

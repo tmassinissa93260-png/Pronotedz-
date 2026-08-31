@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from app import aligner  # noqa: E402
-from app.models import Storyboard  # noqa: E402
+from app.models import EXPLICATION_FIELDS, Storyboard  # noqa: E402
 from app.openai_client import OpenAIError  # noqa: E402
 from app.prompts import STYLE_DIRECTIVE  # noqa: E402
 from fixtures import board  # noqa: E402
@@ -47,6 +47,18 @@ def reponse(**over):
         "mute_test": 0.9,
         "image_prompt": IMAGE,
         "animation_prompt": ANIMATION,
+        "visual_explanation": {
+            "information": "que l'énergie stockée quitte la batterie et rejoint le moteur",
+            "physical_element": "les busbars en cuivre reliant le pack au stator",
+            "secondary_elements": "le pack de cellules, le stator et son rotor",
+            "visual_behavior": "un flux jaune lumineux parcourt les busbars vers l'avant",
+            "animation_movement": "le flux jaune travels along the busbars toward the "
+                                  "stator, puis le rotor commence à tourner",
+            "camera_position": "macro en contre-plongée, assez près pour lire "
+                               "tout le trajet dans un seul cadre",
+            "composition": "le pack à gauche, le moteur à droite, les busbars "
+                           "entre les deux au centre du cadre",
+        },
     }
     base.update(over)
     return base
@@ -94,8 +106,12 @@ class TestForme(unittest.TestCase):
 
 
 class TestControles(unittest.TestCase):
+    """L'agent est juge par LE validateur du storyboard, pas par une copie."""
+
     def verifier(self, **over):
-        return aligner._verifier(aligner._normaliser(reponse(**over)))
+        sb = Storyboard.from_dict(board())
+        return aligner._problemes(sb, sb.shots[0],
+                                  aligner._normaliser(reponse(**over)))
 
     def test_une_reponse_conforme_ne_leve_rien(self):
         self.assertEqual(self.verifier(), [])
@@ -106,7 +122,7 @@ class TestControles(unittest.TestCase):
 
     def test_un_prompt_photo_trop_court(self):
         problemes = self.verifier(image_prompt=f"A close-up. {STYLE_DIRECTIVE}")
-        self.assertTrue(any("too short" in p for p in problemes))
+        self.assertTrue(any("state the subject" in p for p in problemes))
 
     def test_l_agent_ne_doit_pas_laisser_tomber_la_precision(self):
         """Run 36 : les prompts realignes avaient perdu materiaux et cadrage."""
@@ -114,8 +130,29 @@ class TestControles(unittest.TestCase):
             "Camera at eye level with the busbars, 50mm feel, the "
             "windings sharp and the pack falling off. ", "")
         problemes = self.verifier(image_prompt=sans_camera)
-        self.assertTrue(any("says nothing about" in p and "camera" in p
+        self.assertTrue(any("must explicitly state" in p and "camera" in p
                             for p in problemes))
+
+    def test_l_agent_ne_doit_pas_casser_le_raisonnement(self):
+        """Run 37 : les prompts changeaient, visual_explanation restait vieille."""
+        vieux = dict(reponse()["visual_explanation"])
+        vieux["animation_movement"] = "une ambiance calme et technique"
+        problemes = self.verifier(visual_explanation=vieux)
+        self.assertTrue(any("real motion" in p for p in problemes))
+
+    def test_le_raisonnement_est_exige(self):
+        with self.assertRaises(OpenAIError) as ctx:
+            aligner._normaliser(reponse(visual_explanation=None))
+        self.assertIn("visual_explanation", str(ctx.exception))
+
+    def test_un_champ_du_raisonnement_vide(self):
+        for champ in EXPLICATION_FIELDS:
+            with self.subTest(champ=champ):
+                vieux = dict(reponse()["visual_explanation"])
+                vieux[champ] = ""
+                with self.assertRaises(OpenAIError) as ctx:
+                    aligner._normaliser(reponse(visual_explanation=vieux))
+                self.assertIn(champ, str(ctx.exception))
 
     def test_l_action_choisie_doit_etre_dans_l_image(self):
         problemes = self.verifier(
@@ -126,7 +163,7 @@ class TestControles(unittest.TestCase):
         problemes = self.verifier(
             animation_prompt="The yellow stream travels along the busbars and the "
                              "rotor turns. Everything else stays rigid in place.")
-        self.assertTrue(any("progresses in time" in p for p in problemes))
+        self.assertTrue(any("progresses over the" in p for p in problemes))
 
     def test_chaque_manquement_part_en_consigne(self):
         problemes = self.verifier(mute_test=0.4)

@@ -216,8 +216,7 @@ def realigner(sb: Storyboard) -> list[tuple[int, list[str]]]:
         (dossier / "alignment.json").write_text(
             json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
-        s.image_prompt = plan["image_prompt"]
-        s.animation_prompt = plan["animation_prompt"]
+        aligner.appliquer(s, plan)
         log("OK", f"plan {s.id:02d} · test sans le son : {plan['mute_test']}")
         print(f"  comprendre : {plan['understanding']}")
         print(f"  action     : {plan['chosen']}")
