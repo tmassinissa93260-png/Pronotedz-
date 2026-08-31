@@ -540,9 +540,16 @@ code fence, no commentary."""
 
 def alignment_user(voice: str, educational_function: str, visual_concept: str,
                    bible_block: str, color_block_sujet: str,
-                   image_prompt: str, animation_prompt: str) -> str:
+                   image_prompt: str, animation_prompt: str,
+                   memoire: str = "") -> str:
+    passe = f"""
+SHOTS THAT WORKED BEFORE, on other subjects — a viewer who could not hear the
+narration understood them. Steal the METHOD, never the components:
+{memoire}
+""" if memoire else ""
     return f"""\
 ONE shot. Make the image EXPLAIN the sentence, not illustrate it.
+{passe}
 
 THE SENTENCE THE VOICE SAYS (French): "{voice}"
 WHAT THIS SHOT MUST TEACH: {educational_function}
@@ -671,6 +678,140 @@ Return only this JSON:
   "energy_motion": "the visible energy flow and its direction (or 'none' with the reason)",
   "preserve": ["what must stay untouched"],
   "forbidden": ["deformations and artefacts explicitly banned"]
+}}"""
+
+
+# ---------------------------------------------------------------------------
+# VERROUILLAGE D'IDENTITE
+#
+# Les N plans sont N descriptions independantes du meme objet, et on croise
+# les doigts pour qu'il se ressemble. L'etat de l'art 2026 dit l'inverse :
+# une image de reference verrouille l'identite, et les autres plans en
+# derivent au lieu de la redecrire. On produit donc la fiche : quel plan sert
+# de maitre, et comment obtenir les autres A PARTIR de lui.
+# ---------------------------------------------------------------------------
+
+
+def fiche_identite(sb, maitre) -> str:
+    lignes = [
+        f"# Verrouillage d'identite — {sb.subject}",
+        "",
+        "Les plans ne sont pas six objets differents : c'est le MEME objet vu",
+        "de six endroits. Produis d'abord l'image maitresse, puis derive les",
+        "autres a partir d'elle au lieu de les redecrire.",
+        "",
+        "## 1. L'image maitresse",
+        "",
+        f"C'est le plan {maitre.id:02d} : celui qui montre l'objet le plus entier.",
+        "Genere-le en premier, et garde-le.",
+        "",
+        "```",
+        maitre.image_prompt,
+        "```",
+        "",
+        "## 2. Les autres plans, derives de celle-la",
+        "",
+        "Si ton outil accepte une image de reference (Kling, Runway, Nano Banana,",
+        "Seedance...), donne-lui l'image maitresse ET la consigne ci-dessous.",
+        "Sinon, colle le prompt complet : il est ecrit pour tenir tout seul.",
+        "",
+    ]
+    for s in sb.shots:
+        if s.id == maitre.id:
+            continue
+        lignes += [
+            f"### Plan {s.id:02d}",
+            "",
+            "**Depuis l'image maitresse** — meme objet, meme geometrie, memes",
+            "materiaux, meme code couleur ; ne change que le point de vue :",
+            "",
+            "```",
+            _consigne_derivee(s),
+            "```",
+            "",
+        ]
+    return "\n".join(lignes)
+
+
+def _consigne_derivee(shot) -> str:
+    """Ce qui change d'un plan a l'autre : le cadre, pas l'objet."""
+    explication = shot.visual_explanation
+    return (f"Same object as the reference image, unchanged in geometry, "
+            f"proportions, materials and colour code. "
+            f"{explication.get('camera_position', '')} "
+            f"{explication.get('composition', '')} "
+            f"Show: {explication.get('visual_behavior', '')} "
+            f"Keep the reference lighting and art direction.").strip()
+
+
+# ---------------------------------------------------------------------------
+# LE JUGE AVEUGLE
+#
+# L'agent d'alignement se note lui-meme, et au run 37 il se donnait 0.85 en
+# degradant le plan. Une note qu'on s'attribue ne vaut rien. Ici, DEUX appels
+# separes : le premier REGARDE sans rien savoir — ni la voix, ni le sujet, ni
+# ce qu'il fallait comprendre — et dit ce qu'il a compris ; le second compare
+# sa reponse a l'intention. C'est le seul controle du systeme ou celui qui
+# note n'est pas celui qui a ecrit.
+# ---------------------------------------------------------------------------
+
+BLIND_SYSTEM = """\
+You are shown frames from a short video, in order. You know nothing about it:
+no title, no narration, no subject, no context.
+
+Say what you understand from it, plainly, the way a viewer with the sound off
+would. Never guess to be helpful: if the frames do not let you tell what is
+happening, say so.
+
+You answer with a single valid JSON object and nothing else."""
+
+
+BLIND_USER = """\
+These frames come from one shot of a video, in order. You do not know what the
+video is about.
+
+Return only this JSON:
+{
+  "what_i_see": "the objects and the scene, plainly",
+  "what_happens": "what changes between the first frame and the last",
+  "what_i_understand": "the idea this shot seems to explain, in one sentence, \
+or 'nothing readable' if the frames do not carry one",
+  "confidence": 0.0,
+  "unclear": ["what stops you from reading the shot, if anything"]
+}"""
+
+
+VERDICT_SYSTEM = """\
+You compare what a viewer understood with what the shot was meant to make
+them understand. You are strict and you never round up: a shot that needs the
+narration to be understood has failed at its job.
+
+You answer with a single valid JSON object and nothing else."""
+
+
+def verdict_user(intention: str, voice: str, vu: str) -> str:
+    return f"""\
+A shot of an educational video was shown to someone WITHOUT its narration.
+
+WHAT THE SHOT WAS MEANT TO MAKE UNDERSTOOD (French):
+{intention}
+
+THE NARRATION IT CARRIES (French), for your reference only:
+"{voice}"
+
+WHAT THE VIEWER REPORTED, having only seen it:
+{vu}
+
+Did the shot do its job? Compare the MEANING, not the words: the viewer may
+describe the same idea differently, and that counts as understood. But an
+idea that is merely compatible is not the same as the idea that was intended.
+
+Return only this JSON:
+{{
+  "understood": 0.0,
+  "verdict": "in French, one sentence: what the viewer got, and what they missed",
+  "missing": ["what the shot failed to show, in French"],
+  "fix": "in French, one concrete change to the shot that would close the gap"
 }}"""
 
 

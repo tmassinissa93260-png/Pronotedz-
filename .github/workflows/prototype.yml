@@ -9,7 +9,7 @@
 #  te rend la main. Tu produis avec l'outil de ton choix, tu déposes les
 #  vidéos, et il analyse, cale la timeline, écrit les sous-titres et monte.
 #
-#  Six étapes :
+#  Sept étapes :
 #
 #    « storyboard »      → script, visual bible, plans, prompts image ET
 #                          animation, contrôle qualité, puis l'agent
@@ -23,6 +23,11 @@
 #                          montrent vraiment, défauts compris, et le verdict :
 #                          quels plans sont à refaire.
 #    « controle »        → le même verdict, sans réanalyser (aucun appel).
+#    « juger »           → LE contrôle qui ne se ment pas : un modèle qui ne
+#                          sait rien regarde les vidéos SANS la narration et
+#                          dit ce qu'il a compris. On compare à ce que le plan
+#                          devait faire comprendre. Les plans compris entrent
+#                          dans la mémoire et serviront aux vidéos suivantes.
 #    « montage »         → timeline calée sur la voix, sous-titres, MP4.
 #
 #  Le storyboard n'est jamais accepté sur parole : validator.py le vérifie,
@@ -45,6 +50,7 @@ on:
           - affiner-tout
           - analyser-videos
           - controle
+          - juger
           - montage
       sujet:
         description: "Le sujet de la vidéo"
@@ -101,6 +107,7 @@ jobs:
 
       - name: Installer ffmpeg
         if: inputs.etape == 'analyser-videos' || inputs.etape == 'montage'
+            || inputs.etape == 'juger'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
 
       - name: Vérifier qu'un cerveau est disponible
@@ -156,6 +163,20 @@ jobs:
           fi
           python -m app.main affiner-tout
 
+      - name: Le juge aveugle, et ce qu'il laisse à la mémoire
+        if: inputs.etape == 'juger'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL || '' }}
+        run: |
+          if [ ! -d app/output/videos ]; then
+            echo "::error::app/output/videos absent."
+            echo "Dépose tes vidéos, commite-les, puis relance cette étape."
+            exit 1
+          fi
+          python -m app.main juger
+
       - name: Le verdict sur les vidéos, sans rien réanalyser
         if: inputs.etape == 'controle'
         run: python -m app.main controle || true
@@ -194,6 +215,9 @@ jobs:
             if [ -f app/output/controle_videos.md ]; then
               cat app/output/controle_videos.md
             fi
+            if [ -f app/output/identite.md ]; then
+              cat app/output/identite.md
+            fi
             if [ -f app/output/timeline.json ]; then
               echo "### Timeline"
               echo
@@ -228,7 +252,9 @@ jobs:
           # littéral absent resterait dans la liste et ferait échouer git add.
           candidats=(app/output/project.json app/output/elements.md
                      app/output/timeline.json app/output/sous_titres.srt
-                     app/output/controle_videos.md
+                     app/output/controle_videos.md app/output/identite.md
+                     app/output/memoire/plans.json
+                     app/output/shots/*/verdict.json
                      app/output/shots/*/image_analysis.json
                      app/output/shots/*/image_prompt.txt
                      app/output/shots/*/animation_prompt.txt

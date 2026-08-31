@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import copy
 
-from . import config, prompts, validator
+from . import config, memoire, prompts, validator
 from .models import EXPLICATION_FIELDS, Shot, Storyboard
 from .openai_client import OpenAIError, chat_json
 
@@ -36,7 +36,9 @@ def aligner_plan(sb: Storyboard, shot: Shot,
         {"role": "user", "content": prompts.alignment_user(
             shot.voice, shot.educational_function, shot.visual_concept,
             sb.visual_bible.as_block(), _code_couleur(sb),
-            shot.image_prompt, shot.animation_prompt)},
+            shot.image_prompt, shot.animation_prompt,
+            memoire.bloc(memoire.exemples(shot.voice, shot.educational_function,
+                                          sb.subject)))},
     ]
 
     meilleur, restants = None, ["aucune reponse exploitable"]

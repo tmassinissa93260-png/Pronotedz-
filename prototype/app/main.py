@@ -7,6 +7,8 @@
     python -m app.main affiner --shot 1 --image X   une seule image -> animation
     python -m app.main analyser-videos          les videos rendues -> analyses
     python -m app.main controle                 ce qui a ete produit vs le plan
+    python -m app.main juger                    le juge aveugle : a-t-on compris ?
+    python -m app.main duel --shot N            la deuxieme piste, pour comparer
     python -m app.main timeline                 timeline + sous-titres
     python -m app.main montage                  MP4 final
 """
@@ -22,7 +24,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     __package__ = "app"
 
-from . import aligner, analyzer, config, montage, validator  # noqa: E402
+from . import aligner, analyzer, config, juge, memoire, montage, prompts, validator  # noqa: E402
 from .models import EXPLICATION_FIELDS, Shot, Storyboard, StoryboardError  # noqa: E402
 from .openai_client import OpenAIError, generate_storyboard  # noqa: E402
 
@@ -173,11 +175,21 @@ def ecrire_elements(sb: Storyboard) -> Path:
         "4. Génère chaque **animation** à partir de ton image, avec le prompt animation.",
         f"5. Dépose les vidéos dans `{chemin_lisible(config.VIDEOS_DIR)}` nommées "
         "`shot_01.mp4`, `shot_02.mp4`…",
-        "6. Reviens : `analyser-videos`, puis `timeline`, puis `montage`.",
+        "6. Reviens : `analyser-videos`, puis `juger`, puis `timeline`, puis "
+        "`montage`.",
+        "",
+        "**`juger`** est le contrôle qui ne se ment pas : un modèle qui ne sait rien "
+        "regarde tes vidéos **sans la narration** et dit ce qu'il a compris. On compare "
+        "à ce que chaque plan devait faire comprendre. Les plans compris entrent dans "
+        "la mémoire et serviront aux vidéos suivantes.",
+        "",
+        "Pour que l'objet reste le même d'un plan à l'autre, produis d'abord l'image "
+        "maîtresse et dérive les autres : voir `app/output/identite.md`.",
         "",
     ]
     config.ELEMENTS_FILE.parent.mkdir(parents=True, exist_ok=True)
     config.ELEMENTS_FILE.write_text("\n".join(lignes), encoding="utf-8")
+    ecrire_identite(sb)
 
     for s in sb.shots:
         d = config.shot_dir(s.id)
@@ -262,6 +274,31 @@ def cmd_aligner(args) -> int:
     log("OUTPUT", str(config.PROJECT_FILE))
     log("OUTPUT", str(config.ELEMENTS_FILE))
     return 0
+
+
+def plan_maitre(sb: Storyboard) -> Shot:
+    """Celui qui montre l'objet le plus entier : le plus large gagne.
+
+    Faute de mesure du cadre, on prend le plan dont le prompt parle le moins
+    de gros plan et le plus de vue d'ensemble ; a egalite, le premier.
+    """
+    large = ("wide", "full view", "entire", "whole", "establishing", "overall")
+    serre = ("close-up", "closeup", "macro", "detail", "tight")
+
+    def note(s: Shot) -> tuple[int, int]:
+        bas = s.image_prompt.lower()
+        return (sum(m in bas for m in large) - sum(m in bas for m in serre), -s.id)
+
+    return max(sb.shots, key=note)
+
+
+def ecrire_identite(sb: Storyboard) -> Path:
+    """La fiche qui dit quel plan verrouille l'objet, et comment derive le reste."""
+    chemin = config.OUTPUT_DIR / "identite.md"
+    chemin.parent.mkdir(parents=True, exist_ok=True)
+    chemin.write_text(prompts.fiche_identite(sb, plan_maitre(sb)) + "\n",
+                      encoding="utf-8")
+    return chemin
 
 
 def trouver_images(sb: Storyboard) -> dict[int, Path]:
@@ -519,6 +556,75 @@ def cmd_controle(args) -> int:
     return 1 if refaire else 0
 
 
+def cmd_juger(args) -> int:
+    """Un modele qui ne sait rien regarde les videos et dit ce qu'il comprend."""
+    sb = charger()
+    videos = trouver_videos(sb)
+    if not videos:
+        log("STOP", f"aucune vidéo trouvée dans {config.VIDEOS_DIR}")
+        return 1
+
+    verdicts, echecs = {}, []
+    for s in sb.shots:
+        video = videos.get(s.id)
+        if video is None:
+            log("MANQUE", f"plan {s.id:02d} : aucune vidéo")
+            continue
+        intention = juge.intention_du_plan(s, lire_alignement(s.id))
+        log("JUGE", f"Plan {s.id:02d} — regard sans le son...")
+        try:
+            verdict = juge.juger(s, video, intention, config.shot_dir(s.id))
+        except OpenAIError as exc:
+            log("ERREUR", str(exc).splitlines()[0])
+            echecs.append(s.id)
+            continue
+        (config.shot_dir(s.id) / "verdict.json").write_text(
+            json.dumps(verdict, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        verdicts[s.id] = verdict
+        log("OK", f"plan {s.id:02d} · compris à {verdict['understood']} · "
+                  f"{verdict['etat']}")
+        print(f"  il a vu     : {verdict['vu']['what_i_understand']}")
+        print(f"  il fallait  : {intention}")
+        print(f"  verdict     : {verdict['verdict']}")
+        if verdict["etat"] != "compris":
+            print(f"  à changer   : {verdict['fix']}")
+
+    if verdicts:
+        souvenirs = memoire.moisson(sb.subject, sb.shots,
+                                    {i: lire_alignement(i) or {} for i in verdicts},
+                                    verdicts)
+        chemin = memoire.retenir(souvenirs)
+        gardes = [s for s in souvenirs if s.understood >= memoire.NOTE_RETENUE]
+        log("MÉMOIRE", f"{len(gardes)} plan(s) compris retenus → {chemin}")
+    return 6 if echecs else 0
+
+
+def cmd_duel(args) -> int:
+    """La deuxième piste de l'agent, écrite noir sur blanc, pour comparer."""
+    sb = charger()
+    shot = sb.shot(args.shot)
+    alignement = lire_alignement(shot.id)
+    if not alignement:
+        log("STOP", f"plan {shot.id:02d} : aucun alignement, lance `aligner`")
+        return 1
+
+    pistes = alignement.get("candidates") or []
+    retenue = alignement.get("chosen", "")
+    autres = [c for c in pistes if c.get("action") != retenue]
+    if not autres:
+        log("STOP", "aucune piste écartée à opposer")
+        return 1
+
+    print(f"\n  RETENUE  : {retenue}")
+    print(f"  POURQUOI : {alignement.get('why_chosen', '')}\n")
+    for i, piste in enumerate(autres, start=1):
+        print(f"  PISTE {i}  : {piste['action']}")
+        print(f"    explique : {piste['explains']}")
+        print(f"    rate     : {piste['misses']}\n")
+    log("À TOI", "produis l'image des deux, et laisse `juger` trancher")
+    return 0
+
+
 def cmd_timeline(args) -> int:
     sb = charger()
     videos = trouver_videos(sb)
@@ -646,6 +752,12 @@ def build_parser() -> argparse.ArgumentParser:
                    ).set_defaults(func=cmd_analyser_videos)
     sub.add_parser("controle", help="les vidéos rendues face au plan : quoi refaire"
                    ).set_defaults(func=cmd_controle)
+    sub.add_parser("juger", help="le juge aveugle : a-t-on compris sans le son ?"
+                   ).set_defaults(func=cmd_juger)
+
+    p_duel = sub.add_parser("duel", help="la deuxième piste de l'agent, pour comparer")
+    p_duel.add_argument("--shot", type=int, required=True)
+    p_duel.set_defaults(func=cmd_duel)
     sub.add_parser("timeline", help="timeline + sous-titres").set_defaults(func=cmd_timeline)
 
     p_mon = sub.add_parser("montage", help="assembler le MP4 final")

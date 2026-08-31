@@ -302,4 +302,8 @@ The lights and alarm indicators activate progressively in sequence, building upo
 3. Lance `affiner-tout` : chaque prompt d'animation est réécrit sur ton image réelle, et non plus sur une image imaginée. **Les prompts ci-dessus sont alors remplacés** — reviens les lire ici.
 4. Génère chaque **animation** à partir de ton image, avec le prompt animation.
 5. Dépose les vidéos dans `app/output/videos` nommées `shot_01.mp4`, `shot_02.mp4`…
-6. Reviens : `analyser-videos`, puis `timeline`, puis `montage`.
+6. Reviens : `analyser-videos`, puis `juger`, puis `timeline`, puis `montage`.
+
+**`juger`** est le contrôle qui ne se ment pas : un modèle qui ne sait rien regarde tes vidéos **sans la narration** et dit ce qu'il a compris. On compare à ce que chaque plan devait faire comprendre. Les plans compris entrent dans la mémoire et serviront aux vidéos suivantes.
+
+Pour que l'objet reste le même d'un plan à l'autre, produis d'abord l'image maîtresse et dérive les autres : voir `app/output/identite.md`.
