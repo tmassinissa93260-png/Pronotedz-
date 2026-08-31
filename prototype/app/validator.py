@@ -327,11 +327,22 @@ def own_part(image_prompt: str) -> str:
     return image_prompt if debut < 0 else image_prompt[:debut]
 
 
+def familles_absentes(image_prompt: str) -> list[str]:
+    """Ce dont le prompt photo ne dit rien : cadrage, camera, position...
+
+    L'agent d'alignement s'en sert aussi : en reecrivant un prompt autour de
+    l'action choisie, il ne doit pas laisser tomber ce que le storyboard
+    exigeait deja.
+    """
+    bas = own_part(image_prompt).lower()
+    return [nom for nom, mots in SPECIFICITY_FAMILIES.items()
+            if not any(m in bas for m in mots)]
+
+
 def _precision(sb: Storyboard) -> list[Problem]:
     out = []
     for s in sb.shots:
         propre = own_part(s.image_prompt)
-        bas = propre.lower()
         if len(propre.strip()) < MIN_IMAGE_PROMPT_CHARS:
             out.append(Problem("PRECISION", s.slug,
                                f"prompt photo trop general ({len(propre.strip())} caracteres "
@@ -340,8 +351,7 @@ def _precision(sb: Storyboard) -> list[Problem]:
                                f"pedagogical elements and their colour, where each sits, the "
                                f"framing, the camera angle, the depth, the lighting, the "
                                f"materials, what to preserve and what is forbidden."))
-        absentes = [nom for nom, mots in SPECIFICITY_FAMILIES.items()
-                    if not any(m in bas for m in mots)]
+        absentes = familles_absentes(s.image_prompt)
         if absentes:
             out.append(Problem("PRECISION", s.slug,
                                f"le prompt photo ne dit rien sur : {', '.join(absentes)}",

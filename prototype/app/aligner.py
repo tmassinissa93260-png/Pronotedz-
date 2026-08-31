@@ -132,6 +132,12 @@ def _verifier(plan: dict) -> list[str]:
     if len(anim) < validator.MIN_ANIMATION_PROMPT_CHARS:
         out.append(f"the animation prompt is too short ({len(anim)} characters).")
 
+    absentes = validator.familles_absentes(plan["image_prompt"])
+    if absentes:
+        out.append(f"the image prompt says nothing about: {', '.join(absentes)}. "
+                   f"Rewriting around the chosen action must not drop what the "
+                   f"storyboard already required — state them explicitly.")
+
     mots = validator.mots_du_concept(plan["chosen"])
     presents = [m for m in mots if validator.mot_present(m, image.lower())]
     if mots and len(presents) < len(mots) * PART_ACTION_EXIGEE:

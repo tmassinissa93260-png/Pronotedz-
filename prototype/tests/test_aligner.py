@@ -14,7 +14,8 @@ from app.prompts import STYLE_DIRECTIVE  # noqa: E402
 from fixtures import board  # noqa: E402
 
 IMAGE = (
-    "Close on the copper busbars where the yellow energy stream reaches the stator "
+    "Close-up shot on the copper busbars where the yellow energy stream reaches the "
+    "stator "
     "windings, the pack behind them at the left of the frame, the motor housing "
     "opening at the right. Camera at eye level with the busbars, 50mm feel, the "
     "windings sharp and the pack falling off. Cool key light from the upper left, "
@@ -106,6 +107,15 @@ class TestControles(unittest.TestCase):
     def test_un_prompt_photo_trop_court(self):
         problemes = self.verifier(image_prompt=f"A close-up. {STYLE_DIRECTIVE}")
         self.assertTrue(any("too short" in p for p in problemes))
+
+    def test_l_agent_ne_doit_pas_laisser_tomber_la_precision(self):
+        """Run 36 : les prompts realignes avaient perdu materiaux et cadrage."""
+        sans_camera = IMAGE.replace(
+            "Camera at eye level with the busbars, 50mm feel, the "
+            "windings sharp and the pack falling off. ", "")
+        problemes = self.verifier(image_prompt=sans_camera)
+        self.assertTrue(any("says nothing about" in p and "camera" in p
+                            for p in problemes))
 
     def test_l_action_choisie_doit_etre_dans_l_image(self):
         problemes = self.verifier(
