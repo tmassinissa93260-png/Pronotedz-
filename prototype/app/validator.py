@@ -399,7 +399,7 @@ def _non_montres(voix: str, image: str) -> list[str]:
     """
     v, i = voix.lower(), image.lower()
     return [fr for fr, en in SEMANTIQUE.items()
-            if fr in v and not any(_mot_present(a, i) for a in en)]
+            if fr in v and not any(mot_present(a, i) for a in en)]
 
 
 def _forme(mot: str) -> str:
@@ -416,7 +416,7 @@ def _forme(mot: str) -> str:
     return rf"\b{re.escape(radical)}(e?s|es|ing|ed|e)?\b"
 
 
-def _mot_present(mot: str, texte: str) -> bool:
+def mot_present(mot: str, texte: str) -> bool:
     """Mot entier, flexions tolerees. « engine » ne matche pas
     « engineering », mais « winding » matche « windings » et « brake »
     matche « braking »."""
@@ -638,7 +638,7 @@ def _ancrage(sb: Storyboard) -> list[Problem]:
                                f"pack, the high-voltage cable, the stator windings. The whole "
                                f"vehicle is not an object: a shot with nothing more precise to "
                                f"show carries no information."))
-        elif not any(_mot_present(m, image) for groupe in ancres for m in groupe):
+        elif not any(mot_present(m, image) for groupe in ancres for m in groupe):
             out.append(Problem("ANCRAGE", s.slug,
                                f"l'objet principal « {principal.strip()} » "
                                f"n'est pas dans le prompt photo",
@@ -648,11 +648,11 @@ def _ancrage(sb: Storyboard) -> list[Problem]:
 
         # 2. Ce que l'animation fait bouger doit deja etre DANS LE CADRE.
         for famille in FAMILLES:
-            nommes = [o for o in famille if _mot_present(o, anim)]
+            nommes = [o for o in famille if mot_present(o, anim)]
             if not nommes or any(_dans_le_cadre(o, image) for o in famille):
                 continue
             objet = nommes[0]
-            if any(_mot_present(o, image) for o in famille):
+            if any(mot_present(o, image) for o in famille):
                 out.append(Problem("ANCRAGE", s.slug,
                                    f"« {objet} » n'est nomme que comme destination "
                                    f"dans le prompt photo : il n'est jamais dans le cadre",
@@ -946,7 +946,7 @@ def controler_videos(sb: Storyboard, analyses: dict) -> list[Problem]:
         vu = " ".join([analyse.content, analyse.movement,
                        " ".join(analyse.pedagogical_elements)]).lower()
         attendus = mots_du_concept(s.visual_concept)
-        absents = [m for m in attendus if not _mot_present(m, vu)]
+        absents = [m for m in attendus if not mot_present(m, vu)]
         if attendus and len(absents) > len(attendus) / 2:
             out.append(Problem("ELEMENT", s.slug,
                                f"l'élément pédagogique n'est pas lisible à l'écran "

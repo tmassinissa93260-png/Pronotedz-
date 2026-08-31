@@ -2,6 +2,7 @@
 
     python main.py                              le storyboard complet
     python -m app.main elements                 tout exporter pour produire
+    python -m app.main aligner                  l'image doit EXPLIQUER la phrase
     python -m app.main affiner-tout             les images deposees -> animations
     python -m app.main affiner --shot 1 --image X   une seule image -> animation
     python -m app.main analyser-videos          les videos rendues -> analyses
@@ -21,7 +22,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
     __package__ = "app"
 
-from . import analyzer, config, montage, validator  # noqa: E402
+from . import aligner, analyzer, config, montage, validator  # noqa: E402
 from .models import EXPLICATION_FIELDS, Shot, Storyboard, StoryboardError  # noqa: E402
 from .openai_client import OpenAIError, generate_storyboard  # noqa: E402
 
@@ -134,6 +135,21 @@ def ecrire_elements(sb: Storyboard) -> Path:
             "### Le raisonnement, avant le prompt",
             "",
         ]
+        alignement = lire_alignement(s.id)
+        if alignement:
+            lignes = lignes[:-2] + [
+                "### Ce que le spectateur doit comprendre",
+                "",
+                alignement["understanding"],
+                "",
+                f"**L'action qui l'explique** : {alignement['chosen']}",
+                "",
+                f"*Comprise sans le son : {alignement['mute_test']}* — "
+                f"{alignement['why_chosen']}",
+                "",
+                "### Le raisonnement, avant le prompt",
+                "",
+            ]
         lignes += [f"{n}. **{champ.replace('_', ' ')}** : "
                    f"{s.visual_explanation.get(champ, '')}"
                    for n, champ in enumerate(EXPLICATION_FIELDS, start=1)]
@@ -175,6 +191,64 @@ def ecrire_elements(sb: Storyboard) -> Path:
 # ---------------------------------------------------------------------------
 # Videos deposees par l'utilisateur
 # ---------------------------------------------------------------------------
+
+
+def realigner(sb: Storyboard) -> list[tuple[int, list[str]]]:
+    """Plan par plan : l'image explique-t-elle la phrase, sans le son ?
+
+    Le storyboard ecrit six plans d'un coup ; l'agent en reprend UN a la fois,
+    ce qui est la seule facon de lui donner toute son attention.
+    """
+    restants = []
+    for s in sb.shots:
+        log("AGENT", f"Plan {s.id:02d} — l'image explique-t-elle la phrase ?")
+
+        def a_chaque_tentative(numero: int, problemes: list, plan=s) -> None:
+            if problemes:
+                log("CORRECTION", f"plan {plan.id:02d}, tentative {numero} : "
+                                  f"{len(problemes)} point(s)")
+                for probleme in problemes:
+                    print(f"  ! {probleme}", flush=True)
+
+        plan, manques = aligner.aligner_plan(sb, s, on_attempt=a_chaque_tentative)
+        dossier = config.shot_dir(s.id)
+        dossier.mkdir(parents=True, exist_ok=True)
+        (dossier / "alignment.json").write_text(
+            json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+        s.image_prompt = plan["image_prompt"]
+        s.animation_prompt = plan["animation_prompt"]
+        log("OK", f"plan {s.id:02d} · test sans le son : {plan['mute_test']}")
+        print(f"  comprendre : {plan['understanding']}")
+        print(f"  action     : {plan['chosen']}")
+        if manques:
+            restants.append((s.id, manques))
+    return restants
+
+
+def lire_alignement(shot_id: int) -> dict | None:
+    fichier = config.shot_dir(shot_id) / "alignment.json"
+    if not fichier.is_file():
+        return None
+    try:
+        return json.loads(fichier.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return None
+
+
+def cmd_aligner(args) -> int:
+    sb = charger()
+    restants = realigner(sb)
+    sb.save(config.PROJECT_FILE)
+    ecrire_elements(sb)
+    if restants:
+        log("ATTENTION", f"{len(restants)} plan(s) imparfaits :")
+        for shot_id, manques in restants:
+            for manque in manques:
+                print(f"  ! plan {shot_id:02d} : {manque}")
+    log("OUTPUT", str(config.PROJECT_FILE))
+    log("OUTPUT", str(config.ELEMENTS_FILE))
+    return 0
 
 
 def trouver_images(sb: Storyboard) -> dict[int, Path]:
@@ -233,6 +307,11 @@ def charger_analyses(sb: Storyboard) -> dict:
 
 def cmd_storyboard(args) -> int:
     sb = construire(args.subject, args.duration, args.shots)
+    if not args.sans_alignement:
+        print()
+        log("AGENT", "L'image doit EXPLIQUER la phrase, pas l'illustrer.")
+        realigner(sb)
+        sb.save(config.PROJECT_FILE)
     chemin = ecrire_elements(sb)
     print()
     print("VISUAL BIBLE")
@@ -532,10 +611,14 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--shots", type=int, default=config.SHOT_COUNT)
         return p
 
-    commun(sub.add_parser("storyboard", help="script, bible, plans, prompts")
-           ).set_defaults(func=cmd_storyboard)
+    p_sb = commun(sub.add_parser("storyboard", help="script, bible, plans, prompts"))
+    p_sb.add_argument("--sans-alignement", dest="sans_alignement", action="store_true",
+                      help="ne pas repasser chaque plan à l'agent d'alignement")
+    p_sb.set_defaults(func=cmd_storyboard)
     sub.add_parser("elements", help="tout réexporter pour produire"
                    ).set_defaults(func=cmd_elements)
+    sub.add_parser("aligner", help="l'image doit EXPLIQUER la phrase, sans le son"
+                   ).set_defaults(func=cmd_aligner)
 
     sub.add_parser("affiner-tout",
                    help="toutes les images déposées -> prompts d'animation réécrits"

@@ -271,15 +271,15 @@ class TestFlexions(unittest.TestCase):
     """« braking » est bien « brake »."""
 
     def test_le_gerondif_compte(self):
-        from app.validator import _mot_present
-        self.assertTrue(_mot_present("brake", "emphasize braking mechanics"))
-        self.assertTrue(_mot_present("winding", "the stator windings"))
-        self.assertTrue(_mot_present("rotate", "the rotor is rotating"))
+        from app.validator import mot_present
+        self.assertTrue(mot_present("brake", "emphasize braking mechanics"))
+        self.assertTrue(mot_present("winding", "the stator windings"))
+        self.assertTrue(mot_present("rotate", "the rotor is rotating"))
 
     def test_mais_engine_ne_se_cache_toujours_pas_dans_engineering(self):
-        from app.validator import _mot_present
-        self.assertFalse(_mot_present("engine", "3D engineering visualization"))
-        self.assertFalse(_mot_present("cell", "cellular structure"))
+        from app.validator import mot_present
+        self.assertFalse(mot_present("engine", "3D engineering visualization"))
+        self.assertFalse(mot_present("cell", "cellular structure"))
 
 
 class TestPhysique(unittest.TestCase):

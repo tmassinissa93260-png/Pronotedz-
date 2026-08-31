@@ -40,6 +40,10 @@ TEST_MODE = True
 # Combien de fois, au plus, on renvoie ses erreurs a OpenAI pour correction.
 MAX_REPAIR_ATTEMPTS = int(env("MAX_REPAIR_ATTEMPTS", "4"))
 
+# L'agent d'alignement travaille UN plan a la fois : deux passes suffisent,
+# et au-dela le cout se multiplie par le nombre de plans.
+MAX_ALIGN_ATTEMPTS = int(env("MAX_ALIGN_ATTEMPTS", "2"))
+
 # Sans limite explicite, gpt-4o s'arrete a 4096 jetons de sortie, et le modele
 # tient le contrat en RENDANT MOINS DE PLANS — un seul au run 23, deux au 21.
 MAX_OUTPUT_TOKENS = int(env("MAX_OUTPUT_TOKENS", "16000"))

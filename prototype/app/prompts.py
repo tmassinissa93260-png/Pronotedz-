@@ -516,6 +516,102 @@ Return only this JSON:
 }}"""
 
 
+# ---------------------------------------------------------------------------
+# ALIGNEMENT VOIX <-> IMAGE
+#
+# Un plan par appel, et une seule question : SANS LE SON, le spectateur
+# comprend-il la phrase ? C'est le « mute test » du metier, et c'est la
+# contiguite temporelle de Mayer — l'image doit porter ce que la voix dit,
+# au moment ou elle le dit, sinon les deux se genent au lieu de s'aider.
+# ---------------------------------------------------------------------------
+
+ALIGNMENT_SYSTEM = """\
+You are a storyboard artist for educational video, and you have one obsession:
+with the sound OFF, does the viewer understand the sentence being narrated?
+
+A frame that merely accompanies the sentence has failed. The frame must CARRY
+it: something happens on screen that makes the idea readable on its own. You
+would rather have a plain frame that explains than a beautiful one that
+decorates.
+
+You answer with a single valid JSON object and nothing else: no markdown, no
+code fence, no commentary."""
+
+
+def alignment_user(voice: str, educational_function: str, visual_concept: str,
+                   bible_block: str, color_block_sujet: str,
+                   image_prompt: str, animation_prompt: str) -> str:
+    return f"""\
+ONE shot. Make the image EXPLAIN the sentence, not illustrate it.
+
+THE SENTENCE THE VOICE SAYS (French): "{voice}"
+WHAT THIS SHOT MUST TEACH: {educational_function}
+THE PEDAGOGICAL ELEMENT IT INTRODUCES: {visual_concept}
+
+THE COLOUR CODE, unchanged:
+{color_block_sujet}
+
+THE VISUAL BIBLE, unchanged — same object, same materials, same colours:
+{bible_block}
+
+THE IMAGE PROMPT AS IT STANDS:
+{image_prompt}
+
+THE ANIMATION PROMPT AS IT STANDS:
+{animation_prompt}
+
+Work in this order. Do not skip a step.
+
+1. UNDERSTANDING. In French, in one sentence: the single thing the viewer must
+   UNDERSTAND from this sentence. Not what they must see — what they must
+   understand. "une batterie" is a subject; "que l'energie part de la batterie
+   et arrive a la roue" is an understanding.
+
+2. THREE CANDIDATE ACTIONS. Invent three DIFFERENT things that could happen on
+   screen to make that understood. An action, never a subject: something
+   arrives, travels, is blocked, lights up, deforms, is cut, reacts. For each,
+   say what it makes understood, and what it fails to say.
+
+3. THE CHOICE. Keep the one a viewer reads FASTEST with the sound off, and say
+   why the two others lose. Prefer the action that shows a cause producing an
+   effect over the one that only shows a state.
+
+4. THE MUTE TEST. Score from 0 to 1: someone who cannot hear the narration and
+   does not know the subject looks at this shot — how much of the sentence do
+   they get? Be severe. Below 0.75 you have not done step 3 properly, go back.
+
+5. THE PROMPTS. Rewrite the image prompt so the chosen action IS the picture:
+   that action at the centre of the frame, the camera placed exactly where it
+   reads best, everything else subordinate to it. Make the essential element
+   stand out — light, contrast, sharpness, position — so the eye goes to it
+   first, and nothing competes with it. Keep the visual bible and the colour
+   code identical: the same physical object as every other shot, never
+   redesigned. Then rewrite the animation prompt so it animates THAT action,
+   and says how it progresses in time — where it starts, how it builds, where
+   it arrives.
+
+Write both prompts as continuous descriptive English prose, never as a list of
+labels. End the image prompt with this sentence, copied VERBATIM:
+{STYLE_DIRECTIVE}
+
+Return only this JSON:
+{{
+  "understanding": "in French, the one thing the viewer must understand",
+  "candidates": [
+    {{"action": "in English, what happens on screen",
+      "explains": "what it makes understood",
+      "misses": "what it fails to say"}},
+    {{"action": "...", "explains": "...", "misses": "..."}},
+    {{"action": "...", "explains": "...", "misses": "..."}}
+  ],
+  "chosen": "in English, one sentence: the action the shot shows",
+  "why_chosen": "why it beats the other two, with the sound off",
+  "mute_test": 0.0,
+  "image_prompt": "in English, very detailed, ending with the art direction",
+  "animation_prompt": "in English, that same action, moving, progressing in time"
+}}"""
+
+
 ANIMATION_SYSTEM = """\
 You are an image-to-video director for technical and educational animation.
 You obey physics before spectacle: a battery does not deform, cells do not

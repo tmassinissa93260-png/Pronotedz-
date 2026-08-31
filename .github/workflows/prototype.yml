@@ -9,10 +9,14 @@
 #  te rend la main. Tu produis avec l'outil de ton choix, tu déposes les
 #  vidéos, et il analyse, cale la timeline, écrit les sous-titres et monte.
 #
-#  Cinq étapes :
+#  Six étapes :
 #
 #    « storyboard »      → script, visual bible, plans, prompts image ET
-#                          animation, contrôle qualité. Rien d'autre.
+#                          animation, contrôle qualité, puis l'agent
+#                          d'alignement repasse chaque plan un par un.
+#    « aligner »         → repasser l'agent seul : pour chaque phrase, trois
+#                          actions possibles, la meilleure gagne, les deux
+#                          prompts sont réécrits autour d'elle.
 #    « affiner-tout »    → tes IMAGES → chaque prompt d'animation réécrit sur
 #                          l'image réelle, et non plus sur une image imaginée.
 #    « analyser-videos » → les vidéos que TU as déposées → ce qu'elles
@@ -37,6 +41,7 @@ on:
         type: choice
         options:
           - storyboard
+          - aligner
           - affiner-tout
           - analyser-videos
           - controle
@@ -127,6 +132,14 @@ jobs:
             --subject "${{ inputs.sujet }}" \
             --duration "${{ inputs.duree }}" \
             --shots "${{ inputs.plans }}"
+
+      - name: L'agent d'alignement, plan par plan
+        if: inputs.etape == 'aligner'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          STYLE_DIRECTIVE: ${{ inputs.style }}
+        run: python -m app.main aligner
 
       - name: Réécrire les animations sur les images réelles
         if: inputs.etape == 'affiner-tout'
@@ -221,6 +234,7 @@ jobs:
                      app/output/shots/*/animation_prompt.txt
                      app/output/shots/*/voice.txt
                      app/output/shots/*/animation.json
+                     app/output/shots/*/alignment.json
                      app/output/shots/*/video_analysis.json)
           fichiers=()
           for f in "${candidats[@]}"; do
