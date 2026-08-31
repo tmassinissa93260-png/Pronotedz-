@@ -1,0 +1,25 @@
+{
+  "understanding": "Le dispositif utilise un signal infrarouge pour créer un champ de détection autour de lui.",
+  "candidates": [
+    {
+      "action": "Red streams emanate from the sensor and create a visible dome-shaped field in front of it.",
+      "explains": "Demonstrates how the infrared signal extends outward to cover an area.",
+      "misses": "Doesn't show that the field adjusts or responds to movement."
+    },
+    {
+      "action": "Multiple red streams pulse outward from the sensor in waves, reaching a distant imaginary boundary.",
+      "explains": "Shows the infrared signal traveling outward and delineating the coverage area.",
+      "misses": "Does not visually connect the coverage field to detection capability."
+    },
+    {
+      "action": "Red streams hit an imaginary object or surface and bounce back to the sensor.",
+      "explains": "Indicates that the infrared signal is used to detect objects in its range.",
+      "misses": "Fails to depict the creation of a continuous detection field."
+    }
+  ],
+  "chosen": "Red streams emanate from the sensor and create a visible dome-shaped field in front of it.",
+  "why_chosen": "This action clearly visualizes the formation of a detection field around the sensor, making it evident that the infrared signal spreads to cover an area without relying on dynamic changes that may distract or complicate understanding.",
+  "mute_test": 0.85,
+  "image_prompt": "In a wide semi-cutaway view, the modern dark near-black wall-mounted motion sensor emits multiple red infrared streams that flow outward, creating a distinct dome-shaped coverage field in front of it. The camera positions slightly above and in front of the sensor, focusing on how the red streams extend across the environment, depicting the field's boundaries. Luxurious studio lighting highlights the advanced technological design of the sensor, making the streams the focal point of the scene. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins with the sensor quietly pulsing as it activates, with red infrared streams steadily emanating from it to form a dome-shaped field. The streams flow outward in a continuous motion, clearly marking the extent of the sensor's detection area, before fading at the boundaries. This flow emphasizes the creation and maintenance of the infrared field in real-time."
+}

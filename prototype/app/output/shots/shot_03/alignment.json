@@ -1,0 +1,25 @@
+{
+  "understanding": "Lorsqu'une personne traverse, un mouvement perturbe le signal et déclenche un courant électrique.",
+  "candidates": [
+    {
+      "action": "A figure moves through red infrared streams, causing them to flicker and become disrupted while blue current flows activate inside the sensor.",
+      "explains": "The movement of a person disrupts the infrared signal and activates an electrical current.",
+      "misses": "Does not clearly show the disruption and reforming of the signal."
+    },
+    {
+      "action": "The red infrared signal bends and darkens when a figure steps into the field, and an adjacent blue electric flow starts illuminating.",
+      "explains": "The bending and darkening illustrate how the signal is disrupted by the figure.",
+      "misses": "Fails to show the reforming of the signal after disruption."
+    },
+    {
+      "action": "A shadow crosses the red streams, causing intermittent blue flashes inside the sensor.",
+      "explains": "The shadow indicates disruption and the activation of the electrical current.",
+      "misses": "Less clear on the continuous nature of electric activation after disruption."
+    }
+  ],
+  "chosen": "A figure moves through red infrared streams, causing them to flicker and become disrupted while blue current flows activate inside the sensor.",
+  "why_chosen": "It effectively shows cause (movement) and effect (disruption and activation) clearly with the sound off by creating visible changes in the signal and electrical flow.",
+  "mute_test": 0.8,
+  "image_prompt": "A captivating scene where a human figure moves through vibrant red infrared streams, breaking and flickering them within the frame. As these disruptions occur, vivid blue currents become animated inside the adjacent motion sensor, providing a clear contrast and indication of activation. The shot is captured from a side angle at eye level, emphasizing the real-time interaction of movement and sensor reaction, set against a dark, minimalistic interior with high-tech materials. The cinematic lighting focuses the viewer's attention on the dynamic interaction of the infrared and electric components, ensuring the figure's effect on the streams is unmistakably prominent. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins with a still scene of gently flowing red infrared streams as the figure gradually enters the frame, causing the red streams to start flickering and breaking upon contact. This disruption builds as the figure progresses through the signal field, with the flickering intensifying. Simultaneously, a blue current flow begins to light up inside the sensor, becoming more prominent and steady, illuminating the internal components until the figure fully passes through the scene, allowing the disrupted streams to reform and stabilize."
+}

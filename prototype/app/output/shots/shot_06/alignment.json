@@ -1,0 +1,25 @@
+{
+  "understanding": "La technologie suit automatiquement le mouvement avec une synchronisation efficace.",
+  "candidates": [
+    {
+      "action": "Red infrared signals disperse uniformly from the motion sensor, while blue lights illuminate synchronously in a moving sequence on the sensor.",
+      "explains": "The automatic tracking and synchronization of the technology.",
+      "misses": "The sense of precision and real-time accuracy."
+    },
+    {
+      "action": "A red infrared beam scans across a moving object, with immediate activation of blue lights as the object moves in the frame.",
+      "explains": "The real-time tracking and accuracy of the system.",
+      "misses": "The overall synchronization of the entire system functioning together."
+    },
+    {
+      "action": "Combined red and blue streams flow from the sensor onto moving objects, exactly matching their path and showing activated components light up in sync.",
+      "explains": "The synchronized precision of the system following each movement.",
+      "misses": "The inner workings or components of the sensor itself."
+    }
+  ],
+  "chosen": "Red infrared signals disperse uniformly from the motion sensor, while blue lights illuminate synchronously in a moving sequence on the sensor.",
+  "why_chosen": "This action clearly shows both automatic tracking and synchronized system functioning, making it the easiest to understand the concept of efficient technology without audio.",
+  "mute_test": 0.8,
+  "image_prompt": "The image captures the motion sensor at its center, with red infrared signals dispersing evenly across the environment from the sensor, while bright blue current flows illuminate sequentially along the sensor’s body. This precise configuration visually explains the synchronized efficiency of the technology in tracking movements. The dark premium environment makes the luminous colors of the signals the primary focus, with high contrast ensuring immediate visual interpretation. The cinematic blue and white lighting enhances the technological vibe, while the translucence of the casing allows clear visibility of the internal components. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins with the motion sensor positioned prominently, as dynamic red infrared signals pulse from its surface, spreading smoothly and uniformly over the surrounding area. Simultaneously, blue currents within the sensor activate and glow in a clear sequence, establishing a synchronized rhythm that coordinates perfectly with the infrared dispersion. This dance of red and blue effortlessly illustrates the technology's automatic and precise tracking capability across the frame."
+}

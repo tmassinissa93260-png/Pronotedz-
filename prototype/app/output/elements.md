@@ -52,6 +52,14 @@ Une notion, une couleur, la même du début à la fin.
 
 **Intention de mouvement** : `energy_flow`
 
+### Ce que le spectateur doit comprendre
+
+Les capteurs de mouvement utilisent un champ infrarouge pour capturer chaque mouvement précisément.
+
+**L'action qui l'explique** : The red infrared signal continuously emanates from the sensor, highlighting the presence of multiple moving objects it detects.
+
+*Comprise sans le son : 0.85* — This action clearly shows the motion sensor's function of emitting an infrared field to detect movements, providing a visual of detection in action with multiple objects as evidence.
+
 ### Le raisonnement, avant le prompt
 
 1. **information** : Introduce the infrared detection capability of the sensor.
@@ -65,13 +73,13 @@ Une notion, une couleur, la même du début à la fin.
 ### Prompt image
 
 ```
-A technical semi-cutaway view of a modern dark near-black wall-mounted motion sensor. The camera is positioned to directly face the sensor, showcasing a prominent red infrared beam illustrating its detection capability expanding into the surrounding dark premium interior environment. The infrared beam is a bright red luminous stream moving within the sensor's field. Cinematic blue and white lighting highlights the sensor's structure. Materials are hyper-realistic to emphasize the sensor's premium design, and the infrared beam cuts through the dark, indicating its detection role. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+In a dark, premium interior environment, the camera faces a modern dark near-black wall-mounted motion sensor at eye level. A continuous red infrared beam emanates prominently from the sensor, sweeping across the field and creating a red illuminated zone around detected objects. Multiple moving objects within its range are highlighted by this red zone, making the sensor's detection capability evident. Cinematic blue and white lighting accentuates the high-tech design of the sensor with high contrast, drawing attention to the infrared signal's activity. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The red infrared beam extends outward continuously from the sensor, while the sensor remains stable. As the beam scans, it travels across the field creating a red illuminated zone. The camera stays still, capturing the beam's path and its interaction with the surrounding environment.
+The red infrared beam begins as a focused stream emerging from the sensor and gradually expands outward. As it builds, it forms an arc that continuously sweeps through the room, illuminating moving objects it encounters with a red glow. The movement progresses over time, maintaining a steady rhythm, highlighting the dynamic interaction between the sensor and its environment until the entire field is covered.
 ```
 
 ---
@@ -86,6 +94,14 @@ The red infrared beam extends outward continuously from the sensor, while the se
 
 **Intention de mouvement** : `energy_flow`
 
+### Ce que le spectateur doit comprendre
+
+Le dispositif utilise un signal infrarouge pour créer un champ de détection autour de lui.
+
+**L'action qui l'explique** : Red streams emanate from the sensor and create a visible dome-shaped field in front of it.
+
+*Comprise sans le son : 0.85* — This action clearly visualizes the formation of a detection field around the sensor, making it evident that the infrared signal spreads to cover an area without relying on dynamic changes that may distract or complicate understanding.
+
 ### Le raisonnement, avant le prompt
 
 1. **information** : Illustrate the detection field of the sensor using streams.
@@ -99,13 +115,13 @@ The red infrared beam extends outward continuously from the sensor, while the se
 ### Prompt image
 
 ```
-A wide semi-cutaway view showing the motion sensor's coverage area with the modern dark near-black wall-mounted motion sensor, using consistent high-tech materials. Multiple red infrared streams emanate from the sensor, creating a visible coverage field around it, flowing outward from the sensor towards the environment. The camera is positioned slightly above to capture how this field spreads across the environment. The luxurious studio lighting emphasizes the technological sophistication. Materials of the sensor are clear and detailed, showcasing the premium quality. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+In a wide semi-cutaway view, the modern dark near-black wall-mounted motion sensor emits multiple red infrared streams that flow outward, creating a distinct dome-shaped coverage field in front of it. The camera positions slightly above and in front of the sensor, focusing on how the red streams extend across the environment, depicting the field's boundaries. Luxurious studio lighting highlights the advanced technological design of the sensor, making the streams the focal point of the scene. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The infrared streams pulse outward from the sensor, expanding and contracting rhythmically to simulate an active scan. As the streams travel from the sensor, they cover the space ahead, gradually reaching the far edges of the coverage area. The camera movement is minimal, keeping the streams in focus.
+The animation begins with the sensor quietly pulsing as it activates, with red infrared streams steadily emanating from it to form a dome-shaped field. The streams flow outward in a continuous motion, clearly marking the extent of the sensor's detection area, before fading at the boundaries. This flow emphasizes the creation and maintenance of the infrared field in real-time.
 ```
 
 ---
@@ -120,6 +136,14 @@ The infrared streams pulse outward from the sensor, expanding and contracting rh
 
 **Intention de mouvement** : `cause_effect`
 
+### Ce que le spectateur doit comprendre
+
+Lorsqu'une personne traverse, un mouvement perturbe le signal et déclenche un courant électrique.
+
+**L'action qui l'explique** : A figure moves through red infrared streams, causing them to flicker and become disrupted while blue current flows activate inside the sensor.
+
+*Comprise sans le son : 0.8* — It effectively shows cause (movement) and effect (disruption and activation) clearly with the sound off by creating visible changes in the signal and electrical flow.
+
 ### Le raisonnement, avant le prompt
 
 1. **information** : Explain how the sensor detects movement by signal disruption.
@@ -133,13 +157,13 @@ The infrared streams pulse outward from the sensor, expanding and contracting rh
 ### Prompt image
 
 ```
-An important segment revealing an intruding figure partially breaking the red infrared streams cast by the motion sensor, creating areas of disruption with changing shades of red near the figure. The camera cadrage is a side angle view to capture both the figure and sensor in the frame, positioned at eye level to show real-time interaction in the dark premium interior environment with consistent high-tech materials. Cinematic lighting highlights the movement effect on the streams. Materials ensure that the sensor retains its premium design look with airy high-tech vibes. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A captivating scene where a human figure moves through vibrant red infrared streams, breaking and flickering them within the frame. As these disruptions occur, vivid blue currents become animated inside the adjacent motion sensor, providing a clear contrast and indication of activation. The shot is captured from a side angle at eye level, emphasizing the real-time interaction of movement and sensor reaction, set against a dark, minimalistic interior with high-tech materials. The cinematic lighting focuses the viewer's attention on the dynamic interaction of the infrared and electric components, ensuring the figure's effect on the streams is unmistakably prominent. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The silhouette moves steadily through the signal, progressively creating disruptions. As the red streams react visually by darkening upon contact, they then reform after the passage. Simultaneously, the nearby sensors activate a blue electrical flow indicating the detected movement, causing internal components to illuminate gradually.
+The animation begins with a still scene of gently flowing red infrared streams as the figure gradually enters the frame, causing the red streams to start flickering and breaking upon contact. This disruption builds as the figure progresses through the signal field, with the flickering intensifying. Simultaneously, a blue current flow begins to light up inside the sensor, becoming more prominent and steady, illuminating the internal components until the figure fully passes through the scene, allowing the disrupted streams to reform and stabilize.
 ```
 
 ---
@@ -154,6 +178,14 @@ The silhouette moves steadily through the signal, progressively creating disrupt
 
 **Intention de mouvement** : `energy_flow`
 
+### Ce que le spectateur doit comprendre
+
+Que le courant bleu active les composants électroniques internes à partir du capteur.
+
+**L'action qui l'explique** : A blue flow spreads from the sensor wall throughout the internal components, activating them upon contact.
+
+*Comprise sans le son : 0.85* — This action illustrates the transition from the sensor wall to electronic activation clearly and sequentially, making the cause-and-effect relationship visible without sound.
+
 ### Le raisonnement, avant le prompt
 
 1. **information** : Demonstrate how the current activates electronic components.
@@ -167,13 +199,13 @@ The silhouette moves steadily through the signal, progressively creating disrupt
 ### Prompt image
 
 ```
-The camera is positioned at a close-up view of the motion sensor with a cutaway reveal showing its internal electronics. A luminous blue flow emerges from the outer casing, moving from the sensor wall toward these internal components, symbolizing the activation process. This occurs within the dark premium interior setting with high-tech materials used steadily. The lighting shifts to emphasize the electronic details activated by the flow. Materials enhance the readability of the high-tech design. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+From a close-up angle, the motion sensor's casing is partially cut away to reveal its internal electronics. A luminescent blue flow can be seen spreading from the sensor wall toward the internal components, illuminating them upon contact, signifying their activation. The dark premium interior setting underscores the technology's high-end design, using cinematic blue and white lighting to emphasize active electronic details. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-As the blue flow enters the sensor, it spreads across the electronic board methodically. With each component it touches, they illuminate progressively from left to right. This synchronized activation builds importance until all key components are lit. The camera performs a subtle pan emphasizing the activation pathway.
+Gradually, a blue flow begins at the edge of the sensor wall, spreading methodically towards the internal components. As the flow reaches each component, they illuminate in a sequential progression from the outer edge inward, building importance with the complete activation of all components. This visual journey commences at the sensor exterior and concludes with the full illumination of the electronic board, demonstrating the activation process over time.
 ```
 
 ---
@@ -188,6 +220,14 @@ As the blue flow enters the sensor, it spreads across the electronic board metho
 
 **Intention de mouvement** : `energy_transfer`
 
+### Ce que le spectateur doit comprendre
+
+que le capteur déclenche d'autres systèmes tels qu'une alarme ou une lumière.
+
+**L'action qui l'explique** : A blue flow emerges from the motion sensor and travels to nearby LEDs which light up sequentially.
+
+*Comprise sans le son : 0.8* — This action is the clearest cause-and-effect demonstration with minimal distractions, emphasizing that the sensor directly causes an external response.
+
 ### Le raisonnement, avant le prompt
 
 1. **information** : Show how the sensor triggers external actions.
@@ -201,13 +241,13 @@ As the blue flow enters the sensor, it spreads across the electronic board metho
 ### Prompt image
 
 ```
-Wide-angle view showing the modern dark near-black wall-mounted motion sensor on a wall with a clear path of luminous blue flow extending from its internals toward external systems. A series of LEDs light up sequentially to showcase the triggered command. The camera is set to capture both the origin sensor and the distant LEDs from a perspective that emphasizes the entire path of interaction, maintaining a dark premium interior environment with high-tech utilized materials. The premium lighting underlines the deployment of the blue flow with precision and clarity. Materials mirror the high-tech element of the sensor. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+The camera captures a close-up of the wall-mounted motion sensor in a dark, high-tech interior. From its internal components seen through a translucent casing, a vibrant blue current flow is vividly depicted streaming outward towards a series of LEDs mounted further in the frame, creating a path of activation. As the blue flow reaches each LED, they progressively illuminate, providing a clear narrative of the sensor's trigger action. Overall, the environment is bathed in cinematic blue and white lighting, enriching the high-tech aesthetic and ensuring the path of the blue flow stands out prominently. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The path of the blue flow begins from the sensor and moves steadily through it towards the LED lights. As it reaches each light, they illuminate in quick succession, demonstrating the triggering effect, causing the field to become fully activated. The camera remains static while the eye follows the flow's journey.
+The animation begins with the blue current flow initiating from the motion sensor, visibly encased. It then travels steadily and purposefully across the frame, lighting up each LED in sequence as it passes them. This sequential illumination visually narrates the journey of the blue current and emphasizes the progression from the sensor to the external systems. The camera remains steady, allowing the viewer's eye to follow the blue flow's journey across the dark, technological landscape.
 ```
 
 ---
@@ -222,6 +262,14 @@ The path of the blue flow begins from the sensor and moves steadily through it t
 
 **Intention de mouvement** : `energy_flow`
 
+### Ce que le spectateur doit comprendre
+
+La technologie suit automatiquement le mouvement avec une synchronisation efficace.
+
+**L'action qui l'explique** : Red infrared signals disperse uniformly from the motion sensor, while blue lights illuminate synchronously in a moving sequence on the sensor.
+
+*Comprise sans le son : 0.8* — This action clearly shows both automatic tracking and synchronized system functioning, making it the easiest to understand the concept of efficient technology without audio.
+
 ### Le raisonnement, avant le prompt
 
 1. **information** : Show the entire functioning process in an integrated manner.
@@ -235,13 +283,13 @@ The path of the blue flow begins from the sensor and moves steadily through it t
 ### Prompt image
 
 ```
-The camera captures a cohesive and dynamic visualization displaying the motion sensor with synchronous working elements at a central position. The camera position is central, capturing a perspective view showing both the sensor and the surrounding activation. The presence of both red infrared and blue current flows visually merges as the LEDs continue glowing in their activation sequence within the dark premium interior environment, maintaining materials and lighting diversified use. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+The image captures the motion sensor at its center, with red infrared signals dispersing evenly across the environment from the sensor, while bright blue current flows illuminate sequentially along the sensor’s body. This precise configuration visually explains the synchronized efficiency of the technology in tracking movements. The dark premium environment makes the luminous colors of the signals the primary focus, with high contrast ensuring immediate visual interpretation. The cinematic blue and white lighting enhances the technological vibe, while the translucence of the casing allows clear visibility of the internal components. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Both the infrared and blue currents travel dynamically within their paths, converging and activating systems simultaneously. The infrared streams pulse outward from the sensor, moving into the environment, while the current flows from sensor to LEDs, causing them to illuminate in sequence. The camera tracking subtly follows the simultaneous actions.
+The animation begins with the motion sensor positioned prominently, as dynamic red infrared signals pulse from its surface, spreading smoothly and uniformly over the surrounding area. Simultaneously, blue currents within the sensor activate and glow in a clear sequence, establishing a synchronized rhythm that coordinates perfectly with the infrared dispersion. This dance of red and blue effortlessly illustrates the technology's automatic and precise tracking capability across the frame.
 ```
 
 ---
