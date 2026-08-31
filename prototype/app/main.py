@@ -61,6 +61,7 @@ def construire(subject: str, duration: float, shot_count: int) -> Storyboard:
 
     sb, problems = generate_storyboard(subject, duration, shot_count,
                                        on_attempt=a_chaque_tentative)
+    config.reset_shots()
     config.ensure_dirs(len(sb.shots))
     sb.save(config.PROJECT_FILE)
 
@@ -137,7 +138,7 @@ def ecrire_elements(sb: Storyboard) -> Path:
             "### Le raisonnement, avant le prompt",
             "",
         ]
-        alignement = lire_alignement(s.id)
+        alignement = lire_alignement(s.id, s.voice)
         if alignement:
             lignes = lignes[:-2] + [
                 "### Ce que le spectateur doit comprendre",
@@ -230,16 +231,21 @@ def realigner(sb: Storyboard) -> list[tuple[int, list[str]]]:
         # axe — le plan se comprenait sans le son — en cassant la continuite
         # et la precision ailleurs. Un gain qui coute plus qu'il ne rapporte
         # n'est pas un gain : le plan d'origine est garde.
+        dossier = config.shot_dir(s.id)
+        dossier.mkdir(parents=True, exist_ok=True)
+        fiche = dossier / "alignment.json"
         if len(apres) > len(avant):
             log("REFUS", f"plan {s.id:02d} : {len(apres)} manquement(s) contre "
                          f"{len(avant)} avant — le plan d'origine est gardé")
+            # Le plan d'origine reste : la fiche du realignement refuse ne
+            # doit pas rester a cote de lui a raconter autre chose.
+            fiche.unlink(missing_ok=True)
             restants.append((s.id, ["realignement refuse : il degradait le plan"]))
             continue
 
-        dossier = config.shot_dir(s.id)
-        dossier.mkdir(parents=True, exist_ok=True)
-        (dossier / "alignment.json").write_text(
-            json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        fiche.write_text(
+            json.dumps({"voice": s.voice, **plan}, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8")
 
         aligner.appliquer(s, plan)
         log("OK", f"plan {s.id:02d} · test sans le son : {plan['mute_test']} · "
@@ -251,14 +257,25 @@ def realigner(sb: Storyboard) -> list[tuple[int, list[str]]]:
     return restants
 
 
-def lire_alignement(shot_id: int) -> dict | None:
+def lire_alignement(shot_id: int, voice: str = "") -> dict | None:
+    """La fiche d'alignement du plan, si elle parle bien de CE plan.
+
+    Deuxieme filet apres `reset_shots` : la fiche porte la phrase qu'elle a
+    servie ; si la phrase a change, la fiche ne vaut plus rien.
+    """
     fichier = config.shot_dir(shot_id) / "alignment.json"
     if not fichier.is_file():
         return None
     try:
-        return json.loads(fichier.read_text(encoding="utf-8"))
+        fiche = json.loads(fichier.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return None
+    if not isinstance(fiche, dict):
+        return None
+    servie = str(fiche.get("voice") or "").strip()
+    if voice and servie and servie != voice.strip():
+        return None
+    return fiche
 
 
 def cmd_aligner(args) -> int:
@@ -570,7 +587,7 @@ def cmd_juger(args) -> int:
         if video is None:
             log("MANQUE", f"plan {s.id:02d} : aucune vidéo")
             continue
-        intention = juge.intention_du_plan(s, lire_alignement(s.id))
+        intention = juge.intention_du_plan(s, lire_alignement(s.id, s.voice))
         log("JUGE", f"Plan {s.id:02d} — regard sans le son...")
         try:
             verdict = juge.juger(s, video, intention, config.shot_dir(s.id))
@@ -591,7 +608,7 @@ def cmd_juger(args) -> int:
 
     if verdicts:
         souvenirs = memoire.moisson(sb.subject, sb.shots,
-                                    {i: lire_alignement(i) or {} for i in verdicts},
+                                    {i: lire_alignement(i, sb.shot(i).voice) or {} for i in verdicts},
                                     verdicts)
         chemin = memoire.retenir(souvenirs)
         gardes = [s for s in souvenirs if s.understood >= memoire.NOTE_RETENUE]
@@ -603,7 +620,7 @@ def cmd_duel(args) -> int:
     """La deuxième piste de l'agent, écrite noir sur blanc, pour comparer."""
     sb = charger()
     shot = sb.shot(args.shot)
-    alignement = lire_alignement(shot.id)
+    alignement = lire_alignement(shot.id, shot.voice)
     if not alignement:
         log("STOP", f"plan {shot.id:02d} : aucun alignement, lance `aligner`")
         return 1

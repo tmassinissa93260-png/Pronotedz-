@@ -141,6 +141,60 @@ class TestMemoire(unittest.TestCase):
         self.assertEqual(recolte[0].voice, sb.shots[0].voice)
 
 
+class TestFichesPerimees(unittest.TestCase):
+    """Run 40 : quatre plans sur six portaient l'alignement du sujet precedent."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        garde = (config.OUTPUT_DIR, config.SHOTS_DIR)
+        racine = Path(self._tmp.name)
+        config.OUTPUT_DIR = racine
+        config.SHOTS_DIR = racine / "shots"
+        self.addCleanup(
+            lambda: (setattr(config, "OUTPUT_DIR", garde[0]),
+                     setattr(config, "SHOTS_DIR", garde[1])))
+
+    def poser(self, shot_id, voice):
+        dossier = config.shot_dir(shot_id)
+        dossier.mkdir(parents=True, exist_ok=True)
+        (dossier / "alignment.json").write_text(
+            json.dumps({"voice": voice, "understanding": "u", "chosen": "c"}),
+            encoding="utf-8")
+
+    def test_une_fiche_qui_parle_du_bon_plan_est_lue(self):
+        from app.main import lire_alignement
+
+        self.poser(1, "Le courant quitte la batterie.")
+        fiche = lire_alignement(1, "Le courant quitte la batterie.")
+        self.assertEqual(fiche["understanding"], "u")
+
+    def test_une_fiche_d_un_autre_sujet_est_ignoree(self):
+        from app.main import lire_alignement
+
+        self.poser(1, "Les capteurs détectent votre présence.")
+        self.assertIsNone(lire_alignement(1, "L'électricité arrive dans nos maisons."))
+
+    def test_une_fiche_sans_phrase_reste_lisible(self):
+        """Les fiches ecrites avant ce garde-fou n'ont pas de phrase."""
+        from app.main import lire_alignement
+
+        dossier = config.shot_dir(1)
+        dossier.mkdir(parents=True, exist_ok=True)
+        (dossier / "alignment.json").write_text(
+            json.dumps({"understanding": "u"}), encoding="utf-8")
+        self.assertEqual(lire_alignement(1, "une phrase")["understanding"], "u")
+
+    def test_un_nouveau_storyboard_ne_garde_rien_de_l_ancien(self):
+        self.poser(5, "un plan d'un run plus long")
+        self.assertTrue(config.shot_dir(5).is_dir())
+        config.reset_shots()
+        self.assertFalse(config.SHOTS_DIR.exists())
+        config.ensure_dirs(3)
+        self.assertTrue(config.shot_dir(3).is_dir())
+        self.assertFalse(config.shot_dir(5).exists())
+
+
 class TestFicheIdentite(unittest.TestCase):
     def test_le_plan_le_plus_large_verrouille_l_objet(self):
         from app.main import plan_maitre

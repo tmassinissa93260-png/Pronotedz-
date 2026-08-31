@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -112,6 +113,18 @@ SCREENSHOT_DIR = OUTPUT_DIR / "screenshots"
 def shot_dir(shot_id: int) -> Path:
     """shots/shot_01, shots/shot_02, ..."""
     return SHOTS_DIR / f"shot_{shot_id:02d}"
+
+def reset_shots() -> None:
+    """Un nouveau storyboard ne garde rien de l'ancien.
+
+    Les dossiers de plans vivent dans la branche : un run plus court, ou un
+    sujet different, laissait derriere lui les fiches du precedent. Au run 40
+    quatre plans sur six portaient encore l'alignement du capteur de mouvement
+    alors que la video parlait de production d'electricite.
+    """
+    if SHOTS_DIR.is_dir():
+        shutil.rmtree(SHOTS_DIR)
+
 
 def ensure_dirs(shot_count: int = SHOT_COUNT) -> None:
     for path in (OUTPUT_DIR, SHOTS_DIR, SCREENSHOT_DIR, IMAGES_DIR):
