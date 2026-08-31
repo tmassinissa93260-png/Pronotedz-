@@ -268,6 +268,17 @@ class TestCouleursDIdentite(unittest.TestCase):
 
 
 class TestFlexions(unittest.TestCase):
+    def test_le_pluriel_en_ies(self):
+        """Run 41 : « red batteries » six fois, batterie declaree absente."""
+        self.assertTrue(validator.mot_present("battery", "the red batteries glow"))
+        self.assertTrue(validator.mot_present("battery", "a single battery"))
+        self.assertTrue(validator.mot_present("body", "translucent bodies"))
+        self.assertTrue(validator.mot_present("assembly", "the assemblies turn"))
+
+    def test_le_y_precede_d_une_voyelle_garde_le_pluriel_simple(self):
+        self.assertTrue(validator.mot_present("key", "two keys"))
+        self.assertFalse(validator.mot_present("key", "the kies"))
+
     """« braking » est bien « brake »."""
 
     def test_le_gerondif_compte(self):

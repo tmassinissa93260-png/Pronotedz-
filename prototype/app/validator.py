@@ -422,6 +422,10 @@ def _forme(mot: str) -> str:
     rouvrir la porte a « engine » dans « engineering », qui ne fait partie
     d'aucune de ces flexions.
     """
+    # Le pluriel anglais en -ies : au run 41 le prompt photo nommait six fois
+    # « red batteries » et le validateur reclamait une batterie absente.
+    if mot.endswith("y") and len(mot) > 2 and mot[-2] not in "aeiou":
+        return rf"\b{re.escape(mot[:-1])}(y|ies|ying|ied)\b"
     radical = mot[:-1] if mot.endswith("e") else mot
     return rf"\b{re.escape(radical)}(e?s|es|ing|ed|e)?\b"
 
