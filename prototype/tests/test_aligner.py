@@ -173,6 +173,31 @@ class TestControles(unittest.TestCase):
             self.assertIn(probleme, message)
 
 
+class TestNeJamaisDegrader(unittest.TestCase):
+    """Run 37 : l'agent gagnait sur son axe en cassant tout le reste."""
+
+    def setUp(self):
+        self.sb = Storyboard.from_dict(board())
+        self.shot = self.sb.shots[0]
+
+    def test_un_plan_conforme_n_a_rien_a_se_reprocher(self):
+        self.assertEqual(aligner.problemes_valides(self.sb, self.shot), [])
+
+    def test_une_proposition_qui_degrade_est_mesurable(self):
+        casse = reponse(image_prompt=f"A close-up. {STYLE_DIRECTIVE}")
+        avant = aligner.problemes_valides(self.sb, self.shot)
+        apres = aligner.problemes_valides(self.sb, self.shot,
+                                          aligner._normaliser(casse))
+        self.assertGreater(len(apres), len(avant))
+
+    def test_la_mesure_ne_regarde_que_ce_plan(self):
+        raw = board()
+        raw["shots"][1]["image_prompt"] = f"A close-up. {STYLE_DIRECTIVE}"
+        sb = Storyboard.from_dict(raw)
+        self.assertEqual(aligner.problemes_valides(sb, sb.shots[0]), [])
+        self.assertTrue(aligner.problemes_valides(sb, sb.shots[1]))
+
+
 class TestCodeCouleurTransmis(unittest.TestCase):
     def test_l_agent_recoit_le_code_du_sujet(self):
         sb = Storyboard.from_dict(board())

@@ -132,6 +132,22 @@ def appliquer(shot: Shot, plan: dict) -> None:
     shot.visual_explanation = dict(plan["visual_explanation"])
 
 
+def problemes_valides(sb: Storyboard, shot: Shot,
+                      plan: dict | None = None) -> list[str]:
+    """Ce que LE validateur du storyboard reproche a ce plan.
+
+    Sans `plan`, c'est le plan tel qu'il est aujourd'hui : la mesure d'avant,
+    celle qui sert a refuser un realignement qui degraderait.
+    """
+    essai = sb
+    if plan is not None:
+        essai = copy.deepcopy(sb)
+        appliquer(essai.shot(shot.id), plan)
+    return [p.fix for p in validator.validate(essai, essai.duration_seconds,
+                                              len(essai.shots))
+            if p.where == shot.slug]
+
+
 def _problemes(sb: Storyboard, shot: Shot, plan: dict) -> list[str]:
     """Les manquements du plan realigne, dans la langue d'OpenAI.
 
@@ -156,12 +172,7 @@ def _problemes(sb: Storyboard, shot: Shot, plan: dict) -> list[str]:
                    f"{', '.join(absents[:5])} appear nowhere in it. The chosen "
                    f"action must BE the picture, not a note beside it.")
 
-    essai = copy.deepcopy(sb)
-    appliquer(essai.shot(shot.id), plan)
-    out += [p.fix for p in validator.validate(essai, essai.duration_seconds,
-                                              len(essai.shots))
-            if p.where == shot.slug]
-    return out
+    return out + problemes_valides(sb, shot, plan)
 
 
 def _correction(problemes: list[str]) -> str:

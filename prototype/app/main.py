@@ -210,14 +210,28 @@ def realigner(sb: Storyboard) -> list[tuple[int, list[str]]]:
                 for probleme in problemes:
                     print(f"  ! {probleme}", flush=True)
 
+        avant = aligner.problemes_valides(sb, s)
         plan, manques = aligner.aligner_plan(sb, s, on_attempt=a_chaque_tentative)
+        apres = aligner.problemes_valides(sb, s, plan)
+
+        # L'agent n'a pas le droit de degrader. Au run 37 il gagnait sur son
+        # axe — le plan se comprenait sans le son — en cassant la continuite
+        # et la precision ailleurs. Un gain qui coute plus qu'il ne rapporte
+        # n'est pas un gain : le plan d'origine est garde.
+        if len(apres) > len(avant):
+            log("REFUS", f"plan {s.id:02d} : {len(apres)} manquement(s) contre "
+                         f"{len(avant)} avant — le plan d'origine est gardé")
+            restants.append((s.id, ["realignement refuse : il degradait le plan"]))
+            continue
+
         dossier = config.shot_dir(s.id)
         dossier.mkdir(parents=True, exist_ok=True)
         (dossier / "alignment.json").write_text(
             json.dumps(plan, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
         aligner.appliquer(s, plan)
-        log("OK", f"plan {s.id:02d} · test sans le son : {plan['mute_test']}")
+        log("OK", f"plan {s.id:02d} · test sans le son : {plan['mute_test']} · "
+                  f"{len(avant)} → {len(apres)} manquement(s)")
         print(f"  comprendre : {plan['understanding']}")
         print(f"  action     : {plan['chosen']}")
         if manques:
