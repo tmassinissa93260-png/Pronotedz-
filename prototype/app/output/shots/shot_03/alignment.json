@@ -1,25 +1,25 @@
 {
-  "understanding": "Lorsqu'une personne traverse, un mouvement perturbe le signal et déclenche un courant électrique.",
+  "understanding": "Le capteur de mouvement détecte une perturbation et déclenche un signal électrique en réponse.",
   "candidates": [
     {
-      "action": "A figure moves through red infrared streams, causing them to flicker and become disrupted while blue current flows activate inside the sensor.",
-      "explains": "The movement of a person disrupts the infrared signal and activates an electrical current.",
-      "misses": "Does not clearly show the disruption and reforming of the signal."
+      "action": "An orange perturbation wave visibly distorts as it enters the sensor, directly triggering a yellow signal from the sensor's core.",
+      "explains": "Shows the cause (perturbation) and effect (signal) relationship.",
+      "misses": "Does not detail how the signal travels in the circuit."
     },
     {
-      "action": "The red infrared signal bends and darkens when a figure steps into the field, and an adjacent blue electric flow starts illuminating.",
-      "explains": "The bending and darkening illustrate how the signal is disrupted by the figure.",
-      "misses": "Fails to show the reforming of the signal after disruption."
+      "action": "The sensor lights up internally, and a quick succession of yellow signals moves outward from the core.",
+      "explains": "Indicates the signal initiation and its pathway through the electronics.",
+      "misses": "Lacks emphasis on the initial perturbation causing this response."
     },
     {
-      "action": "A shadow crosses the red streams, causing intermittent blue flashes inside the sensor.",
-      "explains": "The shadow indicates disruption and the activation of the electrical current.",
-      "misses": "Less clear on the continuous nature of electric activation after disruption."
+      "action": "A yellow signal pulses from the sensor's core and travels through the visible electronic circuit parts, lighting them up sequentially.",
+      "explains": "Illustrates how the signal travels through the entire circuit.",
+      "misses": "Does not clearly connect the signal's initiation with a perturbation."
     }
   ],
-  "chosen": "A figure moves through red infrared streams, causing them to flicker and become disrupted while blue current flows activate inside the sensor.",
-  "why_chosen": "It effectively shows cause (movement) and effect (disruption and activation) clearly with the sound off by creating visible changes in the signal and electrical flow.",
+  "chosen": "An orange perturbation wave visibly distorts as it enters the sensor, directly triggering a yellow signal from the sensor's core.",
+  "why_chosen": "It clearly depicts the cause (perturbation) and effect (signal initiation) relationship, ensuring that the viewer sees why the signal is generated.",
   "mute_test": 0.8,
-  "image_prompt": "A captivating scene where a human figure moves through vibrant red infrared streams, breaking and flickering them within the frame. As these disruptions occur, vivid blue currents become animated inside the adjacent motion sensor, providing a clear contrast and indication of activation. The shot is captured from a side angle at eye level, emphasizing the real-time interaction of movement and sensor reaction, set against a dark, minimalistic interior with high-tech materials. The cinematic lighting focuses the viewer's attention on the dynamic interaction of the infrared and electric components, ensuring the figure's effect on the streams is unmistakably prominent. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The animation begins with a still scene of gently flowing red infrared streams as the figure gradually enters the frame, causing the red streams to start flickering and breaking upon contact. This disruption builds as the figure progresses through the signal field, with the flickering intensifying. Simultaneously, a blue current flow begins to light up inside the sensor, becoming more prominent and steady, illuminating the internal components until the figure fully passes through the scene, allowing the disrupted streams to reform and stabilize."
+  "image_prompt": "A highly detailed, semitransparent motion sensor mounted on a dark wall is shown with an orange wave distortion entering the sensor. Inside, a yellow signal is generated from the sensor's core, highlighted by a strong glow against the backdrop of blue circuitry. The translucent casing reveals intricate electronic components that are made from premium materials, emphasizing realistic optics and electronics. The cinematic lighting enhances the visibility of the orange disturbance and the emerging yellow signal, centering this dynamic as the focal action. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins as an orange wave distortion enters the sensor, representing a perturbation. Gradually, as the wave impacts the sensor's core, it triggers a yellow signal. The signal begins to emanate and build from the core, illuminating in a strong, vibrant glow. It continues to pulsate and expand through the blue circuitry components, activating them sequentially as it progresses, until it reaches the edges of the visible sensor electronics."
 }

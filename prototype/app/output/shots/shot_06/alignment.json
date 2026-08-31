@@ -1,25 +1,25 @@
 {
-  "understanding": "La technologie suit automatiquement le mouvement avec une synchronisation efficace.",
+  "understanding": "Le capteur retourne à l'état de veille lorsque l'objet ne perturbe plus les ondes infrarouges.",
   "candidates": [
     {
-      "action": "Red infrared signals disperse uniformly from the motion sensor, while blue lights illuminate synchronously in a moving sequence on the sensor.",
-      "explains": "The automatic tracking and synchronization of the technology.",
-      "misses": "The sense of precision and real-time accuracy."
+      "action": "The orange perturbations fade away as the silhouette exits the view.",
+      "explains": "Shows that the object is moving away and no longer affecting the sensor.",
+      "misses": "Does not directly show the sensor returning to standby."
     },
     {
-      "action": "A red infrared beam scans across a moving object, with immediate activation of blue lights as the object moves in the frame.",
-      "explains": "The real-time tracking and accuracy of the system.",
-      "misses": "The overall synchronization of the entire system functioning together."
+      "action": "The internal electronics visibly power down, returning to a stable state.",
+      "explains": "Illustrates the sensor resetting to standby.",
+      "misses": "Does not show the disappearance of the object causing this state."
     },
     {
-      "action": "Combined red and blue streams flow from the sensor onto moving objects, exactly matching their path and showing activated components light up in sync.",
-      "explains": "The synchronized precision of the system following each movement.",
-      "misses": "The inner workings or components of the sensor itself."
+      "action": "The red infrared waves return to uniform consistency as the silhouette leaves.",
+      "explains": "Demonstrates the sensor returning to normal function as the disruption disappears.",
+      "misses": "The action might be too subtle to clearly convey cause and effect without context."
     }
   ],
-  "chosen": "Red infrared signals disperse uniformly from the motion sensor, while blue lights illuminate synchronously in a moving sequence on the sensor.",
-  "why_chosen": "This action clearly shows both automatic tracking and synchronized system functioning, making it the easiest to understand the concept of efficient technology without audio.",
+  "chosen": "The red infrared waves return to uniform consistency as the silhouette leaves.",
+  "why_chosen": "It conveys both the cause and effect visually: as the silhouette disappears, the infrared waves stabilize, indicating the sensor's return to normal.",
   "mute_test": 0.8,
-  "image_prompt": "The image captures the motion sensor at its center, with red infrared signals dispersing evenly across the environment from the sensor, while bright blue current flows illuminate sequentially along the sensor’s body. This precise configuration visually explains the synchronized efficiency of the technology in tracking movements. The dark premium environment makes the luminous colors of the signals the primary focus, with high contrast ensuring immediate visual interpretation. The cinematic blue and white lighting enhances the technological vibe, while the translucence of the casing allows clear visibility of the internal components. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The animation begins with the motion sensor positioned prominently, as dynamic red infrared signals pulse from its surface, spreading smoothly and uniformly over the surrounding area. Simultaneously, blue currents within the sensor activate and glow in a clear sequence, establishing a synchronized rhythm that coordinates perfectly with the infrared dispersion. This dance of red and blue effortlessly illustrates the technology's automatic and precise tracking capability across the frame."
+  "image_prompt": "A view of the motion sensor where the red infrared waves are originally disrupted by orange perturbations due to the presence of a silhouette. As the silhouette exits the frame, the orange disruptions diminish, and the infrared waves return to a consistent red, visually indicating the sensor's reset to standby. The camera is positioned to clearly show the transition from disrupted to stable waves, emphasizing the change through high contrast and sharp focus on the waves’ transition. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "As the animation begins, the silhouette is present, causing orange perturbations in the infrared waves. Gradually, the silhouette moves out of the frame, reducing the orange disruptions. As this occurs, the red infrared waves slowly return to a uniform and stable consistency, symbolizing the sensor's reset to its standby state, indicating readiness for future detection."
 }

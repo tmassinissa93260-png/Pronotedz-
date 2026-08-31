@@ -1,1 +1,1 @@
-Ce courant active efficacement les composants électroniques internes.
+Ce signal est ensuite traité par un circuit électronique.

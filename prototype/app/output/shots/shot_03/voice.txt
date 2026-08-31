@@ -1,1 +1,1 @@
-Lorsqu'une personne traverse, le signal est perturbé et un courant électrique est déclenché.
+Le capteur analyse cette perturbation et envoie un signal électrique.

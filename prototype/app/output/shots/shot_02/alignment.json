@@ -1,25 +1,25 @@
 {
-  "understanding": "Le dispositif utilise un signal infrarouge pour créer un champ de détection autour de lui.",
+  "understanding": "L'entrée d'un objet chaud perturbe les ondes infrarouges.",
   "candidates": [
     {
-      "action": "Red streams emanate from the sensor and create a visible dome-shaped field in front of it.",
-      "explains": "Demonstrates how the infrared signal extends outward to cover an area.",
-      "misses": "Doesn't show that the field adjusts or responds to movement."
+      "action": "An orange wave deforms as a human silhouette approaches the red infrared waves.",
+      "explains": "The presence of a warm object causes a noticeable distortion in the infrared waves.",
+      "misses": "It may not clearly show the transition from no disturbance to disturbance."
     },
     {
-      "action": "Multiple red streams pulse outward from the sensor in waves, reaching a distant imaginary boundary.",
-      "explains": "Shows the infrared signal traveling outward and delineating the coverage area.",
-      "misses": "Does not visually connect the coverage field to detection capability."
+      "action": "A red wave line changes to orange when a warm object enters the frame.",
+      "explains": "A warm object entering the frame visibly alters the infrared waves.",
+      "misses": "It might not show the gradual impact of the object entering."
     },
     {
-      "action": "Red streams hit an imaginary object or surface and bounce back to the sensor.",
-      "explains": "Indicates that the infrared signal is used to detect objects in its range.",
-      "misses": "Fails to depict the creation of a continuous detection field."
+      "action": "Infrared waves remain red until a hand reaches in and causes an orange ripple.",
+      "explains": "A direct correlation between the warm object entering and the wave disturbance.",
+      "misses": "The focus on a hand might detract from understanding object movement."
     }
   ],
-  "chosen": "Red streams emanate from the sensor and create a visible dome-shaped field in front of it.",
-  "why_chosen": "This action clearly visualizes the formation of a detection field around the sensor, making it evident that the infrared signal spreads to cover an area without relying on dynamic changes that may distract or complicate understanding.",
-  "mute_test": 0.85,
-  "image_prompt": "In a wide semi-cutaway view, the modern dark near-black wall-mounted motion sensor emits multiple red infrared streams that flow outward, creating a distinct dome-shaped coverage field in front of it. The camera positions slightly above and in front of the sensor, focusing on how the red streams extend across the environment, depicting the field's boundaries. Luxurious studio lighting highlights the advanced technological design of the sensor, making the streams the focal point of the scene. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The animation begins with the sensor quietly pulsing as it activates, with red infrared streams steadily emanating from it to form a dome-shaped field. The streams flow outward in a continuous motion, clearly marking the extent of the sensor's detection area, before fading at the boundaries. This flow emphasizes the creation and maintenance of the infrared field in real-time."
+  "chosen": "An orange wave deforms as a human silhouette approaches the red infrared waves.",
+  "why_chosen": "This action is the clearest illustration of cause and effect, where the approach of the human silhouette visibly deforms the infrared waves, immediately conveying disturbance.",
+  "mute_test": 0.8,
+  "image_prompt": "In a dark premium interior environment, a human silhouette approaches from the side, creating a dramatic contrast as it interacts with a series of red infrared waves. The waves visibly deform into an orange hue where the silhouette is nearest, capturing the disturbance clearly. The motion sensor is translucent, revealing the internal electronics and emphasizing the dynamic interaction at the center of the frame. Cinematic blue and white lighting highlights the scene with high contrast and depth of field focusing on the wave distortion. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "As the human silhouette steadily approaches the series of red infrared waves from the side, the waves near the silhouette gradually deform, taking on an orange hue and creating a ripple effect that propagates. The transition from undisturbed to disturbed waves is clearly visible, illustrating the disturbance in real-time. The silhouette's movement towards the waves builds tension and highlights the causality of heat affecting the infrared waves, culminating in an orange ripple that transforms the scene before settling."
 }

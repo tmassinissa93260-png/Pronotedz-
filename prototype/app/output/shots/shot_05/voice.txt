@@ -1,1 +1,1 @@
-Ces composants commandent ensuite d'autres systèmes, comme une alarme ou une lumière.
+Enfin, une action se produit, déclenchée par le signal.

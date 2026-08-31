@@ -1,1 +1,1 @@
-Le dispositif utilise un signal infrarouge pour détecter ce qui bouge devant lui.
+Lorsqu'un objet chaud se déplace, il perturbe ces ondes.

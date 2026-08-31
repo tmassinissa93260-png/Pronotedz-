@@ -1,25 +1,25 @@
 {
-  "understanding": "Que le courant bleu active les composants électroniques internes à partir du capteur.",
+  "understanding": "Que le signal électrique est traité et manipulé par un circuit électronique complexe.",
   "candidates": [
     {
-      "action": "A blue flow enters the sensor and touches each internal component, causing them to light up sequentially.",
-      "explains": "It shows the activation process as the current flows through and energizes each component.",
-      "misses": "The initial cause of the flow is not clearly defined."
+      "action": "A yellow signal pulses through a network of circuit pathways activating and lighting up components sequentially.",
+      "explains": "The signal is being processed as it moves through the circuit.",
+      "misses": "Might not clearly show the internal complexity of the circuit's interactions."
     },
     {
-      "action": "The blue current moves across a circuit board, causing red signals to cease and components to light up.",
-      "explains": "It demonstrates how the current correlates with component activation and signal interaction.",
-      "misses": "The direct relationship between the current and component function might be obscured."
+      "action": "A yellow signal enters one side of the circuit, causing various components to flash and change colors before exiting.",
+      "explains": "Shows the circuit's role in transforming the signal.",
+      "misses": "Might not illustrate the sequential processing clearly."
     },
     {
-      "action": "A blue flow spreads from the sensor wall throughout the internal components, activating them upon contact.",
-      "explains": "It visually represents the transfer and effect of the current as it energizes the electronics.",
-      "misses": "The origin of the current might be unclear without initiating context."
+      "action": "The yellow signal splits into multiple paths, activating different parts of the circuit simultaneously.",
+      "explains": "The complexity of circuit processing and parallel paths.",
+      "misses": "Could be confused as the signal being copied, rather than processed."
     }
   ],
-  "chosen": "A blue flow spreads from the sensor wall throughout the internal components, activating them upon contact.",
-  "why_chosen": "This action illustrates the transition from the sensor wall to electronic activation clearly and sequentially, making the cause-and-effect relationship visible without sound.",
+  "chosen": "A yellow signal pulses through a network of circuit pathways activating and lighting up components sequentially.",
+  "why_chosen": "It clearly shows the path and sequential processing of the signal, emphasizing the circuit's dynamic functionality.",
   "mute_test": 0.85,
-  "image_prompt": "From a close-up angle, the motion sensor's casing is partially cut away to reveal its internal electronics. A luminescent blue flow can be seen spreading from the sensor wall toward the internal components, illuminating them upon contact, signifying their activation. The dark premium interior setting underscores the technology's high-end design, using cinematic blue and white lighting to emphasize active electronic details. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "Gradually, a blue flow begins at the edge of the sensor wall, spreading methodically towards the internal components. As the flow reaches each component, they illuminate in a sequential progression from the outer edge inward, building importance with the complete activation of all components. This visual journey commences at the sensor exterior and concludes with the full illumination of the electronic board, demonstrating the activation process over time."
+  "image_prompt": "A close-up view of the motion sensor's electronic circuit board, with a yellow signal visibly pulsing through intricate pathways. As the signal moves, different components light up in sequence, signifying processing throughout the board. The camera angle focuses on the pathway with high clarity to ensure the movement of the signal and its effect on each component is unmistakably clear. The lighting highlights the active paths, using sharp contrast and focused lighting, while the rest of the board remains subtly in the background. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The yellow signal dynamically pulses through the circuit, beginning at one corner and then traveling along the board. As it pulses, components light up in succession, one after the other, showcasing the processing movement. The signal travels with a rhythm, giving a visual cue of active processing and completion as it reaches the final component in the chain and exits the visible circuit section."
 }

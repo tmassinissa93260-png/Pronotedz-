@@ -1,25 +1,25 @@
 {
-  "understanding": "Les capteurs de mouvement utilisent un champ infrarouge pour capturer chaque mouvement précisément.",
+  "understanding": "Les capteurs de mouvement détectent notre présence grâce à des ondes infrarouges.",
   "candidates": [
     {
-      "action": "A stream of red infrared signal emerges from the motion sensor and sweeps across the room in a wide, visible arc.",
-      "explains": "This shows the sensor actively emitting signals to detect motion in its environment.",
-      "misses": "It doesn't explain how the sensor can capture movements precisely."
+      "action": "Red infrared waves, symbolized by pulsing ripples, begin at the motion sensor and expand outward to cover an area.",
+      "explains": "It shows how infrared waves are emitted from the sensor to detect presence.",
+      "misses": "It doesn't clearly convey the role of the electronic components inside the sensor."
     },
     {
-      "action": "The internal components of the sensor light up in blue as the red infrared signal makes contact with a moving object.",
-      "explains": "This illustrates how the sensor processes motion detection internally upon capturing movement.",
-      "misses": "It does not explicitly show the range or the continuous presence of the infrared signal."
+      "action": "The sensor's internal electronics light up each time the red infrared waves pulse outward.",
+      "explains": "It connects the emission of infrared waves with the functioning of the sensor's electronics.",
+      "misses": "It fails to visually indicate the coverage area of the infrared waves."
     },
     {
-      "action": "The red infrared signal continuously emanates from the sensor, highlighting the presence of multiple moving objects it detects.",
-      "explains": "This action confirms the infrared signal's role in detecting each movement in the defined space.",
-      "misses": "It doesn't show the inner workings of the sensor or detail the precision of the capture."
+      "action": "A figure moves into the range of expanding red waves, causing a yellow signal to travel along an electronic circuit inside the sensor.",
+      "explains": "This illustrates the detection process when someone steps into the infrared field.",
+      "misses": "It complicates the shot with additional elements that may distract from the main focus on infrared waves."
     }
   ],
-  "chosen": "The red infrared signal continuously emanates from the sensor, highlighting the presence of multiple moving objects it detects.",
-  "why_chosen": "This action clearly shows the motion sensor's function of emitting an infrared field to detect movements, providing a visual of detection in action with multiple objects as evidence.",
-  "mute_test": 0.85,
-  "image_prompt": "In a dark, premium interior environment, the camera faces a modern dark near-black wall-mounted motion sensor at eye level. A continuous red infrared beam emanates prominently from the sensor, sweeping across the field and creating a red illuminated zone around detected objects. Multiple moving objects within its range are highlighted by this red zone, making the sensor's detection capability evident. Cinematic blue and white lighting accentuates the high-tech design of the sensor with high contrast, drawing attention to the infrared signal's activity. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The red infrared beam begins as a focused stream emerging from the sensor and gradually expands outward. As it builds, it forms an arc that continuously sweeps through the room, illuminating moving objects it encounters with a red glow. The movement progresses over time, maintaining a steady rhythm, highlighting the dynamic interaction between the sensor and its environment until the entire field is covered."
+  "chosen": "Red infrared waves, symbolized by pulsing ripples, begin at the motion sensor and expand outward to cover an area.",
+  "why_chosen": "This action directly demonstrates the emission and range of the infrared waves from the sensor in the simplest, clearest way, focusing entirely on the principle of detection without unnecessary elements.",
+  "mute_test": 0.8,
+  "image_prompt": "A technical semi-cutaway view focuses on a dark near-black motion sensor mounted on a wall, with red waves symbolizing infrared radiation pulsing outward into the surrounding space. The camera is positioned to clearly center the wave emission area, using cinematic blue and white lighting to emphasize the waves and sensor. The sensor's translucent casing is ghosted to reveal the internal electronics, maintaining the visual bible and color code. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins with red infrared waves subtly pulsing from the motion sensor and gradually expanding into the surrounding area, increasing in intensity until the waves are clearly visible spanning a wide range. Throughout, the motion sensor remains central in the frame, and the pulsing wave action repeats to demonstrate the continuous detection process."
 }

@@ -1,1 +1,1 @@
-Les yeux invisibles capturent chaque mouvement précisément grâce à un champ infrarouge.
+Les capteurs de mouvement détectent notre présence grâce à des ondes infrarouges.
