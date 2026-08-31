@@ -92,7 +92,11 @@ Work in this order.
 
 1. LA VRAIE CHAÎNE. Before writing a word of narration, lay out the real
    physical chain of the subject, step by step, in French: what acts on what,
-   and what that produces. Each step must be literally true. This is where you
+   and what that produces. Each step must be literally true.
+   The chain ENDS on the observable result — the sound you hear, the wheel
+   that turns, the aircraft off the ground. What powers the chain and what
+   amplifies it are links INSIDE it, at the place where they act; never
+   appended after the result, or the explanation ends twice. This is where you
    catch yourself: "la rotation de la turbine génère un champ magnétique" is
    false — the field is already there, the rotation moves it past the coils,
    and THAT induces the current. Write the chain you can defend.
@@ -178,7 +182,9 @@ THE NARRATION IS ALREADY WRITTEN AND VALIDATED. Use it as it stands:
 "{script}"
 Do not rewrite it, do not reorder it, do not add or remove a sentence. Copy it
 verbatim into "script", and cut it into shots: each shot takes one sentence,
-in order, into its "voice". Your work starts at the storyboard.
+in order, into its "voice". There are exactly as many sentences as shots — if
+you ever find yourself writing a sentence that is not in the narration above,
+you have made a mistake. Your work starts at the storyboard.
 """ if script else ""
     return f"""\
 Write the complete pre-production of a vertical 9:16 educational video.

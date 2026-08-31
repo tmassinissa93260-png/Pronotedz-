@@ -88,6 +88,17 @@ class TestControles(unittest.TestCase):
     def test_un_texte_conforme_ne_leve_rien(self):
         self.assertEqual(self.verifier(), [])
 
+    def test_une_phrase_de_moins_est_refusee(self):
+        """Run 44 : douze phrases pour treize plans, et un plan inventé."""
+        court = " ".join(validator.phrases(SCRIPT)[:5])
+        problemes = redacteur._problemes(
+            redacteur._normaliser(reponse(
+                script=court,
+                objections=[{"sentence": p, "checks_out": "la pression pousse",
+                             "objection": "aucune", "fix": "rien"}
+                            for p in validator.phrases(court)])), 24, 6)
+        self.assertTrue(any("exactly one per shot" in x for x in problemes))
+
     def test_le_nombre_de_phrases_suit_le_nombre_de_plans(self):
         court = " ".join(validator.phrases(SCRIPT)[:3])
         problemes = self.verifier(

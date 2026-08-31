@@ -23,8 +23,12 @@ from .openai_client import OpenAIError, chat_json
 
 #: Trois ouvertures, pour qu'il y ait un choix a faire.
 MIN_OUVERTURES = 3
-#: Une phrase par plan, a une pres : le decoupage doit rester possible.
-ECART_PHRASES = 1
+#: Une phrase par plan, exactement. Au run 44 le redacteur en a rendu douze
+#: pour treize plans, et le storyboard a bouche le trou en inventant « Votre
+#: experience musicale sans fil est subtile et fascinante » — un plan de
+#: synthese, celui que la regle du dernier plan refuse. La tolerance d'une
+#: phrase servait a etre gentil ; elle laissait passer un plan vide.
+ECART_PHRASES = 0
 #: En deca, ce n'est pas une chaine physique, c'est une affirmation.
 MIN_MAILLONS = 3
 
@@ -125,8 +129,10 @@ def _problemes(texte: dict, duration: float, sentences: int) -> list[str]:
     dites = validator.phrases(script)
 
     if abs(len(dites) - sentences) > ECART_PHRASES:
-        out.append(f"the script has {len(dites)} sentences, {sentences} were asked for "
-                   f"— one per shot, so the cut into shots stays possible.")
+        out.append(f"the script has {len(dites)} sentences, {sentences} were asked "
+                   f"for — exactly one per shot. Not one more, not one fewer: a "
+                   f"missing sentence forces the storyboard to invent a hollow shot "
+                   f"to fill the count, and an extra one is a shot nobody will see.")
 
     mots = len([m for m in script.split() if m.strip()])
     attendus = int(duration * prompts.WORDS_PER_SECOND)
