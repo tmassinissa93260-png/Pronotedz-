@@ -1,1 +1,1 @@
-The animation displays yellow signal lines actively extending from the sensor, beginning with a faint glow that builds in intensity as they travel towards various devices. When the signals reach a device, it activates, lighting up with a green response, illustrating a chain reaction that unfolds sequentially across the scene.
+Yellow electricity streams start gradually, building from the generator, flowing visibly through the cables. As the arcs travel, generator components rotate subtly, demonstrating mechanical involvement until the flow stabilizes.

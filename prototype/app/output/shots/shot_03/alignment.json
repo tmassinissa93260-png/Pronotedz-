@@ -1,34 +1,34 @@
 {
-  "understanding": "Quand quelque chose passe à travers le signal, cela cause une perturbation visible.",
+  "understanding": "que différentes formes d'énergie se transforment en électricité",
   "candidates": [
     {
-      "action": "A person walks through the red infrared signal, and a yellow wave visibly disrupts the path of the signal.",
-      "explains": "The disruption occurs specifically at the point of contact, demonstrating cause and effect.",
-      "misses": "It does not show how the disruption propagates after the initial contact."
+      "action": "Colored arrows representing energy streams merge into a single yellow arrow emerging from the turbine.",
+      "explains": "Shows multiple forms of energy converging and converting into electricity.",
+      "misses": "Lacks detail on the types of energy being converted."
     },
     {
-      "action": "An object crosses the signal, causing the red signal to flicker with a burst of yellow.",
-      "explains": "The moment of disruption is highlighted.",
-      "misses": "It lacks the depiction of progression and spreading of the disruption."
+      "action": "Mechanical components start moving, triggering a bright yellow light at the generator's exit.",
+      "explains": "Indicates energy conversion through mechanical to electrical transformation.",
+      "misses": "Doesn't show variety of energy types, only mechanical to electrical."
     },
     {
-      "action": "As the person moves through the signal, the red path deforms into chaotic yellow patterns.",
-      "explains": "It shows the visual change in the signal's shape, indicating disruption.",
-      "misses": "It doesn’t communicate how the deformation resolves or continues over time."
+      "action": "Colored flows move through a turning turbine, changing to yellow as they exit.",
+      "explains": "Depicts flow transformation through the turbine into electricity.",
+      "misses": "Some may not understand the flows represent different energy forms."
     }
   ],
-  "chosen": "A person walks through the red infrared signal, and a yellow wave visibly disrupts the path of the signal.",
-  "why_chosen": "It visually represents the disruption caused by a person crossing the signal in the clearest and most direct manner, showing both cause and immediate effect.",
+  "chosen": "Colored arrows representing energy streams merge into a single yellow arrow emerging from the turbine.",
+  "why_chosen": "It directly visualizes multiple energies combining into electricity, a clear cause and effect with the turbine.",
   "mute_test": 0.8,
-  "image_prompt": "The camera is positioned slightly above at an angle focusing directly on the motion sensor and the person intersecting the red infrared signal. The image captures the moment where a yellow wave visibly emerges as the person crosses the signal's path. The interior environment is dark with cinematic blue and white lighting, ensuring the yellow disruption stands out against the red signal. Plastic and metal components of both the motion sensor and its internal mechanisms are visible, providing a realistic context to the cause-effect interaction. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The person begins to walk through the static red infrared signal, causing a yellow wave to gradually build at the point of contact. This wave flows outward along the path of the red signal, showcasing the disruption as it moves. The disruption starts strong, building in visibility as the person continues to move, then dissipates as it extends away from the source of contact.",
+  "image_prompt": "In a dark premium industrial hall, a semi-cutaway view focuses on a turbine where colorful energy flows converge. Blue, grey, and green arrows clearly point toward the turbine, representing various incoming energies. As they merge into the turbine, a singular, vibrant yellow arrow emerges, symbolizing converted electricity. Cinematic blue and white lighting emphasizes the dramatic convergence and conversion process. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "Multiple colored energy flows, represented as blue, grey, and green arrows, move steadily and dynamically toward the central turbine. As they converge and spin through the turbine's components, they combine and transform into a bright yellow arrow that exits the generator, symbolizing the generation of electricity. The flows speed up as they reach the turbine, illustrating the active conversion process.",
   "visual_explanation": {
-    "information": "The disruption of a signal when an object passes through it.",
-    "physical_element": "Yellow wave emerging from the red infrared signal as a person crosses it.",
-    "secondary_elements": "Motion sensor, the person's silhouette, and the environment that highlights the interaction.",
-    "visual_behavior": "The red signal path is disrupted by a yellow wave.",
-    "animation_movement": "A yellow wave flows outward from the point of contact with the red signal.",
-    "camera_position": "Slightly above with an angle focusing on the intersection of the person and the signal.",
-    "composition": "The composition centers on the interaction between the person's action and the signal, ensuring clear visibility of the yellow disruption within a high-contrast environment."
+    "information": "Different forms of energy combine and transform into electricity.",
+    "physical_element": "Colored arrows merging into a yellow arrow at the turbine.",
+    "secondary_elements": "Industrial hall environment, cinematic lighting to highlight flows.",
+    "visual_behavior": "Arrows converge and transform as they pass through the turbine.",
+    "animation_movement": "Energy flows move towards and transform in the turbine.",
+    "camera_position": "Close angle focused on the merging point of energy flows.",
+    "composition": "Dynamic convergence with central turbine as focal point."
   }
 }

@@ -1,34 +1,34 @@
 {
-  "understanding": "Que l'activation du système illumine toute la pièce en déclenchant les lumières.",
+  "understanding": "L'électricité est efficacement transportée jusqu'à nos maisons modernes.",
   "candidates": [
     {
-      "action": "A motion sensor detects a slight movement, sending a visible chain reaction of blue electrical flows lighting up the entire room.",
-      "explains": "The system initiates operation from a movement that ultimately illuminates the room.",
-      "misses": "The initial disruption caused by the infrared signal."
+      "action": "Yellow streams of electricity move from the generator, through wires, to illuminate a model home.",
+      "explains": "Electricity is generated and then delivered to homes, showing the complete path.",
+      "misses": "Doesn't highlight any transformation process involved in the delivery."
     },
     {
-      "action": "A person's gesture triggers a red infrared beam from the sensor, resulting in blue electrical signals activating and lighting up the room.",
-      "explains": "Shows how a simple human gesture activates the system, causing illumination.",
-      "misses": "The full sequence of signals beyond the initial infrared emission."
+      "action": "A yellow flow represents electricity traveling through a transmission line from an industrial setting to a residential home.",
+      "explains": "The electricity's journey from the generator to the home is clear.",
+      "misses": "Lacks the illustration of the generator or turbine."
     },
     {
-      "action": "A red infrared beam moves towards a sensor, quickly followed by a blue electrical flow that lights up several lamps in sequence, culminating in the entire room being illuminated.",
-      "explains": "The interaction of infrared and electrical signals in triggering full-room lighting.",
-      "misses": "Directly showing the initial movement causing the red signal."
+      "action": "The model house lights up as yellow streams flow into it from the side representing electricity delivery.",
+      "explains": "The focus on electricity reaching the home is clear, emphasizing the end goal.",
+      "misses": "Doesn't show the source of electricity."
     }
   ],
-  "chosen": "A person's gesture triggers a red infrared beam from the sensor, resulting in blue electrical signals activating and lighting up the room.",
-  "why_chosen": "This sequence directly shows the cause (gesture) and the immediate effect (room lighting), easily readable without sound.",
+  "chosen": "A yellow flow represents electricity traveling through a transmission line from an industrial setting to a residential home.",
+  "why_chosen": "It effectively shows the continuous path of electricity delivery while maintaining the focus and context on screen.",
   "mute_test": 0.8,
-  "image_prompt": "A technical semi-cutaway view encompasses a person in mid-gesture with an outstretched hand towards the motion sensor. The central detail is the visible red infrared beam extending from the motion sensor to the person, while blue electrical flows trail from the sensor to surrounding lights, all progressively illuminating. The interior environment achieves realism with detailed plastic and metal textures, emphasizing clarity in the flow of signals. The cinematic blue and white lighting enhances visibility, illustrating the interaction of each component within this connection. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "A person raises their hand, and instantly, a red infrared beam extends from the sensor towards it, rapidly followed by blue electrical flows moving across the room. Lamps illuminate sequentially as the flow reaches them, showcasing the transformation from darkness to a fully lit space. The transition smoothly illustrates how each segment of the initialization sequence builds upon the previous, resulting in complete room activation.",
+  "image_prompt": "In an expansive view, a distinct, continuous yellow stream of electricity emerges clearly from the modern dark near-black industrial turbine and generator unit, following a transmission line towards a brightly lit model home, situated within a blue-tinged, premium industrial hall environment. The lighting is cinematic, emphasizing the blue and white contrast while detailing realistic metallic materials and components throughout the industrial setup. The luminescence of the yellow flow enhances the visual clarity of the electricity's journey. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The yellow flow representing electricity begins at the generator, gradually extends along the transmission line towards the model home, steadily gaining intensity until it reaches and illuminates the home completely, signaling successful energy delivery.",
   "visual_explanation": {
-    "information": "The motion sensor's activation due to movement lights up the room.",
-    "physical_element": "Person's gesture and interacting signals (red and blue beams).",
-    "secondary_elements": "Interior room lighting gradually increasing.",
-    "visual_behavior": "Progressive illumination associated with signal paths, connecting gesture to lighting.",
-    "animation_movement": "Red beam propagation initiating blue flow, illuminating lamps in sequence.",
-    "camera_position": "Dynamic, slightly above and angled to capture both the person and room lighting development.",
-    "composition": "Centered on gesture and sensor, keeping the lit areas within view."
+    "information": "The effective delivery of electricity to homes.",
+    "physical_element": "The visible yellow stream traveling along wires.",
+    "secondary_elements": "The presence of a model home lighting up and the visible industrial generator components.",
+    "visual_behavior": "Electricity visibly flows through wires.",
+    "animation_movement": "The electricity starts at the generator, progresses along the wires, and finishes illuminating the home.",
+    "camera_position": "Positioned to capture both the industrial turbine and the target home, presenting a clear view of the electricity's path.",
+    "composition": "Wide angle ensuring the path's clarity, with emphasis on the movement from generator to home."
   }
 }

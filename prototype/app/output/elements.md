@@ -1,35 +1,35 @@
-# Fonctionnement d'un capteur de mouvement
+# Comment on produit de l'électricité
 
 24 secondes · 6 plans
 
 ## Script
 
-Imaginez un système qui réagit à votre présence sans contact direct. Voici le capteur de mouvement. Lorsqu'une source de chaleur se déplace, elle émet un rayonnement infrarouge. Le capteur capte ce rayonnement et génère un signal électrique. Ce signal est ensuite traité pour déclencher divers appareils. Ainsi, il allume les lumières ou active le système d'alarme. Tout ceci fonctionne instantanément, de manière invisible.
+L'électricité est essentielle dans notre vie quotidienne. Elle est générée principalement grâce à des centrales électriques. Ces centrales convertissent différentes formes d'énergie en électricité. Le mouvement mécanique entraîne des générateurs. Ces générateurs produisent un flux d'électricité. Ce flux est transporté jusqu'à nos maisons.
 
 ## Visual bible
 
 À réutiliser dans **chaque** image. Les couleurs ont un sens fixe.
 
-- **main subject** : motion sensor
-- **characters objects** : human figure emitting heat
-- **vehicle** : not applicable
-- **colors** : dark with vibrant accents
-- **environment** : interior space, minimalistic
-- **materials** : translucent plastic, metals
-- **lighting** : cinematic blue and white
-- **camera** : macro and wide shots
-- **style 3d** : photorealistic
-- **realism** : high
-- **invisible phenomena** : infrared radiation as red waves, electrical signal as yellow flashes
+- **main subject** : Industrial turbine and generator unit
+- **characters objects** : Generator components
+- **vehicle** : None
+- **colors** : Yellow for electricity, Blue for generator, Grey for mechanical, Green for conversion
+- **environment** : Dark premium industrial hall
+- **materials** : Realistic and detailed, metallic and industrial
+- **lighting** : Cinematic blue and white lighting
+- **camera** : Close and wide angles, cinematic depth of field
+- **style 3d** : Photorealistic premium 3D engineering visualization
+- **realism** : High with detailed engineering components
+- **invisible phenomena** : Represented by colored energy flows
 
 ## Code couleur
 
 Une notion, une couleur, la même du début à la fin.
 
-- **red** = infrared_radiation — rayonnement infrarouge détecté  *(se déplace)*
-- **yellow** = electrical_signal — signal électrique généré  *(se déplace)*
-- **blue** = motion_detection — capteur de mouvement activé
-- **green** = device_response — appareils déclenchés
+- **yellow** = électricité — flux d'énergie électrique  *(se déplace)*
+- **blue** = générateur — production d'électricité
+- **grey** = mouvement mécanique — force motrice
+- **green** = conversion — transformation d'énergie
 
 ## Contrôle qualité
 
@@ -45,13 +45,13 @@ Une notion, une couleur, la même du début à la fin.
 
 ## Plan 01 — 4s
 
-**Voix** : Imaginez un système qui réagit à votre présence sans contact direct.
+**Voix** : L'électricité est essentielle dans notre vie quotidienne, impactant tous nos aspects.
 
-**Fonction** : Introduce the concept of a motion sensor.
+**Fonction** : Introduce the importance and context of electricity production.
 
-**Élément pédagogique** : Translucent casing revealing electronic components inside the sensor.
+**Élément pédagogique** : the introduction of a power plant with yellow energy flow
 
-**Intention de mouvement** : `reveal`
+**Intention de mouvement** : `energy_transfer`
 
 ### Ce que le spectateur doit comprendre
 
@@ -63,37 +63,37 @@ Imaginez un système qui détecte votre présence sans contact direct.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : A motion sensor detects infrared radiation and activates.
-2. **physical element** : Red infrared waves and a blue glow on the internal sensor component.
-3. **secondary elements** : Translucent casing showing electronic components, cinematic lighting.
-4. **visual behavior** : Infrared waves travel and cause the internal sensor to light up.
-5. **animation movement** : Red waves move, blue lights pulse, subtle zoom-in and lateral camera move.
-6. **camera position** : Head-on close-up focusing on the sensor and incoming infrared waves.
-7. **composition** : Sensor centered with waves approaching from the side, contrasting lighting emphasizes the electronic glow.
+1. **information** : The importance and beginning of electricity distribution
+2. **physical element** : The power plant and energy flow
+3. **secondary elements** : The distribution path and homes
+4. **visual behavior** : A yellow energy stream indicates electricity movement
+5. **animation movement** : Energy starts flowing and turbines move slightly
+6. **camera position** : Wide angle covering the plant's full exterior
+7. **composition** : Framing to reveal the whole context of electricity production
 
 ### Prompt image
 
 ```
-Focused close-up of a modern dark near-black wall-mounted motion sensor, its translucent casing revealing electronic components inside. The camera is positioned to capture the sensor head-on, showing red infrared waves coming from a human figure and converging towards the sensor, which lights up in blue to indicate activation. The environment is a dark premium interior, illuminated with cinematic blue and white lighting that highlights the realistic material textures of translucent plastic and metals. The background remains subtly detailed to ensure the sensor is the main focus. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A wide semi-cutaway view of a modern power plant set in a dark premium industrial hall. The external structures are visible, highlighting their importance in electricity production. A yellow energy stream flows from the plant, indicating electricity distribution. The environment is consistent with a dark premium style using realistic industrial materials. Lighting accentuates the plant's key features, and the energy stream is highlighted. The camera is positioned wide to capture the full scale of the plant in its environment. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Starting with the human figure emitting red infrared waves, these waves move towards the motion sensor. As they reach the sensor, the internal components gradually illuminate with a blue hue, showing a pulsing effect to signal activation. The camera performs a subtle zoom-in and lateral move to emphasize the motion and response sequence, highlighting the transition from infrared detection to sensor activation.
+The yellow energy stream flows gradually from the power plant, as turbines inside begin to rotate. This simulates electricity production and its essential role in daily life.
 ```
 
 ---
 
 ## Plan 02 — 4s
 
-**Voix** : Voici le capteur de mouvement avec rayonnement infrarouge.
+**Voix** : Elle est générée principalement grâce à des centrales électriques.
 
-**Fonction** : Illustrate how the sensor detects with infrared waves.
+**Fonction** : Explain the primary role of power plants in electricity generation.
 
-**Élément pédagogique** : Red waves of infrared radiation moving from human figure to sensor.
+**Élément pédagogique** : turbines as the core of electricity generation
 
-**Intention de mouvement** : `energy_flow`
+**Intention de mouvement** : `mechanical_rotation`
 
 ### Ce que le spectateur doit comprendre
 
@@ -105,79 +105,79 @@ Les capteurs de mouvement émettent un signal infrarouge à travers la pièce.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : How infrared waves indicate human presence to the sensor.
-2. **physical element** : Infrared waves
-3. **secondary elements** : Human figure, motion sensor
-4. **visual behavior** : Red waves travelling toward the sensor
-5. **animation movement** : Infrared waves travelling from figure to sensor, triggering response in sensor
-6. **camera position** : Side view showing entire path of waves
-7. **composition** : Wide enough to capture both person and sensor
+1. **information** : The role of turbines in electricity generation
+2. **physical element** : The turbine unit
+3. **secondary elements** : Turbine blades and mechanical parts
+4. **visual behavior** : Spinning motion and small yellow energy flows
+5. **animation movement** : Gradual spinning of turbine blades
+6. **camera position** : Focused angle on the turbine section
+7. **composition** : Close-up, centering the turbines as the main subject
 
 ### Prompt image
 
 ```
-A close-up of a human figure standing in front of the motion sensor. Red waves representing infrared radiation emanate from the human figure toward the sensor. The camera captures the scene from the side to illustrate the interaction, with cinematic blue and white lighting enhancing the figure against a dark background. Materials are high-end, emphasizing realistic human skin and fabric texture. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A close-up semi-cutaway view focusing on internal turbines within an industrial power plant. The turbine blades and surrounding mechanisms are clearly visible. Turbine blades positioned centrally with intricate associated components. The environment remains a dark premium style with realistic industrial components and metallic materials. Cinematic lighting highlights moving turbine components. The camera angle is designed to emphasize the turbine's role in electricity creation. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Red infrared waves start emitting from the human figure, steadily building as they move toward the sensor. As the waves reach the sensor surface, internal components begin to glow in response to the arriving waves. The scene remains side-view as waves move purposefully.
+The turbine blades begin to spin slowly, building up speed gradually as a soft yellow energy flow starts to emerge, indicating the onset of electricity generation.
 ```
 
 ---
 
 ## Plan 03 — 4s
 
-**Voix** : Lorsqu'une source de chaleur se déplace, elle émet un rayonnement infrarouge.
+**Voix** : Ces centrales convertissent différentes formes d'énergie en électricité visible.
 
-**Fonction** : Show the interaction between infrared radiation and sensor components.
+**Fonction** : Show the conversion of different types of energy into electricity.
 
-**Élément pédagogique** : Infrared radiation entering the sensor.
+**Élément pédagogique** : conversion process represented by merging colored flows
 
 **Intention de mouvement** : `energy_transfer`
 
 ### Ce que le spectateur doit comprendre
 
-Quand quelque chose passe à travers le signal, cela cause une perturbation visible.
+que différentes formes d'énergie se transforment en électricité
 
-**L'action qui l'explique** : A person walks through the red infrared signal, and a yellow wave visibly disrupts the path of the signal.
+**L'action qui l'explique** : Colored arrows representing energy streams merge into a single yellow arrow emerging from the turbine.
 
-*Comprise sans le son : 0.8* — It visually represents the disruption caused by a person crossing the signal in the clearest and most direct manner, showing both cause and immediate effect.
+*Comprise sans le son : 0.8* — It directly visualizes multiple energies combining into electricity, a clear cause and effect with the turbine.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The response of sensor electronics to infrared radiation.
-2. **physical element** : Infrared waves interacting with electronics
-3. **secondary elements** : Sensor body, lit circuits
-4. **visual behavior** : Red waves enter and illuminate circuits
-5. **animation movement** : Infrared waves progressively move from figure to sensor circuits, causing them to light up
-6. **camera position** : Focused on sensor's interior
-7. **composition** : Showing inner components and infrared waves
+1. **information** : Different forms of energy combine and transform into electricity.
+2. **physical element** : Colored arrows merging into a yellow arrow at the turbine.
+3. **secondary elements** : Industrial hall environment, cinematic lighting to highlight flows.
+4. **visual behavior** : Arrows converge and transform as they pass through the turbine.
+5. **animation movement** : Energy flows move towards and transform in the turbine.
+6. **camera position** : Close angle focused on the merging point of energy flows.
+7. **composition** : Dynamic convergence with central turbine as focal point.
 
 ### Prompt image
 
 ```
-A semi-cutaway view of the motion sensor displaying both the infrared waves approaching and the internal electronic components reacting inside. Red waves visibly enter the sensor, lighting up specific circuits that react as electric signals form. Camera focuses on the sensor's interior with clear visibility of the radiation path. Materials include translucent plastic and metal, highlighting the realistic tech. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+In a dark premium industrial hall, a semi-cutaway view focuses on a turbine where colorful energy flows converge. Blue, grey, and green arrows clearly point toward the turbine, representing various incoming energies. As they merge into the turbine, a singular, vibrant yellow arrow emerges, symbolizing converted electricity. Cinematic blue and white lighting emphasizes the dramatic convergence and conversion process. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Red infrared waves progressively enter the sensor from the human figure's direction, flowing from the human figure into the sensor's circuits sequentially. As these waves deliver energy, circuits respond by glowing brighter, creating a cascading effect of illumination representing the signal formation process.
+Multiple colored energy flows, represented as blue, grey, and green arrows, move steadily and dynamically toward the central turbine. As they converge and spin through the turbine's components, they combine and transform into a bright yellow arrow that exits the generator, symbolizing the generation of electricity. The flows speed up as they reach the turbine, illustrating the active conversion process.
 ```
 
 ---
 
 ## Plan 04 — 4s
 
-**Voix** : Le capteur capte ce rayonnement et génère un signal électrique.
+**Voix** : Le mouvement mécanique entraîne des générateurs produisant un flux électrique.
 
-**Fonction** : Connect the detection with the generation of an electrical signal.
+**Fonction** : Explain the generator mechanism driven by mechanical energy.
 
-**Élément pédagogique** : Yellow electrical signal path formed inside the sensor.
+**Élément pédagogique** : generator mechanism accelerated by mechanical energy with electricity flow
 
-**Intention de mouvement** : `energy_flow`
+**Intention de mouvement** : `electromagnetic_rotation`
 
 ### Ce que le spectateur doit comprendre
 
@@ -189,37 +189,37 @@ Comment un capteur transforme une perturbation en signal électrique.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The transformation from infrared detection to an electrical signal.
-2. **physical element** : Electrical signal path
-3. **secondary elements** : Electronic circuitry
-4. **visual behavior** : Yellow signal paths forming and pulsing
-5. **animation movement** : Electrical signal forms and moves progressively, activating additional circuits
-6. **camera position** : Close-up on activated circuitry
-7. **composition** : Centered on signal path among circuits
+1. **information** : How mechanical energy drives the generator
+2. **physical element** : Generator rotor and linkages
+3. **secondary elements** : Stator and mechanical parts
+4. **visual behavior** : Rotor spinning and energy flow emerging
+5. **animation movement** : Rotor rapidly spins generating an energy flow
+6. **camera position** : Focused angle on rotor-stator interaction
+7. **composition** : Close-up showing the rotor's primary role
 
 ### Prompt image
 
 ```
-A close-up view inside the motion sensor with electronics reacting to the infrared wave. A yellow energy path visibly takes shape among illuminated components. The yellow path navigates through the connected circuitry, showcasing the electrical signal's journey. Camera positioned to focus on this internal process, capturing the detailed signal path among the components. Lighting comes from within the circuitry, emphasizing the activated paths. Materials include translucent plastic and metals. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A close-up semi-cutaway view of the generator's internal parts with visible rotor and stator components. Centrally positioned mechanical linkages and realistic metallic materials are highlighted. The environment remains a dark industrial hall, emphasizing a high-quality mechanical setup. Cinematic blue lighting enhances the focus on mechanical interactions. The camera's angle focuses centrally on rotor-stator interactions. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Yellow paths form as electrical signals through the components, progressively moving and intensifying. As the paths illuminate, the signal builds and channels through connections, activating additional circuits sequentially, while the camera moves subtly towards the heart of the circuitry to focus on this progression, showing the coordinated flow of electrical energy.
+The rotor inside the generator begins to spin gradually, driven by mechanical linkages, with its speed increasing. Yellow energy flows start to emerge, spiraling outwards, showing electricity production.
 ```
 
 ---
 
 ## Plan 05 — 4s
 
-**Voix** : Ce signal est ensuite traité pour déclencher divers appareils.
+**Voix** : Ces générateurs produisent un flux d'électricité qui est transporté.
 
-**Fonction** : Show how the electrical signal affects external devices.
+**Fonction** : Illustrate the generation and flow of electricity from the generator.
 
-**Élément pédagogique** : Yellow signal line leaving the sensor and reaching devices.
+**Élément pédagogique** : electricity flow beginning at generator as yellow arcs
 
-**Intention de mouvement** : `energy_transfer`
+**Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
@@ -231,66 +231,66 @@ Que le signal électrique est traité pour déclencher des appareils.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The electrical signal triggers devices to activate.
-2. **physical element** : Yellow signal lines that represent the electrical flow.
-3. **secondary elements** : Devices in the room lighting up in response to the signal.
-4. **visual behavior** : Signal lines extend and devices light up green.
-5. **animation movement** : Signal lines initially faint, then build in intensity as they travel and activate devices.
-6. **camera position** : Wide angle covering the entire scene, focusing on the progression of the signal flow.
-7. **composition** : The flow starts at the sensor, builds through the scene, concluding at activated devices, set within a coherent and realistic interior.
+1. **information** : Production and flow of electricity
+2. **physical element** : Generator and cables
+3. **secondary elements** : Electrical energy streams
+4. **visual behavior** : Energy flows that are visually dynamic
+5. **animation movement** : Energy starts at the generator and flows outward
+6. **camera position** : Wide angle to cover the energy flow path
+7. **composition** : Wide view to capture the starting point and path
 
 ### Prompt image
 
 ```
-A wide view capturing the motion sensor with yellow signal lines steadily extending from it toward various electronic devices in the room, such as lights and alarms, which then light up with a green indicator. The signal emerges from the sensor and progresses to each device sequentially, illustrating activation. The composition includes high-quality plastics and metals for sensor and connected devices, with the environment set as a dark premium interior, cinematic blue and white lighting highlighting the signal paths and device reactions. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A wide semi-cutaway view showing the generator initiating electrical flow through visible cables. The generator is positioned centrally, constructed with realistic industrial metallic materials, with yellow energy arcs flowing outward. The environment remains as a dark premium industrial backdrop. The cinematic lighting within the scene highlights the path of electricity. The camera is angled to show the trajectory of electricity, focusing on the generator's role. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The animation displays yellow signal lines actively extending from the sensor, beginning with a faint glow that builds in intensity as they travel towards various devices. When the signals reach a device, it activates, lighting up with a green response, illustrating a chain reaction that unfolds sequentially across the scene.
+Yellow electricity streams start gradually, building from the generator, flowing visibly through the cables. As the arcs travel, generator components rotate subtly, demonstrating mechanical involvement until the flow stabilizes.
 ```
 
 ---
 
 ## Plan 06 — 4s
 
-**Voix** : Ainsi, il allume les lumières ou active le système d'alarme.
+**Voix** : Ce flux est transporté efficacement jusqu'à nos maisons modernes.
 
-**Fonction** : Demonstrate the final outcomes triggered by the motion sensor.
+**Fonction** : Conclude with the delivery of electricity to homes.
 
-**Élément pédagogique** : Lighting and devices turning on as the ultimate effect.
+**Élément pédagogique** : electricity delivery represented by yellow flow towards a home
 
-**Intention de mouvement** : `cause_effect`
+**Intention de mouvement** : `energy_transfer`
 
 ### Ce que le spectateur doit comprendre
 
-Que l'activation du système illumine toute la pièce en déclenchant les lumières.
+L'électricité est efficacement transportée jusqu'à nos maisons modernes.
 
-**L'action qui l'explique** : A person's gesture triggers a red infrared beam from the sensor, resulting in blue electrical signals activating and lighting up the room.
+**L'action qui l'explique** : A yellow flow represents electricity traveling through a transmission line from an industrial setting to a residential home.
 
-*Comprise sans le son : 0.8* — This sequence directly shows the cause (gesture) and the immediate effect (room lighting), easily readable without sound.
+*Comprise sans le son : 0.8* — It effectively shows the continuous path of electricity delivery while maintaining the focus and context on screen.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The result of device activation triggered by the motion sensor.
-2. **physical element** : Activated devices
-3. **secondary elements** : Lighting, alarm indicators
-4. **visual behavior** : Lights and indicators turning on
-5. **animation movement** : Devices sequentially illuminate and emit sound, indicating activation
-6. **camera position** : Centered on activated devices
-7. **composition** : Focused on devices to show their activation
+1. **information** : The effective delivery of electricity to homes.
+2. **physical element** : The visible yellow stream traveling along wires.
+3. **secondary elements** : The presence of a model home lighting up and the visible industrial generator components.
+4. **visual behavior** : Electricity visibly flows through wires.
+5. **animation movement** : The electricity starts at the generator, progresses along the wires, and finishes illuminating the home.
+6. **camera position** : Positioned to capture both the industrial turbine and the target home, presenting a clear view of the electricity's path.
+7. **composition** : Wide angle ensuring the path's clarity, with emphasis on the movement from generator to home.
 
 ### Prompt image
 
 ```
-A close-up of room devices like lights and alarms being activated, with a focus on a green glow indicator showing their active state. Devices are positioned center-frame to show direct activation. Camera focuses on these devices while maintaining context with the initial trigger. Lighting enhances the illuminated status of devices using green indicators. Materials incorporate durable plastics and metals. Photorealistic premium 3D engineering visualization, the same modern dark near-black wall-mounted motion sensor, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal electronics clearly visible through it, dark premium interior environment, cinematic blue and white lighting, realistic detailed materials, physically credible optics and electronics, clearly visible infrared radiation and electronic components, cinematic depth of field, high contrast, premium high-end technology commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+In an expansive view, a distinct, continuous yellow stream of electricity emerges clearly from the modern dark near-black industrial turbine and generator unit, following a transmission line towards a brightly lit model home, situated within a blue-tinged, premium industrial hall environment. The lighting is cinematic, emphasizing the blue and white contrast while detailing realistic metallic materials and components throughout the industrial setup. The luminescence of the yellow flow enhances the visual clarity of the electricity's journey. Photorealistic premium 3D engineering visualization, the same modern dark near-black industrial turbine and generator unit, technical semi-cutaway where the explanation needs it, translucent ghosted casing with the internal rotor, coils and drive shaft clearly visible through it, dark premium industrial hall environment, cinematic blue and white lighting, realistic detailed materials, physically credible mechanics and electromagnetism, clearly visible magnetic field, electrical current and mechanical components, cinematic depth of field, high contrast, premium high-end industrial commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The lights and alarm indicators activate progressively in sequence, building upon the electrical signals they receive. As the green lights turn on, devices also emit a soft glow indicating full activation, accompanied by a faint buzzing sound to represent mechanical readiness.
+The yellow flow representing electricity begins at the generator, gradually extends along the transmission line towards the model home, steadily gaining intensity until it reaches and illuminates the home completely, signaling successful energy delivery.
 ```
 
 ---

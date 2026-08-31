@@ -1,1 +1,1 @@
-Le capteur capte ce rayonnement et génère un signal électrique.
+Le mouvement mécanique entraîne des générateurs produisant un flux électrique.
