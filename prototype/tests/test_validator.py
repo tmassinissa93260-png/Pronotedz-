@@ -498,6 +498,160 @@ class TestAlignementEtContinuite(unittest.TestCase):
         self.assertIn("PROGRESSION", codes(valider(raw)))
 
 
+class TestProgressionDansLeTemps(unittest.TestCase):
+    """Sans progression, le generateur rend un instant fige qui derive."""
+
+    def test_une_animation_sans_mot_de_progression(self):
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = (
+            ANIMATION.replace("progressively begins to rotate", "rotates")
+                     .replace("travelling continuously along", "travelling along"))
+        p = [x for x in valider(raw) if x.code == "TEMPS"]
+        self.assertTrue(p)
+        self.assertIn("progresse", str(p[0]))
+
+    def test_une_animation_qui_dit_sa_progression_passe(self):
+        self.assertEqual([x for x in valider(board()) if x.code == "TEMPS"], [])
+
+
+class TestDernierPlan(unittest.TestCase):
+    """Trois sujets de suite ont fini sur un plan de synthese, le plus faible."""
+
+    def test_le_dernier_plan_ne_resume_pas(self):
+        raw = board()
+        raw["shots"][-1]["educational_function"] = (
+            "récapituler la chaîne complète que le spectateur vient de voir")
+        p = [x for x in valider(raw) if x.code == "FINAL"]
+        self.assertTrue(p)
+        self.assertEqual(p[0].where, "shot_04")
+
+    def test_un_plan_intermediaire_qui_resume_ne_declenche_rien(self):
+        raw = board()
+        raw["shots"][0]["educational_function"] = "une vue d'ensemble du système"
+        self.assertEqual([x for x in valider(raw) if x.code == "FINAL"], [])
+
+
+class TestCodeCouleur(unittest.TestCase):
+    """Le code couleur est celui du SUJET, pas celui de la voiture."""
+
+    def test_aucun_code_couleur(self):
+        raw = board()
+        del raw["color_code"]
+        p = [x for x in valider(raw) if x.code == "COULEUR"]
+        self.assertIn("aucun code couleur", str(p[0]))
+        self.assertIn("color_code", p[0].fix)
+
+    def test_aucune_notion_mobile(self):
+        raw = board()
+        for entree in raw["color_code"]:
+            entree["moving"] = False
+        p = [x for x in valider(raw) if x.code == "COULEUR"]
+        self.assertTrue(any("se deplace" in x.message for x in p))
+
+    def test_un_phenomene_declare_et_jamais_montre(self):
+        raw = board()
+        raw["color_code"].append({"notion": "pression", "color": "red",
+                                  "meaning": "la pression de l'air", "moving": True})
+        p = [x for x in valider(raw) if x.code == "COULEUR"]
+        self.assertIn("pression", str(p[0]))
+
+    def test_une_couleur_d_identite_n_a_pas_a_etre_montree(self):
+        """« blue = batterie » ne bouge pas : rien ne le reclame."""
+        raw = board()
+        raw["color_code"].append({"notion": "carrosserie", "color": "violet",
+                                  "meaning": "la coque", "moving": False})
+        self.assertEqual([x for x in valider(raw) if x.code == "COULEUR"], [])
+
+    def test_le_code_du_sujet_remplace_celui_de_la_voiture(self):
+        """Un sujet dont le flux est rouge : plus aucune notion voiture."""
+        raw = board()
+        raw["color_code"] = [
+            {"notion": "flux", "color": "red", "meaning": "l'air comprimé",
+             "moving": True},
+            {"notion": "structure", "color": "grey", "meaning": "la carlingue",
+             "moving": False},
+            {"notion": "reacteur", "color": "blue", "meaning": "le moteur",
+             "moving": False},
+        ]
+        for shot in raw["shots"]:
+            shot["image_prompt"] = shot["image_prompt"].replace("yellow", "red")
+            shot["animation_prompt"] = shot["animation_prompt"].replace("yellow", "red")
+        self.assertEqual([x for x in valider(raw) if x.code == "COULEUR"], [])
+        self.assertEqual([x for x in valider(raw) if x.code == "GRAMMAIRE"], [])
+
+    def test_une_couleur_pour_deux_notions_est_refusee(self):
+        from app.models import StoryboardError
+        raw = board()
+        raw["color_code"].append({"notion": "chaleur", "color": "blue",
+                                  "meaning": "la chaleur", "moving": True})
+        with self.assertRaises(StoryboardError) as ctx:
+            Storyboard.from_dict(raw)
+        self.assertIn("deux notions", str(ctx.exception))
+
+
+class TestControleDesVideos(unittest.TestCase):
+    """Ce que la video montre vraiment, compare a ce que le plan demandait."""
+
+    def analyse(self, **over):
+        from app.models import VideoAnalysis
+        base = dict(
+            shot_id=1, measured_duration=4.0,
+            content="the battery pack, the copper busbars and the electric motor",
+            framing="macro, low angle",
+            movement="the yellow energy streams travel along the busbars and the "
+                     "rotor turns",
+            quality="sharp and stable",
+            voice_match="what is shown matches the narration",
+            pedagogical_elements=["yellow energy flow entering the stator windings"],
+            defects=[], matches_plan=True)
+        base.update(over)
+        return VideoAnalysis(**base)
+
+    def controle(self, **over):
+        sb = Storyboard.from_dict(board())
+        return validator.controler_videos(sb, {1: self.analyse(**over)})
+
+    def test_une_video_conforme_ne_leve_rien_sur_son_plan(self):
+        self.assertEqual([p for p in self.controle() if p.where == "shot_01"], [])
+
+    def test_une_video_non_conforme(self):
+        p = self.controle(matches_plan=False)
+        self.assertIn("VIDEO", [x.code for x in p if x.where == "shot_01"])
+
+    def test_seule_la_camera_bouge(self):
+        p = self.controle(movement="the camera slowly zooms in on the pack")
+        self.assertIn("MOUVEMENT", [x.code for x in p if x.where == "shot_01"])
+
+    def test_l_element_pedagogique_est_absent_de_l_ecran(self):
+        p = self.controle(content="a car driving on a road",
+                          movement="the car moves forward",
+                          pedagogical_elements=[])
+        self.assertIn("ELEMENT", [x.code for x in p if x.where == "shot_01"])
+
+    def test_un_ecart_de_duree(self):
+        p = self.controle(measured_duration=6.5)
+        self.assertIn("DUREE", [x.code for x in p if x.where == "shot_01"])
+
+    def test_none_observed_n_est_pas_un_defaut(self):
+        p = self.controle(defects=["None observed", "aucun"])
+        self.assertEqual([x for x in p if x.code == "DEFAUT"], [])
+
+    def test_un_vrai_defaut_est_signale(self):
+        p = self.controle(defects=["the rotor morphs into a second wheel"])
+        self.assertIn("DEFAUT", [x.code for x in p])
+
+    def test_une_video_absente(self):
+        sb = Storyboard.from_dict(board())
+        p = validator.controler_videos(sb, {})
+        self.assertEqual(len(p), 4)
+        self.assertTrue(all(x.code == "VIDEO" for x in p))
+
+    def test_les_plans_a_refaire(self):
+        p = self.controle(matches_plan=False)
+        self.assertEqual(validator.a_refaire(p),
+                         ["shot_01", "shot_02", "shot_03", "shot_04"])
+
+
 class TestDemandeDeCorrection(unittest.TestCase):
     def test_chaque_manquement_porte_sa_consigne(self):
         raw = board(n=3)

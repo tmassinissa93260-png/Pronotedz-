@@ -109,6 +109,10 @@ reach {shot_count}. Each one earns its place by advancing understanding, and
 "educational_function" says in one sentence what the viewer understands after
 it that they did not understand before. Two shots never claim the same
 function.
+THE LAST SHOT IS NEVER A SUMMARY. It carries the physical RESULT of everything
+explained before, happening on screen — the wheels finally turning, the
+aircraft leaving the ground. A recap shot has nothing left to animate, and it
+is always the weakest shot of a video. Never write one.
 Aim for {par_plan}s per shot, about {mots} French words of narration each; the
 durations must sum to EXACTLY {duration}. Give a link more seconds if it
 deserves them, and take those seconds from another shot.
@@ -135,9 +139,10 @@ contains them. Find the equivalent parts of your own subject and apply the
 same reasoning to them.
 
 ENERGY VISUALIZATION:
-Electricity is invisible in reality, therefore represent it consistently using
-luminous yellow/orange energy streams. The yellow/orange energy must behave
-like a directional animated flow:
+The phenomenon your narration explains is invisible in reality — electricity,
+a pressure, a signal, a force — therefore represent it consistently by a
+luminous coloured stream, in the colour you gave that notion in the colour
+code. That stream must behave like a directional animated flow:
   - clearly visible
   - moving continuously
   - following real electrical pathways
@@ -252,15 +257,18 @@ and under regenerative braking it runs the other way:
   wheels -> motor -> inverter -> battery
 Never describe a cycle, a loop or energy "circulating continuously through the
 whole car": that is scientifically false and it destroys the direction the
-viewer needs to read. A shot that summarises the whole chain animates the
-yellow/orange energy moving continuously in ONE clear direction from the
-battery to the wheels, then briefly shows the green regenerative flow moving
-the opposite way.
+viewer needs to read.
 
-── COLOUR CODE — one notion, one colour, stable throughout ──
-{color_block()}
+── COLOUR CODE — you write it, for YOUR subject ──
+Fill "color_code": between 3 and 6 entries, each with "notion" (what it means
+in YOUR subject), "color", "meaning" and "moving" — true only when the notion
+is an invisible phenomenon that TRAVELS, false for an identity colour that
+simply names a part. At least one notion must be moving.
 Never use a different colour for the same notion. Never reuse a colour for a
-different notion.
+different notion. Every notion you declare must be visible in at least one
+image prompt.
+Worked on the example subject, the electric car — yours will be different:
+{color_block()}
 
 ── VISUALISING THE INVISIBLE ──
 Electricity, current, magnetic field, energy, signal, power transfer, energy
@@ -298,6 +306,10 @@ End it with this sentence, copied VERBATIM:
 element moves, in which direction, at what speed, along what path; the
 mechanical motion; the energy motion; the camera motion; what stays perfectly
 still; the geometry to preserve; the deformations forbidden.
+It must also say how the movement PROGRESSES IN TIME — it starts somewhere, it
+builds, it arrives. Write that progression explicitly: "gradually", "steadily",
+"begins to", "building in intensity", "until". Without it the generator returns
+a frozen instant that merely drifts, instead of a scene that evolves.
 
 ── IMAGE → ANIMATION CORRESPONDENCE — non negotiable ──
 Every pedagogical element introduced in the image prompt MUST move in the
@@ -422,6 +434,9 @@ Return only this JSON:
   "duration_seconds": {duration},
   "shot_count": {shot_count},
   "script": "the full narration in French",
+  "color_code": [
+    {{"notion": "...", "color": "...", "meaning": "...", "moving": true}}
+  ],
   "visual_bible": {{
     "main_subject": "...", "characters_objects": "...", "vehicle": "...",
     "colors": "...", "environment": "...", "materials": "...",

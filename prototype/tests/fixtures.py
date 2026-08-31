@@ -92,6 +92,15 @@ def board(n=4, **over):
             "invisible_phenomena": "electrical energy shown as controlled yellow luminous "
                                    "streams travelling along the conductors",
         },
+        "color_code": [
+            {"notion": "energie", "color": "yellow/orange",
+             "meaning": "electrical energy travelling through the conductors",
+             "moving": True},
+            {"notion": "batterie", "color": "blue",
+             "meaning": "the battery pack and the electrical system", "moving": False},
+            {"notion": "mecanique", "color": "grey",
+             "meaning": "the mechanical structure and its components", "moving": False},
+        ],
         "shots": [shot(i) for i in range(1, n + 1)],
         "quality_check": {
             "narrative_quality": 0.92, "visual_quality": 0.9,

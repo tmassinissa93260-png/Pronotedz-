@@ -9,12 +9,16 @@
 #  te rend la main. Tu produis avec l'outil de ton choix, tu déposes les
 #  vidéos, et il analyse, cale la timeline, écrit les sous-titres et monte.
 #
-#  Trois étapes :
+#  Cinq étapes :
 #
-#    « storyboard »      → script, visual bible, 4 plans, prompts image ET
+#    « storyboard »      → script, visual bible, plans, prompts image ET
 #                          animation, contrôle qualité. Rien d'autre.
+#    « affiner-tout »    → tes IMAGES → chaque prompt d'animation réécrit sur
+#                          l'image réelle, et non plus sur une image imaginée.
 #    « analyser-videos » → les vidéos que TU as déposées → ce qu'elles
-#                          montrent vraiment, défauts compris.
+#                          montrent vraiment, défauts compris, et le verdict :
+#                          quels plans sont à refaire.
+#    « controle »        → le même verdict, sans réanalyser (aucun appel).
 #    « montage »         → timeline calée sur la voix, sous-titres, MP4.
 #
 #  Le storyboard n'est jamais accepté sur parole : validator.py le vérifie,
@@ -33,7 +37,9 @@ on:
         type: choice
         options:
           - storyboard
+          - affiner-tout
           - analyser-videos
+          - controle
           - montage
       sujet:
         description: "Le sujet de la vidéo"
@@ -89,10 +95,11 @@ jobs:
         run: pip install -r app/requirements.txt
 
       - name: Installer ffmpeg
-        if: inputs.etape != 'storyboard'
+        if: inputs.etape == 'analyser-videos' || inputs.etape == 'montage'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
 
       - name: Vérifier qu'un cerveau est disponible
+        if: inputs.etape != 'controle'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
@@ -120,6 +127,25 @@ jobs:
             --subject "${{ inputs.sujet }}" \
             --duration "${{ inputs.duree }}" \
             --shots "${{ inputs.plans }}"
+
+      - name: Réécrire les animations sur les images réelles
+        if: inputs.etape == 'affiner-tout'
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          OPENAI_VISION_MODEL: ${{ vars.OPENAI_VISION_MODEL || '' }}
+        run: |
+          if [ ! -d app/output/images ]; then
+            echo "::error::app/output/images absent."
+            echo "Dépose tes images (shot_01.png, shot_02.png, …) dans ce dossier,"
+            echo "commite-les dans la branche, puis relance cette étape."
+            exit 1
+          fi
+          python -m app.main affiner-tout
+
+      - name: Le verdict sur les vidéos, sans rien réanalyser
+        if: inputs.etape == 'controle'
+        run: python -m app.main controle || true
 
       - name: Analyser les vidéos déposées
         if: inputs.etape == 'analyser-videos'
@@ -151,6 +177,9 @@ jobs:
             echo
             if [ -f app/output/elements.md ]; then
               cat app/output/elements.md
+            fi
+            if [ -f app/output/controle_videos.md ]; then
+              cat app/output/controle_videos.md
             fi
             if [ -f app/output/timeline.json ]; then
               echo "### Timeline"
@@ -186,6 +215,8 @@ jobs:
           # littéral absent resterait dans la liste et ferait échouer git add.
           candidats=(app/output/project.json app/output/elements.md
                      app/output/timeline.json app/output/sous_titres.srt
+                     app/output/controle_videos.md
+                     app/output/shots/*/image_analysis.json
                      app/output/shots/*/image_prompt.txt
                      app/output/shots/*/animation_prompt.txt
                      app/output/shots/*/voice.txt

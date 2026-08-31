@@ -92,6 +92,9 @@ PROJECT_FILE = OUTPUT_DIR / "project.json"
 STATUS_FILE = OUTPUT_DIR / "status.json"
 PASTE_SHEET = OUTPUT_DIR / "prompts_a_coller.txt"
 SHOTS_DIR = OUTPUT_DIR / "shots"
+# L'utilisateur depose ici les IMAGES qu'il a produites lui-meme, avant de les
+# animer : c'est a partir d'elles que les prompts d'animation sont reecrits.
+IMAGES_DIR = Path(env("IMAGES_DIR") or OUTPUT_DIR / "images")
 # L'utilisateur depose ici les videos qu'il a produites lui-meme.
 VIDEOS_DIR = Path(env("VIDEOS_DIR") or OUTPUT_DIR / "videos")
 ELEMENTS_FILE = OUTPUT_DIR / "elements.md"
@@ -107,7 +110,7 @@ def shot_dir(shot_id: int) -> Path:
     return SHOTS_DIR / f"shot_{shot_id:02d}"
 
 def ensure_dirs(shot_count: int = SHOT_COUNT) -> None:
-    for path in (OUTPUT_DIR, SHOTS_DIR, SCREENSHOT_DIR):
+    for path in (OUTPUT_DIR, SHOTS_DIR, SCREENSHOT_DIR, IMAGES_DIR):
         path.mkdir(parents=True, exist_ok=True)
     for i in range(1, shot_count + 1):
         shot_dir(i).mkdir(parents=True, exist_ok=True)

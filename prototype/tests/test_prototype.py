@@ -105,6 +105,99 @@ class TestCodeCouleur(unittest.TestCase):
             self.assertIn(notion.upper(), texte)
 
 
+class TestCodeCouleurDuSujet(unittest.TestCase):
+    """Le code couleur vient du sujet ; la table voiture n'est que le defaut."""
+
+    def test_un_ancien_fichier_sans_code_retombe_sur_le_defaut(self):
+        from app.models import DEFAULT_COLOR_CODE
+
+        raw = board()
+        del raw["color_code"]
+        sb = Storyboard.from_dict(raw)
+        self.assertEqual(sb.color_code, [])
+        self.assertEqual(sb.code_couleur(), DEFAULT_COLOR_CODE)
+        self.assertEqual(sb.notion_par_couleur()["yellow"], "energie")
+
+    def test_le_code_du_sujet_est_celui_qui_sert(self):
+        raw = board()
+        raw["color_code"] = [
+            {"notion": "flux", "color": "red/crimson", "meaning": "l'air",
+             "moving": True},
+            {"notion": "carlingue", "color": "grey", "meaning": "la structure",
+             "moving": False},
+            {"notion": "reacteur", "color": "blue", "meaning": "le moteur",
+             "moving": False},
+        ]
+        sb = Storyboard.from_dict(raw)
+        self.assertEqual(sb.notion_par_couleur()["crimson"], "flux")
+        self.assertNotIn("yellow", sb.notion_par_couleur())
+        self.assertEqual(sb.notions_mobiles(), ("flux",))
+
+    def test_le_prompt_demande_le_code_au_lieu_de_l_imposer(self):
+        texte = prompts.storyboard_user("Sujet", 16, 4)
+        self.assertIn('"color_code"', texte)
+        self.assertIn("for YOUR subject", texte)
+
+    def test_un_champ_vide_est_refuse(self):
+        from app.models import StoryboardError
+
+        raw = board()
+        raw["color_code"][0]["color"] = ""
+        with self.assertRaises(StoryboardError) as ctx:
+            Storyboard.from_dict(raw)
+        self.assertIn("color", str(ctx.exception))
+
+
+class TestImagesDeposees(unittest.TestCase):
+    """Les images produites par l'utilisateur, ou qu'il les pose."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        from app import config
+
+        self.config = config
+        garde = (config.OUTPUT_DIR, config.IMAGES_DIR, config.SHOTS_DIR)
+        racine = Path(self._tmp.name)
+        config.OUTPUT_DIR = racine
+        config.IMAGES_DIR = racine / "images"
+        config.SHOTS_DIR = racine / "shots"
+        config.IMAGES_DIR.mkdir()
+
+        def restaurer():
+            (config.OUTPUT_DIR, config.IMAGES_DIR, config.SHOTS_DIR) = garde
+
+        self.addCleanup(restaurer)
+        self.sb = Storyboard.from_dict(board())
+
+    def trouver(self):
+        from app.main import trouver_images
+
+        return trouver_images(self.sb)
+
+    def test_aucune_image(self):
+        self.assertEqual(self.trouver(), {})
+
+    def test_dans_le_dossier_images(self):
+        for nom in ("shot_01.png", "02.jpg", "3.webp"):
+            (self.config.IMAGES_DIR / nom).write_bytes(b"x")
+        self.assertEqual(sorted(self.trouver()), [1, 2, 3])
+
+    def test_directement_dans_le_dossier_du_plan(self):
+        d = self.config.shot_dir(4)
+        d.mkdir(parents=True)
+        (d / "image.png").write_bytes(b"x")
+        self.assertEqual(list(self.trouver()), [4])
+
+    def test_le_dossier_images_a_la_priorite(self):
+        d = self.config.shot_dir(1)
+        d.mkdir(parents=True)
+        (d / "image.png").write_bytes(b"x")
+        attendu = self.config.IMAGES_DIR / "shot_01.png"
+        attendu.write_bytes(b"x")
+        self.assertEqual(self.trouver()[1], attendu)
+
+
 class TestConditionsDuPrompt(unittest.TestCase):
     def setUp(self):
         self.texte = prompts.storyboard_user("Fonctionnement d'une voiture électrique", 16, 4)
@@ -407,6 +500,11 @@ class TestElements(unittest.TestCase):
             self.assertIn(s.visual_concept, texte)
             self.assertIn(f"`{s.motion_intent}`", texte)
         self.assertIn("Ce que tu fais maintenant", texte)
+        self.assertIn("## Code couleur", texte)
+        for entree in sb.code_couleur():
+            self.assertIn(entree.notion, texte)
+        # L'etape qui reecrit les animations sur les images reelles.
+        self.assertIn("affiner-tout", texte)
 
     def test_chaque_plan_a_ses_fichiers(self):
         from app.main import ecrire_elements

@@ -9,7 +9,14 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from .models import COLOR_NOTION, EXPLICATION_FIELDS, NOTIONS_EN_MOUVEMENT, QUALITY_AXES, Storyboard
+from .models import (
+    COLOR_NOTION,
+    EXPLICATION_FIELDS,
+    MAX_COLOR_NOTIONS,
+    MIN_COLOR_NOTIONS,
+    QUALITY_AXES,
+    Storyboard,
+)
 from .prompts import STYLE_FINGERPRINT, STYLE_PAR_DEFAUT
 
 MIN_WORDS_PER_SECOND = 1.8
@@ -93,6 +100,20 @@ LIAISON = ("as ", "then", "which", "causing", "so that", "in turn", "powered by"
 DIRECTION = ("toward", "towards", "into", "out of", "from", "back to", "along",
              "through", "up to", "down to", "reverses", "reversing", "outward",
              "inward", "forward", "returns", "leaving", "entering")
+
+# PROGRESSION DANS LE TEMPS : sans elle le generateur rend un instant fige qui
+# derive, pas une scene qui evolue. C'est ce que reclament tous les guides
+# image-to-video, et c'est ce qui manquait a nos prompts.
+PROGRESSION = ("gradual", "progressiv", "slowly", "steadily", "building",
+               "builds", "increasingly", "accelerat", "decelerat", "begins to",
+               "starts to", "continuously", "over the course", "one after",
+               "finally", "until", "little by little")
+
+# Un dernier plan qui RESUME n'a plus rien a animer. Trois sujets de suite ont
+# fini sur un plan de synthese, et c'etait a chaque fois le plan le plus faible.
+RESUME = ("résum", "resum", "synthès", "synthes", "récapitul", "recapitul",
+          "bilan", "vue d'ensemble", "summar", "overview", "recap", "wrap up",
+          "to conclude", "conclusion")
 
 # Mouvements de camera : ils ne comptent pas comme mouvement pedagogique.
 CAMERA = ("camera", "zoom", "dolly", "pan", "tilt", "orbit", "push in", "pull out",
@@ -221,6 +242,9 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _ancrage(sb)
     problems += _dynamique(sb)
     problems += _physique(sb)
+    problems += _temporel(sb)
+    problems += _dernier_plan(sb)
+    problems += _code_couleur(sb)
     problems += _qualite(sb)
     return problems
 
@@ -426,7 +450,7 @@ def _normalise(texte: str) -> str:
 # --- LA REGLE CENTRALE : grammaire visuelle et correspondance ---------------
 
 
-def notions_pedagogiques(texte: str) -> set[str]:
+def notions_pedagogiques(texte: str, table: dict[str, str] | None = None) -> set[str]:
     """Les NOTIONS du code couleur portees par le texte.
 
     On raisonne en notions et pas en teintes : l'energie electrique est
@@ -438,10 +462,12 @@ def notions_pedagogiques(texte: str) -> set[str]:
     """
     bas = texte.lower()
     trouvees = set()
-    for couleur, notion in COLOR_NOTION.items():
+    for couleur, notion in (table or COLOR_NOTION).items():
         if notion in trouvees:
             continue
-        for m in re.finditer(re.escape(couleur), bas):
+        # Mot entier : « credible » contient « red », et le code couleur d'un
+        # autre sujet peut nommer n'importe quelle teinte.
+        for m in re.finditer(rf"\b{re.escape(couleur)}\b", bas):
             apres = bas[m.end():m.end() + 40]
             premier_ambiance = min((apres.find(a) for a in AMBIANCE
                                     if a in apres), default=-1)
@@ -468,11 +494,12 @@ def _mouvement_non_camera(texte: str) -> bool:
 def _grammaire_visuelle(sb: Storyboard) -> list[Problem]:
     """Un phenomene invisible nomme par la voix doit etre rendu visible."""
     out = []
+    table = sb.notion_par_couleur()
     for s in sb.shots:
         parle_invisible = any(mot in s.voice.lower() for mot in
                               ("énergie", "energie", "électricité", "electricite", "courant",
                                "champ", "signal", "puissance", "chaleur", "récupér", "recuper"))
-        if parle_invisible and not notions_pedagogiques(s.image_prompt):
+        if parle_invisible and not notions_pedagogiques(s.image_prompt, table):
             out.append(Problem("GRAMMAIRE", s.slug,
                                "la voix nomme un phenomene invisible, "
                                "aucune representation coloree dans le prompt photo",
@@ -486,13 +513,15 @@ def _grammaire_visuelle(sb: Storyboard) -> list[Problem]:
 def _correspondance(sb: Storyboard) -> list[Problem]:
     """Ce que l'image introduit, l'animation doit le faire bouger."""
     out = []
+    table = sb.notion_par_couleur()
+    mobiles_du_sujet = set(sb.notions_mobiles())
     for s in sb.shots:
         image, anim = own_part(s.image_prompt), s.animation_prompt
         bas_anim = anim.lower()
 
-        notions_image = notions_pedagogiques(image)
-        mobiles = notions_image & set(NOTIONS_EN_MOUVEMENT)
-        perdues = mobiles - notions_pedagogiques(anim)
+        notions_image = notions_pedagogiques(image, table)
+        mobiles = notions_image & mobiles_du_sujet
+        perdues = mobiles - notions_pedagogiques(anim, table)
         if perdues:
             out.append(Problem("CORRESPONDANCE", s.slug,
                                f"l'image introduit une representation « {', '.join(sorted(perdues))} », "
@@ -503,13 +532,14 @@ def _correspondance(sb: Storyboard) -> list[Problem]:
                                f"move the camera."))
 
         # LE FLUX N'EST JAMAIS STATIQUE : il doit aller quelque part.
-        if "energie" in notions_image and not any(d in bas_anim for d in DIRECTION):
+        if (notions_image & mobiles_du_sujet) and not any(d in bas_anim for d in DIRECTION):
             out.append(Problem("FLUX", s.slug,
-                               "le flux d'energie n'a pas de direction lisible dans l'animation",
-                               f"Shot {s.id}: the energy flow must never be static. State where "
-                               f"it comes from and where it goes — for example from the battery "
-                               f"toward the motor windings — so the viewer reads the direction "
-                               f"of the transfer."))
+                               "le phenomene mobile n'a pas de direction lisible "
+                               "dans l'animation",
+                               f"Shot {s.id}: the flow must never be static. State where it "
+                               f"comes from and where it goes — from which component toward "
+                               f"which other one — so the viewer reads the direction of the "
+                               f"transfer."))
 
         if not _mouvement_non_camera(anim):
             out.append(Problem("CORRESPONDANCE", s.slug,
@@ -731,10 +761,9 @@ def _physique(sb: Storyboard) -> list[Problem]:
                                    f"Shot {s.id}: energy does not run in a loop. In normal "
                                    f"operation it goes one way — battery, inverter, motor, "
                                    f"transmission, wheels — and regenerative braking runs it "
-                                   f"back the other way. State ONE clear direction; if the "
-                                   f"shot summarises the whole chain, animate the "
-                                   f"yellow/orange energy from the battery to the wheels, "
-                                   f"then briefly the green flow the opposite way."))
+                                   f"back the other way. State ONE clear direction for "
+                                   f"this shot, and follow it from where the phenomenon "
+                                   f"starts to where it arrives."))
 
             decoratifs = [d for d in DECORATIF if d in bas]
             if decoratifs:
@@ -763,6 +792,82 @@ def _physique(sb: Storyboard) -> list[Problem]:
     return out
 
 
+def _temporel(sb: Storyboard) -> list[Problem]:
+    """L'animation doit dire comment le mouvement progresse dans le temps."""
+    out = []
+    for s in sb.shots:
+        if not any(mot in s.animation_prompt.lower() for mot in PROGRESSION):
+            out.append(Problem("TEMPS", s.slug,
+                               "l'animation ne dit pas comment le mouvement progresse "
+                               "dans le temps",
+                               f"Shot {s.id}: say how the movement progresses over the "
+                               f"shot — where it starts, how it builds, where it arrives. "
+                               f"Use explicit temporal wording: 'gradually', 'steadily', "
+                               f"'begins to', 'building in intensity', 'until'. Without it "
+                               f"the generator returns a frozen instant that drifts."))
+    return out
+
+
+def _dernier_plan(sb: Storyboard) -> list[Problem]:
+    """Le dernier plan porte le resultat physique, il ne resume pas."""
+    if not sb.shots:
+        return []
+    dernier = sb.shots[-1]
+    texte = f"{dernier.educational_function} {dernier.visual_concept}".lower()
+    mots = [m for m in RESUME if m in texte]
+    if not mots:
+        return []
+    return [Problem("FINAL", dernier.slug,
+                    f"le dernier plan est un plan de synthese (« {mots[0]} »)",
+                    f"Shot {dernier.id} is the last one: it must NOT summarise. Give it "
+                    f"the physical RESULT of everything explained before, happening on "
+                    f"screen — the thing the whole video was building towards, finally "
+                    f"moving. A recap shot has nothing left to animate.")]
+
+
+def _code_couleur(sb: Storyboard) -> list[Problem]:
+    """Le code couleur doit etre celui du SUJET, pas celui de la voiture."""
+    consigne = ("Return a \"color_code\" array beside the visual bible: between "
+                f"{MIN_COLOR_NOTIONS} and {MAX_COLOR_NOTIONS} entries, each with "
+                "\"notion\" (what it means IN YOUR subject), \"color\", \"meaning\" "
+                "and \"moving\" (true only when the notion is an invisible phenomenon "
+                "that travels). At least one notion must be moving.")
+
+    if not sb.color_code:
+        return [Problem("COULEUR", "storyboard", "aucun code couleur propre au sujet",
+                        consigne)]
+
+    out = []
+    if not MIN_COLOR_NOTIONS <= len(sb.color_code) <= MAX_COLOR_NOTIONS:
+        out.append(Problem("COULEUR", "storyboard",
+                           f"{len(sb.color_code)} notion(s) de couleur",
+                           consigne))
+    if not sb.notions_mobiles():
+        out.append(Problem("COULEUR", "storyboard",
+                           "aucune notion ne represente un phenomene qui se deplace",
+                           "At least one colour notion must have \"moving\": true — the "
+                           "invisible phenomenon the narration explains and the animation "
+                           "makes travel. A pure identity colour never moves."))
+
+    # Seules les notions MOBILES sont verifiees a l'usage : une couleur
+    # d'identite est fixee par la visual bible, elle n'a pas a etre nommee
+    # comme phenomene dans chaque prompt. Chercher sa teinte au hasard du
+    # texte ferait matcher le « blue » de la direction artistique.
+    table = sb.notion_par_couleur()
+    jamais = [e.notion for e in sb.color_code if e.moving
+              and not any(e.notion in notions_pedagogiques(own_part(s.image_prompt), table)
+                          for s in sb.shots)]
+    if jamais:
+        out.append(Problem("COULEUR", "storyboard",
+                           f"phenomene(s) declare(s) et jamais montre(s) : "
+                           f"{', '.join(jamais)}",
+                           f"The colour code declares {', '.join(jamais)} as a moving "
+                           f"phenomenon, but no image prompt ever makes it visible. Either "
+                           f"show it, with its colour, in at least one shot, or remove it "
+                           f"from color_code."))
+    return out
+
+
 def _qualite(sb: Storyboard) -> list[Problem]:
     out = []
     for axe in QUALITY_AXES:
@@ -778,6 +883,90 @@ def _qualite(sb: Storyboard) -> list[Problem]:
                                f"Rework the storyboard until {axe} honestly reaches "
                                f"{MIN_QUALITY}, then re-score."))
     return out
+
+
+# ---------------------------------------------------------------------------
+# CONTROLE DE CE QUI A ETE REELLEMENT PRODUIT
+#
+# Jusqu'ici rien ne mesurait le resultat : les videos etaient analysees, et
+# l'analyse restait sur le disque. Ces controles-la comparent ce que la video
+# MONTRE a ce que le plan DEMANDAIT, et disent quels plans sont a refaire.
+#
+# Leur « fix » s'adresse a l'utilisateur, pas a OpenAI : il est en francais.
+# ---------------------------------------------------------------------------
+
+VIDEO_TOLERANCE_S = 1.0
+
+# « None observed », « no defects » : le modele remplit la liste meme quand il
+# n'a rien a signaler. Ce ne sont pas des defauts.
+NON_DEFAUTS = ("none", "no defect", "no visible", "nothing", "aucun", "n/a", "rien")
+MOTS_VIDES = ("the", "and", "with", "that", "from", "into", "toward", "towards",
+              "along", "through", "this", "their", "its", "for", "onto", "over",
+              "under", "between", "which", "what", "when", "then", "than",
+              "each", "every", "some", "very", "more", "most", "being")
+
+
+def mots_du_concept(concept: str) -> list[str]:
+    """Les mots qui portent vraiment l'element pedagogique."""
+    return [m for m in re.findall(r"[a-z]+", concept.lower())
+            if len(m) > 3 and m not in MOTS_VIDES]
+
+
+def controler_videos(sb: Storyboard, analyses: dict) -> list[Problem]:
+    """Ce que la video montre vraiment, compare a ce que le plan demandait."""
+    out: list[Problem] = []
+    for s in sb.shots:
+        analyse = analyses.get(s.id)
+        if analyse is None:
+            out.append(Problem("VIDEO", s.slug, "aucune analyse",
+                               "Dépose la vidéo de ce plan, puis relance "
+                               "`analyser-videos`."))
+            continue
+
+        if not analyse.matches_plan:
+            out.append(Problem("VIDEO", s.slug,
+                               "la vidéo ne fait pas ce que le plan demandait",
+                               f"À refaire. Ce qui a été constaté : "
+                               f"{analyse.voice_match}"))
+
+        vu = " ".join([analyse.content, analyse.movement,
+                       " ".join(analyse.pedagogical_elements)]).lower()
+        attendus = mots_du_concept(s.visual_concept)
+        absents = [m for m in attendus if not _mot_present(m, vu)]
+        if attendus and len(absents) > len(attendus) / 2:
+            out.append(Problem("ELEMENT", s.slug,
+                               f"l'élément pédagogique n'est pas lisible à l'écran "
+                               f"({', '.join(absents[:4])})",
+                               f"À refaire : ce plan doit montrer « {s.visual_concept} ». "
+                               f"La vidéo montre : {analyse.content}"))
+
+        if not _mouvement_non_camera(analyse.movement):
+            out.append(Problem("MOUVEMENT", s.slug,
+                               "rien ne bouge dans le monde, seule la caméra",
+                               f"À refaire : le prompt d'animation demandait un mouvement "
+                               f"physique. Ce qui bouge réellement : {analyse.movement}"))
+
+        ecart = abs(analyse.measured_duration - s.duration_seconds)
+        if analyse.measured_duration and ecart > VIDEO_TOLERANCE_S:
+            out.append(Problem("DUREE", s.slug,
+                               f"{analyse.measured_duration:g}s au lieu de "
+                               f"{s.duration_seconds:g}s",
+                               "Le montage recadrera, mais un écart d'une seconde se voit. "
+                               "Régénère la vidéo à la bonne durée si tu peux."))
+
+        for defaut in analyse.defects:
+            if defaut.strip().lower().startswith(NON_DEFAUTS):
+                continue
+            out.append(Problem("DEFAUT", s.slug, defaut,
+                               "Relance la génération de ce plan : ce défaut se verra "
+                               "au montage."))
+    return out
+
+
+def a_refaire(problems: list[Problem]) -> list[str]:
+    """Les plans dont au moins un controle est bloquant."""
+    bloquants = ("VIDEO", "ELEMENT", "MOUVEMENT")
+    return sorted({p.where for p in problems if p.code in bloquants})
 
 
 # ---------------------------------------------------------------------------

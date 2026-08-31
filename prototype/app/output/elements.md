@@ -22,6 +22,15 @@ Un avion décolle grâce à la poussée créée par ses moteurs. Les moteurs asp
 - **realism** : très élevé avec détails précis
 - **invisible phenomena** : flux d'air représentés par des flèches lumineuses
 
+## Code couleur
+
+Une notion, une couleur, la même du début à la fin.
+
+- **yellow/orange** = energie — électricité, courant, flux d'énergie — jaune/orange lumineux  *(se déplace)*
+- **blue** = batterie — batterie, système électrique, technologie — bleu
+- **green** = recuperation — énergie récupérée, efficacité, recharge — vert  *(se déplace)*
+- **grey** = mecanique — mécanique, structure, composants — gris
+
 ## Contrôle qualité
 
 - narrative quality : 0.9
@@ -241,6 +250,8 @@ Bright blue and green arrows illustrate the forces of lift and thrust as the air
 ## Ce que tu fais maintenant
 
 1. Génère chaque **image** avec l'outil de ton choix, à partir du prompt image.
-2. Génère chaque **animation** à partir de ton image, avec le prompt animation.
-3. Dépose les vidéos dans `/home/runner/work/Pronotedz-/Pronotedz-/prototype/app/output/videos` nommées `shot_01.mp4`, `shot_02.mp4`…
-4. Reviens : `analyser-videos`, puis `timeline`, puis `montage`.
+2. Dépose les images dans `app/output/images` nommées `shot_01.png`, `shot_02.png`…
+3. Lance `affiner-tout` : chaque prompt d'animation est réécrit sur ton image réelle, et non plus sur une image imaginée. **Les prompts ci-dessus sont alors remplacés** — reviens les lire ici.
+4. Génère chaque **animation** à partir de ton image, avec le prompt animation.
+5. Dépose les vidéos dans `app/output/videos` nommées `shot_01.mp4`, `shot_02.mp4`…
+6. Reviens : `analyser-videos`, puis `timeline`, puis `montage`.

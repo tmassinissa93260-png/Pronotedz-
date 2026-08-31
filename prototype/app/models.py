@@ -7,6 +7,7 @@ Tout ce qu'OpenAI doit rendre est decrit ici, et nulle part ailleurs.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
@@ -61,6 +62,59 @@ NOTION_SENS = {
     "recuperation": "énergie récupérée, efficacité, recharge — vert",
     "mecanique": "mécanique, structure, composants — gris",
 }
+
+# ---------------------------------------------------------------------------
+# CODE COULEUR PROPRE AU SUJET
+#
+# La table ci-dessus est celle d'une voiture electrique. Sur un avion, « vert
+# = recuperation » ne veut rien dire. Le modele produit donc SON code couleur
+# en meme temps que la visual bible, et les controles lisent celui-la. La
+# table figee reste le defaut : un ancien project.json continue de s'ouvrir.
+# ---------------------------------------------------------------------------
+
+COLOR_CODE_FIELDS = ("notion", "color", "meaning")
+
+MIN_COLOR_NOTIONS = 3
+MAX_COLOR_NOTIONS = 6
+
+
+@dataclass
+class ColorEntry:
+    notion: str
+    color: str
+    meaning: str
+    moving: bool
+
+    @property
+    def couleurs(self) -> tuple[str, ...]:
+        """« yellow/orange » -> ('yellow', 'orange')."""
+        return tuple(c for c in re.split(r"[^a-z]+", self.color.lower()) if c)
+
+    @classmethod
+    def from_dict(cls, index: int, raw: object) -> ColorEntry:
+        label = f"color_code #{index + 1}"
+        if not isinstance(raw, dict):
+            raise StoryboardError(f"{label} : doit etre un objet JSON")
+        vides = [f for f in COLOR_CODE_FIELDS if not str(raw.get(f) or "").strip()]
+        if vides:
+            raise StoryboardError(f"{label} : champ(s) vide(s) : {', '.join(vides)}")
+        entree = cls(notion=str(raw["notion"]).strip().lower(),
+                     color=str(raw["color"]).strip().lower(),
+                     meaning=str(raw["meaning"]).strip(),
+                     moving=bool(raw.get("moving", False)))
+        if not entree.couleurs:
+            raise StoryboardError(f"{label} : 'color' ne nomme aucune couleur")
+        return entree
+
+
+DEFAULT_COLOR_CODE = tuple(
+    ColorEntry(notion=notion,
+               color="/".join(c for c, n in COLOR_NOTION.items()
+                              if n == notion and c != "gray"),
+               meaning=sens,
+               moving=notion in NOTIONS_EN_MOUVEMENT)
+    for notion, sens in NOTION_SENS.items()
+)
 
 VISUAL_BIBLE_FIELDS = (
     "main_subject",
@@ -216,10 +270,30 @@ class Storyboard:
     visual_bible: VisualBible
     shots: list[Shot] = field(default_factory=list)
     quality_check: dict = field(default_factory=dict)
+    color_code: list[ColorEntry] = field(default_factory=list)
 
     @property
     def total_duration(self) -> float:
         return round(sum(s.duration_seconds for s in self.shots), 3)
+
+    def code_couleur(self) -> tuple[ColorEntry, ...]:
+        """Le code du sujet, ou celui de la voiture si le fichier est ancien."""
+        return tuple(self.color_code) or DEFAULT_COLOR_CODE
+
+    def notion_par_couleur(self) -> dict[str, str]:
+        table: dict[str, str] = {}
+        for entree in self.code_couleur():
+            for couleur in entree.couleurs:
+                table.setdefault(couleur, entree.notion)
+        return table
+
+    def notions_mobiles(self) -> tuple[str, ...]:
+        """Les notions qui representent un phenomene qui SE DEPLACE.
+
+        Une couleur d'identite — la batterie est bleue — n'a pas a bouger ;
+        exiger qu'un gris se deplace n'aurait aucun sens.
+        """
+        return tuple(e.notion for e in self.code_couleur() if e.moving)
 
     def shot(self, shot_id: int) -> Shot:
         for s in self.shots:
@@ -271,6 +345,7 @@ class Storyboard:
             visual_bible=VisualBible.from_dict(raw.get("visual_bible")),
             shots=[Shot.from_dict(i, s) for i, s in enumerate(shots_raw)],
             quality_check={a: _nombre(qualite.get(a), f"quality_check.{a}") for a in QUALITY_AXES},
+            color_code=_code_couleur(raw.get("color_code")),
         )
 
 
@@ -320,6 +395,32 @@ class VideoAnalysis:
 
 
 # ---------------------------------------------------------------------------
+
+
+def _code_couleur(raw: object) -> list[ColorEntry]:
+    """Absent = ancien fichier : on retombera sur DEFAULT_COLOR_CODE.
+
+    Present mais incoherent = erreur de contrat, corrigee par la boucle.
+    """
+    if raw is None:
+        return []
+    if not isinstance(raw, list) or not raw:
+        raise StoryboardError("'color_code' doit etre une liste non vide")
+    entrees = [ColorEntry.from_dict(i, e) for i, e in enumerate(raw)]
+
+    vues: dict[str, str] = {}
+    for entree in entrees:
+        for couleur in entree.couleurs:
+            if vues.get(couleur, entree.notion) != entree.notion:
+                raise StoryboardError(
+                    f"color_code : « {couleur} » porte deux notions "
+                    f"(« {vues[couleur]} » et « {entree.notion} »)")
+            vues[couleur] = entree.notion
+
+    notions = [e.notion for e in entrees]
+    if len(set(notions)) != len(notions):
+        raise StoryboardError("color_code : deux entrees portent la meme notion")
+    return entrees
 
 
 def _nombre(valeur: object, label: str) -> float:
