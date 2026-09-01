@@ -26,10 +26,12 @@ SCRIPT = (
 
 def reponse(**over):
     base = {
-        "chain": ["la vapeur pousse les aubes",
+        "chain": ["une centrale déplace des charges, elle n'en crée pas",
+                  "la vapeur pousse les aubes",
                   "l'arbre entraîne le rotor aimanté",
                   "les aimants balaient les bobines",
-                  "le courant part vers les lignes"],
+                  "le courant naît dans les bobines",
+                  "les lignes le portent jusqu'à la prise"],
         "openings": [
             {"sentence": OUVERTURE, "why_it_holds": "ça contredit ce qu'on croit"},
             {"sentence": "Regarde ta prise : d'où vient ce courant ?",
@@ -41,11 +43,11 @@ def reponse(**over):
         "why_chosen": "elle démonte une croyance dès la première seconde",
         "script": SCRIPT,
         "objections": [
-            {"sentence": p,
-             "checks_out": "un maillon de la chaîne : une différence de pression "
-                           "de part et d'autre de l'aube produit une force",
+            {"sentence": p, "link": n,
+             "checks_out": "une différence de pression de part et d'autre de "
+                           "l'aube produit une force",
              "objection": "aucune", "fix": "rien à changer"}
-            for p in validator.phrases(SCRIPT)
+            for n, p in enumerate(validator.phrases(SCRIPT), start=1)
         ],
     }
     base.update(over)
@@ -56,7 +58,7 @@ class TestForme(unittest.TestCase):
     def test_une_reponse_complete_passe(self):
         texte = redacteur._normaliser(reponse())
         self.assertEqual(len(texte["openings"]), 3)
-        self.assertEqual(len(texte["chain"]), 4)
+        self.assertEqual(len(texte["chain"]), 6)
 
     def test_une_seule_ouverture_n_est_pas_un_choix(self):
         with self.assertRaises(OpenAIError) as ctx:
@@ -69,6 +71,20 @@ class TestForme(unittest.TestCase):
             redacteur._normaliser(reponse(chain=["ça produit du courant"]))
         self.assertIn("chaine", str(ctx.exception))
 
+    def test_un_maillon_qui_n_existe_pas(self):
+        objections = [dict(o) for o in reponse()["objections"]]
+        objections[0]["link"] = 99
+        with self.assertRaises(OpenAIError) as ctx:
+            redacteur._normaliser(reponse(objections=objections))
+        self.assertIn("n'existe pas", str(ctx.exception))
+
+    def test_le_maillon_est_obligatoire(self):
+        objections = [dict(o) for o in reponse()["objections"]]
+        del objections[0]["link"]
+        with self.assertRaises(OpenAIError) as ctx:
+            redacteur._normaliser(reponse(objections=objections))
+        self.assertIn("link", str(ctx.exception))
+
     def test_un_champ_vide_est_refuse(self):
         for champ in ("script", "chosen_opening", "why_chosen"):
             with self.subTest(champ=champ), self.assertRaises(OpenAIError):
@@ -77,7 +93,8 @@ class TestForme(unittest.TestCase):
     def test_une_objection_incomplete_est_refusee(self):
         with self.assertRaises(OpenAIError) as ctx:
             redacteur._normaliser(reponse(objections=[
-                {"sentence": "a", "checks_out": "c", "objection": "b", "fix": ""}]))
+                {"sentence": "a", "link": 1, "checks_out": "c",
+                 "objection": "b", "fix": ""}]))
         self.assertIn("fix", str(ctx.exception))
 
 
@@ -94,18 +111,18 @@ class TestControles(unittest.TestCase):
         problemes = redacteur._problemes(
             redacteur._normaliser(reponse(
                 script=court,
-                objections=[{"sentence": p, "checks_out": "la pression pousse",
+                objections=[{"sentence": p, "link": n, "checks_out": "la pression pousse",
                              "objection": "aucune", "fix": "rien"}
-                            for p in validator.phrases(court)])), 24, 6)
+                            for n, p in enumerate(validator.phrases(court), start=1)])), 24, 6)
         self.assertTrue(any("exactly one per shot" in x for x in problemes))
 
     def test_le_nombre_de_phrases_suit_le_nombre_de_plans(self):
         court = " ".join(validator.phrases(SCRIPT)[:3])
         problemes = self.verifier(
             script=court,
-            objections=[{"sentence": p, "checks_out": "la pression pousse l'aube",
+            objections=[{"sentence": p, "link": n, "checks_out": "la pression pousse l'aube",
                          "objection": "aucune", "fix": "rien"}
-                        for p in validator.phrases(court)])
+                        for n, p in enumerate(validator.phrases(court), start=1)])
         self.assertTrue(any("sentences" in p for p in problemes))
 
     def test_l_ouverture_choisie_doit_ouvrir_le_script(self):
@@ -114,8 +131,9 @@ class TestControles(unittest.TestCase):
 
     def test_chaque_phrase_doit_etre_relue(self):
         problemes = self.verifier(objections=[
-            {"sentence": "une seule", "checks_out": "la pression pousse",
-             "objection": "aucune", "fix": "rien"}])
+            {"sentence": "une seule", "link": 1,
+             "checks_out": "la pression pousse", "objection": "aucune",
+             "fix": "rien"}])
         self.assertTrue(any("hostile engineer" in p for p in problemes))
 
     def test_les_controles_du_storyboard_s_appliquent_au_texte(self):
@@ -128,9 +146,9 @@ class TestControles(unittest.TestCase):
                 "Il est enfin distribué chez nous.")
         problemes = self.verifier(
             script=plat,
-            objections=[{"sentence": p, "checks_out": "la pression pousse l'aube",
+            objections=[{"sentence": p, "link": min(n, 6), "checks_out": "la pression pousse",
                          "objection": "aucune", "fix": "rien"}
-                        for p in validator.phrases(plat)])
+                        for n, p in enumerate(validator.phrases(plat), start=1)])
         self.assertTrue(any("could open any video" in p for p in problemes))
         self.assertTrue(any("active voice" in p for p in problemes))
 
@@ -144,23 +162,48 @@ class TestLaVerificationNePeutPasSeTaire(unittest.TestCase):
 
     def test_une_raison_qui_repete_la_phrase_est_refusee(self):
         problemes = self.verifier([
-            {"sentence": p, "checks_out": p, "objection": "aucune", "fix": "rien"}
-            for p in validator.phrases(SCRIPT)])
+            {"sentence": p, "link": n, "checks_out": p,
+             "objection": "aucune", "fix": "rien"}
+            for n, p in enumerate(validator.phrases(SCRIPT), start=1)])
         self.assertTrue(any("repeats the sentence" in x for x in problemes))
 
     def test_une_vraie_raison_passe(self):
         self.assertEqual(self.verifier([
-            {"sentence": p,
+            {"sentence": p, "link": n,
              "checks_out": "une différence de pression produit une force sur l'aube",
              "objection": "aucune", "fix": "rien"}
-            for p in validator.phrases(SCRIPT)]), [])
+            for n, p in enumerate(validator.phrases(SCRIPT), start=1)]), [])
 
     def test_la_raison_est_un_champ_obligatoire(self):
         with self.assertRaises(OpenAIError) as ctx:
             redacteur._normaliser(reponse(objections=[
-                {"sentence": "a", "checks_out": "", "objection": "aucune",
-                 "fix": "rien"}]))
+                {"sentence": "a", "link": 1, "checks_out": "",
+                 "objection": "aucune", "fix": "rien"}]))
         self.assertIn("checks_out", str(ctx.exception))
+
+
+class TestUnePhraseUnMaillon(unittest.TestCase):
+    """Run 44 : sept maillons pour douze phrases, donc des redites."""
+
+    def test_deux_phrases_sur_le_meme_maillon(self):
+        objections = [dict(o) for o in reponse()["objections"]]
+        objections[3]["link"] = objections[2]["link"]
+        problemes = redacteur._problemes(
+            redacteur._normaliser(reponse(objections=objections)), 24, 6)
+        self.assertTrue(any("never the same link twice" in x for x in problemes))
+
+    def test_une_chaine_plus_courte_que_le_script(self):
+        courte = reponse()["chain"][:4]
+        objections = [dict(o) for o in reponse()["objections"]]
+        for n, o in enumerate(objections):
+            o["link"] = min(n + 1, 4)
+        problemes = redacteur._problemes(
+            redacteur._normaliser(reponse(chain=courte, objections=objections)), 24, 6)
+        self.assertTrue(any("real, distinct links" in x for x in problemes))
+
+    def test_une_phrase_par_maillon_passe(self):
+        self.assertEqual(
+            redacteur._problemes(redacteur._normaliser(reponse()), 24, 6), [])
 
 
 class TestPassif(unittest.TestCase):

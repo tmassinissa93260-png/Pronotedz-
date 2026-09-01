@@ -180,7 +180,8 @@ def ecrire_elements(sb: Storyboard) -> Path:
         fondees = [o for o in dossier["objections"] if o.get("checks_out")]
         if fondees:
             lignes += ["### Sur quoi chaque phrase repose", ""]
-            lignes += [f"- « {o['sentence']} » — {o['checks_out']}" for o in fondees]
+            lignes += [f"- « {o['sentence']} » — maillon {o.get('link', '?')} : "
+                       f"{o['checks_out']}" for o in fondees]
             lignes += [""]
     lignes += [
         "## Visual bible",

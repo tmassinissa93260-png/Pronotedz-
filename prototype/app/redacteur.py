@@ -93,13 +93,29 @@ def _normaliser(brut: object) -> dict:
         raise OpenAIError(f"texte : il faut {MIN_OUVERTURES} ouvertures, "
                           f"une seule idee n'est pas un choix")
 
+    brutes = brut.get("objections") if isinstance(brut.get("objections"), list) else []
+    objections = _objets(brut.get("objections"), CHAMPS_OBJECTION, "objection")
+
+    # `_objets` ne garde que les champs texte : le numero de maillon se lit
+    # sur l'entree d'origine.
+    for i, (entree, brute) in enumerate(zip(objections, brutes, strict=True)):
+        try:
+            maillon = int(brute["link"])
+        except (KeyError, TypeError, ValueError):
+            raise OpenAIError(f"texte : objection #{i + 1}, 'link' absent ou "
+                              f"non numerique") from None
+        if not 1 <= maillon <= len(chaine):
+            raise OpenAIError(f"texte : objection #{i + 1}, le maillon {maillon} "
+                              f"n'existe pas (la chaine en a {len(chaine)})")
+        entree["link"] = maillon
+
     return {
         "chain": chaine,
         "openings": ouvertures,
         "chosen_opening": str(brut["chosen_opening"]).strip(),
         "why_chosen": str(brut["why_chosen"]).strip(),
         "script": " ".join(str(brut["script"]).split()),
-        "objections": _objets(brut.get("objections"), CHAMPS_OBJECTION, "objection"),
+        "objections": objections,
     }
 
 
@@ -155,6 +171,25 @@ def _problemes(texte: dict, duration: float, sentences: int) -> list[str]:
                    f"sentence instead of giving the reason it holds — starting with "
                    f"« {paraphrases[0]} ». Name the link of the chain it states and "
                    f"the physics that makes it true.")
+
+    # Run 44 : sept maillons pour douze phrases. « Ce signal traverse l'air
+    # jusqu'au recepteur » puis « ils captent alors le signal recu » — deux
+    # phrases pour un seul evenement. Deux phrases sur le meme maillon disent
+    # la meme chose deux fois, et le spectateur le sent.
+    maillons = [o["link"] for o in texte["objections"]]
+    doubles = sorted({m for m in maillons if maillons.count(m) > 1})
+    if doubles:
+        redites = [o["sentence"] for o in texte["objections"] if o["link"] in doubles]
+        out.append(f"{len(redites)} sentences state links already stated — "
+                   f"link(s) {', '.join(str(m) for m in doubles)}, starting with "
+                   f"« {redites[0]} ». One sentence, one link, never the same link "
+                   f"twice: say it once and move to the next link of the chain.")
+
+    if len(texte["chain"]) < sentences:
+        out.append(f"the chain holds {len(texte['chain'])} links for {sentences} "
+                   f"sentences. Each sentence states one link, so the chain needs at "
+                   f"least {sentences} real, distinct links — or the subject does not "
+                   f"carry {sentences} shots.")
 
     if len(texte["objections"]) < len(dites):
         out.append(f"you examined {len(texte['objections'])} sentences out of "

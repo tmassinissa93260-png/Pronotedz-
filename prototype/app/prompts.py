@@ -96,7 +96,11 @@ Work in this order.
    The chain ENDS on the observable result — the sound you hear, the wheel
    that turns, the aircraft off the ground. What powers the chain and what
    amplifies it are links INSIDE it, at the place where they act; never
-   appended after the result, or the explanation ends twice. This is where you
+   appended after the result, or the explanation ends twice.
+   It must hold AT LEAST {sentences} links, because each sentence of the
+   script states one and only one of them. If you cannot find {sentences}
+   real, distinct links, the subject does not carry {sentences} shots — say
+   so by writing the chain you can actually defend, and the check will tell. This is where you
    catch yourself: "la rotation de la turbine génère un champ magnétique" is
    false — the field is already there, the rotation moves it past the coils,
    and THAT induces the current. Write the chain you can defend.
@@ -122,8 +126,10 @@ Work in this order.
 
 4. LA VÉRIFICATION. Re-read your own script as a hostile engineer, sentence
    by sentence. For each one, three things, in this order:
-   · "checks_out": WHICH link of the chain from step 1 this sentence states,
-     and what makes it true. Not a paraphrase of the sentence — the reason it
+   · "link": the number of the link from step 1 that this sentence states,
+     counting from 1. Each sentence states a DIFFERENT link: two sentences on
+     the same link say the same thing twice, and the viewer feels it.
+   · "checks_out": what makes that link true. Not a paraphrase of the sentence — the reason it
      holds. "la vapeur pousse les aubes" holds because a pressure difference
      across the blade produces a force; saying "parce que la vapeur pousse les
      aubes" is repeating yourself, not verifying.
@@ -148,7 +154,8 @@ Return only this JSON:
   "script": "the full narration, {sentences} sentences, one continuous text",
   "objections": [
     {{"sentence": "the sentence concerned",
-      "checks_out": "which link of the chain it states, and why it holds",
+      "link": 1,
+      "checks_out": "why that link holds",
       "objection": "what an engineer could dispute, or 'aucune'",
       "fix": "what you changed, or 'rien à changer'"}}
   ]
