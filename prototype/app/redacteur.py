@@ -35,6 +35,22 @@ MIN_MAILLONS = 3
 #: Au-dela, « la raison » n'est qu'une paraphrase de la phrase verifiee.
 PARAPHRASE = 0.7
 
+# Un maillon qui REMONTE le courant. Au run 45 la chaine partait du
+# haut-parleur, remontait jusqu'au telephone en quatre maillons, puis
+# repartait en avant : le spectateur suit une explication qui fait demi-tour.
+SENS_INVERSE = ("provient", "proviennent", "provenir", "vient de", "viennent de",
+                "reçoit", "reçoivent", "est issu", "sont issus", "résulte",
+                "résultent", "est produit par", "sont produits par",
+                "est généré par", "sont générés par", "est causé par",
+                "en provenance de", "grâce à")
+
+# Un maillon qui ne fait RIEN. « Les ecouteurs contiennent des haut-parleurs »
+# decrit un objet, il n'enchaine rien sur rien.
+SANS_ACTION = ("contient", "contiennent", "est composé", "sont composés",
+               "possède", "possèdent", "comporte", "comportent",
+               "est constitué", "sont constitués", "est équipé", "sont équipés",
+               "dispose de", "disposent de", "se compose")
+
 CHAMPS_OUVERTURE = ("sentence", "why_it_holds")
 CHAMPS_OBJECTION = ("sentence", "checks_out", "objection", "fix")
 
@@ -184,6 +200,23 @@ def _problemes(texte: dict, duration: float, sentences: int) -> list[str]:
                    f"link(s) {', '.join(str(m) for m in doubles)}, starting with "
                    f"« {redites[0]} ». One sentence, one link, never the same link "
                    f"twice: say it once and move to the next link of the chain.")
+
+    remontees = [m for m in texte["chain"]
+                 if any(mot in m.lower() for mot in SENS_INVERSE)]
+    if remontees:
+        out.append(f"{len(remontees)} link(s) of the chain run BACKWARDS — starting "
+                   f"with « {remontees[0]} ». A chain goes one way: each link says "
+                   f"what a thing DOES to produce the next state. Write "
+                   f"« l'émetteur envoie les données aux écouteurs », never "
+                   f"« les données proviennent de l'émetteur ».")
+
+    inertes = [m for m in texte["chain"]
+               if any(mot in m.lower() for mot in SANS_ACTION)]
+    if inertes:
+        out.append(f"{len(inertes)} link(s) state what something CONTAINS instead of "
+                   f"what it does — starting with « {inertes[0]} ». Composition is not "
+                   f"a link: nothing happens, and nothing follows from it. Every link "
+                   f"is an action that produces the next one.")
 
     if len(texte["chain"]) < sentences:
         out.append(f"the chain holds {len(texte['chain'])} links for {sentences} "

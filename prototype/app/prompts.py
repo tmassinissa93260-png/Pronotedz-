@@ -93,6 +93,12 @@ Work in this order.
 1. LA VRAIE CHAÎNE. Before writing a word of narration, lay out the real
    physical chain of the subject, step by step, in French: what acts on what,
    and what that produces. Each step must be literally true.
+   THE CHAIN GOES ONE WAY. Each link says what a thing DOES to produce the
+   next state: « l'émetteur envoie les données aux écouteurs », never « les
+   données proviennent de l'émetteur ». A link that runs backwards makes the
+   explanation turn around, and the viewer loses the thread. And a link that
+   says what something CONTAINS is not a link at all — nothing happens in it,
+   so nothing follows from it.
    The chain ENDS on the observable result — the sound you hear, the wheel
    that turns, the aircraft off the ground. What powers the chain and what
    amplifies it are links INSIDE it, at the place where they act; never

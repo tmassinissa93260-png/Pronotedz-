@@ -206,6 +206,35 @@ class TestUnePhraseUnMaillon(unittest.TestCase):
             redacteur._problemes(redacteur._normaliser(reponse()), 24, 6), [])
 
 
+class TestLaChaineEnchaine(unittest.TestCase):
+    """Run 45 : la chaîne partait du haut-parleur et remontait au téléphone."""
+
+    def verifier(self, chaine):
+        return redacteur._problemes(
+            redacteur._normaliser(reponse(chain=chaine)), 24, 6)
+
+    def test_un_maillon_qui_remonte_le_courant(self):
+        chaine = list(reponse()["chain"])
+        chaine[2] = "les signaux proviennent d'un émetteur Bluetooth"
+        problemes = self.verifier(chaine)
+        self.assertTrue(any("run BACKWARDS" in x for x in problemes))
+
+    def test_un_maillon_qui_recoit_au_lieu_d_envoyer(self):
+        chaine = list(reponse()["chain"])
+        chaine[1] = "l'émetteur reçoit des données de l'appareil"
+        problemes = self.verifier(chaine)
+        self.assertTrue(any("run BACKWARDS" in x for x in problemes))
+
+    def test_un_maillon_qui_ne_fait_rien(self):
+        chaine = list(reponse()["chain"])
+        chaine[0] = "les écouteurs contiennent des haut-parleurs miniatures"
+        problemes = self.verifier(chaine)
+        self.assertTrue(any("what something CONTAINS" in x for x in problemes))
+
+    def test_une_chaine_qui_va_dans_le_bon_sens_passe(self):
+        self.assertEqual(self.verifier(reponse()["chain"]), [])
+
+
 class TestPassif(unittest.TestCase):
     """« est ensuite transporté » est passif ; « est très chaude » non."""
 
