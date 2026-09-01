@@ -1,35 +1,35 @@
 {
-  "voice": "Les signaux électriques proviennent d'un émetteur Bluetooth intégré.",
-  "understanding": "Les signaux électriques sont générés et émis par un émetteur Bluetooth intégré.",
+  "voice": "Leur puce Bluetooth émet des signaux pour se connecter à votre smartphone.",
+  "understanding": "Le processus par lequel la puce Bluetooth émet des signaux pour se connecter à votre smartphone.",
   "candidates": [
     {
-      "action": "Blue signals pulse from the Bluetooth chip and travel outward through the earbud circuitry.",
-      "explains": "This action shows that the signals originate from the Bluetooth chip and move throughout the device.",
-      "misses": "It may not clearly indicate that these are Bluetooth signals specifically."
+      "action": "Blue light signals pulsate from the Bluetooth chip towards the smartphone.",
+      "explains": "Visualizes the process of signals being sent for connection.",
+      "misses": "The dynamic relationship between the earbud and smartphone."
     },
     {
-      "action": "The Bluetooth chip lights up blue and signals radiate to other earbud components.",
-      "explains": "Illustrates that the signals originate from the Bluetooth chip and affect other parts of the earbud.",
-      "misses": "The specific nature of the signals as Bluetooth might be ambiguous."
+      "action": "A blue energy field grows around the Bluetooth chip and links to the smartphone.",
+      "explains": "Shows an energetic connection forming.",
+      "misses": "The direction and path of signal transmission."
     },
     {
-      "action": "Electric signals convert to blue waves which spread from the chip outward.",
-      "explains": "Depicts conversion and distribution of signals from the Bluetooth feature.",
-      "misses": "Could confuse viewers regarding the conversion process."
+      "action": "Blue signals travel in a straight line from the Bluetooth chip to the smartphone.",
+      "explains": "Directly shows the path of signals reaching the phone.",
+      "misses": "Lacks emphasis on multiple connecting signals."
     }
   ],
-  "chosen": "Blue signals pulse from the Bluetooth chip and travel outward through the earbud circuitry.",
-  "why_chosen": "It best demonstrates the origin and propagation of Bluetooth signals using consistent color-coding, making it clear even with the sound off.",
-  "mute_test": 0.85,
-  "image_prompt": "A close-up semi-cutaway view of modern dark near-black wireless earbuds focuses on the Bluetooth chip, which is emitting blue signals that pulse through the internal circuitry. The camera captures this action from a central perspective to ensure that the flow is clear and visually distinct. The earbuds are rendered with realistic translucent plastics and metal materials, illuminated by cinematic blue and white lighting, creating a high-contrast, premium engineering visualization. The environment is a dark premium studio, showcasing the earbud structure with translucent ghosted shells, internal components like the battery, chip, and antenna visible. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The shot begins with blue signals originating from the integrated Bluetooth chip within the earbud. These signals gradually and dynamically pulse outward, traveling through the internal circuitry and highlighting the flow paths over time. The movement starts at the chip, builds in intensity as the signals propagate, until reaching the edges of the circuitry, demonstrating the role of the Bluetooth transmitter in delivering signals throughout the device.",
+  "chosen": "Blue light signals pulsate from the Bluetooth chip towards the smartphone.",
+  "why_chosen": "This action captures the active emission and targeted transmission of signals, emphasizing the action of connection formation.",
+  "mute_test": 0.8,
+  "image_prompt": "Close up on the earbud's Bluetooth chip visualized in semi-cutaway with translucent ghosted shell. From the chip, pulsing blue light signals are seen extending and dynamically traveling towards a smartphone at the edge of the frame, emphasizing the connection path. The controlled lighting highlights the blue signals as the primary focus against a dark premium studio backdrop, ensuring clear visibility of the transmission. The cinematic blue and white lighting accentuates the intricate internal structure of the earbud, with components like the battery and antenna visible through the translucent shell. The composition concentrates on the interactive pathway established from the chip to the smartphone. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "Starting with the Bluetooth chip at the center, pulsed blue signals initiate, emerging from the chip and extending toward the smartphone. These signals alternate their intensity to illustrate the pulsating nature, gradually becoming more stable and concentrated as they traverse the space and reach the smartphone at the frame edge, symbolizing a successful connection. The animation emphasizes the systematic and directed nature of these signal transmissions in establishing the technological connection.",
   "visual_explanation": {
-    "information": "The Bluetooth chip emits signals that traverse through the earbud.",
-    "physical_element": "Blue signals visually representing Bluetooth transmission.",
-    "secondary_elements": "The earbud's internal components and circuitry.",
-    "visual_behavior": "Blue signals pulsing and moving outward from the chip.",
-    "animation_movement": "Signals begin at the chip and spread outwards, building in intensity.",
-    "camera_position": "Central perspective focusing on the location of the chip.",
-    "composition": "The Bluetooth chip in the earbuds' cutaway displays clear signal movement, reinforced by the translucent materials and high-contrast lighting."
+    "information": "Bluetooth chip signals serving to connect the earbud with a smartphone.",
+    "physical_element": "Pulsating blue light signals emitted from the chip.",
+    "secondary_elements": "The smartphone presence indicating connection target, emphasized signal paths.",
+    "visual_behavior": "The pulsating nature of the blue signals illustrating active transmission.",
+    "animation_movement": "Signals initiating from the chip, progressively stabilizing and reaching the phone.",
+    "camera_position": "Focus is on the chip's position in the semi-cutaway with a view towards the path of the signals towards the phone.",
+    "composition": "Strong emphasis on the chip and signal path, with cinematic depth and contrasting lighting highlighting the action of connection."
   }
 }

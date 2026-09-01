@@ -1,35 +1,35 @@
 {
-  "voice": "Cet appareil envoie les données audio sous forme numérique.",
-  "understanding": "Le spectateur doit comprendre que cet appareil envoie des données audio sous forme numérique.",
+  "voice": "Une fois couplée, la connexion permet la transmission des données numériques audio.",
+  "understanding": "Une fois couplée, la connexion permet la transmission des données numériques audio entre les appareils.",
   "candidates": [
     {
-      "action": "Binary numbers travel visibly along a blue pathway from the edge of the frame to the earbud Bluetooth chip.",
-      "explains": "Demonstrates the concept of digital audio data being transmitted.",
-      "misses": "Doesn't show conversion from digital to analog signals."
+      "action": "Vivid green data streams flow continuously from the smartphone to the wireless earbud.",
+      "explains": "It shows how data is transmitted from one device to another after pairing.",
+      "misses": "It doesn't show clearly what triggers the data flow."
     },
     {
-      "action": "A digital display projects binary numbers transforming into waves as it approaches the earbud.",
-      "explains": "Illustrates the conversion from digital to sound waves.",
-      "misses": "Doesn't clearly depict the transmission path."
+      "action": "The smartphone emits a blue signal that changes to green upon reaching the earbud.",
+      "explains": "It indicates the transmission and the change from signal to data.",
+      "misses": "The start of data transmission can be unclear as the focus is on the signal change."
     },
     {
-      "action": "A sequence of lights flashes in a pattern mimicking binary code on the outer shell of the earbud.",
-      "explains": "Suggests digital data processing.",
-      "misses": "Lacks the aspect of data transmission to the chip."
+      "action": "Data bits in green lines rapidly fill a progress bar between the phone and earbud.",
+      "explains": "It signifies the completion of data transfer from phone to earbud.",
+      "misses": "It may resemble a loading process more than a continuous data transmission."
     }
   ],
-  "chosen": "Binary numbers travel visibly along a blue pathway from the edge of the frame to the earbud Bluetooth chip.",
-  "why_chosen": "This action clearly visualizes the movement of digital data to the earbuds, which is the core message, without needing extra context.",
-  "mute_test": 0.75,
-  "image_prompt": "In the foreground, a close-up semi-cutaway view of modern dark near-black wireless earbuds is shown, with a clear blue path highlighted where binary zeros and ones travel visibly from the periphery straight into the Bluetooth chip inside. The binary code is rendered in bright blue digital tones, suggesting a digital transmission occurring in real-time. The photo captures the earbud's translucent materials with cinematic blue and white lighting from a central angle, emphasizing the digital journey. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The binary numbers animate smoothly from the outer edge of the frame towards the Bluetooth chip in the earbuds, demonstrating a steady transmission. As the sequence reaches the chip, the numbers increasingly concentrate, illustrating the flow and processing of audio data as part of the transmission event.",
+  "chosen": "Vivid green data streams flow continuously from the smartphone to the wireless earbud.",
+  "why_chosen": "This action is direct and clearly shows data transferring between devices, which is quickly understandable without audio.",
+  "mute_test": 0.8,
+  "image_prompt": "In a side view of the connected smartphone and wireless earbud, vivid green data streams flow continuously and dynamically from the phone to the earbud, indicating active audio data transmission. The scene captures the green streams prominently, showing them clearly entering the earbud, visualizing the connectivity channel. Intense studio lighting enhances the high-end materials, capturing reflection points symbolizing data integrity. The entire setup, including the dark near-black wireless earbud, utilizes a technical semi-cutaway where necessary, revealing internal components through a translucent shell, with the dark studio environment and cinematic blue and white lighting creating a premium, realistic setting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation shows the vivid green data streams commencing steadily at the phone, progressing seamlessly toward the wireless earbud. As the streams flow, the intensity builds, symbolizing active transmission until they distinctly arrive at the earbud, emphasizing a continuous flow of digital audio data.",
   "visual_explanation": {
-    "information": "Audio data is transmitted digitally from the device to the earbuds.",
-    "physical_element": "Binary numbers moving along a blue pathway towards the Bluetooth chip.",
-    "secondary_elements": "The translucent casing of the earbuds showcasing its inner components.",
-    "visual_behavior": "Continuous movement of binary numbers along a defined path.",
-    "animation_movement": "Binary numbers smoothly traveling into the earbuds.",
-    "camera_position": "Central angle close-up captures the journey of data to the earbuds.",
-    "composition": "A semi-cutaway, focusing on the dynamic visual representation of digital transmission."
+    "information": "The transmission of audio data after pairing the device.",
+    "physical_element": "Vivid green data streams flowing from the smartphone to the earbud.",
+    "secondary_elements": "Detailed internal components visible through a translucent shell, studio lighting highlights data integrity.",
+    "visual_behavior": "The green data streams travel from the phone to the earbud, signaling continuous connection and transmission.",
+    "animation_movement": "The vivid green streams steadily flow from the phone to the earbud, intensifying in brightness and speed as they reach their destination.",
+    "camera_position": "A side view capturing both the phone and earbud, emphasizing the path of the green streams.",
+    "composition": "Central to the frame, showing the green streams prominently as they flow between the devices, with the cinematic environment and technical cutaway elements integrating to explain the process."
   }
 }

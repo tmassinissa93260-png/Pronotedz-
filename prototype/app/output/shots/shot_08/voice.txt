@@ -1,1 +1,1 @@
-Les signaux analogiques alimentent les bobines des haut-parleurs.
+Les écouteurs convertissent ensuite ces données traitées en signaux électriques.

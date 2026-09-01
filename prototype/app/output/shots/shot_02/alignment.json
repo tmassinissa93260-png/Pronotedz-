@@ -1,35 +1,35 @@
 {
-  "voice": "Les écouteurs sans fil contiennent des haut-parleurs miniatures.",
-  "understanding": "Que les écouteurs sans fil contiennent des haut-parleurs miniatures à l'intérieur de leur structure.",
+  "voice": "Lorsque l'utilisateur active les écouteurs, ils s'allument.",
+  "understanding": "Que l'utilisateur allume les écouteurs et qu'ils s'activent.",
   "candidates": [
     {
-      "action": "Gray structural components are highlighted as they split open, revealing the miniature speakers inside.",
-      "explains": "This shows that the earbud has an internal structure housing speakers.",
-      "misses": "It may not clearly indicate that the components relate directly to the speakers."
+      "action": "A glowing effect travels from the user's finger to the earbud.",
+      "explains": "The user's interaction causes the earbuds to activate.",
+      "misses": "Does not show internal activation process inside the earbuds."
     },
     {
-      "action": "Yellow electric signals flow and converge into the center of the open earbud's structure, lighting up the miniature speakers.",
-      "explains": "Conveys the idea that the signals activate the speakers housed inside the earbud.",
-      "misses": "The initial housing of the speakers might not be as clearly visible at first glance."
+      "action": "The earbud's interior lights up, highlighting circuits and components.",
+      "explains": "Focuses on internal activation of circuits when turned on.",
+      "misses": "Doesn't clearly show user interaction causing this activation."
     },
     {
-      "action": "Miniature speakers inside the earbud light up as the gray structural components are pulled back to show their internal position.",
-      "explains": "This makes it clear that the miniaturized speakers are integral to the earbud structure.",
-      "misses": "The function process (signal flow) of the speakers isn't immediately emphasized."
+      "action": "A wireless signal travels, triggering a light glow in the earbud.",
+      "explains": "Shows wireless activation causing the earbud to light up.",
+      "misses": "Unclear connection between user action and earbud activation."
     }
   ],
-  "chosen": "Gray structural components are highlighted as they split open, revealing the miniature speakers inside.",
-  "why_chosen": "This action immediately shows the internal presence of miniature speakers in the earbuds with clarity, whereas others focus more on function rather than highlighting the speaker location.",
+  "chosen": "The earbud's interior lights up, highlighting circuits and components.",
+  "why_chosen": "It focuses on showing how earbuds light up during activation, clearly linking cause to effect.",
   "mute_test": 0.8,
-  "image_prompt": "A close-up of wireless earbuds where the gray structural components are highlighted as they split open, revealing the miniature speakers inside a translucent shell. The camera focuses centrally, showcasing the detailed structure and speaker arrangement. The cinematic blue and white lighting enhances the high-end realistic materials of the earbuds, and the dark premium studio environment provides a contrasting backdrop. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "As the animation progresses, the gray structural components of the earbud slowly and smoothly split open to reveal the miniature speakers housed inside. This movement begins from the exterior shell and finishes at the full exposure of the speakers, highlighting the earbud’s internal architecture.",
+  "image_prompt": "In a dark premium studio environment, a close-up of a wireless earbud is shown with a translucent ghosted shell. Focus on the interior revealing components with a soft yellow glow indicating activation. The circuitry inside the earbud lights up in a clear, photorealistic 3D engineering visualization. The same modern dark near-black wireless earbud is used throughout, with technically detailed materials visible inside the shell, under cinematic blue and white lighting. The camera is positioned at an angle to best showcase the glow effect within the earbud, highlighting the activation process of the internal mechanisms. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "As the activation process begins, the internal circuits of the earbud gradually illuminate with a soft yellow glow starting from the main battery component. This glow builds in intensity as it spreads to other circuits within, emphasizing the activation ripple effect across internal components. The camera remains stable, capturing the progressive lighting of all components, steadily highlighting the pathways inside the earbud until the entire interior glows warmly.",
   "visual_explanation": {
-    "information": "Wireless earbuds have miniature speakers inside their structure.",
-    "physical_element": "The gray structural components of the earbud.",
-    "secondary_elements": "Miniaturized speakers inside, cinematic lighting, translucent shell.",
-    "visual_behavior": "Structural components split open to expose what's inside.",
-    "animation_movement": "The components smoothly retract to reveal the speakers.",
-    "camera_position": "Directly focused on the area where the structure opens.",
-    "composition": "The elements are arranged to draw the viewer's eye to the opened structure showing the internal speakers."
+    "information": "The activation of earbuds upon user interaction.",
+    "physical_element": "The interior circuits of the earbud and their illumination.",
+    "secondary_elements": "The translucent shell and the visible circuitry inside.",
+    "visual_behavior": "The circuits light up and glow, displaying activation.",
+    "animation_movement": "Internal glow spreads from the battery outward to the circuits, increasing gradually.",
+    "camera_position": "A stable position focusing closely on the earbud's illuminated interior.",
+    "composition": "The translucent interior glow draws the eye, establishing a clear cause-effect of earbud activation."
   }
 }

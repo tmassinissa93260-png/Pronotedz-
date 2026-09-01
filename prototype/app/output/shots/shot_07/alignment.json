@@ -1,35 +1,35 @@
 {
-  "voice": "Les écouteurs décodent ces données numériques en signaux électriques analogiques.",
-  "understanding": "Les écouteurs convertissent les données numériques en signaux analogiques électriques.",
+  "voice": "Le processeur des écouteurs décode ces données en un format compréhensible.",
+  "understanding": "Le processeur des écouteurs transforme les données audio numériques en signaux audio compréhensibles.",
   "candidates": [
     {
-      "action": "A stream of blue digital binary signals enters the earbud and transforms into yellow electrical signals as it moves through the internal pathways.",
-      "explains": "Shows transformation from digital to analog signals.",
-      "misses": "Does not show the process engaging the earbud internals."
+      "action": "Green data streams enter the processor and exit as yellow electrical signals.",
+      "explains": "The transformation of data formats by the processor.",
+      "misses": "Detailed visualization of the decoding process."
     },
     {
-      "action": "The chip inside the earbud lights up in stages, shifting from blue to yellow as the signals change from digital to analog.",
-      "explains": "Visualizes the conversion process by color change.",
-      "misses": "Fails to visually show the signal traveling."
+      "action": "The processor lights up as green data streams touch it, then it emits yellow signals.",
+      "explains": "The processor action of transforming data, highlighted by a light effect.",
+      "misses": "The continuity of the data stream's conversion."
     },
     {
-      "action": "Yellow signals flow through the earbud's internal components, igniting the sound-producing elements.",
-      "explains": "Shows the conversion ending in sound production.",
-      "misses": "Does not explain the initial digital input."
+      "action": "Green data streams merge into the processor which sequentially outputs yellow waves.",
+      "explains": "Sequential transformation of data into signals.",
+      "misses": "The internal processing activity within the chip."
     }
   ],
-  "chosen": "A stream of blue digital binary signals enters the earbud and transforms into yellow electrical signals as it moves through the internal pathways.",
-  "why_chosen": "It visually communicates the cause-effect relationship of digital transformation within the earbuds, linking the input with the analog output, and shows the process explicitly.",
+  "chosen": "Green data streams enter the processor and exit as yellow electrical signals.",
+  "why_chosen": "It clearly shows data entering and exiting the processor, illustrating the transformation effectively with the sound off.",
   "mute_test": 0.8,
-  "image_prompt": "A detailed close-up view of a modern wireless earbud with a visible stream of blue binary data entering the earbud and transforming into yellow electrical signals as they weave through the internal structure. The camera is positioned to show the semi-cutaway view where internal components are visible, spotlighting the conversion process with cinematic depth of field. The environment is a dark premium studio, employing cinematic blue and white lighting to highlight the transformation. Materials are rendered with high realism, displaying translucent plastics and metal components to enhance visibility of internal flow. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The blue digital binary stream enters from the left side of the screen into the earbud. It begins to transform into yellow electrical signals as it progresses inward, weaving through the pathways and building in intensity until fully enveloping the internal components, showing the conversion completion.",
+  "image_prompt": "The camera closely focuses on the internal components of the earbud, precisely where green streams of data visibly enter the processor and transform into yellow electrical signals as they exit. The scene takes place in a dark premium studio environment, showcasing the high-end, clear plastic and metal materials of the earbuds. The lighting highlights the transformation process between the chip pathways. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "Green data streams steadily enter the processor, building in transformation to yellow electrical signals as they exit. The movement starts as a faint green flow, gradually gaining momentum as it approaches the processor, transforming into vibrant yellow signals that progressively pulse outward in a coherent sequence.",
   "visual_explanation": {
-    "information": "Conversion from digital to analog signals within earbuds.",
-    "physical_element": "Stream of data transforming inside the earbuds.",
-    "secondary_elements": "Camera angle and lighting highlighting the conversion process.",
-    "visual_behavior": "Digital signals entering and transforming as they traverse internal paths.",
-    "animation_movement": "Blue signals morphing into yellow as they move inward.",
-    "camera_position": "Positioned close-up to track signal progression.",
-    "composition": "Centered to follow transition from digital entry to analog spread."
+    "information": "The processor decoding data into comprehensible signals.",
+    "physical_element": "Data streams entering and exiting the processor.",
+    "secondary_elements": "Lighting focus on transformation area.",
+    "visual_behavior": "Data colors change within the processor.",
+    "animation_movement": "Streams flow into processor, transform and emit as signals.",
+    "camera_position": "Close-up on processor area, centered on signal change.",
+    "composition": "Emphasizes data flow through processor, highlighting transformation."
   }
 }

@@ -1,1 +1,1 @@
-Cet appareil envoie les données audio sous forme numérique.
+Une fois couplée, la connexion permet la transmission des données numériques audio.

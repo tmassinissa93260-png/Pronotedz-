@@ -1,0 +1,35 @@
+{
+  "voice": "Les écouteurs cherchent automatiquement des appareils compatibles via Bluetooth.",
+  "understanding": "Les écouteurs se connectent automatiquement à des appareils compatibles via Bluetooth.",
+  "candidates": [
+    {
+      "action": "The earbud emits visible blue waves that travel outward in a rippling pattern, searching for devices.",
+      "explains": "It demonstrates the Bluetooth searching process by illustrating how signals are sent out from the earbud.",
+      "misses": "How the earbud recognizes and connects to another device when a signal is found."
+    },
+    {
+      "action": "The earbud lights up with blue pulses as it scans the area, and a virtual map appears showing surrounding devices.",
+      "explains": "The scanning with blue light represents actively searching for nearby devices.",
+      "misses": "It does not show the actual signals traveling outward or how devices respond."
+    },
+    {
+      "action": "A series of blue dots emerge from the earbud, move outward, and highlight a nearby smartphone, causing a connection line to form.",
+      "explains": "The blue dots and connection line visualize the Bluetooth search and subsequent connection to a compatible device.",
+      "misses": "The initial broadcasting of the signal from the earbud is less emphasized."
+    }
+  ],
+  "chosen": "A series of blue dots emerge from the earbud, move outward, and highlight a nearby smartphone, causing a connection line to form.",
+  "why_chosen": "The path of blue dots moving and the connection line forming clearly illustrate the detection and connection process of Bluetooth searching in a cause-and-effect manner.",
+  "mute_test": 0.8,
+  "image_prompt": "In a detailed close-up shot, an earbud is at the center with a series of small blue dots visibly emerging from it and expanding outward, leading towards a nearby smartphone. As the dots make contact with the smartphone, a prominent blue line forms between the earbud and the phone, symbolizing a connection. The camera is positioned at a slight angle to capture the trajectory of the blue dots and the connection line clearly. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "Blue dots continuously and steadily emerge from the earbud, traveling outward in a highlighted path, culminating in a bright blue line that dynamically forms when the dots reach the smartphone, indicating a successful pairing. The motion starts at the earbud, builds as the dots spread, and reaches completion with the connecting line appearing.",
+  "visual_explanation": {
+    "information": "The earbuds seek devices via Bluetooth signals.",
+    "physical_element": "Earbud emits blue dots representing searching signals.",
+    "secondary_elements": "A line forming with the smartphone shows a successful connection.",
+    "visual_behavior": "The blue dots emerge and travel to the smartphone.",
+    "animation_movement": "Dots outward travel from the earbud and the forming of a connection line.",
+    "camera_position": "A slight angle captures the emission of blue dots and their path to the phone.",
+    "composition": "Frame centers around earbud with path and connection line clear in view."
+  }
+}

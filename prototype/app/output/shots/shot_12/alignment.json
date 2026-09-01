@@ -1,35 +1,35 @@
 {
-  "voice": "La membrane vibrante déplace l'air et génère des ondes sonores.",
-  "understanding": "La membrane vibrante déplace l'air pour créer des ondes sonores.",
+  "voice": "Les ondes sonores se déplacent dans le conduit auditif de l'utilisateur.",
+  "understanding": "Le chemin que parcourent les ondes sonores dans le conduit auditif.",
   "candidates": [
     {
-      "action": "The diaphragm visibly pulsates, pushing air particles away, forming visible purple concentric waves.",
-      "explains": "Shows how the diaphragm movement displaces air to create sound waves.",
-      "misses": "Does not show the integration with the earbud's internal mechanisms."
+      "action": "Orange sound waves visibly enter the ear canal from an earbud, traveling in a visible path towards the eardrum.",
+      "explains": "It shows how sound waves are moving from the earbud into the auditory canal.",
+      "misses": "It doesn’t show any interaction with the internal components of the earbud."
     },
     {
-      "action": "An electric signal travels to the diaphragm, causing it to vibrate and initiate the movement of purple waves outwards.",
-      "explains": "Connects electric signal to diaphragm movement and subsequent sound wave emergence.",
-      "misses": "Lacks emphasis on the diaphragm's role in air displacement."
+      "action": "Orange sound waves originate from the earbud moving outside towards a visible auditory canal leading into the ear.",
+      "explains": "It demonstrates the origin and entry point of the sound waves into the canal.",
+      "misses": "It might mislead the viewer into thinking the sound waves start inside the canal instead of entering it."
     },
     {
-      "action": "Colored streams from the earbud's internal components converge at the diaphragm, which then vibrates to emit purple sound waves.",
-      "explains": "Demonstrates the role of internal components in initiating diaphragm vibration.",
-      "misses": "Does not explicitly show air displacement."
+      "action": "Orange sound waves are blocked at the entrance of the auditory canal and then overcome the barrier to enter.",
+      "explains": "It shows that the sound waves encounter resistance and emphasize the canal entry.",
+      "misses": "It suggests sound waves might usually be blocked, which is not typically true."
     }
   ],
-  "chosen": "An electric signal travels to the diaphragm, causing it to vibrate and initiate the movement of purple waves outwards.",
-  "why_chosen": "It clearly illustrates the connection between the electric signal, diaphragm vibration, and the generation of sound waves, with a strong focus on cause and effect.",
-  "mute_test": 0.8,
-  "image_prompt": "The image shows a modern dark near-black wireless earbud in a semi-cutaway view, revealing its translucent ghosted shell with the internal battery, chip, antenna, voice coil, and diaphragm. From the chip, a yellow electric signal is shown traveling towards the diaphragm. As the signal reaches the diaphragm, it visibly vibrates, emitting concentric purple sound waves that spread outward, displacing the air around it. The cinematic blue and white lighting highlights the movement and flow of the electric signal and sound waves within the dark premium studio environment. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The animation starts with a yellow electric signal originating from the earbud's chip and traveling towards the diaphragm. Upon arrival, the diaphragm begins to vibrate, rhythmically pushing against the air to generate purple sound waves. These waves gradually spread outward in a pulsating manner, visibly displacing the surrounding air. As the vibration continues, the strength and reach of the purple waves increase, illustrating the process of sound generation over time.",
+  "chosen": "Orange sound waves visibly enter the ear canal from an earbud, traveling in a visible path towards the eardrum.",
+  "why_chosen": "This action clearly shows the journey of sound waves from the earbud through the auditory canal, which is the core idea, and it avoids misleading implications of blockage or incorrect origin.",
+  "mute_test": 0.85,
+  "image_prompt": "A vivid depiction shows orange sound waves emanating from the near-black wireless earbud, moving dynamically through a semicircular path into a virtual representation of an auditory canal, reaching towards an abstracted version of the eardrum. The scene focuses tightly on the orange waves' journey, highlighted by contrast and sharpness, against a dark premium studio environment. Cinematic blue and white lighting accentuates the path of waves, ensuring visibility and understanding. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "Animated orange sound waves stream steadily from the wireless earbud, entering and traveling through the modeled auditory canal. The camera follows this progression closely, highlighting the path of movement, focusing on their continual journey towards the eardrum, showcasing gradual and dynamic flow.",
   "visual_explanation": {
-    "information": "Air is displaced by a vibrating diaphragm to create sound waves.",
-    "physical_element": "The diaphragm of the earbud.",
-    "secondary_elements": "Yellow electric signal reaching the diaphragm; purple sound waves emitting from it.",
-    "visual_behavior": "The electric signal causes the diaphragm to vibrate, and in turn, purple sound waves emerge and move outward.",
-    "animation_movement": "The electric signal travels and prompts diaphragm vibration; purple waves spread outwards.",
-    "camera_position": "A close-up and semi-cutaway view focused on the diaphragm area of the earbud to showcase the internal process.",
-    "composition": "Centered around the vibrating diaphragm, with clear paths of the electric signal and purple waves, emphasizing the process from electric signal delivery to sound wave generation."
+    "information": "The movement of sound waves from the earbud through the auditory canal.",
+    "physical_element": "Orange sound waves represented by light particles.",
+    "secondary_elements": "The near-black wireless earbud and the virtual auditory canal.",
+    "visual_behavior": "The sound waves move in a dynamic, continuous path into the canal.",
+    "animation_movement": "The motion starts at the earbud, flows through the auditory canal, and progresses towards the eardrum visibly.",
+    "camera_position": "A close-up view that follows the sound waves' path for clearer understanding.",
+    "composition": "The action is centered with waves sharply contrasted and lit, dominating the composition."
   }
 }

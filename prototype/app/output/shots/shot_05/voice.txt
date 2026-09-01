@@ -1,1 +1,1 @@
-L'émetteur Bluetooth reçoit des données audio d'un appareil connecté.
+Le smartphone détecte ces signaux et s'y connecte en établissant un couplage.

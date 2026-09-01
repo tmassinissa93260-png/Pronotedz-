@@ -1,1 +1,1 @@
-Ces bobines créent un champ magnétique autour d'elles.
+Des transducteurs dans les écouteurs reçoivent ces signaux électriques.

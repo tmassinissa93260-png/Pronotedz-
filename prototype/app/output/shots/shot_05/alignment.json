@@ -1,35 +1,35 @@
 {
-  "voice": "L'émetteur Bluetooth reçoit des données audio d'un appareil connecté.",
-  "understanding": "L'émetteur Bluetooth reçoit des données audio d'un appareil connecté aux écouteurs.",
+  "voice": "Le smartphone détecte ces signaux et s'y connecte en établissant un couplage.",
+  "understanding": "Le smartphone détecte les signaux Bluetooth et établit une connexion en s'y couplant.",
   "candidates": [
     {
-      "action": "Blue signals flow from a smartphone to the earbud's Bluetooth chip.",
-      "explains": "It shows the transfer of data from a connected device to the earbud.",
-      "misses": "It may not clearly show the internal processing within the earbud."
+      "action": "Two streams of blue light pulse from the earbud and smartphone, meeting and merging in the air.",
+      "explains": "The merging blue signals visually indicate a successful connection has been made.",
+      "misses": "The physical interaction between devices that leads to stable connectivity."
     },
     {
-      "action": "A glowing blue wave enters the earbud and activates internal components.",
-      "explains": "It visually demonstrates that something triggers an internal response.",
-      "misses": "It doesn't detail where the wave comes from or its nature."
+      "action": "A visual bridge of blue light forms steadily between the earbud and the smartphone.",
+      "explains": "The steady bridge signifies a stable Bluetooth connection.",
+      "misses": "The dynamic process of signals converging before achieving stability."
     },
     {
-      "action": "The earbud lights up blue as a phone nearby shows a sending animation.",
-      "explains": "It connects the phone's action of sending data directly to the earbud's reception.",
-      "misses": "The specifics of data being sent and received are unclear."
+      "action": "Blue lights from both the earbud and phone pulse and then synchronize in frequency and pattern.",
+      "explains": "Synchronization of lights symbolizes successful pairing.",
+      "misses": "The initial steps toward establishing connection (signal detection)."
     }
   ],
-  "chosen": "Blue signals flow from a smartphone to the earbud's Bluetooth chip.",
-  "why_chosen": "This action directly shows the visible transfer of data, making it clear with visual cues when the audio data moves from the device to the earbud.",
+  "chosen": "Two streams of blue light pulse from the earbud and smartphone, meeting and merging in the air.",
+  "why_chosen": "Pulsing and merging of blue signals clearly show the active connection process better than static or simple synchronization.",
   "mute_test": 0.8,
-  "image_prompt": "A photorealistic 3D engineering visualization shows a dynamic flow of blue signals moving from a smartphone to the Bluetooth chip inside a near-black wireless earbud. The camera is positioned close-up to capture the precise path of these signals entering the earbud, with a background that enhances visibility. The dark premium studio setting is lit with cinematic blue and white lighting to highlight the blue signals clearly. Materials such as translucent plastics reveal the internal components like the battery, chip, antenna, voice coil, and diaphragm. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "Blue signals begin forming near a smartphone, building momentum as they stream towards the earbud. They visibly enter and highlight the Bluetooth chip showing data transfer actively in progress.",
+  "image_prompt": "The image shows two streams of blue light pulsing from the dark near-black wireless earbud and the smartphone, meeting and merging mid-air to form a unified bright blue connection. The premium materials of both devices reflect the light subtly, enhancing focus on the converging signals. The camera is placed at a wide angle to fully illustrate the merging action, with cinematic blue and white lighting enhancing the visibility of signals. The environment is a dark premium studio, with detailed visualization of internal components such as the internal battery, chip, antenna, voice coil, and diaphragm through a translucent ghosted shell, in a vertical 9:16 composition. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field, and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation starts with two streams of blue light pulsing separately from both the earbud and smartphone. As they travel towards each other, they gradually synchronize their pulses, eventually meeting and merging into a unified blue beam. Simultaneously, a faint but noticeable glow enhances the devices' surfaces as the connection is established, showing stability.",
   "visual_explanation": {
-    "information": "The earbud receives audio data from a connected device.",
-    "physical_element": "The visible blue signals represent the data transfer.",
-    "secondary_elements": "The semitransparent earbud shell and visible components.",
-    "visual_behavior": "Blue signals move continuously from the phone to the earbud.",
-    "animation_movement": "Signals travel through space and visibly enter the earbud chip.",
-    "camera_position": "Close-up on the earbud with the phone in frame to illustrate connection.",
-    "composition": "Blue signals at the center with contrasty lighting to draw focus."
+    "information": "The smartphone detects Bluetooth signals and establishes a connection by pairing.",
+    "physical_element": "Pulsing blue light streams from the earbud and the smartphone merging in the air.",
+    "secondary_elements": "Premium materials reflecting light help focus on the merging blue streams.",
+    "visual_behavior": "The blue signals travel towards each other and merge, signifying connection.",
+    "animation_movement": "The blue lights pulse and travel towards their respective source, synchronizing and merging to indicate connection establishment.",
+    "camera_position": "Wide angle to capture both devices and merging action clearly, enhancing understanding with visual depth.",
+    "composition": "The focus is on the merging blue lights in the center with a contrasting premium studio background to highlight the connection process."
   }
 }

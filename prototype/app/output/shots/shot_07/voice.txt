@@ -1,1 +1,1 @@
-Les écouteurs décodent ces données numériques en signaux électriques analogiques.
+Le processeur des écouteurs décode ces données en un format compréhensible.

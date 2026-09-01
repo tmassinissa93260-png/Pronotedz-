@@ -4,572 +4,626 @@
 
 ## Script
 
-Avez-vous déjà considéré comment la musique traverse l'air sans fil? Les écouteurs sans fil contiennent des haut-parleurs miniatures. Ces haut-parleurs convertissent les signaux électriques en sons audibles. Les signaux électriques proviennent d'un émetteur Bluetooth intégré. L'émetteur Bluetooth reçoit des données audio d'un appareil connecté. Cet appareil envoie les données audio sous forme numérique. Les écouteurs décodent ces données numériques en signaux électriques analogiques. Les signaux analogiques alimentent les bobines des haut-parleurs. Ces bobines créent un champ magnétique autour d'elles. Le champ magnétique interagit avec un aimant permanent dans le haut-parleur. Cette interaction provoque la vibration de la membrane du haut-parleur. La membrane vibrante déplace l'air et génère des ondes sonores. Les ondes sonores voyagent dans votre oreille, et vous entendez alors la musique.
+Comment le son traverse-t-il l'air pour finalement arriver à votre oreille sans un seul fil ? Lorsque l'utilisateur active les écouteurs, ils s'allument. Les écouteurs cherchent automatiquement des appareils compatibles via Bluetooth. Leur puce Bluetooth émet des signaux pour se connecter à votre smartphone. Le smartphone détecte ces signaux et s'y connecte en établissant un couplage. Une fois couplée, la connexion permet la transmission des données numériques audio. Le processeur des écouteurs décode ces données en un format compréhensible. Les écouteurs convertissent ensuite ces données traitées en signaux électriques. Des transducteurs dans les écouteurs reçoivent ces signaux électriques. Ces transducteurs utilisent ces signaux pour vibrer. Les vibrations produisent des ondes sonores. Les ondes sonores se déplacent dans le conduit auditif de l'utilisateur. Ces ondes stimulent le tympan, recréant la musique ou le son original. L'utilisateur perçoit ces sons comme une musique ou parole claire.
+
+### La chaîne physique derrière le texte
+
+1. Lorsque l'utilisateur active les écouteurs, ils s'allument.
+2. Les écouteurs cherchent automatiquement des appareils compatibles via Bluetooth.
+3. Leur puce Bluetooth émet des signaux pour se connecter à votre smartphone.
+4. Le smartphone détecte ces signaux et s'y connecte en établissant un couplage.
+5. Une fois couplée, la connexion permet la transmission des données numériques audio.
+6. Le processeur des écouteurs décode ces données en un format compréhensible.
+7. Les écouteurs convertissent ensuite ces données traitées en signaux électriques.
+8. Des transducteurs dans les écouteurs reçoivent ces signaux électriques.
+9. Ces transducteurs utilisent ces signaux pour vibrer.
+10. Les vibrations produisent des ondes sonores.
+11. Les ondes sonores se déplacent dans le conduit auditif de l'utilisateur.
+12. Ces ondes stimulent le tympan, recréant la musique ou le son original.
+13. L'utilisateur perçoit ces sons comme une musique ou parole claire.
+
+### Les ouvertures écartées
+
+- Avec un simple clic, vos écouteurs se lient à votre smartphone, mais comment ?
+- Vos écouteurs sans fil transforment des signaux numériques en musique magique.
+
+*Retenue : Elle met l'accent sur l'aspect invisible de la technologie, ce qui pique davantage la curiosité que la simple connexion ou transformation.*
+
+### Sur quoi chaque phrase repose
+
+- « Lorsque l'utilisateur active les écouteurs, ils s'allument. » — maillon 1 : Les écouteurs contiennent un circuit d'allumage qui est activé.
+- « Les écouteurs cherchent automatiquement des appareils compatibles via Bluetooth. » — maillon 2 : Les écouteurs ont un mode de recherche Bluetooth intégré.
+- « Leur puce Bluetooth émet des signaux pour se connecter à votre smartphone. » — maillon 3 : Les puces Bluetooth envoient des signaux d'identification pour permettre le couplage.
+- « Le smartphone détecte ces signaux et s'y connecte en établissant un couplage. » — maillon 4 : L'appareil est conçu pour détecter et connecter automatiquement les signaux.
+- « Une fois couplée, la connexion permet la transmission des données numériques audio. » — maillon 5 : La connexion Bluetooth établie autorise le transfert de paquets de données.
+- « Le processeur des écouteurs décode ces données en un format compréhensible. » — maillon 6 : Le processeur contient des algorithmes de décodage pour traiter les données audio.
+- « Les écouteurs convertissent ensuite ces données traitées en signaux électriques. » — maillon 7 : Le circuit audio change les signaux en impulsions électriques.
+- « Des transducteurs dans les écouteurs reçoivent ces signaux électriques. » — maillon 8 : Les transducteurs transfèrent l'énergie électrique en mouvement mécanique.
+- « Ces transducteurs utilisent ces signaux pour vibrer. » — maillon 9 : Les vibrations sont une réaction physique aux impulsions électriques.
+- « Les vibrations produisent des ondes sonores. » — maillon 10 : Les ondes sonores se forment lorsque l'air vibre.
+- « Les ondes sonores se déplacent dans le conduit auditif de l'utilisateur. » — maillon 11 : Les ondes sonores voyagent naturellement dans l'air dirigé vers l'oreille.
+- « Ces ondes stimulent le tympan, recréant la musique ou le son original. » — maillon 12 : Les vibrations de l'air frappent le tympan, reproduisant les sons.
+- « L'utilisateur perçoit ces sons comme une musique ou parole claire. » — maillon 13 : Le cerveau interprète les signaux envoyés par le tympan comme des sons.
 
 ## Visual bible
 
 À réutiliser dans **chaque** image. Les couleurs ont un sens fixe.
 
-- **main subject** : wireless earbuds
-- **characters objects** : Bluetooth transmitter, electric signals, sound waves
-- **vehicle** : n/a
-- **colors** : blue, yellow, green, purple, gray
+- **main subject** : wireless earbud
+- **characters objects** : earbuds, smartphone
+- **vehicle** : N/A
+- **colors** : dark near-black earbuds, blue, green, yellow, orange for signals
 - **environment** : dark premium studio
-- **materials** : translucent, realistic plastics and metals
-- **lighting** : cinematic blue and white
-- **camera** : close-up and semi-cutaway views
-- **style 3d** : photorealistic premium engineering visualization
-- **realism** : high
-- **invisible phenomena** : represented by color-coded luminous flows
+- **materials** : high-end, clear plastic, metals
+- **lighting** : cinematic blue and white lighting
+- **camera** : varied close-up and wide shots
+- **style 3d** : photorealistic engineering visualization
+- **realism** : highly realistic
+- **invisible phenomena** : represented by colored light streams
 
 ## Code couleur
 
 Une notion, une couleur, la même du début à la fin.
 
-- **blue** = signal_bluetooth — Bluetooth signal transmission  *(se déplace)*
-- **yellow** = signal_electrique — electric signal conversion and flow  *(se déplace)*
-- **green** = champ_magnetique — magnetic field creation and interaction  *(se déplace)*
-- **purple** = son — sound wave movement  *(se déplace)*
-- **gray** = structure — physical components of the earbuds
+- **blue** = bluetooth signal — signal transmission  *(se déplace)*
+- **green** = audio data — digital audio data  *(se déplace)*
+- **yellow** = electrical signal — converted audio data  *(se déplace)*
+- **orange** = sound waves — physical sound waves  *(se déplace)*
 
 ## Contrôle qualité
 
-- narrative quality : 0.92
+- narrative quality : 0.9
 - visual quality : 0.9
-- scientific accuracy : 0.91
-- voice visual alignment : 0.92
+- scientific accuracy : 0.9
+- voice visual alignment : 0.9
 - visual continuity : 0.9
 - pedagogical clarity : 0.9
-- animation potential : 0.91
+- animation potential : 0.9
 
 ---
 
-## Plan 01 — 4s
+## Plan 01 — 3s
 
-**Voix** : Avez-vous déjà considéré comment la musique traverse l'air sans fil?
+**Voix** : Comment le son traverse-t-il l'air pour finalement arriver à votre oreille sans un seul fil ?
 
-**Fonction** : Introduce the concept of wireless audio transmission using Bluetooth.
+**Fonction** : Create curiosity about how wireless technology delivers sound.
 
-**Élément pédagogique** : blue Bluetooth signal connecting earbuds to the device
+**Élément pédagogique** : Orange sound waves radiating from the earbud.
 
 **Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-Avez-vous déjà envisagé comment la musique se connecte sans fil en utilisant la technologie Bluetooth?
+le son traverse l'air et arrive à l'oreille sans fils grâce à des ondes sonores émises par les écouteurs sans fil
 
-**L'action qui l'explique** : Des ondes bleues émanent des oreillettes et voyagent jusqu'à un smartphone proche.
+**L'action qui l'explique** : Blue Bluetooth signals go from a phone to an earbud, which then emits orange sound waves outward.
 
-*Comprise sans le son : 0.85* — Elle démontre clairement le concept de transmission de signal Bluetooth en visualisant l'émission du signal vers le smartphone, ce qui est compréhensible sans son.
+*Comprise sans le son : 0.8* — It clearly shows the complete wireless signal chain, making the function of wireless technology intuitive even without audio.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The process of Bluetooth signal transmission from wireless earbuds to a device.
-2. **physical element** : Blue Bluetooth signal waves emanating from the earbuds.
-3. **secondary elements** : The translucent ghosted shell of the earbuds and the nearby smartphone.
-4. **visual behavior** : The gradual and dynamic flow of the blue waves from the earbuds towards the smartphone.
-5. **animation movement** : Waves flowing dynamically from the earbuds to the smartphone.
-6. **camera position** : Side angle close-up focused on the signal path with a shallow depth of field.
-7. **composition** : The earbuds are centered, emitting blue signal waves that travel towards the smartphone, highlighted by cinematic lighting.
+1. **information** : Wireless transmission from a smartphone to an earbud and the subsequent emission of sound waves.
+2. **physical element** : Modern dark near-black wireless earbud with a partially transparent shell.
+3. **secondary elements** : A nearby smartphone emitting blue Bluetooth signals.
+4. **visual behavior** : Emission of blue signals entering the earbud and the outward radiating orange sound waves.
+5. **animation movement** : Flowing blue signals transforming into spreading orange sound waves.
+6. **camera position** : Close-up, centered on the earbud with a nuanced orbit to capture the flow and spread of signals.
+7. **composition** : A vertical 9:16 layout, focusing on the dynamic interaction between signals and sound waves, with all components clearly defined.
 
 ### Prompt image
 
 ```
-A close-up view of wireless earbuds in a dark premium studio environment, emitting blue Bluetooth signal waves that travel visibly towards a nearby smartphone. The earbuds are the central subject, showing the blue signal waves clearly emanating from them, representing the wireless communication. Cinematic blue and white lighting highlights the blue signals, and the translucent materials showcase the internal components. The camera captures the scene from a side angle, with a focus on the signal path, utilizing a shallow depth of field to emphasize the movement of the Bluetooth waves while keeping the rest of the scene slightly blurred. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A modern dark near-black wireless earbud is placed in the center of the frame, clearly visible against a dark studio background. From a smartphone nearby, vivid blue Bluetooth signals flow directly into the earbud. From the earbud, vibrant orange sound waves emanate outwardly, filling the visible space. The scene is lit with cinematic blue and white lighting that highlights these interactions. The translucent ghosted earbud shell is partially cut away to reveal internal components such as the battery, chip, antenna, voice coil, and diaphragm, adding context to the process. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The animation begins with subtle blue waves starting to emanate from the earbuds. The waves then dynamically flow outward, gradually building in intensity and speed, moving through space until they reach and connect with the smartphone, signifying the stabilization of the Bluetooth connection.
+Begin with blue Bluetooth signals traveling from the smartphone to the earbud, entering through its translucent design. As they enter, the signals transform, and orange sound waves start to radiate from the earbud. The camera orbits slightly, enhancing the perspective on how these sound waves spread outward into the surrounding space, growing larger and more diffuse as time progresses.
 ```
 
 ---
 
 ## Plan 02 — 4s
 
-**Voix** : Les écouteurs sans fil contiennent des haut-parleurs miniatures.
+**Voix** : Lorsque l'utilisateur active les écouteurs, ils s'allument.
 
-**Fonction** : Show the internal components of the earbud, focusing on the speakers.
+**Fonction** : Show the activation process within the earbud.
 
-**Élément pédagogique** : gray structural components housing miniature speakers
+**Élément pédagogique** : Glowing components representing earbud activation.
 
-**Intention de mouvement** : `energy_flow`
+**Intention de mouvement** : `energy_storage`
 
 ### Ce que le spectateur doit comprendre
 
-Que les écouteurs sans fil contiennent des haut-parleurs miniatures à l'intérieur de leur structure.
+Que l'utilisateur allume les écouteurs et qu'ils s'activent.
 
-**L'action qui l'explique** : Gray structural components are highlighted as they split open, revealing the miniature speakers inside.
+**L'action qui l'explique** : The earbud's interior lights up, highlighting circuits and components.
 
-*Comprise sans le son : 0.8* — This action immediately shows the internal presence of miniature speakers in the earbuds with clarity, whereas others focus more on function rather than highlighting the speaker location.
+*Comprise sans le son : 0.8* — It focuses on showing how earbuds light up during activation, clearly linking cause to effect.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Wireless earbuds have miniature speakers inside their structure.
-2. **physical element** : The gray structural components of the earbud.
-3. **secondary elements** : Miniaturized speakers inside, cinematic lighting, translucent shell.
-4. **visual behavior** : Structural components split open to expose what's inside.
-5. **animation movement** : The components smoothly retract to reveal the speakers.
-6. **camera position** : Directly focused on the area where the structure opens.
-7. **composition** : The elements are arranged to draw the viewer's eye to the opened structure showing the internal speakers.
+1. **information** : The activation of earbuds upon user interaction.
+2. **physical element** : The interior circuits of the earbud and their illumination.
+3. **secondary elements** : The translucent shell and the visible circuitry inside.
+4. **visual behavior** : The circuits light up and glow, displaying activation.
+5. **animation movement** : Internal glow spreads from the battery outward to the circuits, increasing gradually.
+6. **camera position** : A stable position focusing closely on the earbud's illuminated interior.
+7. **composition** : The translucent interior glow draws the eye, establishing a clear cause-effect of earbud activation.
 
 ### Prompt image
 
 ```
-A close-up of wireless earbuds where the gray structural components are highlighted as they split open, revealing the miniature speakers inside a translucent shell. The camera focuses centrally, showcasing the detailed structure and speaker arrangement. The cinematic blue and white lighting enhances the high-end realistic materials of the earbuds, and the dark premium studio environment provides a contrasting backdrop. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+In a dark premium studio environment, a close-up of a wireless earbud is shown with a translucent ghosted shell. Focus on the interior revealing components with a soft yellow glow indicating activation. The circuitry inside the earbud lights up in a clear, photorealistic 3D engineering visualization. The same modern dark near-black wireless earbud is used throughout, with technically detailed materials visible inside the shell, under cinematic blue and white lighting. The camera is positioned at an angle to best showcase the glow effect within the earbud, highlighting the activation process of the internal mechanisms. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-As the animation progresses, the gray structural components of the earbud slowly and smoothly split open to reveal the miniature speakers housed inside. This movement begins from the exterior shell and finishes at the full exposure of the speakers, highlighting the earbud’s internal architecture.
+As the activation process begins, the internal circuits of the earbud gradually illuminate with a soft yellow glow starting from the main battery component. This glow builds in intensity as it spreads to other circuits within, emphasizing the activation ripple effect across internal components. The camera remains stable, capturing the progressive lighting of all components, steadily highlighting the pathways inside the earbud until the entire interior glows warmly.
 ```
 
 ---
 
 ## Plan 03 — 4s
 
-**Voix** : Ces haut-parleurs convertissent les signaux électriques en sons audibles.
+**Voix** : Les écouteurs cherchent automatiquement des appareils compatibles via Bluetooth.
 
-**Fonction** : Illustrate the conversion process from electrical signals to sound waves.
+**Fonction** : Show how the earbud seeks devices via Bluetooth.
 
-**Élément pédagogique** : yellow-to-purple conversion from electric signal to sound wave
+**Élément pédagogique** : Blue waves representing searching Bluetooth signals.
 
-**Intention de mouvement** : `cause_effect`
+**Intention de mouvement** : `energy_flow`
+
+### Ce que le spectateur doit comprendre
+
+Les écouteurs se connectent automatiquement à des appareils compatibles via Bluetooth.
+
+**L'action qui l'explique** : A series of blue dots emerge from the earbud, move outward, and highlight a nearby smartphone, causing a connection line to form.
+
+*Comprise sans le son : 0.8* — The path of blue dots moving and the connection line forming clearly illustrate the detection and connection process of Bluetooth searching in a cause-and-effect manner.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Demonstrate conversion of electricity to sound within the earbuds.
-2. **physical element** : speakers and sound waves
-3. **secondary elements** : translucent earbud structure
-4. **visual behavior** : yellow flows transforming into purple sound waves
-5. **animation movement** : progressive conversion from yellow signals to purple waves
-6. **camera position** : close-up highlighting signal transformation
-7. **composition** : centered on the speaker transforming energy
+1. **information** : The earbuds seek devices via Bluetooth signals.
+2. **physical element** : Earbud emits blue dots representing searching signals.
+3. **secondary elements** : A line forming with the smartphone shows a successful connection.
+4. **visual behavior** : The blue dots emerge and travel to the smartphone.
+5. **animation movement** : Dots outward travel from the earbud and the forming of a connection line.
+6. **camera position** : A slight angle captures the emission of blue dots and their path to the phone.
+7. **composition** : Frame centers around earbud with path and connection line clear in view.
 
 ### Prompt image
 
 ```
-A close-up view of the internal speaker system inside modern wireless earbuds, showing yellow flowing electric signals transforming into purple concentric sound waves emanating from the diaphragm. The translucent housing lets the viewer see the conversion process clearly. A central camera angle is set up to capture this transformation process, using cinematic blue and white lighting to highlight the precise and realistic materials of the earbud. The environment remains consistent with the dark premium studio setting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+In a detailed close-up shot, an earbud is at the center with a series of small blue dots visibly emerging from it and expanding outward, leading towards a nearby smartphone. As the dots make contact with the smartphone, a prominent blue line forms between the earbud and the phone, symbolizing a connection. The camera is positioned at a slight angle to capture the trajectory of the blue dots and the connection line clearly. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The flow of yellow signals gradually transforms into purple sound waves, intensifying and expanding outwards from the diaphragm over time, with the speaker vibrating due to energy conversion.
+Blue dots continuously and steadily emerge from the earbud, traveling outward in a highlighted path, culminating in a bright blue line that dynamically forms when the dots reach the smartphone, indicating a successful pairing. The motion starts at the earbud, builds as the dots spread, and reaches completion with the connecting line appearing.
 ```
 
 ---
 
 ## Plan 04 — 4s
 
-**Voix** : Les signaux électriques proviennent d'un émetteur Bluetooth intégré.
+**Voix** : Leur puce Bluetooth émet des signaux pour se connecter à votre smartphone.
 
-**Fonction** : Explain the role of the Bluetooth transmitter in delivering signals.
+**Fonction** : Visualize connection process with a smartphone.
 
-**Élément pédagogique** : blue Bluetooth signals originating from a chip
+**Élément pédagogique** : Bluetooth chip sending out connecting signals.
 
 **Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-Les signaux électriques sont générés et émis par un émetteur Bluetooth intégré.
+Le processus par lequel la puce Bluetooth émet des signaux pour se connecter à votre smartphone.
 
-**L'action qui l'explique** : Blue signals pulse from the Bluetooth chip and travel outward through the earbud circuitry.
+**L'action qui l'explique** : Blue light signals pulsate from the Bluetooth chip towards the smartphone.
 
-*Comprise sans le son : 0.85* — It best demonstrates the origin and propagation of Bluetooth signals using consistent color-coding, making it clear even with the sound off.
+*Comprise sans le son : 0.8* — This action captures the active emission and targeted transmission of signals, emphasizing the action of connection formation.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The Bluetooth chip emits signals that traverse through the earbud.
-2. **physical element** : Blue signals visually representing Bluetooth transmission.
-3. **secondary elements** : The earbud's internal components and circuitry.
-4. **visual behavior** : Blue signals pulsing and moving outward from the chip.
-5. **animation movement** : Signals begin at the chip and spread outwards, building in intensity.
-6. **camera position** : Central perspective focusing on the location of the chip.
-7. **composition** : The Bluetooth chip in the earbuds' cutaway displays clear signal movement, reinforced by the translucent materials and high-contrast lighting.
+1. **information** : Bluetooth chip signals serving to connect the earbud with a smartphone.
+2. **physical element** : Pulsating blue light signals emitted from the chip.
+3. **secondary elements** : The smartphone presence indicating connection target, emphasized signal paths.
+4. **visual behavior** : The pulsating nature of the blue signals illustrating active transmission.
+5. **animation movement** : Signals initiating from the chip, progressively stabilizing and reaching the phone.
+6. **camera position** : Focus is on the chip's position in the semi-cutaway with a view towards the path of the signals towards the phone.
+7. **composition** : Strong emphasis on the chip and signal path, with cinematic depth and contrasting lighting highlighting the action of connection.
 
 ### Prompt image
 
 ```
-A close-up semi-cutaway view of modern dark near-black wireless earbuds focuses on the Bluetooth chip, which is emitting blue signals that pulse through the internal circuitry. The camera captures this action from a central perspective to ensure that the flow is clear and visually distinct. The earbuds are rendered with realistic translucent plastics and metal materials, illuminated by cinematic blue and white lighting, creating a high-contrast, premium engineering visualization. The environment is a dark premium studio, showcasing the earbud structure with translucent ghosted shells, internal components like the battery, chip, and antenna visible. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+Close up on the earbud's Bluetooth chip visualized in semi-cutaway with translucent ghosted shell. From the chip, pulsing blue light signals are seen extending and dynamically traveling towards a smartphone at the edge of the frame, emphasizing the connection path. The controlled lighting highlights the blue signals as the primary focus against a dark premium studio backdrop, ensuring clear visibility of the transmission. The cinematic blue and white lighting accentuates the intricate internal structure of the earbud, with components like the battery and antenna visible through the translucent shell. The composition concentrates on the interactive pathway established from the chip to the smartphone. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The shot begins with blue signals originating from the integrated Bluetooth chip within the earbud. These signals gradually and dynamically pulse outward, traveling through the internal circuitry and highlighting the flow paths over time. The movement starts at the chip, builds in intensity as the signals propagate, until reaching the edges of the circuitry, demonstrating the role of the Bluetooth transmitter in delivering signals throughout the device.
+Starting with the Bluetooth chip at the center, pulsed blue signals initiate, emerging from the chip and extending toward the smartphone. These signals alternate their intensity to illustrate the pulsating nature, gradually becoming more stable and concentrated as they traverse the space and reach the smartphone at the frame edge, symbolizing a successful connection. The animation emphasizes the systematic and directed nature of these signal transmissions in establishing the technological connection.
 ```
 
 ---
 
 ## Plan 05 — 4s
 
-**Voix** : L'émetteur Bluetooth reçoit des données audio d'un appareil connecté.
+**Voix** : Le smartphone détecte ces signaux et s'y connecte en établissant un couplage.
 
-**Fonction** : Show how the earbud receives audio data from a connected device.
+**Fonction** : Demonstrate successful Bluetooth pairing.
 
-**Élément pédagogique** : blue signals indicating data transfer to earbuds
+**Élément pédagogique** : Two-way blue signals merging for solid connection.
 
 **Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-L'émetteur Bluetooth reçoit des données audio d'un appareil connecté aux écouteurs.
+Le smartphone détecte les signaux Bluetooth et établit une connexion en s'y couplant.
 
-**L'action qui l'explique** : Blue signals flow from a smartphone to the earbud's Bluetooth chip.
+**L'action qui l'explique** : Two streams of blue light pulse from the earbud and smartphone, meeting and merging in the air.
 
-*Comprise sans le son : 0.8* — This action directly shows the visible transfer of data, making it clear with visual cues when the audio data moves from the device to the earbud.
+*Comprise sans le son : 0.8* — Pulsing and merging of blue signals clearly show the active connection process better than static or simple synchronization.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The earbud receives audio data from a connected device.
-2. **physical element** : The visible blue signals represent the data transfer.
-3. **secondary elements** : The semitransparent earbud shell and visible components.
-4. **visual behavior** : Blue signals move continuously from the phone to the earbud.
-5. **animation movement** : Signals travel through space and visibly enter the earbud chip.
-6. **camera position** : Close-up on the earbud with the phone in frame to illustrate connection.
-7. **composition** : Blue signals at the center with contrasty lighting to draw focus.
+1. **information** : The smartphone detects Bluetooth signals and establishes a connection by pairing.
+2. **physical element** : Pulsing blue light streams from the earbud and the smartphone merging in the air.
+3. **secondary elements** : Premium materials reflecting light help focus on the merging blue streams.
+4. **visual behavior** : The blue signals travel towards each other and merge, signifying connection.
+5. **animation movement** : The blue lights pulse and travel towards their respective source, synchronizing and merging to indicate connection establishment.
+6. **camera position** : Wide angle to capture both devices and merging action clearly, enhancing understanding with visual depth.
+7. **composition** : The focus is on the merging blue lights in the center with a contrasting premium studio background to highlight the connection process.
 
 ### Prompt image
 
 ```
-A photorealistic 3D engineering visualization shows a dynamic flow of blue signals moving from a smartphone to the Bluetooth chip inside a near-black wireless earbud. The camera is positioned close-up to capture the precise path of these signals entering the earbud, with a background that enhances visibility. The dark premium studio setting is lit with cinematic blue and white lighting to highlight the blue signals clearly. Materials such as translucent plastics reveal the internal components like the battery, chip, antenna, voice coil, and diaphragm. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+The image shows two streams of blue light pulsing from the dark near-black wireless earbud and the smartphone, meeting and merging mid-air to form a unified bright blue connection. The premium materials of both devices reflect the light subtly, enhancing focus on the converging signals. The camera is placed at a wide angle to fully illustrate the merging action, with cinematic blue and white lighting enhancing the visibility of signals. The environment is a dark premium studio, with detailed visualization of internal components such as the internal battery, chip, antenna, voice coil, and diaphragm through a translucent ghosted shell, in a vertical 9:16 composition. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field, and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Blue signals begin forming near a smartphone, building momentum as they stream towards the earbud. They visibly enter and highlight the Bluetooth chip showing data transfer actively in progress.
+The animation starts with two streams of blue light pulsing separately from both the earbud and smartphone. As they travel towards each other, they gradually synchronize their pulses, eventually meeting and merging into a unified blue beam. Simultaneously, a faint but noticeable glow enhances the devices' surfaces as the connection is established, showing stability.
 ```
 
 ---
 
 ## Plan 06 — 4s
 
-**Voix** : Cet appareil envoie les données audio sous forme numérique.
+**Voix** : Une fois couplée, la connexion permet la transmission des données numériques audio.
 
-**Fonction** : Visualize the digital nature of the audio data sent to the earbuds.
+**Fonction** : Show post-pairing data transmission process.
 
-**Élément pédagogique** : binary data streams signifying digital nature
+**Élément pédagogique** : Green data streams transmitting between devices.
 
 **Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-Le spectateur doit comprendre que cet appareil envoie des données audio sous forme numérique.
+Une fois couplée, la connexion permet la transmission des données numériques audio entre les appareils.
 
-**L'action qui l'explique** : Binary numbers travel visibly along a blue pathway from the edge of the frame to the earbud Bluetooth chip.
+**L'action qui l'explique** : Vivid green data streams flow continuously from the smartphone to the wireless earbud.
 
-*Comprise sans le son : 0.75* — This action clearly visualizes the movement of digital data to the earbuds, which is the core message, without needing extra context.
+*Comprise sans le son : 0.8* — This action is direct and clearly shows data transferring between devices, which is quickly understandable without audio.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Audio data is transmitted digitally from the device to the earbuds.
-2. **physical element** : Binary numbers moving along a blue pathway towards the Bluetooth chip.
-3. **secondary elements** : The translucent casing of the earbuds showcasing its inner components.
-4. **visual behavior** : Continuous movement of binary numbers along a defined path.
-5. **animation movement** : Binary numbers smoothly traveling into the earbuds.
-6. **camera position** : Central angle close-up captures the journey of data to the earbuds.
-7. **composition** : A semi-cutaway, focusing on the dynamic visual representation of digital transmission.
+1. **information** : The transmission of audio data after pairing the device.
+2. **physical element** : Vivid green data streams flowing from the smartphone to the earbud.
+3. **secondary elements** : Detailed internal components visible through a translucent shell, studio lighting highlights data integrity.
+4. **visual behavior** : The green data streams travel from the phone to the earbud, signaling continuous connection and transmission.
+5. **animation movement** : The vivid green streams steadily flow from the phone to the earbud, intensifying in brightness and speed as they reach their destination.
+6. **camera position** : A side view capturing both the phone and earbud, emphasizing the path of the green streams.
+7. **composition** : Central to the frame, showing the green streams prominently as they flow between the devices, with the cinematic environment and technical cutaway elements integrating to explain the process.
 
 ### Prompt image
 
 ```
-In the foreground, a close-up semi-cutaway view of modern dark near-black wireless earbuds is shown, with a clear blue path highlighted where binary zeros and ones travel visibly from the periphery straight into the Bluetooth chip inside. The binary code is rendered in bright blue digital tones, suggesting a digital transmission occurring in real-time. The photo captures the earbud's translucent materials with cinematic blue and white lighting from a central angle, emphasizing the digital journey. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+In a side view of the connected smartphone and wireless earbud, vivid green data streams flow continuously and dynamically from the phone to the earbud, indicating active audio data transmission. The scene captures the green streams prominently, showing them clearly entering the earbud, visualizing the connectivity channel. Intense studio lighting enhances the high-end materials, capturing reflection points symbolizing data integrity. The entire setup, including the dark near-black wireless earbud, utilizes a technical semi-cutaway where necessary, revealing internal components through a translucent shell, with the dark studio environment and cinematic blue and white lighting creating a premium, realistic setting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The binary numbers animate smoothly from the outer edge of the frame towards the Bluetooth chip in the earbuds, demonstrating a steady transmission. As the sequence reaches the chip, the numbers increasingly concentrate, illustrating the flow and processing of audio data as part of the transmission event.
+The animation shows the vivid green data streams commencing steadily at the phone, progressing seamlessly toward the wireless earbud. As the streams flow, the intensity builds, symbolizing active transmission until they distinctly arrive at the earbud, emphasizing a continuous flow of digital audio data.
 ```
 
 ---
 
 ## Plan 07 — 4s
 
-**Voix** : Les écouteurs décodent ces données numériques en signaux électriques analogiques.
+**Voix** : Le processeur des écouteurs décode ces données en un format compréhensible.
 
-**Fonction** : Illustrate conversion from digital to analog signals within the earbuds.
+**Fonction** : Show the decoding process.
 
-**Élément pédagogique** : conversion sequence from binary to analog signal flow
+**Élément pédagogique** : Transformation of data streams by processor.
 
 **Intention de mouvement** : `energy_transfer`
 
 ### Ce que le spectateur doit comprendre
 
-Les écouteurs convertissent les données numériques en signaux analogiques électriques.
+Le processeur des écouteurs transforme les données audio numériques en signaux audio compréhensibles.
 
-**L'action qui l'explique** : A stream of blue digital binary signals enters the earbud and transforms into yellow electrical signals as it moves through the internal pathways.
+**L'action qui l'explique** : Green data streams enter the processor and exit as yellow electrical signals.
 
-*Comprise sans le son : 0.8* — It visually communicates the cause-effect relationship of digital transformation within the earbuds, linking the input with the analog output, and shows the process explicitly.
+*Comprise sans le son : 0.8* — It clearly shows data entering and exiting the processor, illustrating the transformation effectively with the sound off.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Conversion from digital to analog signals within earbuds.
-2. **physical element** : Stream of data transforming inside the earbuds.
-3. **secondary elements** : Camera angle and lighting highlighting the conversion process.
-4. **visual behavior** : Digital signals entering and transforming as they traverse internal paths.
-5. **animation movement** : Blue signals morphing into yellow as they move inward.
-6. **camera position** : Positioned close-up to track signal progression.
-7. **composition** : Centered to follow transition from digital entry to analog spread.
+1. **information** : The processor decoding data into comprehensible signals.
+2. **physical element** : Data streams entering and exiting the processor.
+3. **secondary elements** : Lighting focus on transformation area.
+4. **visual behavior** : Data colors change within the processor.
+5. **animation movement** : Streams flow into processor, transform and emit as signals.
+6. **camera position** : Close-up on processor area, centered on signal change.
+7. **composition** : Emphasizes data flow through processor, highlighting transformation.
 
 ### Prompt image
 
 ```
-A detailed close-up view of a modern wireless earbud with a visible stream of blue binary data entering the earbud and transforming into yellow electrical signals as they weave through the internal structure. The camera is positioned to show the semi-cutaway view where internal components are visible, spotlighting the conversion process with cinematic depth of field. The environment is a dark premium studio, employing cinematic blue and white lighting to highlight the transformation. Materials are rendered with high realism, displaying translucent plastics and metal components to enhance visibility of internal flow. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+The camera closely focuses on the internal components of the earbud, precisely where green streams of data visibly enter the processor and transform into yellow electrical signals as they exit. The scene takes place in a dark premium studio environment, showcasing the high-end, clear plastic and metal materials of the earbuds. The lighting highlights the transformation process between the chip pathways. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The blue digital binary stream enters from the left side of the screen into the earbud. It begins to transform into yellow electrical signals as it progresses inward, weaving through the pathways and building in intensity until fully enveloping the internal components, showing the conversion completion.
+Green data streams steadily enter the processor, building in transformation to yellow electrical signals as they exit. The movement starts as a faint green flow, gradually gaining momentum as it approaches the processor, transforming into vibrant yellow signals that progressively pulse outward in a coherent sequence.
 ```
 
 ---
 
 ## Plan 08 — 4s
 
-**Voix** : Les signaux analogiques alimentent les bobines des haut-parleurs.
+**Voix** : Les écouteurs convertissent ensuite ces données traitées en signaux électriques.
 
-**Fonction** : Depict how analog signals energize the speaker coil.
+**Fonction** : Detail the conversion from processed data to electrical signals.
 
-**Élément pédagogique** : yellow analog signals energizing speaker's voice coil
+**Élément pédagogique** : Conversion of yellow data into electrical impulses.
 
-**Intention de mouvement** : `energy_transfer`
+**Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-Les signaux analogiques énergisent les bobines des haut-parleurs pour générer du son.
+Que les données traitées sont converties en signaux électriques par les écouteurs.
 
-**L'action qui l'explique** : Yellow analog signals animate as they pass through the coil and become purple sound waves emanating from the diaphragm.
+**L'action qui l'explique** : Yellow pulses start from a digital chip and travel outward through wired paths.
 
-*Comprise sans le son : 0.8* — This choice visually demonstrates how signals transform into sound, covering the entire process clearly and concisely.
+*Comprise sans le son : 0.8* — It visually shows the conversion process and initiates a clear, directional flow from data processing to electrical activity, making the transformation immediately seen.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : How analog signals energize a speaker's coil to produce sound.
-2. **physical element** : Yellow analog signals and their transformation into purple sound waves.
-3. **secondary elements** : Earbud components visible in a translucent ghosted shell.
-4. **visual behavior** : Signal transformation and coil vibration turning into sound waves.
-5. **animation movement** : Signals enter, transform, and create sound waves.
-6. **camera position** : Close-up on the coil and diaphragm to focus on energy transformation.
-7. **composition** : Vertical framing that centers on the signal flow and transformation process.
+1. **information** : The conversion of processed data into electrical signals within earbuds.
+2. **physical element** : Yellow pulses starting from the digital chip.
+3. **secondary elements** : Translucent pathways lighting up as yellow pulses travel through them, reflecting signal movement.
+4. **visual behavior** : The yellow signals glow and move smoothly through visible circuit paths.
+5. **animation movement** : Yellow pulses emulate electrical currents traveling outward from the chip along wired pathways.
+6. **camera position** : Close-up internal view of the earbud focusing on the internal paths and chip emission center.
+7. **composition** : The pathway of the yellow pulses dominates the vertical frame ensuring clear directional flow is visible.
 
 ### Prompt image
 
 ```
-In a tight semi-cutaway view of a modern dark near-black wireless earbud, yellow analog signals are shown entering the voice coils with the energetic pulse of these signals visualized as they move through the coil, ultimately transforming into emanating purple sound waves from the diaphragm. The earbud's translucent ghosted shell exposes internal components like the battery, chip, and diaphragm in a premium engineering visualization with highly detailed materials. The dark premium studio environment and cinematic blue and white lighting highlight the flow of analog and sound signals. The camera focuses closely on this transformation process, ensuring clarity of the energy movement and transformation into sound waves, framed with a vertical 9:16 composition. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+An intensely focused view inside the wireless earbud reveals yellow pulses originating from the digital chip at the core and extending outward via intricate wired paths, signifying the conversion from processed data to electrical signals. This energized pathway is highlighted by dynamic illumination against the dark premium studio backdrop. The translucent ghosted shell exposes the inner components, including battery, chip, antenna, voice coil, and diaphragm distinctly visible, while cinematic blue and white lighting casts sharp contrasts and accentuates the critical conversion process occurring within high-end modern materials. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The animation starts with yellow analog signals entering the voice coils of a modern dark near-black wireless earbud. As these signals pulse through the coil, they visually transform, energizing the coil, and finally manifesting as purple sound waves emanating outward from the diaphragm. The motion of signals animates the coil into subtle vibrations, evolving progressively from energy input to sound output. The camera remains focused on this dynamic process, highlighting the transformation and connection between electric signal flow and sound production.
+The animation begins with processed data visualized as green streams entering a digital chip inside the earbud, which then morph into vivid yellow pulses. These pulses initiate from the chip and travel meticulously through the translucent pathways of the earbud, illuminating the wired paths progressively. The conversion augments in brightness and clarity, highlighting the transformation into electrical signals, synchronized with the chip's pathways and components, accentuating the function and flow of the data to electric transformation.
 ```
 
 ---
 
 ## Plan 09 — 4s
 
-**Voix** : Ces bobines créent un champ magnétique autour d'elles.
+**Voix** : Des transducteurs dans les écouteurs reçoivent ces signaux électriques.
 
-**Fonction** : Illustrate magnetic field generation by energized speaker coils.
+**Fonction** : Show transducers receiving and acting upon electrical signals.
 
-**Élément pédagogique** : green magnetic field forming around energized coils
+**Élément pédagogique** : Interfaces as signals pulse transducers.
 
-**Intention de mouvement** : `electromagnetic_rotation`
+**Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-Le spectateur doit comprendre que les bobines des écouteurs créent un champ magnétique autour d'elles lorsqu'elles sont alimentées par un signal électrique.
+Les transducteurs dans les écouteurs reçoivent et traitent des signaux électriques.
 
-**L'action qui l'explique** : A yellow electric signal travels into the earbud coil, resulting in a green magnetic field forming around it.
+**L'action qui l'explique** : Electrical yellow signals enter the transducer, which visibly vibrates and emits orange sound waves.
 
-*Comprise sans le son : 0.85* — This action connects the cause (electric signal) and effect (magnetic field) clearly, showing the viewer the sequence from input to field creation with the sound off.
+*Comprise sans le son : 0.8* — It directly shows the transformation of electrical signals into sound waves, making the role of the transducer evident.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The magnetic field is generated around a coil when an electric signal passes through it.
-2. **physical element** : The wireless earbud and its internal coil.
-3. **secondary elements** : The electric signal (yellow) that energizes the coil and the green magnetic field that forms.
-4. **visual behavior** : The entry of the yellow electric signal into the coil and the subsequent formation of a green magnetic field around it.
-5. **animation movement** : The yellow electric signal flows steadily into the coil, and as it arrives, a green magnetic field begins to radiate outward, gradually building in intensity.
-6. **camera position** : Close-up semi-cutaway view focusing on the coil and its interactions.
-7. **composition** : The earbud positioned at the center to showcase the cause-effect relationship between the electric signal and the magnetic field creation.
+1. **information** : The transformation of electrical signals into audible sound waves by the transducer.
+2. **physical element** : A transducer inside the earbud visibly receiving and processing electrical signals.
+3. **secondary elements** : Orange sound waves emitted as a result of the electrical signals processed by the transducer.
+4. **visual behavior** : Vibrating transducer emitting pulsing orange sound waves.
+5. **animation movement** : Yellow signals entering transducer, conversion to sound waves radiating outward.
+6. **camera position** : Close-up view on the transducer, semi-cutaway to show internal process.
+7. **composition** : Center the transducer, with electrical and sound signals clearly visible and flowing through it.
 
 ### Prompt image
 
 ```
-A close-up of a modern dark near-black wireless earbud shows a yellow electric signal visibly entering the earbud coil. As it does, a green magnetic field begins to form and radiate around the coil. The camera captures this from a semi-cutaway view, focusing on visible causation. The earbud is positioned centrally in the frame, using translucent ghosted materials to reveal internal components like the battery, chip, antenna, voice coil, and diaphragm with cinematic blue and white lighting enhancing the dark premium studio environment. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+Focus on the transducer inside a wireless earbud with electrical yellow signals entering and causing it to vibrate, leading to the emission of orange sound waves. The transducer's components are clearly visible to show the conversion process, set within a dark premium studio environment. Position the camera in a close-up technical semi-cutaway view to clearly capture the flow of signals and resulting sound waves. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-As the animation begins, a yellow electric signal flows steadily into the earbud coil. Gradually, a green magnetic field starts forming around the coil. The animation builds in intensity, clearly showing the magnetic field radiating outward in synchrony with the continuous flow of the electric signal, effectively demonstrating the conversion process from electric input to magnetic field projection.
+Electrical yellow signals travel into the transducer, causing it to vibrate visibly and emit a pulsating sequence of orange sound waves. The animation should start with the signals entering the transducer, building in intensity to illustrate the energetic conversion, and culminate with the sound waves radiating outward.
 ```
 
 ---
 
 ## Plan 10 — 4s
 
-**Voix** : Le champ magnétique interagit avec un aimant permanent dans le haut-parleur.
+**Voix** : Ces transducteurs utilisent ces signaux pour vibrer.
 
-**Fonction** : Detail interaction of magnetic fields with permanent speaker magnets.
+**Fonction** : Illustrate the trigger of mechanical vibrations by electrical signals.
 
-**Élément pédagogique** : green magnetic fields engaging permanent magnets in the speaker
+**Élément pédagogique** : Diaphragm vibrating due to received signals.
 
-**Intention de mouvement** : `cause_effect`
+**Intention de mouvement** : `energy_flow`
+
+### Ce que le spectateur doit comprendre
+
+Les signaux électriques provoquent les vibrations mécaniques.
+
+**L'action qui l'explique** : Yellow electrical signals flow to the diaphragm causing it to vibrate.
+
+*Comprise sans le son : 0.85* — This shows the cause-effect relationship from electrical signals to diaphragm vibrations, clearly connecting cause and effect visually.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Illustrate force interaction between speaker's fields and magnets.
-2. **physical element** : permanent magnet
-3. **secondary elements** : green magnetic fields
-4. **visual behavior** : dynamic vibrational interaction between green fields and magnet
-5. **animation movement** : progressive travel of fields toward magnet causing vibrant interaction
-6. **camera position** : tight framing for field-magnet interplay clarity
-7. **composition** : detailed focus on field-magnet junction
+1. **information** : Electrical signals trigger mechanical diaphragm vibrations.
+2. **physical element** : The diaphragm in the earbud.
+3. **secondary elements** : Stream of yellow signals show signal flow, translucent shell reveals components.
+4. **visual behavior** : Signals visually transform into diaphragm motion.
+5. **animation movement** : Electrical signals flow dynamically, causing diaphragm vibrations.
+6. **camera position** : Focused centrally on the diaphragm, in close-up, so that vibrations are clearly observable.
+7. **composition** : The diaphragm is prominently placed within a cutaway view, set against a controlled dark studio backdrop to highlight its motion.
 
 ### Prompt image
 
 ```
-A cross-sectional focus showing green magnetic fields dynamically engaged with permanent magnets located in the same modern dark near-black wireless earbud speaker. Positioning highlights magnetism effects and the balance between static structural elements. The camera placement allows an in-depth view and differentiation across components, retaining material quality within a cinematic lighting ambiance typical of prior visual sessions. The environment remains consistent with the dark premium studio setting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+The camera centers on the diaphragm within the earbud, depicting an incoming stream of yellow electrical signals flowing directly towards it, resulting in visible vibrations. The modern, dark near-black wireless earbud is seen in a technical semi-cutaway view, where the translucent ghosted shell reveals internal components like the battery, chip, antenna, and voice coil. The environment is a dark premium studio, with cinematic blue and white lighting emphasizing the clear material transitions. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Magnetic fields begin around coils and progressively shift towards the permanent magnets, inducing gradual interactions that drive positional shifts in magnetic confining loops.
+Yellow electrical signals flow continuously and dynamically towards the diaphragm, which responds by vibrating in real-time, showcasing the rhythmic transformation from electrical impulses to mechanical movement.
 ```
 
 ---
 
-## Plan 11 — 4s
+## Plan 11 — 3s
 
-**Voix** : Cette interaction provoque la vibration de la membrane du haut-parleur.
+**Voix** : Les vibrations produisent des ondes sonores.
 
-**Fonction** : Visualize diaphragm vibrations induced by magnetic fields.
+**Fonction** : Visualize the generation of sound waves from vibrations.
 
-**Élément pédagogique** : diaphragm vibrations originated from field interaction
+**Élément pédagogique** : Emerging sound waves from vibrating diaphragm.
 
-**Intention de mouvement** : `mechanical_rotation`
+**Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-Que l'interaction du champ magnétique et du signal électrique fait vibrer la membrane du haut-parleur.
+Que les vibrations produisent des ondes sonores.
 
-**L'action qui l'explique** : Yellow electric signals move along wiring to a diaphragm where a green magnetic field emanates, causing the diaphragm to vibrate visibly.
+**L'action qui l'explique** : The diaphragm inside the earbud visibly vibrates, causing visible sound waves to radiate outward.
 
-*Comprise sans le son : 0.8* — This action clearly showcases the direction of electric signals and how they result in diaphragm vibration via a magnetic field, all within a single, cohesive scene.
+*Comprise sans le son : 0.8* — This action shows the direct cause (vibration) and effect (sound waves), making it clearer without needing sound.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The interaction of electric signals and magnetic fields causing diaphragm vibration.
-2. **physical element** : The earbud's diaphragm and internal wiring.
-3. **secondary elements** : Electric signals depicted in yellow, magnetic field in green.
-4. **visual behavior** : Electric signals travel to the diaphragm, initiating a magnetic field that causes vibration.
-5. **animation movement** : Electric signals travel to the diaphragm where a magnetic field emanates, causing visible vibration.
-6. **camera position** : Close-up semi-cutaway view focused on the diaphragm for clarity of interaction.
-7. **composition** : Diaphragm at the center with yellow signals and green field-making interaction clear.
+1. **information** : Vibrations generate sound waves.
+2. **physical element** : The diaphragm inside the earbud vibrates.
+3. **secondary elements** : Internal components and the earbud shell.
+4. **visual behavior** : Sound waves visibly radiate from the diaphragm.
+5. **animation movement** : The diaphragm vibrates and sound waves spread outward.
+6. **camera position** : The camera is close to and focused on the diaphragm.
+7. **composition** : The composition highlights the diaphragm at the center of the frame, surrounded by components visible through the translucent shell.
 
 ### Prompt image
 
 ```
-A close-up semi-cutaway view reveals the inner workings of the dark near-black wireless earbud. Yellow luminous electric signals travel visibly within the earbud's wiring towards the diaphragm. Upon arrival, a green luminous magnetic field emanates around the diaphragm, which visibly vibrates in response, illustrating the interaction between signals and magnetic fields. The focus is on the diaphragm at the center, ensuring its motion is the primary visual element. The camera is positioned to give a clear view of this dynamic, capturing the juxtaposition of electric signals and magnetic fields. Translucent materials highlight internal components, bathed in cinematic blue and white studio lighting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A close-up of the earbud interior showcases the diaphragm, vibrantly vibrating as sound waves radiate out in orange ripples. The translucent shell of the earbud reveals internal components like the battery, chip, and voice coil, underscoring the connection between these parts and the vibrating diaphragm. The environment is a dark premium studio with photorealistic rendering; everything is illuminated with cinematic blue and white lighting to highlight the internal mechanics and pathways of sound wave production. The camera closely focuses on the vibrating diaphragm, emphasizing the emergence of sound waves. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil, and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field, and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Yellow electric signals begin their journey from the internal components of the earbud, steadily traveling along the wiring towards the diaphragm. Upon reaching the diaphragm, a green magnetic field gradually emanates, causing the diaphragm to start vibrating visibly. This interaction builds in intensity, illustrating how the electric signals and magnetic fields collaborate to induce diaphragm motion, captured by the camera from start to finish.
+As the animation begins, the diaphragm starts vibrating noticeably, creating ripples of sound waves that radiate outward. The movement of the diaphragm is gradual but becomes more intense, visibly pushing the air to form clearer waves. Meanwhile, the yellow electrical signal flows into the diaphragm, initiating the vibrations. The sound waves steadily build and expand into the surrounding space, showing the continuous propagation of sound.
 ```
 
 ---
 
-## Plan 12 — 4s
+## Plan 12 — 3s
 
-**Voix** : La membrane vibrante déplace l'air et génère des ondes sonores.
+**Voix** : Les ondes sonores se déplacent dans le conduit auditif de l'utilisateur.
 
-**Fonction** : Show air displacement and resulting sound wave generation.
+**Fonction** : Demonstrate the journey of sound waves into the ear.
 
-**Élément pédagogique** : purple waves as sound emerging from vibrating diaphragm
+**Élément pédagogique** : Sound wave journey through auditory canal.
 
-**Intention de mouvement** : `energy_transfer`
+**Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-La membrane vibrante déplace l'air pour créer des ondes sonores.
+Le chemin que parcourent les ondes sonores dans le conduit auditif.
 
-**L'action qui l'explique** : An electric signal travels to the diaphragm, causing it to vibrate and initiate the movement of purple waves outwards.
+**L'action qui l'explique** : Orange sound waves visibly enter the ear canal from an earbud, traveling in a visible path towards the eardrum.
 
-*Comprise sans le son : 0.8* — It clearly illustrates the connection between the electric signal, diaphragm vibration, and the generation of sound waves, with a strong focus on cause and effect.
+*Comprise sans le son : 0.85* — This action clearly shows the journey of sound waves from the earbud through the auditory canal, which is the core idea, and it avoids misleading implications of blockage or incorrect origin.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Air is displaced by a vibrating diaphragm to create sound waves.
-2. **physical element** : The diaphragm of the earbud.
-3. **secondary elements** : Yellow electric signal reaching the diaphragm; purple sound waves emitting from it.
-4. **visual behavior** : The electric signal causes the diaphragm to vibrate, and in turn, purple sound waves emerge and move outward.
-5. **animation movement** : The electric signal travels and prompts diaphragm vibration; purple waves spread outwards.
-6. **camera position** : A close-up and semi-cutaway view focused on the diaphragm area of the earbud to showcase the internal process.
-7. **composition** : Centered around the vibrating diaphragm, with clear paths of the electric signal and purple waves, emphasizing the process from electric signal delivery to sound wave generation.
+1. **information** : The movement of sound waves from the earbud through the auditory canal.
+2. **physical element** : Orange sound waves represented by light particles.
+3. **secondary elements** : The near-black wireless earbud and the virtual auditory canal.
+4. **visual behavior** : The sound waves move in a dynamic, continuous path into the canal.
+5. **animation movement** : The motion starts at the earbud, flows through the auditory canal, and progresses towards the eardrum visibly.
+6. **camera position** : A close-up view that follows the sound waves' path for clearer understanding.
+7. **composition** : The action is centered with waves sharply contrasted and lit, dominating the composition.
 
 ### Prompt image
 
 ```
-The image shows a modern dark near-black wireless earbud in a semi-cutaway view, revealing its translucent ghosted shell with the internal battery, chip, antenna, voice coil, and diaphragm. From the chip, a yellow electric signal is shown traveling towards the diaphragm. As the signal reaches the diaphragm, it visibly vibrates, emitting concentric purple sound waves that spread outward, displacing the air around it. The cinematic blue and white lighting highlights the movement and flow of the electric signal and sound waves within the dark premium studio environment. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A vivid depiction shows orange sound waves emanating from the near-black wireless earbud, moving dynamically through a semicircular path into a virtual representation of an auditory canal, reaching towards an abstracted version of the eardrum. The scene focuses tightly on the orange waves' journey, highlighted by contrast and sharpness, against a dark premium studio environment. Cinematic blue and white lighting accentuates the path of waves, ensuring visibility and understanding. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The animation starts with a yellow electric signal originating from the earbud's chip and traveling towards the diaphragm. Upon arrival, the diaphragm begins to vibrate, rhythmically pushing against the air to generate purple sound waves. These waves gradually spread outward in a pulsating manner, visibly displacing the surrounding air. As the vibration continues, the strength and reach of the purple waves increase, illustrating the process of sound generation over time.
+Animated orange sound waves stream steadily from the wireless earbud, entering and traveling through the modeled auditory canal. The camera follows this progression closely, highlighting the path of movement, focusing on their continual journey towards the eardrum, showcasing gradual and dynamic flow.
 ```
 
 ---
 
 ## Plan 13 — 4s
 
-**Voix** : Les ondes sonores voyagent dans votre oreille.
+**Voix** : Ces ondes stimulent le tympan, recréant la musique ou le son original.
 
-**Fonction** : Connect sound wave journey to human auditory experience.
+**Fonction** : Show how the eardrum vibrates to recreate sound.
 
-**Élément pédagogique** : purple sound waves moving towards human ear canal
+**Élément pédagogique** : Vibration of the eardrum due to sound waves.
 
-**Intention de mouvement** : `energy_transfer`
+**Intention de mouvement** : `cause_effect`
 
 ### Ce que le spectateur doit comprendre
 
-Les ondes sonores vont de l'écouteur jusqu'à l'oreille humaine.
+Que les ondes sonores font vibrer le tympan pour recréer le son.
 
-**L'action qui l'explique** : The earbud emits purple sound waves traveling into the ear canal.
+**L'action qui l'explique** : Sound waves visually pulse towards an eardrum causing it to visibly vibrate.
 
-*Comprise sans le son : 0.8* — It clearly shows the whole path sound waves take to reach the ear, with earbud and ear connection clearly visible.
+*Comprise sans le son : 0.8* — Clearly shows cause (sound waves) and effect (eardrum vibration) in a single action, quickly understandable.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Sound waves travel from the earbud into the ear.
-2. **physical element** : Purple sound waves emitted from the earbud.
-3. **secondary elements** : Human ear positioned to receive sound, visible internal earbud structure.
-4. **visual behavior** : Sound waves visibly travel in a clear path into the ear canal.
-5. **animation movement** : Sound waves steadily propagate from the earbud to the ear.
-6. **camera position** : Close-up and semi-cutaway to view earbud internals and outward sound waves.
-7. **composition** : Centralized purple wave movement indicating direction into the ear.
+1. **information** : Sound waves cause the eardrum to vibrate, recreating the original sound.
+2. **physical element** : The eardrum vibrating in response to sound waves.
+3. **secondary elements** : The side view highlights the motion of the eardrum; cinematic lighting enhances focus; translucent earbud components provide context.
+4. **visual behavior** : The sound waves are visually represented as orange pulses that visibly cause the eardrum to move.
+5. **animation movement** : Sound waves travel towards the eardrum, establishing a cyclical vibration in the eardrum as they make contact.
+6. **camera position** : Fixed at an angle to capture both the incoming waves and their impact on the eardrum.
+7. **composition** : The eardrum's vibration is at the center, framed by incoming sound waves, under dramatic lighting to direct attention.
 
 ### Prompt image
 
 ```
-A close-up and semi-cutaway view of a modern dark near-black wireless earbud with a translucent ghosted shell reveals its internal components like the battery, chip, antenna, voice coil, and diaphragm, all clearly visible. Purple sound waves visibly emit from the earbud, traveling toward and into a proximate human ear canal at the center of the frame. The clear path of sound waves is crucial, highlighted by cinematic blue and white lighting in a high contrast dark premium studio environment. Realistic translucent materials convey the earbud’s engineering with a vertical 9:16 composition. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A detailed close-up view of an eardrum visibly vibrating in response to pulsing sound waves, captured at the precise moment the waves reach it. The camera is positioned to capture the eardrum's reaction from the side, highlighting the movement of the eardrum as it vibrates. The translucent ghosted shell of a modern dark near-black wireless earbud reveals internal components, enhancing context. The camera focuses precisely on the eardrum while maintaining a clear view of the sound waves. The environment utilizes cinematic blue and white lighting to emphasize the visual narrative, ensuring the eardrum's vibration is the main visual focus. The materials maintain realistic detail to convey the vibration's authenticity. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Purple sound waves originate at the earbud and dynamically travel in waves toward the ear canal. They gradually increase in amplitude to convey their potency as they enter the ear, maintaining a rhythmic, flowing motion to embody sound's journey throughout the animation.
+The animation begins with sound waves steadily approaching the eardrum. As these orange sound waves make contact, the eardrum begins to vibrate in sync with their frequency. This vibration gradually builds in intensity, visually demonstrating the recreation of sound through physical movement. Over time, the eardrum's movement becomes more pronounced, until the synchronized movement of the sound waves and the eardrum clearly illustrates the sound's recreation process.
 ```
 
 ---

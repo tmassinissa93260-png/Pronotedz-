@@ -6,11 +6,11 @@ autres a partir d'elle au lieu de les redecrire.
 
 ## 1. L'image maitresse
 
-C'est le plan 10 : celui qui montre l'objet le plus entier.
+C'est le plan 05 : celui qui montre l'objet le plus entier.
 Genere-le en premier, et garde-le.
 
 ```
-A cross-sectional focus showing green magnetic fields dynamically engaged with permanent magnets located in the same modern dark near-black wireless earbud speaker. Positioning highlights magnetism effects and the balance between static structural elements. The camera placement allows an in-depth view and differentiation across components, retaining material quality within a cinematic lighting ambiance typical of prior visual sessions. The environment remains consistent with the dark premium studio setting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+The image shows two streams of blue light pulsing from the dark near-black wireless earbud and the smartphone, meeting and merging mid-air to form a unified bright blue connection. The premium materials of both devices reflect the light subtly, enhancing focus on the converging signals. The camera is placed at a wide angle to fully illustrate the merging action, with cinematic blue and white lighting enhancing the visibility of signals. The environment is a dark premium studio, with detailed visualization of internal components such as the internal battery, chip, antenna, voice coil, and diaphragm through a translucent ghosted shell, in a vertical 9:16 composition. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field, and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ## 2. Les autres plans, derives de celle-la
@@ -25,7 +25,7 @@ Sinon, colle le prompt complet : il est ecrit pour tenir tout seul.
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Side angle close-up focused on the signal path with a shallow depth of field. The earbuds are centered, emitting blue signal waves that travel towards the smartphone, highlighted by cinematic lighting. Show: The gradual and dynamic flow of the blue waves from the earbuds towards the smartphone. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up, centered on the earbud with a nuanced orbit to capture the flow and spread of signals. A vertical 9:16 layout, focusing on the dynamic interaction between signals and sound waves, with all components clearly defined. Show: Emission of blue signals entering the earbud and the outward radiating orange sound waves. Keep the reference lighting and art direction.
 ```
 
 ### Plan 02
@@ -34,7 +34,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Directly focused on the area where the structure opens. The elements are arranged to draw the viewer's eye to the opened structure showing the internal speakers. Show: Structural components split open to expose what's inside. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. A stable position focusing closely on the earbud's illuminated interior. The translucent interior glow draws the eye, establishing a clear cause-effect of earbud activation. Show: The circuits light up and glow, displaying activation. Keep the reference lighting and art direction.
 ```
 
 ### Plan 03
@@ -43,7 +43,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. close-up highlighting signal transformation centered on the speaker transforming energy Show: yellow flows transforming into purple sound waves Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. A slight angle captures the emission of blue dots and their path to the phone. Frame centers around earbud with path and connection line clear in view. Show: The blue dots emerge and travel to the smartphone. Keep the reference lighting and art direction.
 ```
 
 ### Plan 04
@@ -52,16 +52,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Central perspective focusing on the location of the chip. The Bluetooth chip in the earbuds' cutaway displays clear signal movement, reinforced by the translucent materials and high-contrast lighting. Show: Blue signals pulsing and moving outward from the chip. Keep the reference lighting and art direction.
-```
-
-### Plan 05
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up on the earbud with the phone in frame to illustrate connection. Blue signals at the center with contrasty lighting to draw focus. Show: Blue signals move continuously from the phone to the earbud. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Focus is on the chip's position in the semi-cutaway with a view towards the path of the signals towards the phone. Strong emphasis on the chip and signal path, with cinematic depth and contrasting lighting highlighting the action of connection. Show: The pulsating nature of the blue signals illustrating active transmission. Keep the reference lighting and art direction.
 ```
 
 ### Plan 06
@@ -70,7 +61,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Central angle close-up captures the journey of data to the earbuds. A semi-cutaway, focusing on the dynamic visual representation of digital transmission. Show: Continuous movement of binary numbers along a defined path. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. A side view capturing both the phone and earbud, emphasizing the path of the green streams. Central to the frame, showing the green streams prominently as they flow between the devices, with the cinematic environment and technical cutaway elements integrating to explain the process. Show: The green data streams travel from the phone to the earbud, signaling continuous connection and transmission. Keep the reference lighting and art direction.
 ```
 
 ### Plan 07
@@ -79,7 +70,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Positioned close-up to track signal progression. Centered to follow transition from digital entry to analog spread. Show: Digital signals entering and transforming as they traverse internal paths. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up on processor area, centered on signal change. Emphasizes data flow through processor, highlighting transformation. Show: Data colors change within the processor. Keep the reference lighting and art direction.
 ```
 
 ### Plan 08
@@ -88,7 +79,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up on the coil and diaphragm to focus on energy transformation. Vertical framing that centers on the signal flow and transformation process. Show: Signal transformation and coil vibration turning into sound waves. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up internal view of the earbud focusing on the internal paths and chip emission center. The pathway of the yellow pulses dominates the vertical frame ensuring clear directional flow is visible. Show: The yellow signals glow and move smoothly through visible circuit paths. Keep the reference lighting and art direction.
 ```
 
 ### Plan 09
@@ -97,7 +88,16 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up semi-cutaway view focusing on the coil and its interactions. The earbud positioned at the center to showcase the cause-effect relationship between the electric signal and the magnetic field creation. Show: The entry of the yellow electric signal into the coil and the subsequent formation of a green magnetic field around it. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up view on the transducer, semi-cutaway to show internal process. Center the transducer, with electrical and sound signals clearly visible and flowing through it. Show: Vibrating transducer emitting pulsing orange sound waves. Keep the reference lighting and art direction.
+```
+
+### Plan 10
+
+**Depuis l'image maitresse** — meme objet, meme geometrie, memes
+materiaux, meme code couleur ; ne change que le point de vue :
+
+```
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Focused centrally on the diaphragm, in close-up, so that vibrations are clearly observable. The diaphragm is prominently placed within a cutaway view, set against a controlled dark studio backdrop to highlight its motion. Show: Signals visually transform into diaphragm motion. Keep the reference lighting and art direction.
 ```
 
 ### Plan 11
@@ -106,7 +106,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up semi-cutaway view focused on the diaphragm for clarity of interaction. Diaphragm at the center with yellow signals and green field-making interaction clear. Show: Electric signals travel to the diaphragm, initiating a magnetic field that causes vibration. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. The camera is close to and focused on the diaphragm. The composition highlights the diaphragm at the center of the frame, surrounded by components visible through the translucent shell. Show: Sound waves visibly radiate from the diaphragm. Keep the reference lighting and art direction.
 ```
 
 ### Plan 12
@@ -115,7 +115,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. A close-up and semi-cutaway view focused on the diaphragm area of the earbud to showcase the internal process. Centered around the vibrating diaphragm, with clear paths of the electric signal and purple waves, emphasizing the process from electric signal delivery to sound wave generation. Show: The electric signal causes the diaphragm to vibrate, and in turn, purple sound waves emerge and move outward. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. A close-up view that follows the sound waves' path for clearer understanding. The action is centered with waves sharply contrasted and lit, dominating the composition. Show: The sound waves move in a dynamic, continuous path into the canal. Keep the reference lighting and art direction.
 ```
 
 ### Plan 13
@@ -124,6 +124,6 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up and semi-cutaway to view earbud internals and outward sound waves. Centralized purple wave movement indicating direction into the ear. Show: Sound waves visibly travel in a clear path into the ear canal. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Fixed at an angle to capture both the incoming waves and their impact on the eardrum. The eardrum's vibration is at the center, framed by incoming sound waves, under dramatic lighting to direct attention. Show: The sound waves are visually represented as orange pulses that visibly cause the eardrum to move. Keep the reference lighting and art direction.
 ```
 

@@ -1,1 +1,1 @@
-Les écouteurs sans fil contiennent des haut-parleurs miniatures.
+Lorsque l'utilisateur active les écouteurs, ils s'allument.
