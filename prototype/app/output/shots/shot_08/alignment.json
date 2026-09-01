@@ -1,35 +1,35 @@
 {
-  "voice": "Les écouteurs convertissent ensuite ces données traitées en signaux électriques.",
-  "understanding": "Que les données traitées sont converties en signaux électriques par les écouteurs.",
+  "voice": "Manger augmente le glucose et réduit la faim.",
+  "understanding": "La nourriture augmente les niveaux de glucose sanguin et réduit la sensation de faim.",
   "candidates": [
     {
-      "action": "A vibrant yellow glow moves smoothly through earbud circuitry from a central point.",
-      "explains": "The transformation from data to electrical signal as if it flows through the circuits.",
-      "misses": "The beginning source of data is not clearly represented."
+      "action": "Yellow glucose waves intensify in the bloodstream while blue neural signals from the brain diminish and fade.",
+      "explains": "It shows glucose increase with hunger signal reduction.",
+      "misses": "The cause of neural signal reduction is not clear."
     },
     {
-      "action": "Yellow pulses start from a digital chip and travel outward through wired paths.",
-      "explains": "The conversion from processed data to electrical impulses as it emanates from the chip.",
-      "misses": "Lacks representation of data being processed or changed in nature."
+      "action": "Glucose molecules represented in yellow accumulate in the bloodstream, reducing green hunger hormones in the stomach.",
+      "explains": "Shows increased glucose and reduced hunger hormones.",
+      "misses": "Does not visualize neural signal changes."
     },
     {
-      "action": "Yellow data cubes transform into electrical waves as they pass through a visible microchip.",
-      "explains": "The transformation and conversion process of data to electrical signals are shown.",
-      "misses": "The continuation of the signal beyond the chip is less obvious."
+      "action": "A flow of yellow glucose surges through the bloodstream and results in a dimming of blue neural signals in the brain.",
+      "explains": "Highlights the cause-effect of glucose intake reducing hunger signals.",
+      "misses": "The visual link between the stomach and brain isn't directly shown."
     }
   ],
-  "chosen": "Yellow pulses start from a digital chip and travel outward through wired paths.",
-  "why_chosen": "It visually shows the conversion process and initiates a clear, directional flow from data processing to electrical activity, making the transformation immediately seen.",
+  "chosen": "A flow of yellow glucose surges through the bloodstream and results in a dimming of blue neural signals in the brain.",
+  "why_chosen": "It most clearly shows the cause (glucose intake) and the effect (diminishing hunger signals) occurring in sequence, making the relationship most apparent with visuals alone.",
   "mute_test": 0.8,
-  "image_prompt": "An intensely focused view inside the wireless earbud reveals yellow pulses originating from the digital chip at the core and extending outward via intricate wired paths, signifying the conversion from processed data to electrical signals. This energized pathway is highlighted by dynamic illumination against the dark premium studio backdrop. The translucent ghosted shell exposes the inner components, including battery, chip, antenna, voice coil, and diaphragm distinctly visible, while cinematic blue and white lighting casts sharp contrasts and accentuates the critical conversion process occurring within high-end modern materials. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The animation begins with processed data visualized as green streams entering a digital chip inside the earbud, which then morph into vivid yellow pulses. These pulses initiate from the chip and travel meticulously through the translucent pathways of the earbud, illuminating the wired paths progressively. The conversion augments in brightness and clarity, highlighting the transformation into electrical signals, synchronized with the chip's pathways and components, accentuating the function and flow of the data to electric transformation.",
+  "image_prompt": "The anatomical semi-cutaway of the human torso is displayed with a close-up view focusing on the bloodstream. Yellow glucose flows dynamically through the veins, conveying intensity and energy as they travel towards the brain. Upon reaching the brain, the visible blue neural signals begin to dim and fade away, signaling the impact of glucose on hunger. The camera remains centered, capturing the transition and interactions with a precise focus on glucose movement and neural dimming. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "As yellow glucose intensifies and travels rapidly through the bloodstream, it reaches the brain and triggers a visible reduction in the blue hunger signals. The animation clearly shows the flowing glucose entering the brain area and causing the neural signals to gradually diminish, illustrating the cause-and-effect of eating on glucose levels and hunger.",
   "visual_explanation": {
-    "information": "The conversion of processed data into electrical signals within earbuds.",
-    "physical_element": "Yellow pulses starting from the digital chip.",
-    "secondary_elements": "Translucent pathways lighting up as yellow pulses travel through them, reflecting signal movement.",
-    "visual_behavior": "The yellow signals glow and move smoothly through visible circuit paths.",
-    "animation_movement": "Yellow pulses emulate electrical currents traveling outward from the chip along wired pathways.",
-    "camera_position": "Close-up internal view of the earbud focusing on the internal paths and chip emission center.",
-    "composition": "The pathway of the yellow pulses dominates the vertical frame ensuring clear directional flow is visible."
+    "information": "Eating increases glucose levels and reduces hunger.",
+    "physical_element": "Glucose waves flowing through bloodstream and interacting with brain.",
+    "secondary_elements": "Dimmed neural signals in the brain.",
+    "visual_behavior": "The yellow glucose travels through the bloodstream.",
+    "animation_movement": "The yellow glucose flows into the brain, triggering a dimming of blue signals.",
+    "camera_position": "Focused view that oversees the bloodstream leading to the brain interaction.",
+    "composition": "Centralized on bloodstream and brain interaction, highlighting dynamic changes."
   }
 }

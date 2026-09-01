@@ -1,35 +1,35 @@
 {
-  "voice": "Les écouteurs cherchent automatiquement des appareils compatibles via Bluetooth.",
-  "understanding": "Les écouteurs se connectent automatiquement à des appareils compatibles via Bluetooth.",
+  "voice": "Cette baisse stimule la production de ghreline dans l'estomac.",
+  "understanding": "Le spectateur doit comprendre que la baisse du niveau de glucose stimule la production de ghreline dans l'estomac.",
   "candidates": [
     {
-      "action": "The earbud emits visible blue waves that travel outward in a rippling pattern, searching for devices.",
-      "explains": "It demonstrates the Bluetooth searching process by illustrating how signals are sent out from the earbud.",
-      "misses": "How the earbud recognizes and connects to another device when a signal is found."
+      "action": "Green mist emerges rapidly from the stomach walls and intensifies, spreading into surrounding areas.",
+      "explains": "It makes clear that the stomach is actively producing ghreline in response to a trigger.",
+      "misses": "It doesn't specifically show that low glucose is the cause of the reaction."
     },
     {
-      "action": "The earbud lights up with blue pulses as it scans the area, and a virtual map appears showing surrounding devices.",
-      "explains": "The scanning with blue light represents actively searching for nearby devices.",
-      "misses": "It does not show the actual signals traveling outward or how devices respond."
+      "action": "Yellow particles representing glucose diminish in the bloodstream, immediately followed by green pulses from the stomach.",
+      "explains": "It clearly shows the decrease in glucose correlated with the increase of ghreline release.",
+      "misses": "It does not emphasize the intensity or effect of ghreline production on surrounding tissues."
     },
     {
-      "action": "A series of blue dots emerge from the earbud, move outward, and highlight a nearby smartphone, causing a connection line to form.",
-      "explains": "The blue dots and connection line visualize the Bluetooth search and subsequent connection to a compatible device.",
-      "misses": "The initial broadcasting of the signal from the earbud is less emphasized."
+      "action": "A neural signal in blue travels from the brain to the stomach, triggering green mist to emit.",
+      "explains": "It suggests that the stomach is responding to a signal, implying a reaction.",
+      "misses": "It doesn't explicitly connect the ghreline production to glucose levels."
     }
   ],
-  "chosen": "A series of blue dots emerge from the earbud, move outward, and highlight a nearby smartphone, causing a connection line to form.",
-  "why_chosen": "The path of blue dots moving and the connection line forming clearly illustrate the detection and connection process of Bluetooth searching in a cause-and-effect manner.",
-  "mute_test": 0.8,
-  "image_prompt": "In a detailed close-up shot, an earbud is at the center with a series of small blue dots visibly emerging from it and expanding outward, leading towards a nearby smartphone. As the dots make contact with the smartphone, a prominent blue line forms between the earbud and the phone, symbolizing a connection. The camera is positioned at a slight angle to capture the trajectory of the blue dots and the connection line clearly. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "Blue dots continuously and steadily emerge from the earbud, traveling outward in a highlighted path, culminating in a bright blue line that dynamically forms when the dots reach the smartphone, indicating a successful pairing. The motion starts at the earbud, builds as the dots spread, and reaches completion with the connecting line appearing.",
+  "chosen": "Yellow particles representing glucose diminish in the bloodstream, immediately followed by green pulses from the stomach.",
+  "why_chosen": "It beats the other two because it directly shows the causal relationship between low glucose and increased ghreline production, making the connection clear with the sound off.",
+  "mute_test": 0.85,
+  "image_prompt": "The camera focuses on a semi-cutaway view of the human stomach and bloodstream. In the bloodstream, small yellow particles representing glucose are visibly diminishing, drawing attention to their decrease. Simultaneously, green pulses of mist begin to emit from the stomach's inner walls, illustrating the stimulation of ghreline production. The surrounding tissues subtly react to the green mist, reinforcing the idea of hormone release. The camera angle ensures the viewer sees both the reduction of yellow particles in the bloodstream and the emergence of green pulses from the stomach. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins with yellow particles representing glucose gradually diminishing in the bloodstream. As this decrease progresses, green pulses steadily begin to emerge from the stomach walls, becoming more intense. The green mist builds in intensity, traveling into surrounding areas until ghreline production is clearly visualized, highlighting the stomach's response to reduced glucose levels.",
   "visual_explanation": {
-    "information": "The earbuds seek devices via Bluetooth signals.",
-    "physical_element": "Earbud emits blue dots representing searching signals.",
-    "secondary_elements": "A line forming with the smartphone shows a successful connection.",
-    "visual_behavior": "The blue dots emerge and travel to the smartphone.",
-    "animation_movement": "Dots outward travel from the earbud and the forming of a connection line.",
-    "camera_position": "A slight angle captures the emission of blue dots and their path to the phone.",
-    "composition": "Frame centers around earbud with path and connection line clear in view."
+    "information": "Low glucose levels stimulate ghreline production in the stomach.",
+    "physical_element": "Green pulses of mist emanating from the stomach walls.",
+    "secondary_elements": "Diminishing yellow particles in the bloodstream, subtle reactions in surrounding tissues.",
+    "visual_behavior": "Green mist spreads from the stomach into surrounding areas.",
+    "animation_movement": "Yellow particles decrease while green mist pulses and travels outwards.",
+    "camera_position": "Focused on the stomach and bloodstream, capturing both the diminishing glucose and emerging ghreline.",
+    "composition": "A central focus on the stomach, with clearer visibility on the ghreline production area and diminishing glucose particles."
   }
 }

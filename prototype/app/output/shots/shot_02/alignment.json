@@ -1,35 +1,35 @@
 {
-  "voice": "Lorsque l'utilisateur active les écouteurs, ils s'allument.",
-  "understanding": "Que l'utilisateur allume les écouteurs et qu'ils s'activent.",
+  "voice": "Le corps détecte une baisse du taux de glucose dans le sang.",
+  "understanding": "Le corps détecte une baisse du taux de glucose dans le sang.",
   "candidates": [
     {
-      "action": "A glowing effect travels from the user's finger to the earbud.",
-      "explains": "The user's interaction causes the earbuds to activate.",
-      "misses": "Does not show internal activation process inside the earbuds."
+      "action": "Yellow tendrils in the bloodstream lose brightness and volume while blue signals light up towards the brain.",
+      "explains": "It shows the bloodstream detecting decreased glucose as signals are sent to the brain.",
+      "misses": "It does not directly show a decrease in glucose levels."
     },
     {
-      "action": "The earbud's interior lights up, highlighting circuits and components.",
-      "explains": "Focuses on internal activation of circuits when turned on.",
-      "misses": "Doesn't clearly show user interaction causing this activation."
+      "action": "Yellow tendrils flow towards the stomach area and decrease drastically.",
+      "explains": "It visually represents the decrease in blood glucose levels.",
+      "misses": "It does not show how the body detects the decrease."
     },
     {
-      "action": "A wireless signal travels, triggering a light glow in the earbud.",
-      "explains": "Shows wireless activation causing the earbud to light up.",
-      "misses": "Unclear connection between user action and earbud activation."
+      "action": "Blue signals emanate from the bloodstream and spread towards the brain as yellow tendrils fade.",
+      "explains": "It represents the body's detection of decreased glucose levels and the subsequent signaling process.",
+      "misses": "It might not clearly show the decrease in the glucose level initially."
     }
   ],
-  "chosen": "The earbud's interior lights up, highlighting circuits and components.",
-  "why_chosen": "It focuses on showing how earbuds light up during activation, clearly linking cause to effect.",
-  "mute_test": 0.8,
-  "image_prompt": "In a dark premium studio environment, a close-up of a wireless earbud is shown with a translucent ghosted shell. Focus on the interior revealing components with a soft yellow glow indicating activation. The circuitry inside the earbud lights up in a clear, photorealistic 3D engineering visualization. The same modern dark near-black wireless earbud is used throughout, with technically detailed materials visible inside the shell, under cinematic blue and white lighting. The camera is positioned at an angle to best showcase the glow effect within the earbud, highlighting the activation process of the internal mechanisms. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "As the activation process begins, the internal circuits of the earbud gradually illuminate with a soft yellow glow starting from the main battery component. This glow builds in intensity as it spreads to other circuits within, emphasizing the activation ripple effect across internal components. The camera remains stable, capturing the progressive lighting of all components, steadily highlighting the pathways inside the earbud until the entire interior glows warmly.",
+  "chosen": "Blue signals emanate from the bloodstream and spread towards the brain as yellow tendrils fade.",
+  "why_chosen": "This action clearly depicts both the decrease in glucose and the body's detection process with the neural signals.",
+  "mute_test": 0.85,
+  "image_prompt": "The anatomical semi-cutaway of a human torso focuses centrally on the bloodstream, where yellow tendrils representing glucose levels visibly fade and shrink. Simultaneously, vivid blue signals emerge and travel towards the brain, indicating detection of the changes. The camera captures this interaction slightly from above, ensuring both the fading tendrils and emerging signals are prominent in the viewer's field of view. Premium lighting accentuates the contrast between the yellow and blue elements, making the processes clear against the realistic biological backdrop. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins with vibrant yellow tendrils flowing through the bloodstream. As they fade and diminish in volume, blue signals concurrently begin to light up and travel towards the brain, showing the body's detection of the decreasing glucose levels. This coordinated movement highlights the transition and detection processes in the system.",
   "visual_explanation": {
-    "information": "The activation of earbuds upon user interaction.",
-    "physical_element": "The interior circuits of the earbud and their illumination.",
-    "secondary_elements": "The translucent shell and the visible circuitry inside.",
-    "visual_behavior": "The circuits light up and glow, displaying activation.",
-    "animation_movement": "Internal glow spreads from the battery outward to the circuits, increasing gradually.",
-    "camera_position": "A stable position focusing closely on the earbud's illuminated interior.",
-    "composition": "The translucent interior glow draws the eye, establishing a clear cause-effect of earbud activation."
+    "information": "The decrease in glucose levels is detected by the body, shown as yellow tendrils fade and blue signals initiate.",
+    "physical_element": "Yellow tendrils in the bloodstream and blue signals towards the brain.",
+    "secondary_elements": "Human torso in semi-cutaway view and a realistic depiction of blood flow.",
+    "visual_behavior": "Simultaneous fading of yellow tendrils with the emission and movement of blue signals.",
+    "animation_movement": "Yellow tendrils fade and diminish in the bloodstream while blue signals emanate and travel toward the brain.",
+    "camera_position": "A slightly elevated angle focuses on both fading tendrils and the spreading blue signals.",
+    "composition": "Centralized framing emphasizes the transition between glucose decrease and neural signaling, maintaining the visibility of all essential actions."
   }
 }

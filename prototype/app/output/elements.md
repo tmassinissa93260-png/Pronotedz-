@@ -1,74 +1,35 @@
-# Fonctionnement des écouteurs électriques sans fil
+# Comment l'humain ressent la faim
 
-52 secondes · 13 plans
+32 secondes · 8 plans
 
 ## Script
 
-Comment le son traverse-t-il l'air pour finalement arriver à votre oreille sans un seul fil ? Lorsque l'utilisateur active les écouteurs, ils s'allument. Les écouteurs cherchent automatiquement des appareils compatibles via Bluetooth. Leur puce Bluetooth émet des signaux pour se connecter à votre smartphone. Le smartphone détecte ces signaux et s'y connecte en établissant un couplage. Une fois couplée, la connexion permet la transmission des données numériques audio. Le processeur des écouteurs décode ces données en un format compréhensible. Les écouteurs convertissent ensuite ces données traitées en signaux électriques. Des transducteurs dans les écouteurs reçoivent ces signaux électriques. Ces transducteurs utilisent ces signaux pour vibrer. Les vibrations produisent des ondes sonores. Les ondes sonores se déplacent dans le conduit auditif de l'utilisateur. Ces ondes stimulent le tympan, recréant la musique ou le son original. L'utilisateur perçoit ces sons comme une musique ou parole claire.
-
-### La chaîne physique derrière le texte
-
-1. Lorsque l'utilisateur active les écouteurs, ils s'allument.
-2. Les écouteurs cherchent automatiquement des appareils compatibles via Bluetooth.
-3. Leur puce Bluetooth émet des signaux pour se connecter à votre smartphone.
-4. Le smartphone détecte ces signaux et s'y connecte en établissant un couplage.
-5. Une fois couplée, la connexion permet la transmission des données numériques audio.
-6. Le processeur des écouteurs décode ces données en un format compréhensible.
-7. Les écouteurs convertissent ensuite ces données traitées en signaux électriques.
-8. Des transducteurs dans les écouteurs reçoivent ces signaux électriques.
-9. Ces transducteurs utilisent ces signaux pour vibrer.
-10. Les vibrations produisent des ondes sonores.
-11. Les ondes sonores se déplacent dans le conduit auditif de l'utilisateur.
-12. Ces ondes stimulent le tympan, recréant la musique ou le son original.
-13. L'utilisateur perçoit ces sons comme une musique ou parole claire.
-
-### Les ouvertures écartées
-
-- Avec un simple clic, vos écouteurs se lient à votre smartphone, mais comment ?
-- Vos écouteurs sans fil transforment des signaux numériques en musique magique.
-
-*Retenue : Elle met l'accent sur l'aspect invisible de la technologie, ce qui pique davantage la curiosité que la simple connexion ou transformation.*
-
-### Sur quoi chaque phrase repose
-
-- « Lorsque l'utilisateur active les écouteurs, ils s'allument. » — maillon 1 : Les écouteurs contiennent un circuit d'allumage qui est activé.
-- « Les écouteurs cherchent automatiquement des appareils compatibles via Bluetooth. » — maillon 2 : Les écouteurs ont un mode de recherche Bluetooth intégré.
-- « Leur puce Bluetooth émet des signaux pour se connecter à votre smartphone. » — maillon 3 : Les puces Bluetooth envoient des signaux d'identification pour permettre le couplage.
-- « Le smartphone détecte ces signaux et s'y connecte en établissant un couplage. » — maillon 4 : L'appareil est conçu pour détecter et connecter automatiquement les signaux.
-- « Une fois couplée, la connexion permet la transmission des données numériques audio. » — maillon 5 : La connexion Bluetooth établie autorise le transfert de paquets de données.
-- « Le processeur des écouteurs décode ces données en un format compréhensible. » — maillon 6 : Le processeur contient des algorithmes de décodage pour traiter les données audio.
-- « Les écouteurs convertissent ensuite ces données traitées en signaux électriques. » — maillon 7 : Le circuit audio change les signaux en impulsions électriques.
-- « Des transducteurs dans les écouteurs reçoivent ces signaux électriques. » — maillon 8 : Les transducteurs transfèrent l'énergie électrique en mouvement mécanique.
-- « Ces transducteurs utilisent ces signaux pour vibrer. » — maillon 9 : Les vibrations sont une réaction physique aux impulsions électriques.
-- « Les vibrations produisent des ondes sonores. » — maillon 10 : Les ondes sonores se forment lorsque l'air vibre.
-- « Les ondes sonores se déplacent dans le conduit auditif de l'utilisateur. » — maillon 11 : Les ondes sonores voyagent naturellement dans l'air dirigé vers l'oreille.
-- « Ces ondes stimulent le tympan, recréant la musique ou le son original. » — maillon 12 : Les vibrations de l'air frappent le tympan, reproduisant les sons.
-- « L'utilisateur perçoit ces sons comme une musique ou parole claire. » — maillon 13 : Le cerveau interprète les signaux envoyés par le tympan comme des sons.
+Pourquoi votre ventre gargouille-t-il vraiment ? Le corps détecte une baisse du taux de glucose dans le sang. Cette baisse stimule la production de ghreline dans l'estomac. La ghreline agit sur l'hypothalamus dans le cerveau. L'hypothalamus envoie des signaux au système nerveux autonome. Ces signaux provoquent la sensation de faim. La sensation de faim pousse l'individu à chercher de la nourriture. Manger augmente le glucose et réduit la faim.
 
 ## Visual bible
 
 À réutiliser dans **chaque** image. Les couleurs ont un sens fixe.
 
-- **main subject** : wireless earbud
-- **characters objects** : earbuds, smartphone
-- **vehicle** : N/A
-- **colors** : dark near-black earbuds, blue, green, yellow, orange for signals
-- **environment** : dark premium studio
-- **materials** : high-end, clear plastic, metals
+- **main subject** : human torso in anatomical semi-cutaway
+- **characters objects** : stomach, bloodstream, brain
+- **vehicle** : n/a
+- **colors** : premium, high contrast
+- **environment** : dark premium studio environment
+- **materials** : realistic detailed biological materials
 - **lighting** : cinematic blue and white lighting
-- **camera** : varied close-up and wide shots
-- **style 3d** : photorealistic engineering visualization
-- **realism** : highly realistic
-- **invisible phenomena** : represented by colored light streams
+- **camera** : varied angles capturing system interactions
+- **style 3d** : anatomical semi-cutaway
+- **realism** : physically credible anatomy and physiology
+- **invisible phenomena** : ghreline, glucose level, neural signals
 
 ## Code couleur
 
 Une notion, une couleur, la même du début à la fin.
 
-- **blue** = bluetooth signal — signal transmission  *(se déplace)*
-- **green** = audio data — digital audio data  *(se déplace)*
-- **yellow** = electrical signal — converted audio data  *(se déplace)*
-- **orange** = sound waves — physical sound waves  *(se déplace)*
+- **yellow** = glucose — blood sugar level  *(se déplace)*
+- **green** = ghreline — hunger hormone  *(se déplace)*
+- **blue** = signal — neural signal  *(se déplace)*
+- **orange** = food — food intake
 
 ## Contrôle qualité
 
@@ -84,546 +45,328 @@ Une notion, une couleur, la même du début à la fin.
 
 ## Plan 01 — 3s
 
-**Voix** : Comment le son traverse-t-il l'air pour finalement arriver à votre oreille sans un seul fil ?
+**Voix** : Pourquoi votre ventre gargouille-t-il vraiment ?
 
-**Fonction** : Create curiosity about how wireless technology delivers sound.
+**Fonction** : Introduce the concept of hunger with a focus on the stomach.
 
-**Élément pédagogique** : Orange sound waves radiating from the earbud.
+**Élément pédagogique** : stomach highlighted in blue light with muscle contraction
 
 **Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-le son traverse l'air et arrive à l'oreille sans fils grâce à des ondes sonores émises par les écouteurs sans fil
+Pourquoi le ventre gargouille vraiment à cause de la faim.
 
-**L'action qui l'explique** : Blue Bluetooth signals go from a phone to an earbud, which then emits orange sound waves outward.
+**L'action qui l'explique** : The stomach starts glowing blue while muscles contract rhythmically.
 
-*Comprise sans le son : 0.8* — It clearly shows the complete wireless signal chain, making the function of wireless technology intuitive even without audio.
+*Comprise sans le son : 0.8* — A viewer immediately associates the blue glow and motion with stomach activity and neural signaling, directly implying gurgling.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Wireless transmission from a smartphone to an earbud and the subsequent emission of sound waves.
-2. **physical element** : Modern dark near-black wireless earbud with a partially transparent shell.
-3. **secondary elements** : A nearby smartphone emitting blue Bluetooth signals.
-4. **visual behavior** : Emission of blue signals entering the earbud and the outward radiating orange sound waves.
-5. **animation movement** : Flowing blue signals transforming into spreading orange sound waves.
-6. **camera position** : Close-up, centered on the earbud with a nuanced orbit to capture the flow and spread of signals.
-7. **composition** : A vertical 9:16 layout, focusing on the dynamic interaction between signals and sound waves, with all components clearly defined.
+1. **information** : The reason for stomach growling in relation to hunger.
+2. **physical element** : A glowing blue light originating from the stomach.
+3. **secondary elements** : Rhythmic contractions of the stomach muscles.
+4. **visual behavior** : Blue glow pulsing in sync with muscle contractions.
+5. **animation movement** : The blue light pulsates and the stomach muscle ripples travel.
+6. **camera position** : Slightly above torso, looking downward to show detail and depth.
+7. **composition** : Centered on the stomach with prominent focus on blue glow and rippling.
 
 ### Prompt image
 
 ```
-A modern dark near-black wireless earbud is placed in the center of the frame, clearly visible against a dark studio background. From a smartphone nearby, vivid blue Bluetooth signals flow directly into the earbud. From the earbud, vibrant orange sound waves emanate outwardly, filling the visible space. The scene is lit with cinematic blue and white lighting that highlights these interactions. The translucent ghosted earbud shell is partially cut away to reveal internal components such as the battery, chip, antenna, voice coil, and diaphragm, adding context to the process. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A close-up semi-cutaway view of the human torso centered firmly on the stomach. The stomach is illuminated with a glowing blue light, with muscles visibly shown contracting and rippling rhythmically to suggest activity. The frame captures the stomach prominently, ensuring the viewer focuses on this area. Cinematic blue lighting emphasizes the realism of the biological materials, with detailed textures of the stomach lining. The camera angle is slightly above the torso, looking downwards to provide depth and capture the full contraction of the stomach. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Begin with blue Bluetooth signals traveling from the smartphone to the earbud, entering through its translucent design. As they enter, the signals transform, and orange sound waves start to radiate from the earbud. The camera orbits slightly, enhancing the perspective on how these sound waves spread outward into the surrounding space, growing larger and more diffuse as time progresses.
+The stomach starts to glow with a pulsing blue light which flickers with each rhythmic contraction of the stomach muscles. This pulsing increases steadily, visually amplifying the perception of impending activity, while the stomach muscles execute a visible series of ripples suggesting movement within. As the muscles contract and ripple, the glow transitions from faint to intense, marking the gradual escalation of neural signaling.
 ```
 
 ---
 
 ## Plan 02 — 4s
 
-**Voix** : Lorsque l'utilisateur active les écouteurs, ils s'allument.
+**Voix** : Le corps détecte une baisse du taux de glucose dans le sang.
 
-**Fonction** : Show the activation process within the earbud.
+**Fonction** : Show the detection of decreased glucose levels.
 
-**Élément pédagogique** : Glowing components representing earbud activation.
+**Élément pédagogique** : yellow tendrils showing glucose level decrease
 
-**Intention de mouvement** : `energy_storage`
+**Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-Que l'utilisateur allume les écouteurs et qu'ils s'activent.
+Le corps détecte une baisse du taux de glucose dans le sang.
 
-**L'action qui l'explique** : The earbud's interior lights up, highlighting circuits and components.
+**L'action qui l'explique** : Blue signals emanate from the bloodstream and spread towards the brain as yellow tendrils fade.
 
-*Comprise sans le son : 0.8* — It focuses on showing how earbuds light up during activation, clearly linking cause to effect.
+*Comprise sans le son : 0.85* — This action clearly depicts both the decrease in glucose and the body's detection process with the neural signals.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The activation of earbuds upon user interaction.
-2. **physical element** : The interior circuits of the earbud and their illumination.
-3. **secondary elements** : The translucent shell and the visible circuitry inside.
-4. **visual behavior** : The circuits light up and glow, displaying activation.
-5. **animation movement** : Internal glow spreads from the battery outward to the circuits, increasing gradually.
-6. **camera position** : A stable position focusing closely on the earbud's illuminated interior.
-7. **composition** : The translucent interior glow draws the eye, establishing a clear cause-effect of earbud activation.
+1. **information** : The decrease in glucose levels is detected by the body, shown as yellow tendrils fade and blue signals initiate.
+2. **physical element** : Yellow tendrils in the bloodstream and blue signals towards the brain.
+3. **secondary elements** : Human torso in semi-cutaway view and a realistic depiction of blood flow.
+4. **visual behavior** : Simultaneous fading of yellow tendrils with the emission and movement of blue signals.
+5. **animation movement** : Yellow tendrils fade and diminish in the bloodstream while blue signals emanate and travel toward the brain.
+6. **camera position** : A slightly elevated angle focuses on both fading tendrils and the spreading blue signals.
+7. **composition** : Centralized framing emphasizes the transition between glucose decrease and neural signaling, maintaining the visibility of all essential actions.
 
 ### Prompt image
 
 ```
-In a dark premium studio environment, a close-up of a wireless earbud is shown with a translucent ghosted shell. Focus on the interior revealing components with a soft yellow glow indicating activation. The circuitry inside the earbud lights up in a clear, photorealistic 3D engineering visualization. The same modern dark near-black wireless earbud is used throughout, with technically detailed materials visible inside the shell, under cinematic blue and white lighting. The camera is positioned at an angle to best showcase the glow effect within the earbud, highlighting the activation process of the internal mechanisms. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+The anatomical semi-cutaway of a human torso focuses centrally on the bloodstream, where yellow tendrils representing glucose levels visibly fade and shrink. Simultaneously, vivid blue signals emerge and travel towards the brain, indicating detection of the changes. The camera captures this interaction slightly from above, ensuring both the fading tendrils and emerging signals are prominent in the viewer's field of view. Premium lighting accentuates the contrast between the yellow and blue elements, making the processes clear against the realistic biological backdrop. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-As the activation process begins, the internal circuits of the earbud gradually illuminate with a soft yellow glow starting from the main battery component. This glow builds in intensity as it spreads to other circuits within, emphasizing the activation ripple effect across internal components. The camera remains stable, capturing the progressive lighting of all components, steadily highlighting the pathways inside the earbud until the entire interior glows warmly.
+The animation begins with vibrant yellow tendrils flowing through the bloodstream. As they fade and diminish in volume, blue signals concurrently begin to light up and travel towards the brain, showing the body's detection of the decreasing glucose levels. This coordinated movement highlights the transition and detection processes in the system.
 ```
 
 ---
 
 ## Plan 03 — 4s
 
-**Voix** : Les écouteurs cherchent automatiquement des appareils compatibles via Bluetooth.
+**Voix** : Cette baisse stimule la production de ghreline dans l'estomac.
 
-**Fonction** : Show how the earbud seeks devices via Bluetooth.
+**Fonction** : Illustrate the stimulation of ghreline production in response to low glucose.
 
-**Élément pédagogique** : Blue waves representing searching Bluetooth signals.
+**Élément pédagogique** : green pulses representing ghreline production
 
 **Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-Les écouteurs se connectent automatiquement à des appareils compatibles via Bluetooth.
+Le spectateur doit comprendre que la baisse du niveau de glucose stimule la production de ghreline dans l'estomac.
 
-**L'action qui l'explique** : A series of blue dots emerge from the earbud, move outward, and highlight a nearby smartphone, causing a connection line to form.
+**L'action qui l'explique** : Yellow particles representing glucose diminish in the bloodstream, immediately followed by green pulses from the stomach.
 
-*Comprise sans le son : 0.8* — The path of blue dots moving and the connection line forming clearly illustrate the detection and connection process of Bluetooth searching in a cause-and-effect manner.
+*Comprise sans le son : 0.85* — It beats the other two because it directly shows the causal relationship between low glucose and increased ghreline production, making the connection clear with the sound off.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The earbuds seek devices via Bluetooth signals.
-2. **physical element** : Earbud emits blue dots representing searching signals.
-3. **secondary elements** : A line forming with the smartphone shows a successful connection.
-4. **visual behavior** : The blue dots emerge and travel to the smartphone.
-5. **animation movement** : Dots outward travel from the earbud and the forming of a connection line.
-6. **camera position** : A slight angle captures the emission of blue dots and their path to the phone.
-7. **composition** : Frame centers around earbud with path and connection line clear in view.
+1. **information** : Low glucose levels stimulate ghreline production in the stomach.
+2. **physical element** : Green pulses of mist emanating from the stomach walls.
+3. **secondary elements** : Diminishing yellow particles in the bloodstream, subtle reactions in surrounding tissues.
+4. **visual behavior** : Green mist spreads from the stomach into surrounding areas.
+5. **animation movement** : Yellow particles decrease while green mist pulses and travels outwards.
+6. **camera position** : Focused on the stomach and bloodstream, capturing both the diminishing glucose and emerging ghreline.
+7. **composition** : A central focus on the stomach, with clearer visibility on the ghreline production area and diminishing glucose particles.
 
 ### Prompt image
 
 ```
-In a detailed close-up shot, an earbud is at the center with a series of small blue dots visibly emerging from it and expanding outward, leading towards a nearby smartphone. As the dots make contact with the smartphone, a prominent blue line forms between the earbud and the phone, symbolizing a connection. The camera is positioned at a slight angle to capture the trajectory of the blue dots and the connection line clearly. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+The camera focuses on a semi-cutaway view of the human stomach and bloodstream. In the bloodstream, small yellow particles representing glucose are visibly diminishing, drawing attention to their decrease. Simultaneously, green pulses of mist begin to emit from the stomach's inner walls, illustrating the stimulation of ghreline production. The surrounding tissues subtly react to the green mist, reinforcing the idea of hormone release. The camera angle ensures the viewer sees both the reduction of yellow particles in the bloodstream and the emergence of green pulses from the stomach. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Blue dots continuously and steadily emerge from the earbud, traveling outward in a highlighted path, culminating in a bright blue line that dynamically forms when the dots reach the smartphone, indicating a successful pairing. The motion starts at the earbud, builds as the dots spread, and reaches completion with the connecting line appearing.
+The animation begins with yellow particles representing glucose gradually diminishing in the bloodstream. As this decrease progresses, green pulses steadily begin to emerge from the stomach walls, becoming more intense. The green mist builds in intensity, traveling into surrounding areas until ghreline production is clearly visualized, highlighting the stomach's response to reduced glucose levels.
 ```
 
 ---
 
 ## Plan 04 — 4s
 
-**Voix** : Leur puce Bluetooth émet des signaux pour se connecter à votre smartphone.
+**Voix** : La ghreline agit sur l'hypothalamus dans le cerveau.
 
-**Fonction** : Visualize connection process with a smartphone.
+**Fonction** : Explain how ghreline interacts with the hypothalamus.
 
-**Élément pédagogique** : Bluetooth chip sending out connecting signals.
+**Élément pédagogique** : green arrows reaching the hypothalamus
 
-**Intention de mouvement** : `energy_flow`
-
-### Ce que le spectateur doit comprendre
-
-Le processus par lequel la puce Bluetooth émet des signaux pour se connecter à votre smartphone.
-
-**L'action qui l'explique** : Blue light signals pulsate from the Bluetooth chip towards the smartphone.
-
-*Comprise sans le son : 0.8* — This action captures the active emission and targeted transmission of signals, emphasizing the action of connection formation.
+**Intention de mouvement** : `energy_transfer`
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : Bluetooth chip signals serving to connect the earbud with a smartphone.
-2. **physical element** : Pulsating blue light signals emitted from the chip.
-3. **secondary elements** : The smartphone presence indicating connection target, emphasized signal paths.
-4. **visual behavior** : The pulsating nature of the blue signals illustrating active transmission.
-5. **animation movement** : Signals initiating from the chip, progressively stabilizing and reaching the phone.
-6. **camera position** : Focus is on the chip's position in the semi-cutaway with a view towards the path of the signals towards the phone.
-7. **composition** : Strong emphasis on the chip and signal path, with cinematic depth and contrasting lighting highlighting the action of connection.
+1. **information** : ghreline acts on the hypothalamus
+2. **physical element** : hypothalamus
+3. **secondary elements** : green arrows
+4. **visual behavior** : arrows converge and activate hypothalamus
+5. **animation movement** : arrows move towards brain
+6. **camera position** : close-up brain view
+7. **composition** : focus on the hypothalamus with incoming arrows
 
 ### Prompt image
 
 ```
-Close up on the earbud's Bluetooth chip visualized in semi-cutaway with translucent ghosted shell. From the chip, pulsing blue light signals are seen extending and dynamically traveling towards a smartphone at the edge of the frame, emphasizing the connection path. The controlled lighting highlights the blue signals as the primary focus against a dark premium studio backdrop, ensuring clear visibility of the transmission. The cinematic blue and white lighting accentuates the intricate internal structure of the earbud, with components like the battery and antenna visible through the translucent shell. The composition concentrates on the interactive pathway established from the chip to the smartphone. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A focused cutaway of the brain highlighting the hypothalamus. Visible dynamic green arrows travel towards the area, symbolizing ghreline interaction. The arrows enter the highlighted area, with the brain's hypothalamus centrally framed using a wide lens to emphasize interaction. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Starting with the Bluetooth chip at the center, pulsed blue signals initiate, emerging from the chip and extending toward the smartphone. These signals alternate their intensity to illustrate the pulsating nature, gradually becoming more stable and concentrated as they traverse the space and reach the smartphone at the frame edge, symbolizing a successful connection. The animation emphasizes the systematic and directed nature of these signal transmissions in establishing the technological connection.
+Green arrows gradually form from the stomach area, reaching the brain, and as they touch the hypothalamus, it lights up incrementally. Subtle pulses from the hypothalamus start, signaling energy acceptance. The camera subtly tracks the arrow path, remaining secondary to the interaction.
 ```
 
 ---
 
 ## Plan 05 — 4s
 
-**Voix** : Le smartphone détecte ces signaux et s'y connecte en établissant un couplage.
+**Voix** : L'hypothalamus envoie des signaux au système nerveux autonome.
 
-**Fonction** : Demonstrate successful Bluetooth pairing.
+**Fonction** : Demonstrate signal transmission from the hypothalamus.
 
-**Élément pédagogique** : Two-way blue signals merging for solid connection.
+**Élément pédagogique** : blue signal pulses spreading
 
 **Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-Le smartphone détecte les signaux Bluetooth et établit une connexion en s'y couplant.
+L'hypothalamus transmet des signaux au système nerveux autonome.
 
-**L'action qui l'explique** : Two streams of blue light pulse from the earbud and smartphone, meeting and merging in the air.
+**L'action qui l'explique** : Blue pulses emanate in increasing intensity from the hypothalamus, traveling along neural pathways and causing certain areas of the brain to light up.
 
-*Comprise sans le son : 0.8* — Pulsing and merging of blue signals clearly show the active connection process better than static or simple synchronization.
+*Comprise sans le son : 0.75* — This action is quickest to understand as it visually communicates the concept of signal transmission and shows an effect, crucial for understanding the process.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The smartphone detects Bluetooth signals and establishes a connection by pairing.
-2. **physical element** : Pulsing blue light streams from the earbud and the smartphone merging in the air.
-3. **secondary elements** : Premium materials reflecting light help focus on the merging blue streams.
-4. **visual behavior** : The blue signals travel towards each other and merge, signifying connection.
-5. **animation movement** : The blue lights pulse and travel towards their respective source, synchronizing and merging to indicate connection establishment.
-6. **camera position** : Wide angle to capture both devices and merging action clearly, enhancing understanding with visual depth.
-7. **composition** : The focus is on the merging blue lights in the center with a contrasting premium studio background to highlight the connection process.
+1. **information** : The hypothalamus is signaling the nervous system.
+2. **physical element** : Blue pulses representing neural signals
+3. **secondary elements** : Brain regions lighting up upon pulse arrival
+4. **visual behavior** : Pulses spread from the hypothalamus showing signal transmission
+5. **animation movement** : Pulses progressively travel and light up corresponding brain areas
+6. **camera position** : A central view focused on the pulse path, ensuring brain region activation is visible
+7. **composition** : The layout prioritizes the signal's journey and its impact on brain activation.
 
 ### Prompt image
 
 ```
-The image shows two streams of blue light pulsing from the dark near-black wireless earbud and the smartphone, meeting and merging mid-air to form a unified bright blue connection. The premium materials of both devices reflect the light subtly, enhancing focus on the converging signals. The camera is placed at a wide angle to fully illustrate the merging action, with cinematic blue and white lighting enhancing the visibility of signals. The environment is a dark premium studio, with detailed visualization of internal components such as the internal battery, chip, antenna, voice coil, and diaphragm through a translucent ghosted shell, in a vertical 9:16 composition. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field, and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+The human torso is seen in an anatomical semi-cutaway, centrally focusing on the hypothalamus. From it, blue pulses emanate and travel visibly through neural pathways, causing different parts of the brain to light up as they reach their destinations. The viewer observes a clear wave-like progression of neural signal transmission, with the brain positioned prominently to highlight the activation. The environment is a dark premium studio, contrasted by cinematic blue and white lighting which ensures that these pulses are the focal point of the shot. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The animation starts with two streams of blue light pulsing separately from both the earbud and smartphone. As they travel towards each other, they gradually synchronize their pulses, eventually meeting and merging into a unified blue beam. Simultaneously, a faint but noticeable glow enhances the devices' surfaces as the connection is established, showing stability.
+The animation begins with blue pulses forming at the hypothalamus. Gradually, these pulses travel with increasing intensity through the neural pathways, reaching various brain regions that then light up sequentially. This continuous wave of neural signals starts concentrated and small, builds in intensity, then spreads further, illustrating the fluid nature of signal transmission. The movement is deliberate, indicating a clear starting point, progression, and multiple destination activations across the brain.
 ```
 
 ---
 
 ## Plan 06 — 4s
 
-**Voix** : Une fois couplée, la connexion permet la transmission des données numériques audio.
+**Voix** : Ces signaux provoquent la sensation de faim.
 
-**Fonction** : Show post-pairing data transmission process.
+**Fonction** : Visualize hunger caused by neural signaling, linking physical and abstract responses.
 
-**Élément pédagogique** : Green data streams transmitting between devices.
+**Élément pédagogique** : neural ripples emanating from the stomach
+
+**Intention de mouvement** : `cause_effect`
+
+### Ce que le spectateur doit comprendre
+
+que les signaux nerveux provoquent la sensation de faim.
+
+**L'action qui l'explique** : Neural lines illuminate from the stomach to the brain.
+
+*Comprise sans le son : 0.8* — It clearly shows the direct signal path causing hunger sensation.
+
+### Le raisonnement, avant le prompt
+
+1. **information** : Neural signals from the stomach cause the feeling of hunger.
+2. **physical element** : Neural pathways illuminated in blue from the stomach to the brain.
+3. **secondary elements** : The highlighted path to the brain and its response.
+4. **visual behavior** : Neural signals visibly travel, reaching and activating the brain.
+5. **animation movement** : Signals traveling along neural paths and causing brain activation.
+6. **camera position** : Focus on the pathway from stomach to brain, central and clear.
+7. **composition** : Centered on the pathway, showing the travel route and brain interaction.
+
+### Prompt image
+
+```
+In a dark premium studio environment, a semi-cutaway of a human torso is displayed, focusing centrally on the stomach with neural pathways illuminated in blue, traveling clearly to the brain. The lighting is cinematic blue and white, highlighting the neural path's trajectory within the body. The scene captures the physical journey of these signals, making the causal link between the stomach's neural activity and the brain's hunger response evident. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+```
+
+### Prompt animation
+
+```
+In a dynamic sequence, neural pathways illuminate from the stomach, with blue signals traveling toward the brain, each segment lighting up progressively, showing the communication path that triggers hunger. As the signals reach the brain, neural nodes there respond with their own illumination, representing the completion of the hunger signaling process. Movement maintains focus on the signal direction and brain response.
+```
+
+---
+
+## Plan 07 — 5s
+
+**Voix** : La sensation de faim pousse l'individu à chercher de la nourriture.
+
+**Fonction** : Depict the drive to seek food triggered by hunger.
+
+**Élément pédagogique** : orange motifs signaling a pursuit
 
 **Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-Une fois couplée, la connexion permet la transmission des données numériques audio entre les appareils.
+La sensation de faim incite l'individu à chercher activement de la nourriture.
 
-**L'action qui l'explique** : Vivid green data streams flow continuously from the smartphone to the wireless earbud.
+**L'action qui l'explique** : Orange motifs extend from the stomach and spread outward, intersecting with a representation of food.
 
-*Comprise sans le son : 0.8* — This action is direct and clearly shows data transferring between devices, which is quickly understandable without audio.
+*Comprise sans le son : 0.8* — This action visually conveys the dynamic pursuit triggered by hunger signals better and shows the interaction with food clearly, unlike the other two which lack clarity in depicting the pursuit.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The transmission of audio data after pairing the device.
-2. **physical element** : Vivid green data streams flowing from the smartphone to the earbud.
-3. **secondary elements** : Detailed internal components visible through a translucent shell, studio lighting highlights data integrity.
-4. **visual behavior** : The green data streams travel from the phone to the earbud, signaling continuous connection and transmission.
-5. **animation movement** : The vivid green streams steadily flow from the phone to the earbud, intensifying in brightness and speed as they reach their destination.
-6. **camera position** : A side view capturing both the phone and earbud, emphasizing the path of the green streams.
-7. **composition** : Central to the frame, showing the green streams prominently as they flow between the devices, with the cinematic environment and technical cutaway elements integrating to explain the process.
+1. **information** : Hunger drives the search for food.
+2. **physical element** : Orange motifs representing the pursuit of food originating from the stomach.
+3. **secondary elements** : The stomach as the origin point, objects representing food indicating the pursuit's target.
+4. **visual behavior** : Motifs gradually emerge from the stomach and spread outward.
+5. **animation movement** : Motifs begin at the stomach, build intensity as they travel, and reach food representation.
+6. **camera position** : Frontal angle captures the motif's trajectory from stomach to food.
+7. **composition** : The orange motif's movement from the stomach outward to an external representation of food is clearly depicted, supported by the semi-cutaway view.
 
 ### Prompt image
 
 ```
-In a side view of the connected smartphone and wireless earbud, vivid green data streams flow continuously and dynamically from the phone to the earbud, indicating active audio data transmission. The scene captures the green streams prominently, showing them clearly entering the earbud, visualizing the connectivity channel. Intense studio lighting enhances the high-end materials, capturing reflection points symbolizing data integrity. The entire setup, including the dark near-black wireless earbud, utilizes a technical semi-cutaway where necessary, revealing internal components through a translucent shell, with the dark studio environment and cinematic blue and white lighting creating a premium, realistic setting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+An anatomical semi-cutaway view of a human torso, showing orange motifs intensely spreading from the stomach towards an external area representing food. The viewer's focus is drawn to the transformational journey as the motifs, starting from the central abdominal region, progressively radiate outward with increasing density, reaching a clear depiction of food intake. The camera captures the motif's path from a frontal angle, emphasizing the directional movement from the internal to the external realm. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-The animation shows the vivid green data streams commencing steadily at the phone, progressing seamlessly toward the wireless earbud. As the streams flow, the intensity builds, symbolizing active transmission until they distinctly arrive at the earbud, emphasizing a continuous flow of digital audio data.
-```
-
----
-
-## Plan 07 — 4s
-
-**Voix** : Le processeur des écouteurs décode ces données en un format compréhensible.
-
-**Fonction** : Show the decoding process.
-
-**Élément pédagogique** : Transformation of data streams by processor.
-
-**Intention de mouvement** : `energy_transfer`
-
-### Ce que le spectateur doit comprendre
-
-Le processeur des écouteurs transforme les données audio numériques en signaux audio compréhensibles.
-
-**L'action qui l'explique** : Green data streams enter the processor and exit as yellow electrical signals.
-
-*Comprise sans le son : 0.8* — It clearly shows data entering and exiting the processor, illustrating the transformation effectively with the sound off.
-
-### Le raisonnement, avant le prompt
-
-1. **information** : The processor decoding data into comprehensible signals.
-2. **physical element** : Data streams entering and exiting the processor.
-3. **secondary elements** : Lighting focus on transformation area.
-4. **visual behavior** : Data colors change within the processor.
-5. **animation movement** : Streams flow into processor, transform and emit as signals.
-6. **camera position** : Close-up on processor area, centered on signal change.
-7. **composition** : Emphasizes data flow through processor, highlighting transformation.
-
-### Prompt image
-
-```
-The camera closely focuses on the internal components of the earbud, precisely where green streams of data visibly enter the processor and transform into yellow electrical signals as they exit. The scene takes place in a dark premium studio environment, showcasing the high-end, clear plastic and metal materials of the earbuds. The lighting highlights the transformation process between the chip pathways. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
-```
-
-### Prompt animation
-
-```
-Green data streams steadily enter the processor, building in transformation to yellow electrical signals as they exit. The movement starts as a faint green flow, gradually gaining momentum as it approaches the processor, transforming into vibrant yellow signals that progressively pulse outward in a coherent sequence.
+The orange motifs initially start at the stomach, swirling and gradually extending outward. They build in intensity and density as they connect paths towards a visible representation of food. This spreading motion embodies the internal drive leading to an external pursuit. Over the duration, more motifs emerge and align into a focused direction until the energy culminates in the interaction with the food representation.
 ```
 
 ---
 
 ## Plan 08 — 4s
 
-**Voix** : Les écouteurs convertissent ensuite ces données traitées en signaux électriques.
+**Voix** : Manger augmente le glucose et réduit la faim.
 
-**Fonction** : Detail the conversion from processed data to electrical signals.
+**Fonction** : Convey glucose level restoration and hunger mitigation.
 
-**Élément pédagogique** : Conversion of yellow data into electrical impulses.
-
-**Intention de mouvement** : `energy_flow`
-
-### Ce que le spectateur doit comprendre
-
-Que les données traitées sont converties en signaux électriques par les écouteurs.
-
-**L'action qui l'explique** : Yellow pulses start from a digital chip and travel outward through wired paths.
-
-*Comprise sans le son : 0.8* — It visually shows the conversion process and initiates a clear, directional flow from data processing to electrical activity, making the transformation immediately seen.
-
-### Le raisonnement, avant le prompt
-
-1. **information** : The conversion of processed data into electrical signals within earbuds.
-2. **physical element** : Yellow pulses starting from the digital chip.
-3. **secondary elements** : Translucent pathways lighting up as yellow pulses travel through them, reflecting signal movement.
-4. **visual behavior** : The yellow signals glow and move smoothly through visible circuit paths.
-5. **animation movement** : Yellow pulses emulate electrical currents traveling outward from the chip along wired pathways.
-6. **camera position** : Close-up internal view of the earbud focusing on the internal paths and chip emission center.
-7. **composition** : The pathway of the yellow pulses dominates the vertical frame ensuring clear directional flow is visible.
-
-### Prompt image
-
-```
-An intensely focused view inside the wireless earbud reveals yellow pulses originating from the digital chip at the core and extending outward via intricate wired paths, signifying the conversion from processed data to electrical signals. This energized pathway is highlighted by dynamic illumination against the dark premium studio backdrop. The translucent ghosted shell exposes the inner components, including battery, chip, antenna, voice coil, and diaphragm distinctly visible, while cinematic blue and white lighting casts sharp contrasts and accentuates the critical conversion process occurring within high-end modern materials. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
-```
-
-### Prompt animation
-
-```
-The animation begins with processed data visualized as green streams entering a digital chip inside the earbud, which then morph into vivid yellow pulses. These pulses initiate from the chip and travel meticulously through the translucent pathways of the earbud, illuminating the wired paths progressively. The conversion augments in brightness and clarity, highlighting the transformation into electrical signals, synchronized with the chip's pathways and components, accentuating the function and flow of the data to electric transformation.
-```
-
----
-
-## Plan 09 — 4s
-
-**Voix** : Des transducteurs dans les écouteurs reçoivent ces signaux électriques.
-
-**Fonction** : Show transducers receiving and acting upon electrical signals.
-
-**Élément pédagogique** : Interfaces as signals pulse transducers.
+**Élément pédagogique** : increased glucose flow calming blue signal paths
 
 **Intention de mouvement** : `energy_flow`
 
 ### Ce que le spectateur doit comprendre
 
-Les transducteurs dans les écouteurs reçoivent et traitent des signaux électriques.
+La nourriture augmente les niveaux de glucose sanguin et réduit la sensation de faim.
 
-**L'action qui l'explique** : Electrical yellow signals enter the transducer, which visibly vibrates and emits orange sound waves.
+**L'action qui l'explique** : A flow of yellow glucose surges through the bloodstream and results in a dimming of blue neural signals in the brain.
 
-*Comprise sans le son : 0.8* — It directly shows the transformation of electrical signals into sound waves, making the role of the transducer evident.
+*Comprise sans le son : 0.8* — It most clearly shows the cause (glucose intake) and the effect (diminishing hunger signals) occurring in sequence, making the relationship most apparent with visuals alone.
 
 ### Le raisonnement, avant le prompt
 
-1. **information** : The transformation of electrical signals into audible sound waves by the transducer.
-2. **physical element** : A transducer inside the earbud visibly receiving and processing electrical signals.
-3. **secondary elements** : Orange sound waves emitted as a result of the electrical signals processed by the transducer.
-4. **visual behavior** : Vibrating transducer emitting pulsing orange sound waves.
-5. **animation movement** : Yellow signals entering transducer, conversion to sound waves radiating outward.
-6. **camera position** : Close-up view on the transducer, semi-cutaway to show internal process.
-7. **composition** : Center the transducer, with electrical and sound signals clearly visible and flowing through it.
+1. **information** : Eating increases glucose levels and reduces hunger.
+2. **physical element** : Glucose waves flowing through bloodstream and interacting with brain.
+3. **secondary elements** : Dimmed neural signals in the brain.
+4. **visual behavior** : The yellow glucose travels through the bloodstream.
+5. **animation movement** : The yellow glucose flows into the brain, triggering a dimming of blue signals.
+6. **camera position** : Focused view that oversees the bloodstream leading to the brain interaction.
+7. **composition** : Centralized on bloodstream and brain interaction, highlighting dynamic changes.
 
 ### Prompt image
 
 ```
-Focus on the transducer inside a wireless earbud with electrical yellow signals entering and causing it to vibrate, leading to the emission of orange sound waves. The transducer's components are clearly visible to show the conversion process, set within a dark premium studio environment. Position the camera in a close-up technical semi-cutaway view to clearly capture the flow of signals and resulting sound waves. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+The anatomical semi-cutaway of the human torso is displayed with a close-up view focusing on the bloodstream. Yellow glucose flows dynamically through the veins, conveying intensity and energy as they travel towards the brain. Upon reaching the brain, the visible blue neural signals begin to dim and fade away, signaling the impact of glucose on hunger. The camera remains centered, capturing the transition and interactions with a precise focus on glucose movement and neural dimming. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ### Prompt animation
 
 ```
-Electrical yellow signals travel into the transducer, causing it to vibrate visibly and emit a pulsating sequence of orange sound waves. The animation should start with the signals entering the transducer, building in intensity to illustrate the energetic conversion, and culminate with the sound waves radiating outward.
-```
-
----
-
-## Plan 10 — 4s
-
-**Voix** : Ces transducteurs utilisent ces signaux pour vibrer.
-
-**Fonction** : Illustrate the trigger of mechanical vibrations by electrical signals.
-
-**Élément pédagogique** : Diaphragm vibrating due to received signals.
-
-**Intention de mouvement** : `energy_flow`
-
-### Ce que le spectateur doit comprendre
-
-Les signaux électriques provoquent les vibrations mécaniques.
-
-**L'action qui l'explique** : Yellow electrical signals flow to the diaphragm causing it to vibrate.
-
-*Comprise sans le son : 0.85* — This shows the cause-effect relationship from electrical signals to diaphragm vibrations, clearly connecting cause and effect visually.
-
-### Le raisonnement, avant le prompt
-
-1. **information** : Electrical signals trigger mechanical diaphragm vibrations.
-2. **physical element** : The diaphragm in the earbud.
-3. **secondary elements** : Stream of yellow signals show signal flow, translucent shell reveals components.
-4. **visual behavior** : Signals visually transform into diaphragm motion.
-5. **animation movement** : Electrical signals flow dynamically, causing diaphragm vibrations.
-6. **camera position** : Focused centrally on the diaphragm, in close-up, so that vibrations are clearly observable.
-7. **composition** : The diaphragm is prominently placed within a cutaway view, set against a controlled dark studio backdrop to highlight its motion.
-
-### Prompt image
-
-```
-The camera centers on the diaphragm within the earbud, depicting an incoming stream of yellow electrical signals flowing directly towards it, resulting in visible vibrations. The modern, dark near-black wireless earbud is seen in a technical semi-cutaway view, where the translucent ghosted shell reveals internal components like the battery, chip, antenna, and voice coil. The environment is a dark premium studio, with cinematic blue and white lighting emphasizing the clear material transitions. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
-```
-
-### Prompt animation
-
-```
-Yellow electrical signals flow continuously and dynamically towards the diaphragm, which responds by vibrating in real-time, showcasing the rhythmic transformation from electrical impulses to mechanical movement.
-```
-
----
-
-## Plan 11 — 3s
-
-**Voix** : Les vibrations produisent des ondes sonores.
-
-**Fonction** : Visualize the generation of sound waves from vibrations.
-
-**Élément pédagogique** : Emerging sound waves from vibrating diaphragm.
-
-**Intention de mouvement** : `energy_flow`
-
-### Ce que le spectateur doit comprendre
-
-Que les vibrations produisent des ondes sonores.
-
-**L'action qui l'explique** : The diaphragm inside the earbud visibly vibrates, causing visible sound waves to radiate outward.
-
-*Comprise sans le son : 0.8* — This action shows the direct cause (vibration) and effect (sound waves), making it clearer without needing sound.
-
-### Le raisonnement, avant le prompt
-
-1. **information** : Vibrations generate sound waves.
-2. **physical element** : The diaphragm inside the earbud vibrates.
-3. **secondary elements** : Internal components and the earbud shell.
-4. **visual behavior** : Sound waves visibly radiate from the diaphragm.
-5. **animation movement** : The diaphragm vibrates and sound waves spread outward.
-6. **camera position** : The camera is close to and focused on the diaphragm.
-7. **composition** : The composition highlights the diaphragm at the center of the frame, surrounded by components visible through the translucent shell.
-
-### Prompt image
-
-```
-A close-up of the earbud interior showcases the diaphragm, vibrantly vibrating as sound waves radiate out in orange ripples. The translucent shell of the earbud reveals internal components like the battery, chip, and voice coil, underscoring the connection between these parts and the vibrating diaphragm. The environment is a dark premium studio with photorealistic rendering; everything is illuminated with cinematic blue and white lighting to highlight the internal mechanics and pathways of sound wave production. The camera closely focuses on the vibrating diaphragm, emphasizing the emergence of sound waves. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil, and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field, and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
-```
-
-### Prompt animation
-
-```
-As the animation begins, the diaphragm starts vibrating noticeably, creating ripples of sound waves that radiate outward. The movement of the diaphragm is gradual but becomes more intense, visibly pushing the air to form clearer waves. Meanwhile, the yellow electrical signal flows into the diaphragm, initiating the vibrations. The sound waves steadily build and expand into the surrounding space, showing the continuous propagation of sound.
-```
-
----
-
-## Plan 12 — 3s
-
-**Voix** : Les ondes sonores se déplacent dans le conduit auditif de l'utilisateur.
-
-**Fonction** : Demonstrate the journey of sound waves into the ear.
-
-**Élément pédagogique** : Sound wave journey through auditory canal.
-
-**Intention de mouvement** : `energy_flow`
-
-### Ce que le spectateur doit comprendre
-
-Le chemin que parcourent les ondes sonores dans le conduit auditif.
-
-**L'action qui l'explique** : Orange sound waves visibly enter the ear canal from an earbud, traveling in a visible path towards the eardrum.
-
-*Comprise sans le son : 0.85* — This action clearly shows the journey of sound waves from the earbud through the auditory canal, which is the core idea, and it avoids misleading implications of blockage or incorrect origin.
-
-### Le raisonnement, avant le prompt
-
-1. **information** : The movement of sound waves from the earbud through the auditory canal.
-2. **physical element** : Orange sound waves represented by light particles.
-3. **secondary elements** : The near-black wireless earbud and the virtual auditory canal.
-4. **visual behavior** : The sound waves move in a dynamic, continuous path into the canal.
-5. **animation movement** : The motion starts at the earbud, flows through the auditory canal, and progresses towards the eardrum visibly.
-6. **camera position** : A close-up view that follows the sound waves' path for clearer understanding.
-7. **composition** : The action is centered with waves sharply contrasted and lit, dominating the composition.
-
-### Prompt image
-
-```
-A vivid depiction shows orange sound waves emanating from the near-black wireless earbud, moving dynamically through a semicircular path into a virtual representation of an auditory canal, reaching towards an abstracted version of the eardrum. The scene focuses tightly on the orange waves' journey, highlighted by contrast and sharpness, against a dark premium studio environment. Cinematic blue and white lighting accentuates the path of waves, ensuring visibility and understanding. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
-```
-
-### Prompt animation
-
-```
-Animated orange sound waves stream steadily from the wireless earbud, entering and traveling through the modeled auditory canal. The camera follows this progression closely, highlighting the path of movement, focusing on their continual journey towards the eardrum, showcasing gradual and dynamic flow.
-```
-
----
-
-## Plan 13 — 4s
-
-**Voix** : Ces ondes stimulent le tympan, recréant la musique ou le son original.
-
-**Fonction** : Show how the eardrum vibrates to recreate sound.
-
-**Élément pédagogique** : Vibration of the eardrum due to sound waves.
-
-**Intention de mouvement** : `cause_effect`
-
-### Ce que le spectateur doit comprendre
-
-Que les ondes sonores font vibrer le tympan pour recréer le son.
-
-**L'action qui l'explique** : Sound waves visually pulse towards an eardrum causing it to visibly vibrate.
-
-*Comprise sans le son : 0.8* — Clearly shows cause (sound waves) and effect (eardrum vibration) in a single action, quickly understandable.
-
-### Le raisonnement, avant le prompt
-
-1. **information** : Sound waves cause the eardrum to vibrate, recreating the original sound.
-2. **physical element** : The eardrum vibrating in response to sound waves.
-3. **secondary elements** : The side view highlights the motion of the eardrum; cinematic lighting enhances focus; translucent earbud components provide context.
-4. **visual behavior** : The sound waves are visually represented as orange pulses that visibly cause the eardrum to move.
-5. **animation movement** : Sound waves travel towards the eardrum, establishing a cyclical vibration in the eardrum as they make contact.
-6. **camera position** : Fixed at an angle to capture both the incoming waves and their impact on the eardrum.
-7. **composition** : The eardrum's vibration is at the center, framed by incoming sound waves, under dramatic lighting to direct attention.
-
-### Prompt image
-
-```
-A detailed close-up view of an eardrum visibly vibrating in response to pulsing sound waves, captured at the precise moment the waves reach it. The camera is positioned to capture the eardrum's reaction from the side, highlighting the movement of the eardrum as it vibrates. The translucent ghosted shell of a modern dark near-black wireless earbud reveals internal components, enhancing context. The camera focuses precisely on the eardrum while maintaining a clear view of the sound waves. The environment utilizes cinematic blue and white lighting to emphasize the visual narrative, ensuring the eardrum's vibration is the main visual focus. The materials maintain realistic detail to convey the vibration's authenticity. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
-```
-
-### Prompt animation
-
-```
-The animation begins with sound waves steadily approaching the eardrum. As these orange sound waves make contact, the eardrum begins to vibrate in sync with their frequency. This vibration gradually builds in intensity, visually demonstrating the recreation of sound through physical movement. Over time, the eardrum's movement becomes more pronounced, until the synchronized movement of the sound waves and the eardrum clearly illustrates the sound's recreation process.
+As yellow glucose intensifies and travels rapidly through the bloodstream, it reaches the brain and triggers a visible reduction in the blue hunger signals. The animation clearly shows the flowing glucose entering the brain area and causing the neural signals to gradually diminish, illustrating the cause-and-effect of eating on glucose levels and hunger.
 ```
 
 ---

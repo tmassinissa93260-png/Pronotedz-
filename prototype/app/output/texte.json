@@ -1,127 +1,87 @@
 {
   "chain": [
-    "Lorsque l'utilisateur active les écouteurs, ils s'allument.",
-    "Les écouteurs cherchent automatiquement des appareils compatibles via Bluetooth.",
-    "Leur puce Bluetooth émet des signaux pour se connecter à votre smartphone.",
-    "Le smartphone détecte ces signaux et s'y connecte en établissant un couplage.",
-    "Une fois couplée, la connexion permet la transmission des données numériques audio.",
-    "Le processeur des écouteurs décode ces données en un format compréhensible.",
-    "Les écouteurs convertissent ensuite ces données traitées en signaux électriques.",
-    "Des transducteurs dans les écouteurs reçoivent ces signaux électriques.",
-    "Ces transducteurs utilisent ces signaux pour vibrer.",
-    "Les vibrations produisent des ondes sonores.",
-    "Les ondes sonores se déplacent dans le conduit auditif de l'utilisateur.",
-    "Ces ondes stimulent le tympan, recréant la musique ou le son original.",
-    "L'utilisateur perçoit ces sons comme une musique ou parole claire."
+    "Le corps détecte une baisse du taux de glucose dans le sang.",
+    "Cette baisse stimule la production de ghreline dans l'estomac.",
+    "La ghreline agit sur l'hypothalamus dans le cerveau.",
+    "L'hypothalamus envoie des signaux au système nerveux autonome.",
+    "Ces signaux provoquent la sensation de faim.",
+    "La sensation de faim pousse l'individu à chercher de la nourriture.",
+    "La consommation de nourriture augmente les niveaux de glucose.",
+    "L'hypothalamus détecte cette augmentation et diminue la sensation de faim."
   ],
   "openings": [
     {
-      "sentence": "Comment le son traverse-t-il l'air pour finalement arriver à votre oreille sans un seul fil ?",
-      "why_it_holds": "Intrigue sur la transmission invisible de la musique, un mystère quotidien pour beaucoup."
+      "sentence": "Pourquoi votre ventre gargouille-t-il vraiment ?",
+      "why_it_holds": "Intrigue immédiatement le spectateur avec un phénomène familier mais mal compris."
     },
     {
-      "sentence": "Avec un simple clic, vos écouteurs se lient à votre smartphone, mais comment ?",
-      "why_it_holds": "Simple action, résultat complexe : attire ceux qui ignorent l'interaction technique derrière."
+      "sentence": "Votre cerveau contrôle votre faim !",
+      "why_it_holds": "Surprend par l'idée que la faim soit une affaire cérébrale plutôt qu'une simple sensation d'estomac."
     },
     {
-      "sentence": "Vos écouteurs sans fil transforment des signaux numériques en musique magique.",
-      "why_it_holds": "La transformation de signaux en musique est fascinante et semble magique."
+      "sentence": "Faim : un signal, pas un simple ressenti.",
+      "why_it_holds": "Invite à comprendre que la faim est un processus biologique, pas uniquement une émotion."
     }
   ],
-  "chosen_opening": "Comment le son traverse-t-il l'air pour finalement arriver à votre oreille sans un seul fil ?",
-  "why_chosen": "Elle met l'accent sur l'aspect invisible de la technologie, ce qui pique davantage la curiosité que la simple connexion ou transformation.",
-  "script": "Comment le son traverse-t-il l'air pour finalement arriver à votre oreille sans un seul fil ? Lorsque l'utilisateur active les écouteurs, ils s'allument. Les écouteurs cherchent automatiquement des appareils compatibles via Bluetooth. Leur puce Bluetooth émet des signaux pour se connecter à votre smartphone. Le smartphone détecte ces signaux et s'y connecte en établissant un couplage. Une fois couplée, la connexion permet la transmission des données numériques audio. Le processeur des écouteurs décode ces données en un format compréhensible. Les écouteurs convertissent ensuite ces données traitées en signaux électriques. Des transducteurs dans les écouteurs reçoivent ces signaux électriques. Ces transducteurs utilisent ces signaux pour vibrer. Les vibrations produisent des ondes sonores. Les ondes sonores se déplacent dans le conduit auditif de l'utilisateur. Ces ondes stimulent le tympan, recréant la musique ou le son original. L'utilisateur perçoit ces sons comme une musique ou parole claire.",
+  "chosen_opening": "Pourquoi votre ventre gargouille-t-il vraiment ?",
+  "why_chosen": "Il interpelle directement avec un phénomène quotidien que chaque spectateur a vécu, suscitant ainsi la curiosité. Les autres options, bien que surprenantes, ne capturent pas immédiatement une expérience commune avec autant de force.",
+  "script": "Pourquoi votre ventre gargouille-t-il vraiment ? Le corps détecte une baisse du taux de glucose dans le sang. Cette baisse stimule la production de ghreline dans l'estomac. La ghreline agit sur l'hypothalamus dans le cerveau. L'hypothalamus envoie des signaux au système nerveux autonome. Ces signaux provoquent la sensation de faim. La sensation de faim pousse l'individu à chercher de la nourriture. La consommation de nourriture augmente les niveaux de glucose. L'hypothalamus détecte cette augmentation et diminue la sensation de faim.",
   "objections": [
     {
-      "sentence": "Lorsque l'utilisateur active les écouteurs, ils s'allument.",
-      "checks_out": "Les écouteurs contiennent un circuit d'allumage qui est activé.",
+      "sentence": "Le corps détecte une baisse du taux de glucose dans le sang.",
+      "checks_out": "Les cellules sensorielles surveillent constamment les niveaux de glucose.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 1
     },
     {
-      "sentence": "Les écouteurs cherchent automatiquement des appareils compatibles via Bluetooth.",
-      "checks_out": "Les écouteurs ont un mode de recherche Bluetooth intégré.",
+      "sentence": "Cette baisse stimule la production de ghreline dans l'estomac.",
+      "checks_out": "La ghreline est une hormone sécrétée en réponse à de faibles niveaux de glucose.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 2
     },
     {
-      "sentence": "Leur puce Bluetooth émet des signaux pour se connecter à votre smartphone.",
-      "checks_out": "Les puces Bluetooth envoient des signaux d'identification pour permettre le couplage.",
+      "sentence": "La ghreline agit sur l'hypothalamus dans le cerveau.",
+      "checks_out": "Elle se lie à des récepteurs spécifiques dans l'hypothalamus.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 3
     },
     {
-      "sentence": "Le smartphone détecte ces signaux et s'y connecte en établissant un couplage.",
-      "checks_out": "L'appareil est conçu pour détecter et connecter automatiquement les signaux.",
+      "sentence": "L'hypothalamus envoie des signaux au système nerveux autonome.",
+      "checks_out": "L'hypothalamus est responsable de la régulation de nombreuses fonctions autonomes, notamment la faim.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 4
     },
     {
-      "sentence": "Une fois couplée, la connexion permet la transmission des données numériques audio.",
-      "checks_out": "La connexion Bluetooth établie autorise le transfert de paquets de données.",
+      "sentence": "Ces signaux provoquent la sensation de faim.",
+      "checks_out": "Les signaux modifient l'activité neuronale qui génère la sensation de faim.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 5
     },
     {
-      "sentence": "Le processeur des écouteurs décode ces données en un format compréhensible.",
-      "checks_out": "Le processeur contient des algorithmes de décodage pour traiter les données audio.",
+      "sentence": "La sensation de faim pousse l'individu à chercher de la nourriture.",
+      "checks_out": "Cette sensation est un mécanisme évolutif incitant l'alimentation.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 6
     },
     {
-      "sentence": "Les écouteurs convertissent ensuite ces données traitées en signaux électriques.",
-      "checks_out": "Le circuit audio change les signaux en impulsions électriques.",
+      "sentence": "La consommation de nourriture augmente les niveaux de glucose.",
+      "checks_out": "La digestion des aliments libère du glucose dans le sang.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 7
     },
     {
-      "sentence": "Des transducteurs dans les écouteurs reçoivent ces signaux électriques.",
-      "checks_out": "Les transducteurs transfèrent l'énergie électrique en mouvement mécanique.",
+      "sentence": "L'hypothalamus détecte cette augmentation et diminue la sensation de faim.",
+      "checks_out": "Les récepteurs de l'hypothalamus mesurent les niveaux de glucose et ajustent les signaux de faim.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 8
-    },
-    {
-      "sentence": "Ces transducteurs utilisent ces signaux pour vibrer.",
-      "checks_out": "Les vibrations sont une réaction physique aux impulsions électriques.",
-      "objection": "aucune",
-      "fix": "rien à changer",
-      "link": 9
-    },
-    {
-      "sentence": "Les vibrations produisent des ondes sonores.",
-      "checks_out": "Les ondes sonores se forment lorsque l'air vibre.",
-      "objection": "aucune",
-      "fix": "rien à changer",
-      "link": 10
-    },
-    {
-      "sentence": "Les ondes sonores se déplacent dans le conduit auditif de l'utilisateur.",
-      "checks_out": "Les ondes sonores voyagent naturellement dans l'air dirigé vers l'oreille.",
-      "objection": "aucune",
-      "fix": "rien à changer",
-      "link": 11
-    },
-    {
-      "sentence": "Ces ondes stimulent le tympan, recréant la musique ou le son original.",
-      "checks_out": "Les vibrations de l'air frappent le tympan, reproduisant les sons.",
-      "objection": "aucune",
-      "fix": "rien à changer",
-      "link": 12
-    },
-    {
-      "sentence": "L'utilisateur perçoit ces sons comme une musique ou parole claire.",
-      "checks_out": "Le cerveau interprète les signaux envoyés par le tympan comme des sons.",
-      "objection": "aucune",
-      "fix": "rien à changer",
-      "link": 13
     }
   ]
 }

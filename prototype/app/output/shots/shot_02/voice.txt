@@ -1,1 +1,1 @@
-Lorsque l'utilisateur active les écouteurs, ils s'allument.
+Le corps détecte une baisse du taux de glucose dans le sang.

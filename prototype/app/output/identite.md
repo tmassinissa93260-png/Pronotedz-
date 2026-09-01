@@ -1,4 +1,4 @@
-# Verrouillage d'identite — Fonctionnement des écouteurs électriques sans fil
+# Verrouillage d'identite — Comment l'humain ressent la faim
 
 Les plans ne sont pas six objets differents : c'est le MEME objet vu
 de six endroits. Produis d'abord l'image maitresse, puis derive les
@@ -6,11 +6,11 @@ autres a partir d'elle au lieu de les redecrire.
 
 ## 1. L'image maitresse
 
-C'est le plan 05 : celui qui montre l'objet le plus entier.
+C'est le plan 04 : celui qui montre l'objet le plus entier.
 Genere-le en premier, et garde-le.
 
 ```
-The image shows two streams of blue light pulsing from the dark near-black wireless earbud and the smartphone, meeting and merging mid-air to form a unified bright blue connection. The premium materials of both devices reflect the light subtly, enhancing focus on the converging signals. The camera is placed at a wide angle to fully illustrate the merging action, with cinematic blue and white lighting enhancing the visibility of signals. The environment is a dark premium studio, with detailed visualization of internal components such as the internal battery, chip, antenna, voice coil, and diaphragm through a translucent ghosted shell, in a vertical 9:16 composition. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field, and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
+A focused cutaway of the brain highlighting the hypothalamus. Visible dynamic green arrows travel towards the area, symbolizing ghreline interaction. The arrows enter the highlighted area, with the brain's hypothalamus centrally framed using a wide lens to emphasize interaction. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.
 ```
 
 ## 2. Les autres plans, derives de celle-la
@@ -25,7 +25,7 @@ Sinon, colle le prompt complet : il est ecrit pour tenir tout seul.
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up, centered on the earbud with a nuanced orbit to capture the flow and spread of signals. A vertical 9:16 layout, focusing on the dynamic interaction between signals and sound waves, with all components clearly defined. Show: Emission of blue signals entering the earbud and the outward radiating orange sound waves. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Slightly above torso, looking downward to show detail and depth. Centered on the stomach with prominent focus on blue glow and rippling. Show: Blue glow pulsing in sync with muscle contractions. Keep the reference lighting and art direction.
 ```
 
 ### Plan 02
@@ -34,7 +34,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. A stable position focusing closely on the earbud's illuminated interior. The translucent interior glow draws the eye, establishing a clear cause-effect of earbud activation. Show: The circuits light up and glow, displaying activation. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. A slightly elevated angle focuses on both fading tendrils and the spreading blue signals. Centralized framing emphasizes the transition between glucose decrease and neural signaling, maintaining the visibility of all essential actions. Show: Simultaneous fading of yellow tendrils with the emission and movement of blue signals. Keep the reference lighting and art direction.
 ```
 
 ### Plan 03
@@ -43,16 +43,16 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. A slight angle captures the emission of blue dots and their path to the phone. Frame centers around earbud with path and connection line clear in view. Show: The blue dots emerge and travel to the smartphone. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Focused on the stomach and bloodstream, capturing both the diminishing glucose and emerging ghreline. A central focus on the stomach, with clearer visibility on the ghreline production area and diminishing glucose particles. Show: Green mist spreads from the stomach into surrounding areas. Keep the reference lighting and art direction.
 ```
 
-### Plan 04
+### Plan 05
 
 **Depuis l'image maitresse** — meme objet, meme geometrie, memes
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Focus is on the chip's position in the semi-cutaway with a view towards the path of the signals towards the phone. Strong emphasis on the chip and signal path, with cinematic depth and contrasting lighting highlighting the action of connection. Show: The pulsating nature of the blue signals illustrating active transmission. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. A central view focused on the pulse path, ensuring brain region activation is visible The layout prioritizes the signal's journey and its impact on brain activation. Show: Pulses spread from the hypothalamus showing signal transmission Keep the reference lighting and art direction.
 ```
 
 ### Plan 06
@@ -61,7 +61,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. A side view capturing both the phone and earbud, emphasizing the path of the green streams. Central to the frame, showing the green streams prominently as they flow between the devices, with the cinematic environment and technical cutaway elements integrating to explain the process. Show: The green data streams travel from the phone to the earbud, signaling continuous connection and transmission. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Focus on the pathway from stomach to brain, central and clear. Centered on the pathway, showing the travel route and brain interaction. Show: Neural signals visibly travel, reaching and activating the brain. Keep the reference lighting and art direction.
 ```
 
 ### Plan 07
@@ -70,7 +70,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up on processor area, centered on signal change. Emphasizes data flow through processor, highlighting transformation. Show: Data colors change within the processor. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Frontal angle captures the motif's trajectory from stomach to food. The orange motif's movement from the stomach outward to an external representation of food is clearly depicted, supported by the semi-cutaway view. Show: Motifs gradually emerge from the stomach and spread outward. Keep the reference lighting and art direction.
 ```
 
 ### Plan 08
@@ -79,51 +79,6 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up internal view of the earbud focusing on the internal paths and chip emission center. The pathway of the yellow pulses dominates the vertical frame ensuring clear directional flow is visible. Show: The yellow signals glow and move smoothly through visible circuit paths. Keep the reference lighting and art direction.
-```
-
-### Plan 09
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Close-up view on the transducer, semi-cutaway to show internal process. Center the transducer, with electrical and sound signals clearly visible and flowing through it. Show: Vibrating transducer emitting pulsing orange sound waves. Keep the reference lighting and art direction.
-```
-
-### Plan 10
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Focused centrally on the diaphragm, in close-up, so that vibrations are clearly observable. The diaphragm is prominently placed within a cutaway view, set against a controlled dark studio backdrop to highlight its motion. Show: Signals visually transform into diaphragm motion. Keep the reference lighting and art direction.
-```
-
-### Plan 11
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. The camera is close to and focused on the diaphragm. The composition highlights the diaphragm at the center of the frame, surrounded by components visible through the translucent shell. Show: Sound waves visibly radiate from the diaphragm. Keep the reference lighting and art direction.
-```
-
-### Plan 12
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. A close-up view that follows the sound waves' path for clearer understanding. The action is centered with waves sharply contrasted and lit, dominating the composition. Show: The sound waves move in a dynamic, continuous path into the canal. Keep the reference lighting and art direction.
-```
-
-### Plan 13
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Fixed at an angle to capture both the incoming waves and their impact on the eardrum. The eardrum's vibration is at the center, framed by incoming sound waves, under dramatic lighting to direct attention. Show: The sound waves are visually represented as orange pulses that visibly cause the eardrum to move. Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. Focused view that oversees the bloodstream leading to the brain interaction. Centralized on bloodstream and brain interaction, highlighting dynamic changes. Show: The yellow glucose travels through the bloodstream. Keep the reference lighting and art direction.
 ```
 

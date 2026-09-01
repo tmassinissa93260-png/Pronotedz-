@@ -1,35 +1,35 @@
 {
-  "voice": "Le smartphone détecte ces signaux et s'y connecte en établissant un couplage.",
-  "understanding": "Le smartphone détecte les signaux Bluetooth et établit une connexion en s'y couplant.",
+  "voice": "L'hypothalamus envoie des signaux au système nerveux autonome.",
+  "understanding": "L'hypothalamus transmet des signaux au système nerveux autonome.",
   "candidates": [
     {
-      "action": "Two streams of blue light pulse from the earbud and smartphone, meeting and merging in the air.",
-      "explains": "The merging blue signals visually indicate a successful connection has been made.",
-      "misses": "The physical interaction between devices that leads to stable connectivity."
+      "action": "Blue pulses emanate in increasing intensity from the hypothalamus, traveling along neural pathways and causing certain areas of the brain to light up.",
+      "explains": "This shows the transmission of signals from the hypothalamus to the nervous system.",
+      "misses": "Does not specify that the signals reach the autonomous nervous system."
     },
     {
-      "action": "A visual bridge of blue light forms steadily between the earbud and the smartphone.",
-      "explains": "The steady bridge signifies a stable Bluetooth connection.",
-      "misses": "The dynamic process of signals converging before achieving stability."
+      "action": "A network of blue lines emerges from the hypothalamus and spreads rapidly throughout the neural pathways, activating distinct brain regions.",
+      "explains": "Illustrates the route and impact of signal dissemination from the hypothalamus.",
+      "misses": "The destination of these signals in terms of system (autonomic nervous system) is unclear."
     },
     {
-      "action": "Blue lights from both the earbud and phone pulse and then synchronize in frequency and pattern.",
-      "explains": "Synchronization of lights symbolizes successful pairing.",
-      "misses": "The initial steps toward establishing connection (signal detection)."
+      "action": "The hypothalamus emits blue waves that spread slowly down neural paths, eventually branching and connecting to the spine.",
+      "explains": "Demonstrates the process and path of signal transmission from brain to nervous system.",
+      "misses": "It is less clear that this process involves the whole nervous system."
     }
   ],
-  "chosen": "Two streams of blue light pulse from the earbud and smartphone, meeting and merging in the air.",
-  "why_chosen": "Pulsing and merging of blue signals clearly show the active connection process better than static or simple synchronization.",
-  "mute_test": 0.8,
-  "image_prompt": "The image shows two streams of blue light pulsing from the dark near-black wireless earbud and the smartphone, meeting and merging mid-air to form a unified bright blue connection. The premium materials of both devices reflect the light subtly, enhancing focus on the converging signals. The camera is placed at a wide angle to fully illustrate the merging action, with cinematic blue and white lighting enhancing the visibility of signals. The environment is a dark premium studio, with detailed visualization of internal components such as the internal battery, chip, antenna, voice coil, and diaphragm through a translucent ghosted shell, in a vertical 9:16 composition. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field, and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The animation starts with two streams of blue light pulsing separately from both the earbud and smartphone. As they travel towards each other, they gradually synchronize their pulses, eventually meeting and merging into a unified blue beam. Simultaneously, a faint but noticeable glow enhances the devices' surfaces as the connection is established, showing stability.",
+  "chosen": "Blue pulses emanate in increasing intensity from the hypothalamus, traveling along neural pathways and causing certain areas of the brain to light up.",
+  "why_chosen": "This action is quickest to understand as it visually communicates the concept of signal transmission and shows an effect, crucial for understanding the process.",
+  "mute_test": 0.75,
+  "image_prompt": "The human torso is seen in an anatomical semi-cutaway, centrally focusing on the hypothalamus. From it, blue pulses emanate and travel visibly through neural pathways, causing different parts of the brain to light up as they reach their destinations. The viewer observes a clear wave-like progression of neural signal transmission, with the brain positioned prominently to highlight the activation. The environment is a dark premium studio, contrasted by cinematic blue and white lighting which ensures that these pulses are the focal point of the shot. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins with blue pulses forming at the hypothalamus. Gradually, these pulses travel with increasing intensity through the neural pathways, reaching various brain regions that then light up sequentially. This continuous wave of neural signals starts concentrated and small, builds in intensity, then spreads further, illustrating the fluid nature of signal transmission. The movement is deliberate, indicating a clear starting point, progression, and multiple destination activations across the brain.",
   "visual_explanation": {
-    "information": "The smartphone detects Bluetooth signals and establishes a connection by pairing.",
-    "physical_element": "Pulsing blue light streams from the earbud and the smartphone merging in the air.",
-    "secondary_elements": "Premium materials reflecting light help focus on the merging blue streams.",
-    "visual_behavior": "The blue signals travel towards each other and merge, signifying connection.",
-    "animation_movement": "The blue lights pulse and travel towards their respective source, synchronizing and merging to indicate connection establishment.",
-    "camera_position": "Wide angle to capture both devices and merging action clearly, enhancing understanding with visual depth.",
-    "composition": "The focus is on the merging blue lights in the center with a contrasting premium studio background to highlight the connection process."
+    "information": "The hypothalamus is signaling the nervous system.",
+    "physical_element": "Blue pulses representing neural signals",
+    "secondary_elements": "Brain regions lighting up upon pulse arrival",
+    "visual_behavior": "Pulses spread from the hypothalamus showing signal transmission",
+    "animation_movement": "Pulses progressively travel and light up corresponding brain areas",
+    "camera_position": "A central view focused on the pulse path, ensuring brain region activation is visible",
+    "composition": "The layout prioritizes the signal's journey and its impact on brain activation."
   }
 }

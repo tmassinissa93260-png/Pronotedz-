@@ -1,35 +1,35 @@
 {
-  "voice": "Une fois couplée, la connexion permet la transmission des données numériques audio.",
-  "understanding": "Une fois couplée, la connexion permet la transmission des données numériques audio entre les appareils.",
+  "voice": "Ces signaux provoquent la sensation de faim.",
+  "understanding": "que les signaux nerveux provoquent la sensation de faim.",
   "candidates": [
     {
-      "action": "Vivid green data streams flow continuously from the smartphone to the wireless earbud.",
-      "explains": "It shows how data is transmitted from one device to another after pairing.",
-      "misses": "It doesn't show clearly what triggers the data flow."
+      "action": "Neural lines illuminate from the stomach to the brain.",
+      "explains": "how signals are sent from the stomach to induce hunger.",
+      "misses": "the interaction of hunger hormones and glucose levels."
     },
     {
-      "action": "The smartphone emits a blue signal that changes to green upon reaching the earbud.",
-      "explains": "It indicates the transmission and the change from signal to data.",
-      "misses": "The start of data transmission can be unclear as the focus is on the signal change."
+      "action": "A wave-like ripple spreads from the stomach throughout the body.",
+      "explains": "the sensation of hunger spreading from the stomach.",
+      "misses": "detailed neural communication to the brain."
     },
     {
-      "action": "Data bits in green lines rapidly fill a progress bar between the phone and earbud.",
-      "explains": "It signifies the completion of data transfer from phone to earbud.",
-      "misses": "It may resemble a loading process more than a continuous data transmission."
+      "action": "Multiple pathways connect, lighting up from the stomach to the brain.",
+      "explains": "the comprehensive route of hunger signaling in the body.",
+      "misses": "the distinct influence of ghreline and glucose."
     }
   ],
-  "chosen": "Vivid green data streams flow continuously from the smartphone to the wireless earbud.",
-  "why_chosen": "This action is direct and clearly shows data transferring between devices, which is quickly understandable without audio.",
+  "chosen": "Neural lines illuminate from the stomach to the brain.",
+  "why_chosen": "It clearly shows the direct signal path causing hunger sensation.",
   "mute_test": 0.8,
-  "image_prompt": "In a side view of the connected smartphone and wireless earbud, vivid green data streams flow continuously and dynamically from the phone to the earbud, indicating active audio data transmission. The scene captures the green streams prominently, showing them clearly entering the earbud, visualizing the connectivity channel. Intense studio lighting enhances the high-end materials, capturing reflection points symbolizing data integrity. The entire setup, including the dark near-black wireless earbud, utilizes a technical semi-cutaway where necessary, revealing internal components through a translucent shell, with the dark studio environment and cinematic blue and white lighting creating a premium, realistic setting. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The animation shows the vivid green data streams commencing steadily at the phone, progressing seamlessly toward the wireless earbud. As the streams flow, the intensity builds, symbolizing active transmission until they distinctly arrive at the earbud, emphasizing a continuous flow of digital audio data.",
+  "image_prompt": "In a dark premium studio environment, a semi-cutaway of a human torso is displayed, focusing centrally on the stomach with neural pathways illuminated in blue, traveling clearly to the brain. The lighting is cinematic blue and white, highlighting the neural path's trajectory within the body. The scene captures the physical journey of these signals, making the causal link between the stomach's neural activity and the brain's hunger response evident. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "In a dynamic sequence, neural pathways illuminate from the stomach, with blue signals traveling toward the brain, each segment lighting up progressively, showing the communication path that triggers hunger. As the signals reach the brain, neural nodes there respond with their own illumination, representing the completion of the hunger signaling process. Movement maintains focus on the signal direction and brain response.",
   "visual_explanation": {
-    "information": "The transmission of audio data after pairing the device.",
-    "physical_element": "Vivid green data streams flowing from the smartphone to the earbud.",
-    "secondary_elements": "Detailed internal components visible through a translucent shell, studio lighting highlights data integrity.",
-    "visual_behavior": "The green data streams travel from the phone to the earbud, signaling continuous connection and transmission.",
-    "animation_movement": "The vivid green streams steadily flow from the phone to the earbud, intensifying in brightness and speed as they reach their destination.",
-    "camera_position": "A side view capturing both the phone and earbud, emphasizing the path of the green streams.",
-    "composition": "Central to the frame, showing the green streams prominently as they flow between the devices, with the cinematic environment and technical cutaway elements integrating to explain the process."
+    "information": "Neural signals from the stomach cause the feeling of hunger.",
+    "physical_element": "Neural pathways illuminated in blue from the stomach to the brain.",
+    "secondary_elements": "The highlighted path to the brain and its response.",
+    "visual_behavior": "Neural signals visibly travel, reaching and activating the brain.",
+    "animation_movement": "Signals traveling along neural paths and causing brain activation.",
+    "camera_position": "Focus on the pathway from stomach to brain, central and clear.",
+    "composition": "Centered on the pathway, showing the travel route and brain interaction."
   }
 }

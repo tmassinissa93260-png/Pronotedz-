@@ -1,35 +1,35 @@
 {
-  "voice": "Le processeur des écouteurs décode ces données en un format compréhensible.",
-  "understanding": "Le processeur des écouteurs transforme les données audio numériques en signaux audio compréhensibles.",
+  "voice": "La sensation de faim pousse l'individu à chercher de la nourriture.",
+  "understanding": "La sensation de faim incite l'individu à chercher activement de la nourriture.",
   "candidates": [
     {
-      "action": "Green data streams enter the processor and exit as yellow electrical signals.",
-      "explains": "The transformation of data formats by the processor.",
-      "misses": "Detailed visualization of the decoding process."
+      "action": "Orange motifs emerge from the stomach and travel towards an external representation of food.",
+      "explains": "Shows the internal drive for seeking food originating from the hunger center in the body.",
+      "misses": "Doesn't fully depict the dynamic progression of search for food."
     },
     {
-      "action": "The processor lights up as green data streams touch it, then it emits yellow signals.",
-      "explains": "The processor action of transforming data, highlighted by a light effect.",
-      "misses": "The continuity of the data stream's conversion."
+      "action": "Orange motifs radiate from the stomach towards the brain, activating a bright orange area.",
+      "explains": "Illustrates how hunger signals reach the brain, triggering the action of seeking food.",
+      "misses": "Doesn't visually establish the concept of pursuit or movement towards food."
     },
     {
-      "action": "Green data streams merge into the processor which sequentially outputs yellow waves.",
-      "explains": "Sequential transformation of data into signals.",
-      "misses": "The internal processing activity within the chip."
+      "action": "Orange motifs extend from the stomach and spread outward, intersecting with a representation of food.",
+      "explains": "Shows the active pursuit of food initiated by hunger signals radiating outward.",
+      "misses": "May not clearly communicate the origin of the hunger signals within the body."
     }
   ],
-  "chosen": "Green data streams enter the processor and exit as yellow electrical signals.",
-  "why_chosen": "It clearly shows data entering and exiting the processor, illustrating the transformation effectively with the sound off.",
+  "chosen": "Orange motifs extend from the stomach and spread outward, intersecting with a representation of food.",
+  "why_chosen": "This action visually conveys the dynamic pursuit triggered by hunger signals better and shows the interaction with food clearly, unlike the other two which lack clarity in depicting the pursuit.",
   "mute_test": 0.8,
-  "image_prompt": "The camera closely focuses on the internal components of the earbud, precisely where green streams of data visibly enter the processor and transform into yellow electrical signals as they exit. The scene takes place in a dark premium studio environment, showcasing the high-end, clear plastic and metal materials of the earbuds. The lighting highlights the transformation process between the chip pathways. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "Green data streams steadily enter the processor, building in transformation to yellow electrical signals as they exit. The movement starts as a faint green flow, gradually gaining momentum as it approaches the processor, transforming into vibrant yellow signals that progressively pulse outward in a coherent sequence.",
+  "image_prompt": "An anatomical semi-cutaway view of a human torso, showing orange motifs intensely spreading from the stomach towards an external area representing food. The viewer's focus is drawn to the transformational journey as the motifs, starting from the central abdominal region, progressively radiate outward with increasing density, reaching a clear depiction of food intake. The camera captures the motif's path from a frontal angle, emphasizing the directional movement from the internal to the external realm. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark. Photorealistic premium 3D medical visualization, the same human torso in anatomical semi-cutaway, translucent ghosted skin and muscle with the stomach, the bloodstream and the brain clearly visible through them, dark premium studio environment, cinematic blue and white lighting, realistic detailed biological materials, physically credible anatomy and physiology, clearly visible hormones, blood flow and nerve signals, cinematic depth of field, high contrast, premium high-end medical documentary rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The orange motifs initially start at the stomach, swirling and gradually extending outward. They build in intensity and density as they connect paths towards a visible representation of food. This spreading motion embodies the internal drive leading to an external pursuit. Over the duration, more motifs emerge and align into a focused direction until the energy culminates in the interaction with the food representation.",
   "visual_explanation": {
-    "information": "The processor decoding data into comprehensible signals.",
-    "physical_element": "Data streams entering and exiting the processor.",
-    "secondary_elements": "Lighting focus on transformation area.",
-    "visual_behavior": "Data colors change within the processor.",
-    "animation_movement": "Streams flow into processor, transform and emit as signals.",
-    "camera_position": "Close-up on processor area, centered on signal change.",
-    "composition": "Emphasizes data flow through processor, highlighting transformation."
+    "information": "Hunger drives the search for food.",
+    "physical_element": "Orange motifs representing the pursuit of food originating from the stomach.",
+    "secondary_elements": "The stomach as the origin point, objects representing food indicating the pursuit's target.",
+    "visual_behavior": "Motifs gradually emerge from the stomach and spread outward.",
+    "animation_movement": "Motifs begin at the stomach, build intensity as they travel, and reach food representation.",
+    "camera_position": "Frontal angle captures the motif's trajectory from stomach to food.",
+    "composition": "The orange motif's movement from the stomach outward to an external representation of food is clearly depicted, supported by the semi-cutaway view."
   }
 }
