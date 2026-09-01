@@ -34,7 +34,18 @@ STYLE_DIRECTIVE = (os.getenv("STYLE_DIRECTIVE") or "").strip() or _DEFAUT
 #: controles qui dependent de SON contenu — la voiture sombre — ne
 #: s'appliquent que dans ce cas.
 STYLE_PAR_DEFAUT = STYLE_DIRECTIVE == _DEFAUT
-STYLE_FINGERPRINT = "Photorealistic premium 3D engineering visualization"
+#: L'empreinte suit la direction artistique au lieu d'etre figee. Au run 47
+#: la direction disait « 3D MEDICAL visualization » et l'empreinte cherchait
+#: « 3D ENGINEERING visualization » : `enforce_style` ne la trouvait pas et
+#: recollait la directive une SECONDE fois — 1 200 caracteres de doublon sur
+#: 1 719 — pendant que `own_part`, qui coupe a l'empreinte, ne coupait plus
+#: rien et faisait mesurer aux controles le prompt direction comprise.
+def empreinte(directive: str) -> str:
+    """Ce qu'on cherche dans un prompt pour savoir si la direction y est."""
+    return directive[:51].strip()
+
+
+STYLE_FINGERPRINT = empreinte(STYLE_DIRECTIVE)
 
 WORDS_PER_SECOND = 2.7
 

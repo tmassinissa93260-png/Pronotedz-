@@ -198,6 +198,30 @@ class TestImagesDeposees(unittest.TestCase):
         self.assertEqual(self.trouver()[1], attendu)
 
 
+class TestEmpreinteDeStyle(unittest.TestCase):
+    """Run 47 : « 3D medical » contre une empreinte figée sur « engineering »."""
+
+    MEDICALE = ("Photorealistic premium 3D medical visualization, a human torso in "
+                "anatomical cutaway, dark studio, no watermark.")
+
+    def test_l_empreinte_suit_la_direction(self):
+        marque = prompts.empreinte(self.MEDICALE)
+        self.assertIn("medical", marque)
+        self.assertNotIn("engineering", marque)
+
+    def test_l_empreinte_par_defaut_ne_bouge_pas(self):
+        self.assertEqual(prompts.STYLE_FINGERPRINT,
+                         "Photorealistic premium 3D engineering visualization")
+
+    def test_l_empreinte_est_bien_le_debut_de_la_direction(self):
+        for directive in (self.MEDICALE, prompts.STYLE_DIRECTIVE):
+            with self.subTest(directive=directive[:30]):
+                self.assertTrue(directive.startswith(prompts.empreinte(directive)))
+
+    def test_une_direction_courte_reste_sa_propre_empreinte(self):
+        self.assertEqual(prompts.empreinte("Un style bref."), "Un style bref.")
+
+
 class TestBanc(unittest.TestCase):
     """Le banc rejoue les contrôles sur les storyboards de l'historique."""
 
