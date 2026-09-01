@@ -1,84 +1,84 @@
 {
   "chain": [
-    "Le corps détecte une baisse du taux de glucose dans le sang.",
-    "Cette baisse stimule la production de ghreline dans l'estomac.",
-    "La ghreline agit sur l'hypothalamus dans le cerveau.",
-    "L'hypothalamus envoie des signaux au système nerveux autonome.",
-    "Ces signaux provoquent la sensation de faim.",
-    "La sensation de faim pousse l'individu à chercher de la nourriture.",
-    "La consommation de nourriture augmente les niveaux de glucose.",
-    "L'hypothalamus détecte cette augmentation et diminue la sensation de faim."
+    "Le niveau de glucose dans le sang diminue.",
+    "Des récepteurs dans l'estomac détectent ce niveau bas.",
+    "Les récepteurs envoient des signaux au cerveau.",
+    "Le cerveau stimule le pancréas.",
+    "Le pancréas libère du glucagon pour mobiliser les réserves de glucose.",
+    "Le foie transforme le glycogène en glucose.",
+    "Le niveau de glucose dans le sang augmente.",
+    "Vous ressentez une sensation de satiété."
   ],
   "openings": [
     {
-      "sentence": "Pourquoi votre ventre gargouille-t-il vraiment ?",
-      "why_it_holds": "Intrigue immédiatement le spectateur avec un phénomène familier mais mal compris."
+      "sentence": "Vous avez faim quand le glucose baisse.",
+      "why_it_holds": "Cela intrigue car les gens ne pensent pas souvent à la corrélation entre glucose et faim."
     },
     {
-      "sentence": "Votre cerveau contrôle votre faim !",
-      "why_it_holds": "Surprend par l'idée que la faim soit une affaire cérébrale plutôt qu'une simple sensation d'estomac."
+      "sentence": "Votre estomac parle à votre cerveau.",
+      "why_it_holds": "Personnifier les organes intrigue et rend le sujet immédiat."
     },
     {
-      "sentence": "Faim : un signal, pas un simple ressenti.",
-      "why_it_holds": "Invite à comprendre que la faim est un processus biologique, pas uniquement une émotion."
+      "sentence": "Le glucagon réveille votre foie.",
+      "why_it_holds": "Cela intrigue car le glucagon est peu connu du grand public."
     }
   ],
-  "chosen_opening": "Pourquoi votre ventre gargouille-t-il vraiment ?",
-  "why_chosen": "Il interpelle directement avec un phénomène quotidien que chaque spectateur a vécu, suscitant ainsi la curiosité. Les autres options, bien que surprenantes, ne capturent pas immédiatement une expérience commune avec autant de force.",
-  "script": "Pourquoi votre ventre gargouille-t-il vraiment ? Le corps détecte une baisse du taux de glucose dans le sang. Cette baisse stimule la production de ghreline dans l'estomac. La ghreline agit sur l'hypothalamus dans le cerveau. L'hypothalamus envoie des signaux au système nerveux autonome. Ces signaux provoquent la sensation de faim. La sensation de faim pousse l'individu à chercher de la nourriture. La consommation de nourriture augmente les niveaux de glucose. L'hypothalamus détecte cette augmentation et diminue la sensation de faim.",
+  "chosen_opening": "Votre estomac parle à votre cerveau.",
+  "why_chosen": "Cette phrase rend le processus biologique accessible et immédiat. Les autres s'appuient sur des termes moins familiers qui peuvent décourager la curiosité.",
+  "script": "Votre estomac parle à votre cerveau. Il détecte une diminution du glucose sanguin. Il envoie donc des signaux pour demander de l'aide. Le cerveau répond en activant le pancréas. Ce dernier libère du glucagon pour mobiliser les réserves de glucose. Les cellules hépatocytes du foie transforment alors le glycogène. Elles libèrent le glucose dans le sang. Vous ressentez alors de la satiété.",
   "objections": [
     {
-      "sentence": "Le corps détecte une baisse du taux de glucose dans le sang.",
-      "checks_out": "Les cellules sensorielles surveillent constamment les niveaux de glucose.",
-      "objection": "aucune",
-      "fix": "rien à changer",
-      "link": 1
-    },
-    {
-      "sentence": "Cette baisse stimule la production de ghreline dans l'estomac.",
-      "checks_out": "La ghreline est une hormone sécrétée en réponse à de faibles niveaux de glucose.",
-      "objection": "aucune",
-      "fix": "rien à changer",
-      "link": 2
-    },
-    {
-      "sentence": "La ghreline agit sur l'hypothalamus dans le cerveau.",
-      "checks_out": "Elle se lie à des récepteurs spécifiques dans l'hypothalamus.",
+      "sentence": "Votre estomac parle à votre cerveau.",
+      "checks_out": "Les récepteurs de l'estomac signalent au cerveau grâce au système nerveux.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 3
     },
     {
-      "sentence": "L'hypothalamus envoie des signaux au système nerveux autonome.",
-      "checks_out": "L'hypothalamus est responsable de la régulation de nombreuses fonctions autonomes, notamment la faim.",
+      "sentence": "Il détecte une diminution du glucose sanguin.",
+      "checks_out": "Les récepteurs dans l'estomac perçoivent la baisse du glucose.",
+      "objection": "aucune",
+      "fix": "rien à changer",
+      "link": 1
+    },
+    {
+      "sentence": "Il envoie donc des signaux pour demander de l'aide.",
+      "checks_out": "Les récepteurs transmettent l'information au cerveau.",
+      "objection": "aucune",
+      "fix": "rien à changer",
+      "link": 3
+    },
+    {
+      "sentence": "Le cerveau répond en activant le pancréas.",
+      "checks_out": "Le cerveau stimule le pancréas via des nerfs.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 4
     },
     {
-      "sentence": "Ces signaux provoquent la sensation de faim.",
-      "checks_out": "Les signaux modifient l'activité neuronale qui génère la sensation de faim.",
+      "sentence": "Ce dernier libère du glucagon pour mobiliser les réserves de glucose.",
+      "checks_out": "Le pancréas sécrète du glucagon, qui stimule la libération de glucose.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 5
     },
     {
-      "sentence": "La sensation de faim pousse l'individu à chercher de la nourriture.",
-      "checks_out": "Cette sensation est un mécanisme évolutif incitant l'alimentation.",
+      "sentence": "Les cellules hépatocytes du foie transforment alors le glycogène.",
+      "checks_out": "Les hépatocytes convertissent le glycogène en glucose sous l'effet du glucagon.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 6
     },
     {
-      "sentence": "La consommation de nourriture augmente les niveaux de glucose.",
-      "checks_out": "La digestion des aliments libère du glucose dans le sang.",
+      "sentence": "Elles libèrent le glucose dans le sang.",
+      "checks_out": "La transformation du glycogène produit des molécules de glucose libérées dans le sang.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 7
     },
     {
-      "sentence": "L'hypothalamus détecte cette augmentation et diminue la sensation de faim.",
-      "checks_out": "Les récepteurs de l'hypothalamus mesurent les niveaux de glucose et ajustent les signaux de faim.",
+      "sentence": "Vous ressentez alors de la satiété.",
+      "checks_out": "L'augmentation des niveaux de glucose réduit les signaux de faim.",
       "objection": "aucune",
       "fix": "rien à changer",
       "link": 8
