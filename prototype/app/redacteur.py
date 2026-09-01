@@ -35,6 +35,12 @@ MIN_MAILLONS = 3
 #: Au-dela, « la raison » n'est qu'une paraphrase de la phrase verifiee.
 PARAPHRASE = 0.7
 
+#: Le plan d'ouverture tient en trois secondes ; la phrase qu'il porte doit
+#: donc se dire en trois secondes. Au run 46 le redacteur a ecrit seize mots
+#: — 5,3 mots par seconde, impossible a prononcer — parce qu'il ecrivait sans
+#: savoir que l'ouverture serait courte.
+MOTS_MAX_OUVERTURE = int(validator.DUREE_MAX_CROCHET * prompts.WORDS_PER_SECOND)
+
 # Un maillon qui REMONTE le courant. Au run 45 la chaine partait du
 # haut-parleur, remontait jusqu'au telephone en quatre maillons, puis
 # repartait en avant : le spectateur suit une explication qui fait demi-tour.
@@ -171,6 +177,12 @@ def _problemes(texte: dict, duration: float, sentences: int) -> list[str]:
     if not attendus * 0.7 <= mots <= attendus * 1.3:
         out.append(f"the script runs to {mots} words for {duration} seconds; aim for "
                    f"about {attendus}, spoken at a natural pace.")
+
+    if dites and len(dites[0].split()) > MOTS_MAX_OUVERTURE:
+        out.append(f"the opening sentence runs to {len(dites[0].split())} words. It is "
+                   f"spoken in under three seconds — the viewer decides to stay by then "
+                   f"— so it holds {MOTS_MAX_OUVERTURE} words at most. Cut it down "
+                   f"without losing what makes someone stay.")
 
     if texte["chosen_opening"] not in script:
         out.append("the script does not start with the opening you chose. The chosen "

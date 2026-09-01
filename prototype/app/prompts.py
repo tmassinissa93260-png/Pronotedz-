@@ -112,7 +112,9 @@ Work in this order.
    and THAT induces the current. Write the chain you can defend.
 
 2. TROIS OUVERTURES. Propose three first sentences, all different, none of
-   them a definition and none of them a generality. A good opening does one of
+   them a definition and none of them a generality. Each is SHORT — it is
+   spoken in under three seconds, which is eight French words at most,
+   because that is when the viewer decides whether to stay. A good opening does one of
    these: it names a number that surprises, it points at something the viewer
    has seen a hundred times without understanding it, or it says out loud the
    thing that seems impossible. For each, say why someone would keep watching.
@@ -246,7 +248,9 @@ viewer decides whether to stay at around three seconds, and half of those who
 leave are gone before then. So shot 1 lasts THREE SECONDS OR LESS, and the
 seconds you take from it go to a shot that has a cause and its effect to show.
 Aim for {par_plan}s per shot on average, about {mots} French words of narration
-each; the durations must sum to EXACTLY {duration}.
+each; the durations must still sum to EXACTLY {duration}. Seconds are MOVED,
+never removed: what you take from one shot you give to another, and the total
+never changes.
 THE DURATIONS ARE NOT ALL EQUAL. A shot that shows one thing takes less time
 than a shot that shows a cause producing an effect. Identical durations
 everywhere mean you have not decided which link deserves the time.

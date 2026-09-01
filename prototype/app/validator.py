@@ -338,7 +338,10 @@ def _duree(sb: Storyboard, attendue: float) -> list[Problem]:
     if abs(sb.total_duration - attendue) > DURATION_TOLERANCE_S:
         out.append(Problem("DUREE", "storyboard",
                            f"somme des plans = {sb.total_duration}s au lieu de {attendue}s",
-                           f"The durations must sum to exactly {attendue}."))
+                           f"The durations must sum to exactly {attendue}. Seconds "
+                           f"are MOVED between shots, never removed: shortening the "
+                           f"opening means giving those seconds to a shot that has a "
+                           f"cause and its effect to show."))
     for s in sb.shots:
         if s.duration_seconds <= 0:
             out.append(Problem("DUREE", s.slug, f"duree invalide : {s.duration_seconds}",

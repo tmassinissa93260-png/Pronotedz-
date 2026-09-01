@@ -12,10 +12,11 @@ from app.models import Storyboard  # noqa: E402
 from app.openai_client import OpenAIError  # noqa: E402
 from fixtures import board  # noqa: E402
 
-OUVERTURE = ("Une centrale ne fabrique pas d'électricité : elle la déplace.")
+# Sept mots : l'ouverture se dit en moins de trois secondes.
+OUVERTURE = "Personne ne fabrique l'électricité : on la déplace."
 
 SCRIPT = (
-    "Une centrale ne fabrique pas d'électricité : elle la déplace. "
+    "Personne ne fabrique l'électricité : on la déplace. "
     "La vapeur sous pression frappe les aubes de la turbine et les emporte. "
     "L'arbre de la turbine entraîne un rotor couvert d'aimants. "
     "Ces aimants balaient les bobines de cuivre et arrachent leurs électrons. "
@@ -26,7 +27,7 @@ SCRIPT = (
 
 def reponse(**over):
     base = {
-        "chain": ["une centrale déplace des charges, elle n'en crée pas",
+        "chain": ["personne ne crée l'électricité, on déplace des charges",
                   "la vapeur pousse les aubes",
                   "l'arbre entraîne le rotor aimanté",
                   "les aimants balaient les bobines",
@@ -124,6 +125,20 @@ class TestControles(unittest.TestCase):
                          "objection": "aucune", "fix": "rien"}
                         for n, p in enumerate(validator.phrases(court), start=1)])
         self.assertTrue(any("sentences" in p for p in problemes))
+
+    def test_une_ouverture_trop_longue_pour_trois_secondes(self):
+        """Run 46 : seize mots en trois secondes, 5,3 mots par seconde."""
+        longue = ("Comment le son traverse-t-il l'air pour finalement arriver à "
+                  "votre oreille sans un seul fil ? ")
+        script = longue + " ".join(validator.phrases(SCRIPT)[1:])
+        problemes = redacteur._problemes(
+            redacteur._normaliser(reponse(
+                script=script, chosen_opening=longue.strip(),
+                objections=[{"sentence": p, "link": n, "checks_out": "la pression pousse",
+                             "objection": "aucune", "fix": "rien"}
+                            for n, p in enumerate(validator.phrases(script), start=1)])),
+            24, 6)
+        self.assertTrue(any("spoken in under three seconds" in x for x in problemes))
 
     def test_l_ouverture_choisie_doit_ouvrir_le_script(self):
         problemes = self.verifier(chosen_opening="Une phrase qui n'y est pas.")
