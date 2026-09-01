@@ -1,0 +1,35 @@
+{
+  "voice": "Avez-vous déjà considéré comment la musique traverse l'air sans fil?",
+  "understanding": "Avez-vous déjà envisagé comment la musique se connecte sans fil en utilisant la technologie Bluetooth?",
+  "candidates": [
+    {
+      "action": "Des ondes bleues émanent des oreillettes et voyagent jusqu'à un smartphone proche.",
+      "explains": "Montre visuellement comment le signal Bluetooth est envoyé sans fil.",
+      "misses": "Ne montre pas l'interaction interne entre les composants électroniques."
+    },
+    {
+      "action": "Une lumière bleue clignote sur l'oreillette signalant la transmission réussie.",
+      "explains": "Indique que la transmission Bluetooth est en cours.",
+      "misses": "Ne montre pas la trajectoire du signal vers le smartphone."
+    },
+    {
+      "action": "Les composants internes des oreillettes s'allument en bleu pour représenter le flux du signal Bluetooth.",
+      "explains": "Indique le passage du signal Bluetooth à l'intérieur des oreillettes.",
+      "misses": "Ne démontre pas la connexion vers un autre appareil."
+    }
+  ],
+  "chosen": "Des ondes bleues émanent des oreillettes et voyagent jusqu'à un smartphone proche.",
+  "why_chosen": "Elle démontre clairement le concept de transmission de signal Bluetooth en visualisant l'émission du signal vers le smartphone, ce qui est compréhensible sans son.",
+  "mute_test": 0.85,
+  "image_prompt": "A close-up view of wireless earbuds in a dark premium studio environment, emitting blue Bluetooth signal waves that travel visibly towards a nearby smartphone. The earbuds are the central subject, showing the blue signal waves clearly emanating from them, representing the wireless communication. Cinematic blue and white lighting highlights the blue signals, and the translucent materials showcase the internal components. The camera captures the scene from a side angle, with a focus on the signal path, utilizing a shallow depth of field to emphasize the movement of the Bluetooth waves while keeping the rest of the scene slightly blurred. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation begins with subtle blue waves starting to emanate from the earbuds. The waves then dynamically flow outward, gradually building in intensity and speed, moving through space until they reach and connect with the smartphone, signifying the stabilization of the Bluetooth connection.",
+  "visual_explanation": {
+    "information": "The process of Bluetooth signal transmission from wireless earbuds to a device.",
+    "physical_element": "Blue Bluetooth signal waves emanating from the earbuds.",
+    "secondary_elements": "The translucent ghosted shell of the earbuds and the nearby smartphone.",
+    "visual_behavior": "The gradual and dynamic flow of the blue waves from the earbuds towards the smartphone.",
+    "animation_movement": "Waves flowing dynamically from the earbuds to the smartphone.",
+    "camera_position": "Side angle close-up focused on the signal path with a shallow depth of field.",
+    "composition": "The earbuds are centered, emitting blue signal waves that travel towards the smartphone, highlighted by cinematic lighting."
+  }
+}

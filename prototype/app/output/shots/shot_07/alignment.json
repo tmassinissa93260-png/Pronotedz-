@@ -1,35 +1,35 @@
 {
-  "voice": "Les haut-parleurs vibrent grâce à cette électricité.",
-  "understanding": "L'électricité fait vibrer le diaphragme du haut-parleur.",
+  "voice": "Les écouteurs décodent ces données numériques en signaux électriques analogiques.",
+  "understanding": "Les écouteurs convertissent les données numériques en signaux analogiques électriques.",
   "candidates": [
     {
-      "action": "Electricity visibly travels through wiring to reach the diaphragm, causing it to vibrate.",
-      "explains": "Shows electricity causing the diaphragm to move, illustrating cause and effect.",
-      "misses": "May not clearly depict varied intensity of vibration as electricity reaches diaphragm."
+      "action": "A stream of blue digital binary signals enters the earbud and transforms into yellow electrical signals as it moves through the internal pathways.",
+      "explains": "Shows transformation from digital to analog signals.",
+      "misses": "Does not show the process engaging the earbud internals."
     },
     {
-      "action": "Diaphragm starts visually shaking as electricity pulse colors reach it.",
-      "explains": "Electrically induced vibrations become more visible and understandable by coloration.",
-      "misses": "The journey of electricity through the system isn't as clear."
+      "action": "The chip inside the earbud lights up in stages, shifting from blue to yellow as the signals change from digital to analog.",
+      "explains": "Visualizes the conversion process by color change.",
+      "misses": "Fails to visually show the signal traveling."
     },
     {
-      "action": "Electric current lighting pathways from chip to diaphragm, showing movement and result.",
-      "explains": "Illustrates the journey of electrical power leading directly to vibration.",
-      "misses": "Scene could be too complex or overly intricate for immediate clarity."
+      "action": "Yellow signals flow through the earbud's internal components, igniting the sound-producing elements.",
+      "explains": "Shows the conversion ending in sound production.",
+      "misses": "Does not explain the initial digital input."
     }
   ],
-  "chosen": "Electricity visibly travels through wiring to reach the diaphragm, causing it to vibrate.",
-  "why_chosen": "The clear depiction of electricity's path and resulting movement of the diaphragm directly illustrates the causal relationship, readable without sound.",
+  "chosen": "A stream of blue digital binary signals enters the earbud and transforms into yellow electrical signals as it moves through the internal pathways.",
+  "why_chosen": "It visually communicates the cause-effect relationship of digital transformation within the earbuds, linking the input with the analog output, and shows the process explicitly.",
   "mute_test": 0.8,
-  "image_prompt": "In a technical semi-cutaway view of the modern dark near-black wireless earbud, electricity flows in yellow through visible circuit paths inside the translucent shell, clearly reaching the speaker's diaphragm. The diaphragm is shown vibrating in response. Camera focuses on this flow and reaction from a slightly elevated side angle, giving prominence to the electrical flow and its cause-effect action. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "Yellow electricity pulses visibly travel through the circuit pathways inside the earbud, starting faint and building in intensity as they approach the diaphragm. The diaphragm's vibration becomes increasingly noticeable, illustrating the conversion of electrical energy to mechanical motion, driven by electricity's progression.",
+  "image_prompt": "A detailed close-up view of a modern wireless earbud with a visible stream of blue binary data entering the earbud and transforming into yellow electrical signals as they weave through the internal structure. The camera is positioned to show the semi-cutaway view where internal components are visible, spotlighting the conversion process with cinematic depth of field. The environment is a dark premium studio, employing cinematic blue and white lighting to highlight the transformation. Materials are rendered with high realism, displaying translucent plastics and metal components to enhance visibility of internal flow. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The blue digital binary stream enters from the left side of the screen into the earbud. It begins to transform into yellow electrical signals as it progresses inward, weaving through the pathways and building in intensity until fully enveloping the internal components, showing the conversion completion.",
   "visual_explanation": {
-    "information": "Electricity causes the speaker diaphragm to vibrate.",
-    "physical_element": "Electrical flow from the circuit to the diaphragm.",
-    "secondary_elements": "Diaphragm visibly vibrating as electricity impacts it, detailed earbud internals.",
-    "visual_behavior": "Electricity visibly travels, causing vibration upon impact with the diaphragm.",
-    "animation_movement": "Electricity begins at the circuit, travels through wiring and visibly causes diaphragm vibration.",
-    "camera_position": "Slightly elevated side angle focusing on electricity's path and diaphragm response.",
-    "composition": "Focus on creating a causal link between electrical flow and diaphragm movement, with clarity and depth."
+    "information": "Conversion from digital to analog signals within earbuds.",
+    "physical_element": "Stream of data transforming inside the earbuds.",
+    "secondary_elements": "Camera angle and lighting highlighting the conversion process.",
+    "visual_behavior": "Digital signals entering and transforming as they traverse internal paths.",
+    "animation_movement": "Blue signals morphing into yellow as they move inward.",
+    "camera_position": "Positioned close-up to track signal progression.",
+    "composition": "Centered to follow transition from digital entry to analog spread."
   }
 }

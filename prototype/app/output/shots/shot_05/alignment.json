@@ -1,0 +1,35 @@
+{
+  "voice": "L'émetteur Bluetooth reçoit des données audio d'un appareil connecté.",
+  "understanding": "L'émetteur Bluetooth reçoit des données audio d'un appareil connecté aux écouteurs.",
+  "candidates": [
+    {
+      "action": "Blue signals flow from a smartphone to the earbud's Bluetooth chip.",
+      "explains": "It shows the transfer of data from a connected device to the earbud.",
+      "misses": "It may not clearly show the internal processing within the earbud."
+    },
+    {
+      "action": "A glowing blue wave enters the earbud and activates internal components.",
+      "explains": "It visually demonstrates that something triggers an internal response.",
+      "misses": "It doesn't detail where the wave comes from or its nature."
+    },
+    {
+      "action": "The earbud lights up blue as a phone nearby shows a sending animation.",
+      "explains": "It connects the phone's action of sending data directly to the earbud's reception.",
+      "misses": "The specifics of data being sent and received are unclear."
+    }
+  ],
+  "chosen": "Blue signals flow from a smartphone to the earbud's Bluetooth chip.",
+  "why_chosen": "This action directly shows the visible transfer of data, making it clear with visual cues when the audio data moves from the device to the earbud.",
+  "mute_test": 0.8,
+  "image_prompt": "A photorealistic 3D engineering visualization shows a dynamic flow of blue signals moving from a smartphone to the Bluetooth chip inside a near-black wireless earbud. The camera is positioned close-up to capture the precise path of these signals entering the earbud, with a background that enhances visibility. The dark premium studio setting is lit with cinematic blue and white lighting to highlight the blue signals clearly. Materials such as translucent plastics reveal the internal components like the battery, chip, antenna, voice coil, and diaphragm. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "Blue signals begin forming near a smartphone, building momentum as they stream towards the earbud. They visibly enter and highlight the Bluetooth chip showing data transfer actively in progress.",
+  "visual_explanation": {
+    "information": "The earbud receives audio data from a connected device.",
+    "physical_element": "The visible blue signals represent the data transfer.",
+    "secondary_elements": "The semitransparent earbud shell and visible components.",
+    "visual_behavior": "Blue signals move continuously from the phone to the earbud.",
+    "animation_movement": "Signals travel through space and visibly enter the earbud chip.",
+    "camera_position": "Close-up on the earbud with the phone in frame to illustrate connection.",
+    "composition": "Blue signals at the center with contrasty lighting to draw focus."
+  }
+}

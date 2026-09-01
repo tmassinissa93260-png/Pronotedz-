@@ -1,96 +1,127 @@
 {
   "chain": [
-    "L'émetteur Bluetooth dans la source musicale envoie un signal numérique.",
-    "Ce signal est capté par le récepteur Bluetooth des écouteurs.",
-    "Les écouteurs convertissent ce signal numérique en signal audio électrique.",
-    "Les haut-parleurs des écouteurs transforment ce signal électrique en vibrations mécaniques.",
-    "Ces vibrations déplacent l'air autour de vos oreilles, produisant le son que vous entendez.",
-    "Les écouteurs possèdent des batteries pour alimenter le récepteur et les haut-parleurs.",
-    "Les signaux sont amplifiés par l'amplificateur intégré aux écouteurs pour être audibles."
+    "Les écouteurs sans fil contiennent des haut-parleurs miniatures.",
+    "Les haut-parleurs convertissent les signaux électriques en sons audibles.",
+    "Les signaux électriques proviennent d'un émetteur Bluetooth intégré.",
+    "L'émetteur Bluetooth reçoit des données audio d'un appareil connecté.",
+    "L'appareil envoie les données audio sous forme numérique.",
+    "Les écouteurs décodent les données numériques en signaux électriques analogiques.",
+    "Les signaux analogiques alimentent les bobines des haut-parleurs.",
+    "Les bobines créent un champ magnétique autour d'elles.",
+    "Le champ magnétique interagit avec un aimant permanent dans le haut-parleur.",
+    "Cette interaction provoque la vibration de la membrane du haut-parleur.",
+    "La membrane vibrante déplace l'air et génère des ondes sonores.",
+    "Les ondes sonores voyagent dans votre oreille.",
+    "Vous entendez alors la musique ou le son diffusé."
   ],
   "openings": [
     {
-      "sentence": "Saviez-vous que vos écouteurs sans fil communiquent en permanence avec votre téléphone ?",
-      "why_it_holds": "Cela suscite l'intérêt sur la technologie invisible opérant constamment."
+      "sentence": "Avez-vous déjà considéré comment la musique traverse l'air sans fil?",
+      "why_it_holds": "Cela soulève la question de la transmission invisible."
     },
     {
-      "sentence": "Comment un simple signal sans fil se transforme-t-il en musique dans vos oreilles ?",
-      "why_it_holds": "Cette question intrigante invite à découvrir le processus technique."
+      "sentence": "Saviez-vous que vos écouteurs sont remplis de mini-technologies fascinantes?",
+      "why_it_holds": "Cela intrigue sur la complexité cachée des objets du quotidien."
     },
     {
-      "sentence": "Vos écouteurs ne sont pas juste des morceaux de plastique, mais de petits ordinateurs.",
-      "why_it_holds": "Cela surprend ceux qui ignorent la complexité interne des écouteurs."
+      "sentence": "Votre chanson préférée passe de l'appareil à vos oreilles en quelques microsecondes.",
+      "why_it_holds": "La rapidité du processus capte l'attention par son effet instantané."
     }
   ],
-  "chosen_opening": "Saviez-vous que vos écouteurs sans fil communiquent en permanence avec votre téléphone ?",
-  "why_chosen": "L'aspect de communication constante met en avant une interaction active que beaucoup ignorent, tandis que l'idée du 'simple signal' ne rend pas justice à la complexité et 'petits ordinateurs' est trop vague au début.",
-  "script": "Saviez-vous que vos écouteurs sans fil communiquent en permanence avec votre téléphone ? L'émetteur Bluetooth de votre téléphone envoie un signal à vos écouteurs. Ce signal traverse l'air jusqu'au récepteur Bluetooth de vos écouteurs. Ils captent alors le signal numérique qu'ils ont reçu. Vos écouteurs traduisent ce signal numérique en informations audio. Ces informations deviennent de l'électricité, prêtes à alimenter les haut-parleurs. Les haut-parleurs vibrent grâce à cette électricité. Les petites vibrations déplacent l'air autour de vos oreilles. Ce mouvement d'air crée le son que vous entendez. Les batteries intégrées alimentent tout ce processus. Chaque son est amplifié par un amplificateur miniature. Vous entendez alors chaque note et parole de vos morceaux préférés.",
+  "chosen_opening": "Avez-vous déjà considéré comment la musique traverse l'air sans fil?",
+  "why_chosen": "Elle amène une curiosité naturelle sur un phénomène quotidien, alors que l'ouverture sur les technologies miniatures pourrait sembler technique dès les premières secondes. La troisième ouverture est forte mais se concentre uniquement sur la rapidité.",
+  "script": "Avez-vous déjà considéré comment la musique traverse l'air sans fil? Les écouteurs sans fil contiennent des haut-parleurs miniatures. Ces haut-parleurs convertissent les signaux électriques en sons audibles. Les signaux électriques proviennent d'un émetteur Bluetooth intégré. L'émetteur Bluetooth reçoit des données audio d'un appareil connecté. Cet appareil envoie les données audio sous forme numérique. Les écouteurs décodent ces données numériques en signaux électriques analogiques. Les signaux analogiques alimentent les bobines des haut-parleurs. Ces bobines créent un champ magnétique autour d'elles. Le champ magnétique interagit avec un aimant permanent dans le haut-parleur. Cette interaction provoque la vibration de la membrane du haut-parleur. La membrane vibrante déplace l'air et génère des ondes sonores. Les ondes sonores voyagent dans votre oreille, et vous entendez alors la musique ou le son diffusé.",
   "objections": [
     {
-      "sentence": "L'émetteur Bluetooth de votre téléphone envoie un signal à vos écouteurs.",
-      "checks_out": "C'est le début du processus avec le signal Bluetooth émis, clairement observé dans la chaîne.",
+      "sentence": "Avez-vous déjà considéré comment la musique traverse l'air sans fil?",
+      "checks_out": "Cela amorce l'idée globale des écouteurs connectés au reste du système.",
       "objection": "aucune",
-      "fix": "rien à changer"
+      "fix": "rien à changer",
+      "link": 1
     },
     {
-      "sentence": "Ce signal traverse l'air jusqu'au récepteur Bluetooth de vos écouteurs.",
-      "checks_out": "La transmission d'un signal sans fil entre deux dispositifs est courante avec Bluetooth.",
+      "sentence": "Les écouteurs sans fil contiennent des haut-parleurs miniatures.",
+      "checks_out": "Les haut-parleurs sont essentiels pour convertir les signaux en sons.",
       "objection": "aucune",
-      "fix": "rien à changer"
+      "fix": "rien à changer",
+      "link": 2
     },
     {
-      "sentence": "Ils captent alors le signal numérique qu'ils ont reçu.",
-      "checks_out": "La capture du signal par le récepteur est une fonction de base.",
+      "sentence": "Ces haut-parleurs convertissent les signaux électriques en sons audibles.",
+      "checks_out": "Les haut-parleurs sont conçus pour cette conversion.",
       "objection": "aucune",
-      "fix": "rien à changer"
+      "fix": "rien à changer",
+      "link": 3
     },
     {
-      "sentence": "Vos écouteurs traduisent ce signal numérique en informations audio.",
-      "checks_out": "Conversion nécessaire du signal numérique pour traitement audio.",
+      "sentence": "Les signaux électriques proviennent d'un émetteur Bluetooth intégré.",
+      "checks_out": "Le Bluetooth est la technologie utilisée pour transmettre sans fil.",
       "objection": "aucune",
-      "fix": "rien à changer"
+      "fix": "rien à changer",
+      "link": 4
     },
     {
-      "sentence": "Ces informations deviennent de l'électricité, prêtes à alimenter les haut-parleurs.",
-      "checks_out": "Les signaux audio doivent être convertis en impulsions électriques pour les haut-parleurs.",
+      "sentence": "L'émetteur Bluetooth reçoit des données audio d'un appareil connecté.",
+      "checks_out": "Le transfert des données audio se fait via Bluetooth.",
       "objection": "aucune",
-      "fix": "rien à changer"
+      "fix": "rien à changer",
+      "link": 5
     },
     {
-      "sentence": "Les haut-parleurs vibrent grâce à cette électricité.",
-      "checks_out": "Les haut-parleurs convertissent l'électricité en mouvement mécanique.",
+      "sentence": "Cet appareil envoie les données audio sous forme numérique.",
+      "checks_out": "Les appareils modernes utilisent le numérique pour la transmission.",
       "objection": "aucune",
-      "fix": "rien à changer"
+      "fix": "rien à changer",
+      "link": 6
     },
     {
-      "sentence": "Les petites vibrations déplacent l'air autour de vos oreilles.",
-      "checks_out": "Mouvement de l'air nécessaire pour produire du son.",
+      "sentence": "Les écouteurs décodent ces données numériques en signaux électriques analogiques.",
+      "checks_out": "La conversion est nécessaire pour que le haut-parleur fonctionne correctement.",
       "objection": "aucune",
-      "fix": "rien à changer"
+      "fix": "rien à changer",
+      "link": 7
     },
     {
-      "sentence": "Ce mouvement d'air crée le son que vous entendez.",
-      "checks_out": "Le son est produit par la vibration de l'air.",
+      "sentence": "Les signaux analogiques alimentent les bobines des haut-parleurs.",
+      "checks_out": "Les bobines sont activées par les signaux pour créer des mouvements.",
       "objection": "aucune",
-      "fix": "rien à changer"
+      "fix": "rien à changer",
+      "link": 8
     },
     {
-      "sentence": "Les batteries intégrées alimentent tout ce processus.",
-      "checks_out": "Les batteries fournissent l'énergie nécessaire aux composants.",
+      "sentence": "Ces bobines créent un champ magnétique autour d'elles.",
+      "checks_out": "La dynamique électrique dans les bobines génère un champ magnétique.",
       "objection": "aucune",
-      "fix": "rien à changer"
+      "fix": "rien à changer",
+      "link": 9
     },
     {
-      "sentence": "Chaque son est amplifié par un amplificateur miniature.",
-      "checks_out": "L'amplification est nécessaire pour que le son soit audible.",
+      "sentence": "Le champ magnétique interagit avec un aimant permanent dans le haut-parleur.",
+      "checks_out": "Cette interaction est nécessaire pour déplacer la membrane du haut-parleur.",
       "objection": "aucune",
-      "fix": "rien à changer"
+      "fix": "rien à changer",
+      "link": 10
     },
     {
-      "sentence": "Vous entendez alors chaque note et parole de vos morceaux préférés.",
-      "checks_out": "La chaîne entière vise à restituer le son pour l'utilisateur.",
+      "sentence": "Cette interaction provoque la vibration de la membrane du haut-parleur.",
+      "checks_out": "La membrane vibre lorsque le champ magnétique la stimule.",
       "objection": "aucune",
-      "fix": "rien à changer"
+      "fix": "rien à changer",
+      "link": 11
+    },
+    {
+      "sentence": "La membrane vibrante déplace l'air et génère des ondes sonores.",
+      "checks_out": "La vibration envoie des ondes de pression dans l'air.",
+      "objection": "aucune",
+      "fix": "rien à changer",
+      "link": 12
+    },
+    {
+      "sentence": "Les ondes sonores voyagent dans votre oreille, et vous entendez alors la musique ou le son diffusé.",
+      "checks_out": "L'oreille humaine capte les vibrations et les interprète comme des sons.",
+      "objection": "aucune",
+      "fix": "rien à changer",
+      "link": 13
     }
   ]
 }

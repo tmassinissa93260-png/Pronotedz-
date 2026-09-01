@@ -1,35 +1,35 @@
 {
-  "voice": "Les petites vibrations déplacent l'air autour de vos oreilles.",
-  "understanding": "Les vibrations provoquent un déplacement de l'air autour des oreilles.",
+  "voice": "Les signaux analogiques alimentent les bobines des haut-parleurs.",
+  "understanding": "Les signaux analogiques énergisent les bobines des haut-parleurs pour générer du son.",
   "candidates": [
     {
-      "action": "The diaphragm of the earbud pulses, creating visible ripple-like movement in the surrounding air, showing waves radiating outward.",
-      "explains": "How vibrations from the earbud cause air displacement.",
-      "misses": "The connection between these waves and auditory perception."
+      "action": "Yellow analog signals stream through wires towards the speaker coil, making it vibrate visibly.",
+      "explains": "Shows how electric signals reach the coil and cause a physical reaction.",
+      "misses": "Doesn't show the transformation into sound waves."
     },
     {
-      "action": "A section of air in front of the earbud compresses and expands repeatedly, showing how air particles move back and forth.",
-      "explains": "The oscillation of air particles due to vibrations.",
-      "misses": "The continuous nature of wave propagation in all directions."
+      "action": "Speaker coil vibrates visibly as yellow analog signal pulses flow through it.",
+      "explains": "Directly links the signal flow to the coil's response.",
+      "misses": "Doesn't show the entire path the signals take."
     },
     {
-      "action": "A cross-section view of the earbud with a visual representation of sound waves moving outward in concentric circles.",
-      "explains": "The radial movement of sound waves from the earbud.",
-      "misses": "The specific role of vibrations in generating these waves."
+      "action": "Yellow analog signals animate as they pass through the coil and become purple sound waves emanating from the diaphragm.",
+      "explains": "Shows the complete cycle from signals entering to sound being produced.",
+      "misses": "May be too complex for a single frame explanation."
     }
   ],
-  "chosen": "The diaphragm of the earbud pulses, creating visible ripple-like movement in the surrounding air, showing waves radiating outward.",
-  "why_chosen": "This action most immediately visualizes how vibrations from the earbud result in air displacement with clear visual feedback of wave movement.",
-  "mute_test": 0.85,
-  "image_prompt": "A detailed view focusing on the diaphragm of the dark near-black wireless earbud. The diaphragm is visibly pulsing, causing the surrounding air to display defined ripple-like patterns emanating outward in visible concentric circles. The design prioritizes making the viewer understand how the earbud's vibrations lead to visible air distortion, illustrated by tangible wave-like movements in the air. The environment remains a dark premium studio space, the lighting cinematic with blue and white tones enhancing the clarity of the sound waves. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The diaphragm of the earbud visibly pulses back and forth, with each pulse creating a series of clear ripple-like concentric sound waves in the surrounding air. As the animation progresses, these waves radiate outward, illustrating the continuous air displacement caused by the vibration of the earbud. The movement is rhythmic and consistent, underpinning the persistent nature of sound wave propagation in all directions.",
+  "chosen": "Yellow analog signals animate as they pass through the coil and become purple sound waves emanating from the diaphragm.",
+  "why_chosen": "This choice visually demonstrates how signals transform into sound, covering the entire process clearly and concisely.",
+  "mute_test": 0.8,
+  "image_prompt": "In a tight semi-cutaway view of a modern dark near-black wireless earbud, yellow analog signals are shown entering the voice coils with the energetic pulse of these signals visualized as they move through the coil, ultimately transforming into emanating purple sound waves from the diaphragm. The earbud's translucent ghosted shell exposes internal components like the battery, chip, and diaphragm in a premium engineering visualization with highly detailed materials. The dark premium studio environment and cinematic blue and white lighting highlight the flow of analog and sound signals. The camera focuses closely on this transformation process, ensuring clarity of the energy movement and transformation into sound waves, framed with a vertical 9:16 composition. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The animation starts with yellow analog signals entering the voice coils of a modern dark near-black wireless earbud. As these signals pulse through the coil, they visually transform, energizing the coil, and finally manifesting as purple sound waves emanating outward from the diaphragm. The motion of signals animates the coil into subtle vibrations, evolving progressively from energy input to sound output. The camera remains focused on this dynamic process, highlighting the transformation and connection between electric signal flow and sound production.",
   "visual_explanation": {
-    "information": "Vibrations cause air to move, creating sound waves.",
-    "physical_element": "The diaphragm of the wireless earbud.",
-    "secondary_elements": "Ripple-like air patterns, concentric circles illustrating wave propagation.",
-    "visual_behavior": "Pulsing diaphragm, expanding ripple-like air movement.",
-    "animation_movement": "Pulsing diaphragm motion leading to outward wave propagation.",
-    "camera_position": "Close-up emphasizing the earbud diaphragm's motion and resulting air displacement.",
-    "composition": "Centralized on the earbud's diaphragm with evenly spaced, expanding air waves around it."
+    "information": "How analog signals energize a speaker's coil to produce sound.",
+    "physical_element": "Yellow analog signals and their transformation into purple sound waves.",
+    "secondary_elements": "Earbud components visible in a translucent ghosted shell.",
+    "visual_behavior": "Signal transformation and coil vibration turning into sound waves.",
+    "animation_movement": "Signals enter, transform, and create sound waves.",
+    "camera_position": "Close-up on the coil and diaphragm to focus on energy transformation.",
+    "composition": "Vertical framing that centers on the signal flow and transformation process."
   }
 }

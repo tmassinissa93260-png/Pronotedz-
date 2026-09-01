@@ -1,35 +1,35 @@
 {
-  "voice": "Votre expérience musicale sans fil est subtile et fascinante.",
-  "understanding": "Votre expérience musicale sans fil est avancée et impressionnante.",
+  "voice": "Les ondes sonores voyagent dans votre oreille.",
+  "understanding": "Les ondes sonores vont de l'écouteur jusqu'à l'oreille humaine.",
   "candidates": [
     {
-      "action": "A tranquil earbud resting in its case, surrounded by diminishing blue and cyan waves.",
-      "explains": "The wireless experience is subtle and calm.",
-      "misses": "The fascination and advanced technology aspect."
+      "action": "Purple sound waves prominently travel from the earbud into the ear canal.",
+      "explains": "Illustrates the direct journey of sound waves into the ear.",
+      "misses": "Does not convey the mechanics behind sound wave generation."
     },
     {
-      "action": "The earbud in its case with visible inner components lit up, surrounded by an intricate dance of blue and cyan digital data and signals.",
-      "explains": "The advanced technology and intricate wireless functionality.",
-      "misses": "The subtlety and calm experience."
+      "action": "The earbud emits purple sound waves while showing internal components generating them.",
+      "explains": "Shows sound wave generation and travel, linking inner workings to sound.",
+      "misses": "Lacks clear focus on travel destination, the ear canal specifically."
     },
     {
-      "action": "A close-up of the earbud with thin, elegant blue spirals moving outwards from it.",
-      "explains": "The subtle wireless transmission.",
-      "misses": "The advanced, fascinating technology."
+      "action": "Sound waves interact with surrounding air particles, visibly vibrating them.",
+      "explains": "Highlights sound's vibratory nature through air particle interaction.",
+      "misses": "Fails to make explicit the reaching of sound to the ear."
     }
   ],
-  "chosen": "The earbud in its case with visible inner components lit up, surrounded by an intricate dance of blue and cyan digital data and signals.",
-  "why_chosen": "It visually expresses both the complex technology and creates the impression of a fascinating wireless experience with clear dynamic movement of data.",
+  "chosen": "The earbud emits purple sound waves traveling into the ear canal.",
+  "why_chosen": "It clearly shows the whole path sound waves take to reach the ear, with earbud and ear connection clearly visible.",
   "mute_test": 0.8,
-  "image_prompt": "In a dark premium studio environment, place the modern dark near-black wireless earbud resting in its open case, showing its internal components including the battery, chip, antenna, voice coil and diaphragm through a translucent shell. Surround it with an intricate dance of dynamic, flowing blue and cyan digital data and signals, suggesting complex wireless communication. Use cinematic blue and white lighting to highlight these elements, ensuring clear visibility against the dark backdrop. Position the camera at a close angle to capture the glowing and energetically moving signals around the earbud, emphasizing its advanced technology. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logo, no watermark.",
-  "animation_prompt": "As the earbud rests in its case, begin with its inner components lighting up to represent its active status. Gradually introduce an intricate dance of blue and cyan digital data and signals swirling around the earbud, gracefully moving in dynamic but subtle patterns. These signals start concentrated around the earbud and expand outward, depicting the wireless and advanced technological capabilities. As the signals extend, the flow should display the culmination of advanced wireless functions, before gently fading to signify the completion of the message.",
+  "image_prompt": "A close-up and semi-cutaway view of a modern dark near-black wireless earbud with a translucent ghosted shell reveals its internal components like the battery, chip, antenna, voice coil, and diaphragm, all clearly visible. Purple sound waves visibly emit from the earbud, traveling toward and into a proximate human ear canal at the center of the frame. The clear path of sound waves is crucial, highlighted by cinematic blue and white lighting in a high contrast dark premium studio environment. Realistic translucent materials convey the earbud’s engineering with a vertical 9:16 composition. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "Purple sound waves originate at the earbud and dynamically travel in waves toward the ear canal. They gradually increase in amplitude to convey their potency as they enter the ear, maintaining a rhythmic, flowing motion to embody sound's journey throughout the animation.",
   "visual_explanation": {
-    "information": "The sophisticated and fascinating nature of advanced wireless technology.",
-    "physical_element": "Wireless earbud with visible internal components.",
-    "secondary_elements": "Blue and cyan digital data signals visually expressing the wireless communication.",
-    "visual_behavior": "Data packets dynamically flowing around, creating a sense of advanced technology.",
-    "animation_movement": "Signals gracefully swirling and moving outward from the earbud.",
-    "camera_position": "Close angle highlighting both the earbud's intricate internals and the moving signals.",
-    "composition": "Focus on the earbud with surrounding dynamic signals in a cinematically lit environment."
+    "information": "Sound waves travel from the earbud into the ear.",
+    "physical_element": "Purple sound waves emitted from the earbud.",
+    "secondary_elements": "Human ear positioned to receive sound, visible internal earbud structure.",
+    "visual_behavior": "Sound waves visibly travel in a clear path into the ear canal.",
+    "animation_movement": "Sound waves steadily propagate from the earbud to the ear.",
+    "camera_position": "Close-up and semi-cutaway to view earbud internals and outward sound waves.",
+    "composition": "Centralized purple wave movement indicating direction into the ear."
   }
 }

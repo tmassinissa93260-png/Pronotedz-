@@ -1,35 +1,35 @@
 {
-  "voice": "Ils captent alors le signal numérique qu'ils ont reçu.",
-  "understanding": "Les écouteurs peuvent décoder les signaux numériques entrants.",
+  "voice": "Les signaux électriques proviennent d'un émetteur Bluetooth intégré.",
+  "understanding": "Les signaux électriques sont générés et émis par un émetteur Bluetooth intégré.",
   "candidates": [
     {
-      "action": "Cyan data packets enter the earbud and light up a microchip sequentially.",
-      "explains": "Shows digital data being processed by the chip.",
-      "misses": "Does not show how the incoming signal is captured."
+      "action": "Blue signals pulse from the Bluetooth chip and travel outward through the earbud circuitry.",
+      "explains": "This action shows that the signals originate from the Bluetooth chip and move throughout the device.",
+      "misses": "It may not clearly indicate that these are Bluetooth signals specifically."
     },
     {
-      "action": "A blue signal enters the earbud, converts to cyan data packets, which then light up the microchip.",
-      "explains": "Visually represents the process of capturing and decoding an incoming signal.",
-      "misses": "The transformation from signal to data might be unclear."
+      "action": "The Bluetooth chip lights up blue and signals radiate to other earbud components.",
+      "explains": "Illustrates that the signals originate from the Bluetooth chip and affect other parts of the earbud.",
+      "misses": "The specific nature of the signals as Bluetooth might be ambiguous."
     },
     {
-      "action": "Electricity, as yellow lines, flows to the microchip just as blue signal arrives, chip lights up.",
-      "explains": "Illustrates simultaneous power activation and signal processing.",
-      "misses": "May confuse viewers by mixing power flow with signal processing."
+      "action": "Electric signals convert to blue waves which spread from the chip outward.",
+      "explains": "Depicts conversion and distribution of signals from the Bluetooth feature.",
+      "misses": "Could confuse viewers regarding the conversion process."
     }
   ],
-  "chosen": "A blue signal enters the earbud, converts to cyan data packets, which then light up the microchip.",
-  "why_chosen": "It clearly demonstrates the conversion and processing of an incoming signal into digital data, making the sequence more comprehensible with minimal ambiguity.",
+  "chosen": "Blue signals pulse from the Bluetooth chip and travel outward through the earbud circuitry.",
+  "why_chosen": "It best demonstrates the origin and propagation of Bluetooth signals using consistent color-coding, making it clear even with the sound off.",
   "mute_test": 0.85,
-  "image_prompt": "The image showcases a semi-transparent wireless earbud centrally positioned, revealing its internal workings. A dynamic blue signal visibly enters from the outside, immediately transforming into cyan data packets as it reaches the microchip. These packets actively engage with the chip, lighting it up as they pulse through. The design emphasizes the transformational phase where the signal becomes data, focusing sharply on the center to ensure the process is understood first. The materials and construction show high-end plastics and metals, set against a dark premium studio. Photos are captured with cinematic blue and white lighting, ensuring digital activity is highlighted as the focal point. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The animation begins with a blue signal seamlessly entering the wireless earbud, accentuating its approach towards the microchip. As the signal breaches the earbud's exterior, it transforms into cyan data packets. These packets then progress towards the microchip, sequentially lighting up as they are decoded through its circuits. This engaging visual shows the commencement, transformation, and processing, dynamically focusing on each step from entry to conversion, and finally to computational illumination, underscoring the ability to decode digital signals.",
+  "image_prompt": "A close-up semi-cutaway view of modern dark near-black wireless earbuds focuses on the Bluetooth chip, which is emitting blue signals that pulse through the internal circuitry. The camera captures this action from a central perspective to ensure that the flow is clear and visually distinct. The earbuds are rendered with realistic translucent plastics and metal materials, illuminated by cinematic blue and white lighting, creating a high-contrast, premium engineering visualization. The environment is a dark premium studio, showcasing the earbud structure with translucent ghosted shells, internal components like the battery, chip, and antenna visible. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The shot begins with blue signals originating from the integrated Bluetooth chip within the earbud. These signals gradually and dynamically pulse outward, traveling through the internal circuitry and highlighting the flow paths over time. The movement starts at the chip, builds in intensity as the signals propagate, until reaching the edges of the circuitry, demonstrating the role of the Bluetooth transmitter in delivering signals throughout the device.",
   "visual_explanation": {
-    "information": "The earbuds decode digital signals.",
-    "physical_element": "The transformation of a blue signal into cyan data packets at the microchip.",
-    "secondary_elements": "The earbud shell, showing microchip and circuits.",
-    "visual_behavior": "The blue signal transforms into cyan data as it touches the chip, which then lights up.",
-    "animation_movement": "The blue signal moves towards the earbud and transforms at the chip.",
-    "camera_position": "Frontal, capturing the entry and interaction with clarity.",
-    "composition": "Centered on the transformation inside the earbud with the signal's journey as the focal path."
+    "information": "The Bluetooth chip emits signals that traverse through the earbud.",
+    "physical_element": "Blue signals visually representing Bluetooth transmission.",
+    "secondary_elements": "The earbud's internal components and circuitry.",
+    "visual_behavior": "Blue signals pulsing and moving outward from the chip.",
+    "animation_movement": "Signals begin at the chip and spread outwards, building in intensity.",
+    "camera_position": "Central perspective focusing on the location of the chip.",
+    "composition": "The Bluetooth chip in the earbuds' cutaway displays clear signal movement, reinforced by the translucent materials and high-contrast lighting."
   }
 }

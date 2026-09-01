@@ -1,1 +1,1 @@
-The animation begins with bright yellow electricity emitted from the battery, gradually traveling through connectors to illuminate each earbud component in sequence: starting with the chip, moving to the antenna, then the voice coil, and finally reaching the diaphragm, with energy building in intensity at each step until the entire earbud is lit up to demonstrate full power delivery.
+Magnetic fields begin around coils and progressively shift towards the permanent magnets, inducing gradual interactions that drive positional shifts in magnetic confining loops.

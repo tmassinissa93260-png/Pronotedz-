@@ -1,35 +1,35 @@
 {
-  "voice": "Ces informations deviennent de l'électricité, prêtes à alimenter les haut-parleurs.",
-  "understanding": "Les informations numériques se transforment en électricité pour alimenter les haut-parleurs.",
+  "voice": "Cet appareil envoie les données audio sous forme numérique.",
+  "understanding": "Le spectateur doit comprendre que cet appareil envoie des données audio sous forme numérique.",
   "candidates": [
     {
-      "action": "Yellow electrical energy is visibly flowing from a digital circuit to the speaker coil inside the earbud.",
-      "explains": "This demonstrates the conversion of digital signals into electricity to power the speakers.",
-      "misses": "The transformation from information to electricity is not directly shown."
+      "action": "Binary numbers travel visibly along a blue pathway from the edge of the frame to the earbud Bluetooth chip.",
+      "explains": "Demonstrates the concept of digital audio data being transmitted.",
+      "misses": "Doesn't show conversion from digital to analog signals."
     },
     {
-      "action": "A series of small, cyan data packets enter a chip within the earbud and burst into yellow electrical lines leading to the speakers.",
-      "explains": "It visually represents the transition of data to electricity.",
-      "misses": "The actual flow of electricity to the speaker is less emphasized."
+      "action": "A digital display projects binary numbers transforming into waves as it approaches the earbud.",
+      "explains": "Illustrates the conversion from digital to sound waves.",
+      "misses": "Doesn't clearly depict the transmission path."
     },
     {
-      "action": "The phone sends a signal in blue to the earbud, then it transforms into yellow electricity flowing to the speaker.",
-      "explains": "Shows the entire process from wireless signal to electrical power delivery to the speaker.",
-      "misses": "The direct flow of electricity might be less clear due to multiple steps."
+      "action": "A sequence of lights flashes in a pattern mimicking binary code on the outer shell of the earbud.",
+      "explains": "Suggests digital data processing.",
+      "misses": "Lacks the aspect of data transmission to the chip."
     }
   ],
-  "chosen": "A series of small, cyan data packets enter a chip within the earbud and burst into yellow electrical lines leading to the speakers.",
-  "why_chosen": "This action directly shows the transformation of digital information into electricity, making the flow to the speaker clear and immediate.",
+  "chosen": "Binary numbers travel visibly along a blue pathway from the edge of the frame to the earbud Bluetooth chip.",
+  "why_chosen": "This action clearly visualizes the movement of digital data to the earbuds, which is the core message, without needing extra context.",
   "mute_test": 0.75,
-  "image_prompt": "Inside the earbud, a photorealistic depiction shows small, bright cyan data packets entering a central chip, where they visibly transform into vivid yellow electrical lines that flow directly to the speaker coil. The scene is focused within the earbud's semi-cutaway, emphasizing the path of transformation from data packets to electricity leading to the audio component. High contrast accentuates the energy flow, while cinematic blue and white lighting in a dark premium studio environment enhances visualization. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
-  "animation_prompt": "The animation shows cyan data packets streaming into the earbud's central chip, where they swiftly convert into bold yellow electrical flows. The electricity visibly progresses through conductive paths towards the speaker coil, lighting up the routes sequentially as the power reaches its destination, triggering the speaker. This transforms gradually from data entry at the chip to electricity delivery at the speaker in a smooth sequence.",
+  "image_prompt": "In the foreground, a close-up semi-cutaway view of modern dark near-black wireless earbuds is shown, with a clear blue path highlighted where binary zeros and ones travel visibly from the periphery straight into the Bluetooth chip inside. The binary code is rendered in bright blue digital tones, suggesting a digital transmission occurring in real-time. The photo captures the earbud's translucent materials with cinematic blue and white lighting from a central angle, emphasizing the digital journey. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "The binary numbers animate smoothly from the outer edge of the frame towards the Bluetooth chip in the earbuds, demonstrating a steady transmission. As the sequence reaches the chip, the numbers increasingly concentrate, illustrating the flow and processing of audio data as part of the transmission event.",
   "visual_explanation": {
-    "information": "Digital information is converted into electricity.",
-    "physical_element": "Cyan data packets and yellow electricity within the earbud.",
-    "secondary_elements": "Central chip, speaker coil, translucent earbud cutaway.",
-    "visual_behavior": "Data packets transform into electricity visible through the earbud's internals.",
-    "animation_movement": "Data packets enter, transform into electricity, and flow to the speaker coil.",
-    "camera_position": "Close-up on the earbud's internals with a clear view of the transformation process.",
-    "composition": "Central view emphasizing the flow from data to electricity within the earbud."
+    "information": "Audio data is transmitted digitally from the device to the earbuds.",
+    "physical_element": "Binary numbers moving along a blue pathway towards the Bluetooth chip.",
+    "secondary_elements": "The translucent casing of the earbuds showcasing its inner components.",
+    "visual_behavior": "Continuous movement of binary numbers along a defined path.",
+    "animation_movement": "Binary numbers smoothly traveling into the earbuds.",
+    "camera_position": "Central angle close-up captures the journey of data to the earbuds.",
+    "composition": "A semi-cutaway, focusing on the dynamic visual representation of digital transmission."
   }
 }

@@ -1,1 +1,1 @@
-Ils captent alors le signal numérique qu'ils ont reçu.
+Les signaux électriques proviennent d'un émetteur Bluetooth intégré.

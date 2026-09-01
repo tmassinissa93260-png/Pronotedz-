@@ -1,1 +1,1 @@
-Blue signal waves progressively pulse from the smartphone toward the earbud. As the signals reach the earbud, small yellow pathways glow from the receiver, showing communication establishment. The camera remains fixed to emphasize the seamless exchange.
+The animation begins with subtle blue waves starting to emanate from the earbuds. The waves then dynamically flow outward, gradually building in intensity and speed, moving through space until they reach and connect with the smartphone, signifying the stabilization of the Bluetooth connection.

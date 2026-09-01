@@ -1,1 +1,1 @@
-Vos écouteurs traduisent ce signal numérique en informations audio.
+L'émetteur Bluetooth reçoit des données audio d'un appareil connecté.

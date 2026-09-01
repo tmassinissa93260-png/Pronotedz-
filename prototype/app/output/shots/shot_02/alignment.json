@@ -1,0 +1,35 @@
+{
+  "voice": "Les écouteurs sans fil contiennent des haut-parleurs miniatures.",
+  "understanding": "Que les écouteurs sans fil contiennent des haut-parleurs miniatures à l'intérieur de leur structure.",
+  "candidates": [
+    {
+      "action": "Gray structural components are highlighted as they split open, revealing the miniature speakers inside.",
+      "explains": "This shows that the earbud has an internal structure housing speakers.",
+      "misses": "It may not clearly indicate that the components relate directly to the speakers."
+    },
+    {
+      "action": "Yellow electric signals flow and converge into the center of the open earbud's structure, lighting up the miniature speakers.",
+      "explains": "Conveys the idea that the signals activate the speakers housed inside the earbud.",
+      "misses": "The initial housing of the speakers might not be as clearly visible at first glance."
+    },
+    {
+      "action": "Miniature speakers inside the earbud light up as the gray structural components are pulled back to show their internal position.",
+      "explains": "This makes it clear that the miniaturized speakers are integral to the earbud structure.",
+      "misses": "The function process (signal flow) of the speakers isn't immediately emphasized."
+    }
+  ],
+  "chosen": "Gray structural components are highlighted as they split open, revealing the miniature speakers inside.",
+  "why_chosen": "This action immediately shows the internal presence of miniature speakers in the earbuds with clarity, whereas others focus more on function rather than highlighting the speaker location.",
+  "mute_test": 0.8,
+  "image_prompt": "A close-up of wireless earbuds where the gray structural components are highlighted as they split open, revealing the miniature speakers inside a translucent shell. The camera focuses centrally, showcasing the detailed structure and speaker arrangement. The cinematic blue and white lighting enhances the high-end realistic materials of the earbuds, and the dark premium studio environment provides a contrasting backdrop. Photorealistic premium 3D engineering visualization, the same modern dark near-black wireless earbud, technical semi-cutaway where the explanation needs it, translucent ghosted shell with the internal battery, chip, antenna, voice coil and diaphragm clearly visible through it, dark premium studio environment, cinematic blue and white lighting, realistic detailed materials, physically credible acoustics and electronics, clearly visible electrical signal, magnetic field and sound waves, cinematic depth of field, high contrast, premium high-end audio commercial rendering, vertical 9:16 composition, no text, no labels, no logos, no watermark.",
+  "animation_prompt": "As the animation progresses, the gray structural components of the earbud slowly and smoothly split open to reveal the miniature speakers housed inside. This movement begins from the exterior shell and finishes at the full exposure of the speakers, highlighting the earbud’s internal architecture.",
+  "visual_explanation": {
+    "information": "Wireless earbuds have miniature speakers inside their structure.",
+    "physical_element": "The gray structural components of the earbud.",
+    "secondary_elements": "Miniaturized speakers inside, cinematic lighting, translucent shell.",
+    "visual_behavior": "Structural components split open to expose what's inside.",
+    "animation_movement": "The components smoothly retract to reveal the speakers.",
+    "camera_position": "Directly focused on the area where the structure opens.",
+    "composition": "The elements are arranged to draw the viewer's eye to the opened structure showing the internal speakers."
+  }
+}
