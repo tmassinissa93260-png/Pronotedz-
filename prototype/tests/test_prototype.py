@@ -198,6 +198,39 @@ class TestImagesDeposees(unittest.TestCase):
         self.assertEqual(self.trouver()[1], attendu)
 
 
+class TestBanc(unittest.TestCase):
+    """Le banc rejoue les contrôles sur les storyboards de l'historique."""
+
+    def setUp(self):
+        from app import banc
+
+        self.banc = banc
+        self.plateaux = banc.passer(limite=3)
+        if not self.plateaux:
+            self.skipTest("aucun storyboard dans l'historique git")
+
+    def test_il_retrouve_des_plateaux_reels(self):
+        for p in self.plateaux:
+            with self.subTest(commit=p.commit):
+                self.assertTrue(p.subject)
+                self.assertGreater(p.shots, 0)
+
+    def test_le_meme_plateau_n_est_pas_compte_deux_fois(self):
+        empreintes = [(p.subject, p.shots, len(p.problemes)) for p in self.plateaux]
+        self.assertEqual(len(empreintes), len(set(empreintes)))
+
+    def test_il_compte_les_plateaux_touches_et_les_occurrences(self):
+        touches = self.banc.plateaux_touches(self.plateaux)
+        fois = self.banc.total(self.plateaux)
+        for code, n in touches.items():
+            with self.subTest(code=code):
+                self.assertLessEqual(n, len(self.plateaux))
+                self.assertGreaterEqual(fois[code], n)
+
+    def test_un_commit_sans_storyboard_est_ignore(self):
+        self.assertIsNone(self.banc.plateau("0000000", "inexistant"))
+
+
 class TestBudgetDeJetons(unittest.TestCase):
     """Run 43 : 29 531 jetons demandes pour une limite de 30 000."""
 
@@ -347,7 +380,7 @@ class TestTimelineEtSousTitres(unittest.TestCase):
         """Une video trop longue est coupee, pas l'inverse."""
         analyse = VideoAnalysis(1, 7.5, "c", "c", "m", "q", "v", [], [], True)
         entrees = montage.construire_timeline(self.sb, self.videos, {1: analyse})
-        self.assertEqual(entrees[0].duration, 4.0)
+        self.assertEqual(entrees[0].duration, 3.0)
         self.assertIn("coupee", entrees[0].ajustement)
 
     def test_video_trop_courte_signalee(self):
@@ -374,7 +407,7 @@ class TestTimelineEtSousTitres(unittest.TestCase):
     def test_sous_titres_cales_sur_la_timeline(self):
         entrees = montage.construire_timeline(self.sb, self.videos)
         srt = montage.sous_titres(entrees)
-        self.assertTrue(srt.startswith("1\n00:00:00,000 --> 00:00:04,000"))
+        self.assertTrue(srt.startswith("1\n00:00:00,000 --> 00:00:03,000"))
         self.assertEqual(srt.count("-->"), 4)
         for s in self.sb.shots:
             self.assertIn(s.voice.split()[0], srt)

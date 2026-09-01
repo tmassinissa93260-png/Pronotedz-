@@ -19,6 +19,10 @@ from .models import (
 )
 from .prompts import STYLE_FINGERPRINT, STYLE_PAR_DEFAUT
 
+#: Le spectateur tranche vers 3,1 s sur un fil vertical, et la moitie de ceux
+#: qui partent sont partis avant. Le plan d'ouverture ne peut pas s'etaler.
+DUREE_MAX_CROCHET = 3.0
+
 MIN_WORDS_PER_SECOND = 1.8
 MAX_WORDS_PER_SECOND = 4.0
 MIN_QUALITY = 0.8
@@ -298,6 +302,7 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _plans(sb, shot_count)
     problems += _duree(sb, duration)
     problems += _debit(sb)
+    problems += _rythme(sb)
     problems += _fonction(sb)
     problems += _style(sb)
     problems += _precision(sb)
@@ -338,6 +343,44 @@ def _duree(sb: Storyboard, attendue: float) -> list[Problem]:
         if s.duration_seconds <= 0:
             out.append(Problem("DUREE", s.slug, f"duree invalide : {s.duration_seconds}",
                                f"Shot {s.id} needs a positive duration_seconds."))
+    return out
+
+
+def _rythme(sb: Storyboard) -> list[Problem]:
+    """Le premier plan est la decision, et les durees doivent decider.
+
+    Sur un fil vertical le spectateur tranche vers trois secondes, et la
+    moitie de ceux qui partent sont partis avant. Un premier plan de quatre
+    secondes couvre donc toute la fenetre de decision avec une seule image.
+
+    Le banc dit que ces deux controles s'allument sur les vingt-quatre
+    plateaux passes : les durees y sont rigoureusement identiques partout.
+    Ce n'est pas un defaut qu'on decouvre, c'est une exigence qu'on ajoute,
+    et on sait ce qu'elle coute.
+    """
+    out = []
+    if len(sb.shots) < 2:
+        return out
+
+    premier = sb.shots[0]
+    if premier.duration_seconds > DUREE_MAX_CROCHET:
+        out.append(Problem("RYTHME", premier.slug,
+                           f"le plan d'ouverture dure {premier.duration_seconds:g}s, "
+                           f"la decision se prend vers {DUREE_MAX_CROCHET:g}s",
+                           f"Shot 1 is the decision, not a shot: bring it to "
+                           f"{DUREE_MAX_CROCHET:g} seconds or less, and give the seconds "
+                           f"you free to a shot that has a cause and its effect to show. "
+                           f"Half the viewers who leave are gone before three seconds."))
+
+    durees = {s.duration_seconds for s in sb.shots}
+    if len(durees) == 1:
+        out.append(Problem("RYTHME", "storyboard",
+                           f"les {len(sb.shots)} plans durent tous "
+                           f"{sb.shots[0].duration_seconds:g}s",
+                           "Identical durations everywhere mean no link was judged more "
+                           "worth the time than another. A shot that shows one thing "
+                           "takes less time than a shot that shows a cause producing an "
+                           "effect. Decide, and let the durations say it."))
     return out
 
 

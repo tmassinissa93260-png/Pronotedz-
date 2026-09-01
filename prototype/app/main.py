@@ -2,6 +2,7 @@
 
     python main.py                              le storyboard complet
     python -m app.main texte                    la narration seule, verifiee
+    python -m app.main banc                     les controles, sur tous les runs passes
     python -m app.main elements                 tout exporter pour produire
     python -m app.main aligner                  l'image doit EXPLIQUER la phrase
     python -m app.main affiner-tout             les images deposees -> animations
@@ -28,6 +29,7 @@ if __package__ in (None, ""):
 from . import (  # noqa: E402
     aligner,
     analyzer,
+    banc,
     config,
     juge,
     memoire,
@@ -802,6 +804,36 @@ def cmd_valider(args) -> int:
     return 0
 
 
+def cmd_banc(args) -> int:
+    """Chaque contrôle, rejoué sur tous les storyboards déjà produits."""
+    log("BANC", "Relecture des storyboards de l'historique...")
+    plateaux = banc.passer(args.limite)
+    if not plateaux:
+        log("STOP", "aucun storyboard retrouvé dans l'historique")
+        return 1
+
+    print()
+    print("  Plateau                Sujet                                Plans  Problèmes")
+    for p in plateaux:
+        sujet = (p.subject[:34] + "…") if len(p.subject) > 35 else p.subject
+        print(f"  {p.commit:8} {p.titre[:13]:13}  {sujet:35}  {p.shots:4}   "
+              f"{len(p.problemes):4}")
+
+    touches = banc.plateaux_touches(plateaux)
+    fois = banc.total(plateaux)
+    print()
+    print(f"  {len(plateaux)} plateaux · {sum(fois.values())} problèmes au total")
+    print()
+    print("  Contrôle          Plateaux touchés   Fois au total")
+    for code, n in touches.most_common():
+        alerte = "  ← s'allume presque partout" if n / len(plateaux) > 0.8 else ""
+        print(f"  {code:16}  {n:3}/{len(plateaux):<3}           {fois[code]:4}{alerte}")
+    print()
+    print("  Un contrôle qui s'allume sur presque tous les plateaux ne vise pas")
+    print("  un défaut : il vise le style de la maison. À revoir ou à retirer.")
+    return 0
+
+
 def cmd_selfcheck(args) -> int:
     ok = True
     print("Configuration")
@@ -885,6 +917,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     commun(sub.add_parser("valider", help="rejouer les vérifications")
            ).set_defaults(func=cmd_valider)
+    p_banc = sub.add_parser("banc",
+                            help="rejouer les contrôles sur tous les storyboards passés")
+    p_banc.add_argument("--limite", type=int, default=0,
+                        help="ne regarder que les N plateaux les plus récents")
+    p_banc.set_defaults(func=cmd_banc)
+
     sub.add_parser("selfcheck", help="état de la configuration").set_defaults(func=cmd_selfcheck)
     return parser
 

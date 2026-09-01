@@ -39,6 +39,17 @@ VOIX = [
 
 INTENTS = ["energy_flow", "electromagnetic_rotation", "energy_transfer", "cause_effect"]
 
+def durees(n):
+    """n durees qui somment a 4n, dont une ouverture de trois secondes.
+
+    Le plan d'ouverture ne depasse pas la fenetre de decision, et les durees
+    ne sont pas toutes egales : c'est ce que le controle RYTHME demande.
+    """
+    if n == 1:
+        return [4.0]
+    reste = round(4.0 * n - 3.0 - 4.5 * (n - 2), 3)
+    return [3.0] + [4.5] * (n - 2) + [reste]
+
 
 def shot(i=1, **over):
     base = {
@@ -101,7 +112,8 @@ def board(n=4, **over):
             {"notion": "mecanique", "color": "grey",
              "meaning": "the mechanical structure and its components", "moving": False},
         ],
-        "shots": [shot(i) for i in range(1, n + 1)],
+        "shots": [shot(i, duration_seconds=d)
+                  for i, d in enumerate(durees(n), start=1)],
         "quality_check": {
             "narrative_quality": 0.92, "visual_quality": 0.9,
             "scientific_accuracy": 0.94, "voice_visual_alignment": 0.91,

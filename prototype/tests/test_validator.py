@@ -679,6 +679,34 @@ class TestControleDesVideos(unittest.TestCase):
                          ["shot_01", "shot_02", "shot_03", "shot_04"])
 
 
+class TestRythme(unittest.TestCase):
+    """Le spectateur tranche vers trois secondes ; les durées doivent décider."""
+
+    def durees(self, valeurs):
+        raw = board(n=len(valeurs))
+        for shot, d in zip(raw["shots"], valeurs, strict=True):
+            shot["duration_seconds"] = d
+        return [x for x in valider(raw, duration=sum(valeurs), shots=len(valeurs))
+                if x.code == "RYTHME"]
+
+    def test_un_plan_d_ouverture_qui_s_etale(self):
+        p = self.durees([5.0, 3.0, 4.0, 4.0])
+        self.assertTrue(any("decision se prend" in x.message for x in p))
+
+    def test_un_plan_d_ouverture_court_passe(self):
+        p = self.durees([2.5, 4.5, 4.0, 5.0])
+        self.assertEqual(p, [])
+
+    def test_des_durees_toutes_identiques(self):
+        p = self.durees([3.0, 3.0, 3.0, 3.0])
+        self.assertTrue(any("durent tous" in x.message for x in p))
+
+    def test_un_plan_unique_n_a_pas_de_rythme(self):
+        raw = board(n=1)
+        self.assertEqual([x for x in valider(raw, duration=4, shots=1)
+                          if x.code == "RYTHME"], [])
+
+
 class TestDemandeDeCorrection(unittest.TestCase):
     def test_chaque_manquement_porte_sa_consigne(self):
         raw = board(n=3)

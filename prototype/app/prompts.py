@@ -235,9 +235,15 @@ THE LAST SHOT IS NEVER A SUMMARY. It carries the physical RESULT of everything
 explained before, happening on screen — the wheels finally turning, the
 aircraft leaving the ground. A recap shot has nothing left to animate, and it
 is always the weakest shot of a video. Never write one.
-Aim for {par_plan}s per shot, about {mots} French words of narration each; the
-durations must sum to EXACTLY {duration}. Give a link more seconds if it
-deserves them, and take those seconds from another shot.
+THE FIRST SHOT IS NOT A SHOT, IT IS THE DECISION. On a vertical feed the
+viewer decides whether to stay at around three seconds, and half of those who
+leave are gone before then. So shot 1 lasts THREE SECONDS OR LESS, and the
+seconds you take from it go to a shot that has a cause and its effect to show.
+Aim for {par_plan}s per shot on average, about {mots} French words of narration
+each; the durations must sum to EXACTLY {duration}.
+THE DURATIONS ARE NOT ALL EQUAL. A shot that shows one thing takes less time
+than a shot that shows a cause producing an effect. Identical durations
+everywhere mean you have not decided which link deserves the time.
 
 ── PART 3 — THE VISUAL BIBLE ──
 Fill "visual_bible" BEFORE writing any prompt. It fixes, concretely: the main
