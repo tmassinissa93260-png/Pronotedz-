@@ -707,6 +707,31 @@ class TestRythme(unittest.TestCase):
                           if x.code == "RYTHME"], [])
 
 
+class TestCorrectionPartielle(unittest.TestCase):
+    """Réécrire huit plans pour en corriger trois coûte huit plans en sortie."""
+
+    def probleme(self, ou):
+        return validator.Problem("PRECISION", ou, "message", "fix")
+
+    def test_les_plans_fautifs_sont_reperes(self):
+        p = [self.probleme("shot_03"), self.probleme("shot_01"),
+             self.probleme("shot_03")]
+        self.assertEqual(validator.plans_fautifs(p), [1, 3])
+
+    def test_un_manquement_du_plateau_impose_un_tour_complet(self):
+        p = [self.probleme("shot_03"), self.probleme("storyboard")]
+        self.assertEqual(validator.plans_fautifs(p), [])
+
+    def test_la_consigne_ne_demande_que_les_plans_fautifs(self):
+        p = [self.probleme("shot_02"), self.probleme("shot_05")]
+        consigne = validator.correction_partielle([2, 5], p)
+        self.assertIn("#2, #5", consigne)
+        self.assertIn("Return ONLY those shots", consigne)
+        self.assertIn("do not return it", consigne)
+        for x in p:
+            self.assertIn(x.fix, consigne)
+
+
 class TestDemandeDeCorrection(unittest.TestCase):
     def test_chaque_manquement_porte_sa_consigne(self):
         raw = board(n=3)

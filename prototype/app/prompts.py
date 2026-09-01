@@ -698,23 +698,6 @@ narration understood them. Steal the METHOD, never the components:
 """ if memoire else ""
     return f"""\
 ONE shot. Make the image EXPLAIN the sentence, not illustrate it.
-{passe}
-
-THE SENTENCE THE VOICE SAYS (French): "{voice}"
-WHAT THIS SHOT MUST TEACH: {educational_function}
-THE PEDAGOGICAL ELEMENT IT INTRODUCES: {visual_concept}
-
-THE COLOUR CODE, unchanged:
-{color_block_sujet}
-
-THE VISUAL BIBLE, unchanged — same object, same materials, same colours:
-{bible_block}
-
-THE IMAGE PROMPT AS IT STANDS:
-{image_prompt}
-
-THE ANIMATION PROMPT AS IT STANDS:
-{animation_prompt}
 
 Work in this order. Do not skip a step.
 
@@ -760,6 +743,24 @@ Work in this order. Do not skip a step.
 Write both prompts as continuous descriptive English prose, never as a list of
 labels. End the image prompt with this sentence, copied VERBATIM:
 {STYLE_DIRECTIVE}
+
+THE COLOUR CODE, unchanged for the whole video:
+{color_block_sujet}
+
+THE VISUAL BIBLE, unchanged — same object, same materials, same colours:
+{bible_block}
+{passe}
+── THE SHOT YOU ARE WORKING ON ──
+
+THE SENTENCE THE VOICE SAYS (French): "{voice}"
+WHAT THIS SHOT MUST TEACH: {educational_function}
+THE PEDAGOGICAL ELEMENT IT INTRODUCES: {visual_concept}
+
+THE IMAGE PROMPT AS IT STANDS:
+{image_prompt}
+
+THE ANIMATION PROMPT AS IT STANDS:
+{animation_prompt}
 
 Return only this JSON:
 {{

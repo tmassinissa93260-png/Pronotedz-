@@ -222,6 +222,45 @@ class TestEmpreinteDeStyle(unittest.TestCase):
         self.assertEqual(prompts.empreinte("Un style bref."), "Un style bref.")
 
 
+class TestRecollage(unittest.TestCase):
+    """Les plans corrigés se posent par numéro : aucun plan ne disparaît."""
+
+    def plateau(self):
+        return {"subject": "x", "shots": [{"id": i, "voice": f"v{i}"} for i in (1, 2, 3)]}
+
+    def test_le_plan_corrige_remplace_le_sien(self):
+        from app.openai_client import recoller
+
+        fusionne = recoller(self.plateau(),
+                            {"shots": [{"id": 2, "voice": "corrigé"}]}, [2])
+        self.assertEqual([s["voice"] for s in fusionne["shots"]],
+                         ["v1", "corrigé", "v3"])
+
+    def test_un_plan_absent_de_la_reponse_garde_sa_version(self):
+        from app.openai_client import recoller
+
+        fusionne = recoller(self.plateau(),
+                            {"shots": [{"id": 1, "voice": "corrigé"}]}, [1, 3])
+        self.assertEqual([s["voice"] for s in fusionne["shots"]],
+                         ["corrigé", "v2", "v3"])
+
+    def test_une_reponse_inexploitable_est_refusee(self):
+        """Rien de demandé n'est revenu : on repart sur un tour complet."""
+        from app.openai_client import OpenAIError, recoller
+
+        for reponse in ({"shots": []}, {}, "pas un objet",
+                        {"shots": [{"id": 3, "voice": "pas demandé"}]}):
+            with self.subTest(reponse=reponse), self.assertRaises(OpenAIError):
+                recoller(self.plateau(), reponse, [1])
+
+    def test_le_plateau_ne_peut_pas_maigrir(self):
+        """Run 21 : un plateau de quatre plans était revenu avec deux."""
+        from app.openai_client import recoller
+
+        fusionne = recoller(self.plateau(), {"shots": [{"id": 1, "voice": "c"}]}, [1])
+        self.assertEqual(len(fusionne["shots"]), 3)
+
+
 class TestBanc(unittest.TestCase):
     """Le banc rejoue les contrôles sur les storyboards de l'historique."""
 

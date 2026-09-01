@@ -1169,6 +1169,44 @@ def a_refaire(problems: list[Problem]) -> list[str]:
 # ---------------------------------------------------------------------------
 
 
+def plans_fautifs(problems: list[Problem]) -> list[int]:
+    """Les numeros de plan concernes, si TOUS les manquements sont sur des plans.
+
+    Un manquement au niveau du plateau — la duree totale, le crochet, le code
+    couleur — se corrige sur l'ensemble : dans ce cas on rend une liste vide
+    et l'appelant redemande tout.
+    """
+    ids = []
+    for p in problems:
+        trouve = re.fullmatch(r"shot_(\d+)", p.where)
+        if not trouve:
+            return []
+        ids.append(int(trouve.group(1)))
+    return sorted(set(ids))
+
+
+def correction_partielle(ids: list[int], problems: list[Problem]) -> str:
+    """Ne redemander QUE les plans fautifs.
+
+    Reecrire les huit plans pour en corriger trois coute huit plans en sortie
+    — et la sortie coute quatre fois l'entree. On ne redemande donc que ce
+    qui cloche, et on recolle par numero de plan : le plateau ne peut plus
+    revenir ampute, ce qui etait le defaut du run 21.
+    """
+    lignes = [
+        f"Your previous JSON was rejected on {len(ids)} shot(s): "
+        f"{', '.join(f'#{i}' for i in ids)}.",
+        "Return ONLY those shots, corrected, in this exact shape:",
+        '  {"shots": [ ... the corrected shot objects, with their original "id" ... ]}',
+        "Every other shot is already accepted — do not return it, do not change it.",
+        "Keep each corrected shot in the same visual language as the rest of the video.",
+        "Do not explain, do not apologise, return only the JSON.",
+        "",
+    ]
+    lignes += [f"- {p.where}: {p.fix}" for p in problems]
+    return "\n".join(lignes)
+
+
 def correction_request(problems: list[Problem]) -> str:
     lignes = [
         "Your previous JSON was rejected by an automatic validator.",

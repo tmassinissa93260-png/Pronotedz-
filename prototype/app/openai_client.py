@@ -109,6 +109,40 @@ def chat_json(model: str, messages: list[dict], max_tokens: int | None = None) -
         raise OpenAIError(f"reponse non JSON : {exc}\n---\n{contenu[:500]}") from exc
 
 
+def _extrait(plateau: dict, ids: list[int]) -> dict:
+    """Les seuls plans fautifs, tels qu'ils viennent d'etre rendus."""
+    plans = plateau.get("shots") or []
+    return {"shots": [p for p in plans if _numero(p) in ids]}
+
+
+def recoller(plateau: dict, reponse: object, ids: list[int]) -> dict:
+    """Poser les plans corriges dans le plateau, par numero.
+
+    On ne remplace jamais le plateau par la reponse : on y depose les plans
+    demandes, un par un. Un plan absent de la reponse garde sa version
+    precedente, et aucun plan ne peut disparaitre.
+    """
+    if not isinstance(reponse, dict):
+        raise OpenAIError("correction partielle : la reponse doit etre un objet JSON")
+    corriges = {_numero(p): p for p in (reponse.get("shots") or [])
+                if isinstance(p, dict) and _numero(p) in ids}
+    if not corriges:
+        raise OpenAIError("correction partielle : aucun plan corrige dans la reponse")
+
+    fusionne = dict(plateau)
+    fusionne["shots"] = [corriges.get(_numero(p), p) for p in (plateau.get("shots") or [])]
+    return fusionne
+
+
+def _numero(plan: object) -> int | None:
+    if not isinstance(plan, dict):
+        return None
+    try:
+        return int(plan.get("id"))
+    except (TypeError, ValueError):
+        return None
+
+
 def generate_storyboard(subject: str, duration: float, shot_count: int,
                         on_attempt=None, script: str = "") -> tuple[Storyboard, list]:
     """Genere puis fait corriger jusqu'a ce que le validateur accepte.
@@ -124,9 +158,24 @@ def generate_storyboard(subject: str, duration: float, shot_count: int,
     messages = list(base)
     budget = config.budget_storyboard(shot_count)
     storyboard, problems = None, []
+    #: Les plans demandes au tour precedent. Vide = on attend un plateau entier.
+    partiel: list[int] = []
+    plateau: dict = {}
 
     for tentative in range(1, config.MAX_REPAIR_ATTEMPTS + 2):
-        brut = chat_json(config.OPENAI_MODEL, messages, budget)
+        brut = chat_json(config.OPENAI_MODEL, messages,
+                         config.budget_storyboard(len(partiel)) if partiel else budget)
+        if partiel:
+            try:
+                brut = recoller(plateau, brut, partiel)
+            except OpenAIError:
+                # La correction partielle n'a rien rendu d'exploitable : on
+                # repart du plateau complet plutot que de perdre le tour.
+                messages = base + [
+                    {"role": "assistant", "content": json.dumps(plateau, ensure_ascii=False)},
+                    {"role": "user", "content": validator.correction_request(problems)}]
+                partiel = []
+                continue
         try:
             candidat = Storyboard.from_dict(brut)
         except StoryboardError as exc:
@@ -146,6 +195,7 @@ def generate_storyboard(subject: str, duration: float, shot_count: int,
             s.image_prompt = prompts.enforce_style(s.image_prompt)
 
         storyboard = candidat
+        plateau = brut
         problems = validator.validate(candidat, duration, shot_count)
         if on_attempt:
             on_attempt(tentative, problems)
@@ -154,9 +204,19 @@ def generate_storyboard(subject: str, duration: float, shot_count: int,
 
         # La liste repart de la consigne : au run 20 chaque tour empilait un
         # storyboard entier, et le troisieme depassait la cadence a lui seul.
-        messages = base + [
-            {"role": "assistant", "content": json.dumps(brut, ensure_ascii=False)},
-            {"role": "user", "content": validator.correction_request(problems)}]
+        # Et quand tout ce qui cloche tient sur quelques plans, on ne redemande
+        # que ceux-la : la sortie coute quatre fois l'entree.
+        partiel = validator.plans_fautifs(problems)
+        if partiel and len(partiel) < len(candidat.shots):
+            messages = base + [
+                {"role": "assistant",
+                 "content": json.dumps(_extrait(brut, partiel), ensure_ascii=False)},
+                {"role": "user", "content": validator.correction_partielle(partiel, problems)}]
+        else:
+            partiel = []
+            messages = base + [
+                {"role": "assistant", "content": json.dumps(brut, ensure_ascii=False)},
+                {"role": "user", "content": validator.correction_request(problems)}]
 
     if storyboard is None:
         raise OpenAIError("aucun storyboard exploitable")
