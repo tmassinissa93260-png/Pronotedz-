@@ -255,6 +255,29 @@ class TestBanc(unittest.TestCase):
         self.assertIsNone(self.banc.plateau("0000000", "inexistant"))
 
 
+class TestCompteASec(unittest.TestCase):
+    """Run 48 : 20 + 40 + 60 secondes d'attente pour un compte vide."""
+
+    def test_un_compte_vide_se_reconnait(self):
+        from app.openai_client import _compte_a_sec
+
+        for message in (
+            "Error code: 429 - {'error': {'message': 'You have no credits "
+            "remaining.', 'code': 'credit_balance_exhausted'}}",
+            "insufficient_quota",
+            "You exceeded your current quota, please check your plan",
+        ):
+            with self.subTest(message=message[:40]):
+                self.assertTrue(_compte_a_sec(Exception(message)))
+
+    def test_une_vraie_cadence_n_est_pas_un_compte_vide(self):
+        from app.openai_client import _compte_a_sec
+
+        cadence = ("Error code: 429 - Rate limit reached for gpt-4o on tokens per "
+                   "min (TPM): Limit 30000, Used 589, Requested 29531.")
+        self.assertFalse(_compte_a_sec(Exception(cadence)))
+
+
 class TestBudgetDeJetons(unittest.TestCase):
     """Run 43 : 29 531 jetons demandes pour une limite de 30 000."""
 

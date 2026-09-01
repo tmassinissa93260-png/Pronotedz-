@@ -34,6 +34,16 @@ def client() -> openai.OpenAI:
     return openai.OpenAI(**kwargs)
 
 
+#: Ce que dit le service quand ce n'est pas la cadence mais la facture.
+A_SEC = ("insufficient_quota", "credit_balance_exhausted", "no credits remaining",
+         "billing_hard_limit_reached", "exceeded your current quota")
+
+
+def _compte_a_sec(exc: Exception) -> bool:
+    """Un 429 qui n'expirera jamais : c'est le compte, pas la cadence."""
+    return any(marque in str(exc).lower() for marque in A_SEC)
+
+
 def chat_json(model: str, messages: list[dict], max_tokens: int | None = None) -> dict:
     """Un appel JSON, avec le budget de sortie qu'il lui faut et pas plus.
 
@@ -63,7 +73,17 @@ def chat_json(model: str, messages: list[dict], max_tokens: int | None = None) -
         except openai.APIConnectionError as exc:
             raise OpenAIError(f"service injoignable : {exc}") from exc
         except openai.RateLimitError as exc:
-            # La cadence se compte par minute : elle se libere toute seule.
+            # Un compte a sec rend un 429 lui aussi, mais celui-la n'expire
+            # pas : au run 48 on a attendu 20, 40 puis 60 secondes pour rien,
+            # avant de conseiller de baisser MAX_OUTPUT_TOKENS a quelqu'un
+            # dont le probleme etait la facture.
+            if _compte_a_sec(exc):
+                raise OpenAIError(
+                    "le compte OpenAI n'a plus de credits.\n"
+                    "  Ce n'est pas une limite de cadence : attendre ne changera rien.\n"
+                    "  Recharge sur https://platform.openai.com/settings/organization/"
+                    "billing/, puis relance.") from exc
+            # La cadence, elle, se compte par minute et se libere toute seule.
             if tentative > config.MAX_RATE_RETRIES:
                 raise OpenAIError(
                     f"cadence depassee apres {config.MAX_RATE_RETRIES} reprises : {exc}\n"
