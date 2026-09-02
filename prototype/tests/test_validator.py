@@ -329,7 +329,19 @@ class TestPhysique(unittest.TestCase):
 
 
 class TestVehiculeVerrouille(unittest.TestCase):
-    """La meme voiture sombre, du premier au dernier plan."""
+    """La meme voiture sombre, du premier au dernier plan.
+
+    Ce controle ne s'allume que si la direction artistique nomme une voiture
+    de reference. Le defaut n'en nomme plus : on le rallume ici, puisque
+    c'est LUI qu'on teste.
+    """
+
+    def setUp(self):
+        self.ancien = validator.VOITURE_REFERENCE
+        validator.VOITURE_REFERENCE = True
+
+    def tearDown(self):
+        validator.VOITURE_REFERENCE = self.ancien
 
     def test_une_carrosserie_claire_est_refusee(self):
         raw = board()

@@ -135,18 +135,26 @@ envoient des images à un modèle.
 
 ## Le style de référence
 
-La direction artistique par défaut encode le langage visuel de référence :
-visualisation 3D d'ingénierie premium, automobile moderne en **semi-coupe
-technique**, carrosserie réaliste avec les composants internes visibles là où
-l'explication l'exige, studio sombre premium, **éclairage cinématique
-bleu/blanc**, matériaux réalistes, mécanique physiquement crédible, profondeur
-de champ cinématographique, contraste élevé, finition de **publicité automobile
-haut de gamme**, vertical 9:16.
+La direction artistique par défaut ne nomme **aucun sujet** : elle décrit une
+façon de filmer, qui tient sur une oreille comme sur un moteur ou une aile.
 
-La continuité est exigée : même silhouette, même couleur, mêmes proportions,
-mêmes matériaux, même environnement, d'un plan à l'autre.
+**Vraie caméra macro** (100 mm), matériaux physiquement justes avec le
+micro-détail et les imperfections qui vont avec — peau réelle et diffusion
+sous-cutanée, métal réel, verre réel —, **noir profond** autour, le phénomène
+invisible rendu en **filaments lumineux translucides retenus** qui suivent son
+vrai chemin, lumière chaude en contre-jour sur le sujet et lumière bleue froide
+sur les filaments, faible profondeur de champ, brume volumétrique discrète,
+contraste élevé, vertical 9:16.
 
-`STYLE_DIRECTIVE` dans `.env` remplace cette phrase pour un autre sujet.
+C'est la **sobriété qui fait le réalisme** : la direction interdit explicitement
+la stylisation et le féerique. Ce qui brille trop ressemble à un effet, pas à
+une observation.
+
+La continuité reste exigée : même objet, mêmes proportions, mêmes matériaux,
+même environnement, d'un plan à l'autre.
+
+`STYLE_DIRECTIVE` dans `.env` (ou l'entrée « style » du workflow) remplace
+cette phrase. L'empreinte qui sert aux contrôles suit automatiquement.
 
 ## La règle centrale : la grammaire visuelle pédagogique
 

@@ -14,26 +14,41 @@ from .models import MOTION_INTENTS, NOTION_SENS
 # ---------------------------------------------------------------------------
 # STYLE VISUEL DE BASE
 #
-# Le defaut nomme un vehicule electrique. Sur un autre sujet, STYLE_DIRECTIVE
-# dans l'environnement remplace la phrase ; la signature reste la meme.
+# Le defaut ne nomme plus de vehicule : il decrit une FACON DE FILMER, qui
+# tient sur n'importe quel sujet — une oreille, un moteur, une aile. L'ancien
+# defaut nommait une berline electrique sombre, et il fallait le remplacer a
+# chaque sujet, sous peine de voir une voiture s'inviter dans une video sur
+# l'audition.
+#
+# Ce qu'il encode : une VRAIE camera macro, des materiaux physiquement justes,
+# le noir profond autour, et le phenomene invisible rendu en filaments
+# lumineux translucides qui suivent son vrai chemin — retenus, jamais
+# feeriques. C'est la sobriete qui fait le realisme : ce qui brille trop
+# ressemble a un effet, pas a une observation.
+#
+# STYLE_DIRECTIVE dans l'environnement remplace la phrase ; la signature
+# suit automatiquement (voir `empreinte`).
 # ---------------------------------------------------------------------------
 
 _DEFAUT = (
-    "Photorealistic premium 3D engineering visualization, the same modern dark "
-    "near-black electric sedan in technical "
-    "semi-cutaway view, translucent ghosted bodywork with the internal components "
-    "clearly visible through it, dark premium studio environment, cinematic blue and white "
-    "lighting, realistic detailed materials, physically credible automotive mechanics, "
-    "clearly visible electrical and mechanical components, cinematic depth of field, high "
-    "contrast, premium high-end car commercial rendering, vertical 9:16 composition, no "
-    "text, no labels, no logos, no watermark."
+    "Photorealistic macro cinematography, filmed on a real camera with a 100mm "
+    "macro lens, physically accurate materials with visible micro-detail and "
+    "natural imperfections — real skin with subsurface scattering, real metal, "
+    "real glass — against a deep near-black background, the invisible "
+    "phenomenon rendered as restrained translucent luminous filaments that "
+    "follow its true physical path, warm rim light on the subject and cool "
+    "blue light on the filaments, shallow depth of field, subtle volumetric "
+    "haze, high contrast, the sober realism of a scientific documentary rather "
+    "than fantasy, no stylisation, vertical 9:16 composition, no text, no "
+    "labels, no logos, no watermark."
 )
 
 STYLE_DIRECTIVE = (os.getenv("STYLE_DIRECTIVE") or "").strip() or _DEFAUT
-#: Vrai tant que personne n'a remplace la direction artistique. Les
-#: controles qui dependent de SON contenu — la voiture sombre — ne
-#: s'appliquent que dans ce cas.
-STYLE_PAR_DEFAUT = STYLE_DIRECTIVE == _DEFAUT
+#: Les controles qui parlent de LA voiture de reference — la berline sombre
+#: qui ne doit pas changer de plan en plan — n'ont de sens que si la direction
+#: artistique en nomme une. On le lit dans son contenu, pas dans le fait
+#: qu'elle soit celle par defaut : le defaut, lui, a change.
+VOITURE_REFERENCE = "electric sedan" in STYLE_DIRECTIVE.lower()
 #: L'empreinte suit la direction artistique au lieu d'etre figee. Au run 47
 #: la direction disait « 3D MEDICAL visualization » et l'empreinte cherchait
 #: « 3D ENGINEERING visualization » : `enforce_style` ne la trouvait pas et

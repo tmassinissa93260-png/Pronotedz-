@@ -17,7 +17,7 @@ from .models import (
     QUALITY_AXES,
     Storyboard,
 )
-from .prompts import STYLE_FINGERPRINT, STYLE_PAR_DEFAUT
+from .prompts import STYLE_FINGERPRINT, VOITURE_REFERENCE
 
 #: Le spectateur tranche vers 3,1 s sur un fil vertical, et la moitie de ceux
 #: qui partent sont partis avant. Le plan d'ouverture ne peut pas s'etaler.
@@ -905,7 +905,7 @@ def _physique(sb: Storyboard) -> list[Problem]:
                                    f"pathways, enters and leaves components according to the "
                                    f"explanation, and always communicates direction."))
 
-        if STYLE_PAR_DEFAUT:
+        if VOITURE_REFERENCE:
             claires = [t for t in TEINTE_CLAIRE
                        for m in re.finditer(re.escape(t), image.lower())
                        if any(n in image.lower()[m.end():m.end() + 30]

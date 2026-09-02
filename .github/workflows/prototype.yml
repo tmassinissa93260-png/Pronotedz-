@@ -108,9 +108,10 @@ on:
         type: string
       style:
         description: >-
-          Remplace la phrase de direction artistique. Le défaut nomme un
-          véhicule électrique : sur un autre sujet, mets ici la même phrase
-          avec le bon véhicule. Laisse vide pour garder le défaut.
+          Remplace la phrase de direction artistique. Le défaut ne nomme aucun
+          sujet — vraie caméra macro, matériaux justes, noir profond, filaments
+          lumineux retenus — et tient donc sur n'importe quel sujet. Laisse vide
+          pour le garder.
         required: false
         default: ""
         type: string

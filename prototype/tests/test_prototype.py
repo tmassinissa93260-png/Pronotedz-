@@ -211,7 +211,7 @@ class TestEmpreinteDeStyle(unittest.TestCase):
 
     def test_l_empreinte_par_defaut_ne_bouge_pas(self):
         self.assertEqual(prompts.STYLE_FINGERPRINT,
-                         "Photorealistic premium 3D engineering visualization")
+                         "Photorealistic macro cinematography, filmed on a re")
 
     def test_l_empreinte_est_bien_le_debut_de_la_direction(self):
         for directive in (self.MEDICALE, prompts.STYLE_DIRECTIVE):
@@ -279,7 +279,10 @@ class TestBanc(unittest.TestCase):
                 self.assertGreater(p.shots, 0)
 
     def test_le_meme_plateau_n_est_pas_compte_deux_fois(self):
-        empreintes = [(p.subject, p.shots, len(p.problemes)) for p in self.plateaux]
+        # La meme cle que le banc : deux plateaux differents peuvent tres bien
+        # porter le meme NOMBRE de manquements sans etre le meme plateau.
+        empreintes = [(p.subject, p.shots, tuple(str(x) for x in p.problemes))
+                      for p in self.plateaux]
         self.assertEqual(len(empreintes), len(set(empreintes)))
 
     def test_il_compte_les_plateaux_touches_et_les_occurrences(self):
