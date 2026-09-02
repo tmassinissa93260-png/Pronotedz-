@@ -94,6 +94,21 @@ def ecrire(subject: str, duration: float, sentences: int,
     return meilleur, restants
 
 
+def relire(brut: object, duration: float, sentences: int) -> tuple[dict, list[str]]:
+    """Un texte venu d'ailleurs, controle comme s'il sortait de la boucle.
+
+    Le mode manuel colle la reponse de ChatGPT ici : elle passe par la meme
+    mise en forme et les memes controles, hors ligne, sans un centime.
+    """
+    texte = _normaliser(brut)
+    return texte, _problemes(texte, duration, sentences)
+
+
+def consigne(problemes: list[str]) -> str:
+    """La consigne de correction, telle que la boucle la renvoie."""
+    return _correction(problemes)
+
+
 # ---------------------------------------------------------------------------
 
 

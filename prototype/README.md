@@ -100,6 +100,39 @@ pédagogique, le prompt image et le prompt animation.
 
 ---
 
+## Sans crédit OpenAI : le mode manuel
+
+Les trois étapes qui écrivent — le texte, le storyboard, l'alignement — ne sont
+qu'un prompt qui part et un JSON qui revient. Rien ne les oblige à passer par
+l'API. `manuel` écrit le prompt **exact** ; tu le colles dans ChatGPT ; `coller`
+reprend sa réponse et lui applique **les mêmes contrôles**, hors ligne.
+
+```bash
+python -m app.main manuel --etape texte --subject "..." --duration 32 --shots 8
+#   → output/manuel/texte.md : à copier tel quel dans ChatGPT
+
+python -m app.main coller --etape texte --duration 32 --shots 8
+#   → lit output/manuel/reponse.json, écrit texte.json, et si quelque chose
+#     cloche, rend le bloc de correction à recoller dans LA MÊME conversation
+
+python -m app.main manuel  --etape storyboard --subject "..." --duration 32 --shots 8
+python -m app.main coller  --etape storyboard --duration 32 --shots 8
+python -m app.main manuel  --etape aligner --shot 3
+python -m app.main coller  --etape aligner --shot 3
+```
+
+Aucun de ces appels ne touche le réseau et aucun ne demande de clé. Ce qui
+change par rapport à l'automatique : les tours de correction ne s'enchaînent
+plus tout seuls, c'est toi qui fais l'aller-retour. Ce qui ne change pas : les
+contrôles, la garantie qu'un réalignement ne dégrade jamais un plan, et les
+fichiers produits — `texte.json`, `project.json`, `elements.md` sont les mêmes.
+
+Ce qui reste impossible sans crédit : tout ce qui **regarde** une image ou une
+vidéo (`affiner-tout`, `analyser-videos`, `juger`), parce que ces étapes
+envoient des images à un modèle.
+
+---
+
 ## Le style de référence
 
 La direction artistique par défaut encode le langage visuel de référence :

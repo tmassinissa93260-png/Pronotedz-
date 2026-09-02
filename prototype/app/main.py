@@ -32,6 +32,7 @@ from . import (  # noqa: E402
     banc,
     config,
     juge,
+    manuel,
     memoire,
     montage,
     prompts,
@@ -69,10 +70,19 @@ def ecrire_texte(subject: str, duration: float, sentences: int) -> dict:
 
     texte, restants = redacteur.ecrire(subject, duration, sentences,
                                        on_attempt=a_chaque_tentative)
+    enregistrer_texte(texte)
+    montrer_texte(texte, restants)
+    return texte
+
+
+def enregistrer_texte(texte: dict) -> None:
     config.OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     config.TEXTE_FILE.write_text(
         json.dumps(texte, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
+
+def montrer_texte(texte: dict, restants: list) -> None:
+    """Le dossier du redacteur, lisible : la chaine, le choix, les objections."""
     print()
     print("  LA CHAÎNE PHYSIQUE")
     for maillon in texte["chain"]:
@@ -96,7 +106,6 @@ def ecrire_texte(subject: str, duration: float, sentences: int) -> dict:
         for probleme in restants:
             print(f"  ! {probleme}")
     log("OUTPUT", str(config.TEXTE_FILE))
-    return texte
 
 
 def construire(subject: str, duration: float, shot_count: int,
@@ -804,6 +813,154 @@ def cmd_valider(args) -> int:
     return 0
 
 
+# ---------------------------------------------------------------------------
+# LE MODE MANUEL : les memes prompts, colles a la main dans ChatGPT
+# ---------------------------------------------------------------------------
+
+
+def ecrire_fiche(nom: str, contenu: str) -> Path:
+    config.MANUEL_DIR.mkdir(parents=True, exist_ok=True)
+    chemin = config.MANUEL_DIR / nom
+    chemin.write_text(contenu, encoding="utf-8")
+    return chemin
+
+
+A_FAIRE = ("Ouvre ChatGPT, colle TOUT le bloc ci-dessous dans un message neuf, "
+           "et garde la conversation ouverte : c'est là que les corrections "
+           "reviendront.")
+
+
+def cmd_manuel(args) -> int:
+    """Le prompt exact de l'étape, écrit dans un fichier prêt à copier.
+
+    Aucun appel réseau : c'est le même texte que l'API aurait envoyé, rendu
+    sur le disque au lieu de partir chez OpenAI.
+    """
+    if args.etape == "texte":
+        fiches = [("texte.md", f"Étape 1 — la narration · {args.subject}",
+                   manuel.prompt_texte(args.subject, args.duration, args.shots))]
+    elif args.etape == "storyboard":
+        script = (lire_texte() or {}).get("script", "")
+        if not script:
+            log("ATTENTION", "aucun texte.json : le storyboard écrira lui-même la "
+                             "narration. Fais l'étape « texte » d'abord.")
+        fiches = [("storyboard.md", f"Étape 2 — le storyboard · {args.subject}",
+                   manuel.prompt_storyboard(args.subject, args.duration,
+                                            args.shots, script))]
+    else:
+        sb = charger()
+        plans = [sb.shot(args.shot)] if args.shot else sb.shots
+        fiches = [(f"plan_{s.id:02d}.md", f"Étape 3 — alignement du plan {s.id:02d}",
+                   manuel.prompt_alignement(sb, s)) for s in plans]
+
+    for nom, titre, prompt in fiches:
+        chemin = ecrire_fiche(nom, manuel.fiche(titre, prompt, A_FAIRE))
+        log("À COLLER", chemin_lisible(chemin))
+        if len(fiches) == 1:
+            print()
+            print(prompt)
+            print()
+
+    print()
+    log("ENSUITE", "colle la réponse de ChatGPT dans "
+                   f"{chemin_lisible(config.REPONSE_FILE)}, puis lance "
+                   f"« coller » avec la même étape.")
+    return 0
+
+
+def lire_reponse(args) -> str:
+    """Ce que ChatGPT a répondu : un fichier, ou l'entrée standard."""
+    if args.fichier == "-":
+        return sys.stdin.read()
+    chemin = Path(args.fichier)
+    if not chemin.is_file():
+        log("ERREUR", f"{chemin_lisible(chemin)} est absent.")
+        print("  Crée ce fichier avec la réponse de ChatGPT dedans, telle quelle,")
+        print("  puis relance. (Sur GitHub : « Add file » → « Create new file ».)")
+        raise SystemExit(4)
+    return chemin.read_text(encoding="utf-8")
+
+
+def rendre_correction(etape: str, nom: str, problemes: list) -> None:
+    """Ce qui cloche, mis en forme pour être recollé dans la même conversation."""
+    consigne = manuel.consigne(etape, problemes)
+    chemin = ecrire_fiche(nom, manuel.fiche(
+        "À recoller dans la MÊME conversation ChatGPT", consigne,
+        "Colle ce bloc à la suite, dans la conversation où tu as eu la réponse "
+        "— pas dans une nouvelle. Puis recolle sa nouvelle réponse et relance "
+        "« coller »."))
+    print()
+    print(consigne)
+    print()
+    log("À RECOLLER", chemin_lisible(chemin))
+
+
+def cmd_coller(args) -> int:
+    """La réponse de ChatGPT, contrôlée par les mêmes vérifications, hors ligne."""
+    brut = manuel.json_colle(lire_reponse(args))
+
+    if args.etape == "texte":
+        texte, problemes = manuel.relire_texte(brut, args.duration, args.shots)
+        enregistrer_texte(texte)
+        montrer_texte(texte, problemes)
+        if problemes:
+            rendre_correction("texte", "texte_correction.md", problemes)
+            return 1
+        log("OK", "le texte passe tous les contrôles.")
+        return 0
+
+    if args.etape == "storyboard":
+        sb, problemes = manuel.relire_storyboard(brut, args.duration, args.shots)
+        config.reset_shots()
+        config.ensure_dirs(len(sb.shots))
+        sb.save(config.PROJECT_FILE)
+        ecrire_elements(sb)
+        ecrire_identite(sb)
+        log("OUTPUT", chemin_lisible(config.PROJECT_FILE))
+        if problemes:
+            montrer_problemes(problemes)
+            rendre_correction("storyboard", "storyboard_correction.md", problemes)
+            return 1
+        log("OK", f"{len(sb.shots)} plans validés.")
+        return 0
+
+    if not args.shot:
+        log("ERREUR", "dis quel plan : --shot 3. L'alignement se colle un plan "
+                      "à la fois, comme il se demande.")
+        return 4
+    sb = charger()
+    s = sb.shot(args.shot)
+    avant = aligner.problemes_valides(sb, s)
+    plan, problemes = manuel.relire_alignement(sb, s, brut)
+    apres = aligner.problemes_valides(sb, s, plan)
+
+    # La meme garantie qu'en automatique : un realignement n'a pas le droit
+    # de degrader le plan, meme s'il vient d'un humain qui a copie-colle.
+    if len(apres) > len(avant):
+        log("REFUS", f"plan {s.id:02d} : {len(apres)} manquement(s) contre "
+                     f"{len(avant)} avant — le plan d'origine est gardé.")
+        rendre_correction("aligner", f"plan_{s.id:02d}_correction.md",
+                          problemes or apres)
+        return 1
+
+    dossier = config.shot_dir(s.id)
+    dossier.mkdir(parents=True, exist_ok=True)
+    (dossier / "alignment.json").write_text(
+        json.dumps({"voice": s.voice, **plan}, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8")
+    aligner.appliquer(s, plan)
+    sb.save(config.PROJECT_FILE)
+    ecrire_elements(sb)
+    log("OK", f"plan {s.id:02d} · test sans le son : {plan['mute_test']} · "
+              f"{len(avant)} → {len(apres)} manquement(s)")
+    print(f"  comprendre : {plan['understanding']}")
+    print(f"  action     : {plan['chosen']}")
+    if problemes:
+        rendre_correction("aligner", f"plan_{s.id:02d}_correction.md", problemes)
+        return 1
+    return 0
+
+
 def cmd_banc(args) -> int:
     """Chaque contrôle, rejoué sur tous les storyboards déjà produits."""
     log("BANC", "Relecture des storyboards de l'historique...")
@@ -922,6 +1079,22 @@ def build_parser() -> argparse.ArgumentParser:
     p_banc.add_argument("--limite", type=int, default=0,
                         help="ne regarder que les N plateaux les plus récents")
     p_banc.set_defaults(func=cmd_banc)
+
+    p_man = commun(sub.add_parser(
+        "manuel", help="le prompt exact à coller dans ChatGPT (aucun appel, 0 €)"))
+    p_man.add_argument("--etape", choices=manuel.ETAPES, default="texte")
+    p_man.add_argument("--shot", type=int, default=0,
+                       help="pour « aligner » : un seul plan (défaut : tous)")
+    p_man.set_defaults(func=cmd_manuel)
+
+    p_col = commun(sub.add_parser(
+        "coller", help="la réponse de ChatGPT, contrôlée hors ligne"))
+    p_col.add_argument("--etape", choices=manuel.ETAPES, default="texte")
+    p_col.add_argument("--shot", type=int, default=0,
+                       help="pour « aligner » : le plan concerné")
+    p_col.add_argument("--fichier", default=str(config.REPONSE_FILE),
+                       help="le fichier où tu as collé la réponse (- pour l'entrée standard)")
+    p_col.set_defaults(func=cmd_coller)
 
     sub.add_parser("selfcheck", help="état de la configuration").set_defaults(func=cmd_selfcheck)
     return parser

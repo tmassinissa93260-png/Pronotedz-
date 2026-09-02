@@ -130,6 +130,10 @@ IMAGES_DIR = Path(env("IMAGES_DIR") or OUTPUT_DIR / "images")
 # L'utilisateur depose ici les videos qu'il a produites lui-meme.
 VIDEOS_DIR = Path(env("VIDEOS_DIR") or OUTPUT_DIR / "videos")
 TEXTE_FILE = OUTPUT_DIR / "texte.json"
+# Le mode manuel : les prompts a coller dans ChatGPT, et la reponse
+# rapportee. Rien ici ne part sur le reseau.
+MANUEL_DIR = OUTPUT_DIR / "manuel"
+REPONSE_FILE = MANUEL_DIR / "reponse.json"
 ELEMENTS_FILE = OUTPUT_DIR / "elements.md"
 TIMELINE_FILE = OUTPUT_DIR / "timeline.json"
 SRT_FILE = OUTPUT_DIR / "sous_titres.srt"

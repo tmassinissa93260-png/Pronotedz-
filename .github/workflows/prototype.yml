@@ -34,6 +34,17 @@
 #                          dans la mémoire et serviront aux vidéos suivantes.
 #    « montage »         → timeline calée sur la voix, sous-titres, MP4.
 #
+#  SANS CRÉDIT OPENAI, deux étapes de plus — les mêmes prompts, à la main :
+#
+#    « manuel »          → écrit le prompt EXACT de l'étape choisie dans
+#                          app/output/manuel/. Tu le copies (GitHub pose un
+#                          bouton « copier » sur le bloc), tu le colles dans
+#                          ChatGPT. Aucun appel, aucune clé, 0 €.
+#    « coller »          → tu déposes la réponse de ChatGPT dans
+#                          app/output/manuel/reponse.json, et elle passe LES
+#                          MÊMES contrôles, hors ligne. Ce qui cloche revient
+#                          en un bloc à recoller dans la même conversation.
+#
 #  Le storyboard n'est jamais accepté sur parole : validator.py le vérifie,
 #  et ce qui échoue repart chez OpenAI pour correction.
 # ═══════════════════════════════════════════════════════════════════════
@@ -57,6 +68,8 @@ on:
           - controle
           - juger
           - montage
+          - manuel
+          - coller
       sujet:
         description: "Le sujet de la vidéo"
         required: false
@@ -74,6 +87,24 @@ on:
           pour atteindre le compte.
         required: false
         default: "20"
+        type: string
+      manuel_etape:
+        description: >-
+          Pour « manuel » et « coller » : de quelle étape il s'agit. « aligner »
+          se fait un plan à la fois — donne son numéro dans « plan ».
+        required: false
+        default: texte
+        type: choice
+        options:
+          - texte
+          - storyboard
+          - aligner
+      plan:
+        description: >-
+          Pour « manuel »/« coller » en mode « aligner » : le numéro du plan.
+          0 = tous (à l'écriture des prompts seulement).
+        required: false
+        default: "0"
         type: string
       style:
         description: >-
@@ -116,7 +147,8 @@ jobs:
         run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
 
       - name: Vérifier qu'un cerveau est disponible
-        if: inputs.etape != 'controle'
+        if: inputs.etape != 'controle' && inputs.etape != 'manuel'
+            && inputs.etape != 'coller'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
@@ -212,6 +244,36 @@ jobs:
           fi
           python -m app.main analyser-videos
 
+      - name: Le prompt à coller dans ChatGPT
+        if: inputs.etape == 'manuel'
+        env:
+          STYLE_DIRECTIVE: ${{ inputs.style }}
+        run: |
+          python -m app.main manuel \
+            --etape "${{ inputs.manuel_etape }}" \
+            --shot "${{ inputs.plan }}" \
+            --subject "${{ inputs.sujet }}" \
+            --duration "${{ inputs.duree }}" \
+            --shots "${{ inputs.plans }}"
+
+      - name: La réponse de ChatGPT, contrôlée hors ligne
+        if: inputs.etape == 'coller'
+        env:
+          STYLE_DIRECTIVE: ${{ inputs.style }}
+        run: |
+          if [ ! -f app/output/manuel/reponse.json ]; then
+            echo "::error::app/output/manuel/reponse.json est absent."
+            echo "Colle la réponse de ChatGPT dans ce fichier (GitHub : Add file →"
+            echo "Create new file), commite-la dans la branche, puis relance."
+            exit 1
+          fi
+          python -m app.main coller \
+            --etape "${{ inputs.manuel_etape }}" \
+            --shot "${{ inputs.plan }}" \
+            --subject "${{ inputs.sujet }}" \
+            --duration "${{ inputs.duree }}" \
+            --shots "${{ inputs.plans }}"
+
       - name: Timeline, sous-titres et montage
         if: inputs.etape == 'montage'
         env:
@@ -225,6 +287,9 @@ jobs:
           {
             echo "## Prototype — étape \`${{ inputs.etape }}\`"
             echo
+            for fiche in app/output/manuel/*.md; do
+              [ -f "$fiche" ] && cat "$fiche"
+            done
             if [ -f app/output/elements.md ]; then
               cat app/output/elements.md
             fi
@@ -270,6 +335,7 @@ jobs:
                      app/output/timeline.json app/output/sous_titres.srt
                      app/output/controle_videos.md app/output/identite.md
                      app/output/memoire/plans.json app/output/texte.json
+                     app/output/manuel/*.md
                      app/output/shots/*/verdict.json
                      app/output/shots/*/image_analysis.json
                      app/output/shots/*/image_prompt.txt

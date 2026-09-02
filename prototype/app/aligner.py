@@ -33,12 +33,7 @@ def aligner_plan(sb: Storyboard, shot: Shot,
     """Rend le plan realigne, et ce qui n'a pas pu etre corrige."""
     base = [
         {"role": "system", "content": prompts.ALIGNMENT_SYSTEM},
-        {"role": "user", "content": prompts.alignment_user(
-            shot.voice, shot.educational_function, shot.visual_concept,
-            sb.visual_bible.as_block(), _code_couleur(sb),
-            shot.image_prompt, shot.animation_prompt,
-            memoire.bloc(memoire.exemples(shot.voice, shot.educational_function,
-                                          sb.subject)))},
+        {"role": "user", "content": demande(sb, shot)},
     ]
 
     meilleur, restants = None, ["aucune reponse exploitable"]
@@ -64,6 +59,32 @@ def aligner_plan(sb: Storyboard, shot: Shot,
             meilleur, restants = plan, problemes
 
     return meilleur, restants
+
+
+def demande(sb: Storyboard, shot: Shot) -> str:
+    """Ce qu'on envoie pour ce plan : la methode, puis le plan.
+
+    Sortie de la boucle pour que le mode manuel colle EXACTEMENT le meme
+    texte dans ChatGPT — un prompt manuel qui differe du prompt automatique
+    est un troisieme systeme a maintenir.
+    """
+    return prompts.alignment_user(
+        shot.voice, shot.educational_function, shot.visual_concept,
+        sb.visual_bible.as_block(), _code_couleur(sb),
+        shot.image_prompt, shot.animation_prompt,
+        memoire.bloc(memoire.exemples(shot.voice, shot.educational_function,
+                                      sb.subject)))
+
+
+def relire(sb: Storyboard, shot: Shot, brut: object) -> tuple[dict, list[str]]:
+    """Un realignement venu d'ailleurs, juge par les memes controles."""
+    plan = _normaliser(brut)
+    return plan, _problemes(sb, shot, plan)
+
+
+def consigne(problemes: list[str]) -> str:
+    """La consigne de correction, telle que la boucle la renvoie."""
+    return _correction(problemes)
 
 
 # ---------------------------------------------------------------------------
