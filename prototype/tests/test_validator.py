@@ -212,6 +212,33 @@ class TestExplicationVisuelle(unittest.TestCase):
         self.assertEqual([x for x in valider(board()) if x.code == "EXPLICATION"], [])
 
 
+class TestGenerable(unittest.TestCase):
+    """Un prompt que le generateur refuse ne vaut rien, meme parfait."""
+
+    def test_l_intention_nommee_est_refusee(self):
+        raw = board()
+        raw["shots"][0]["image_prompt"] = IMAGE.replace(
+            "Macro shot", "Macro shot, the thieves at work,")
+        p = [x for x in valider(raw) if x.code == "REFUS"]
+        self.assertTrue(p)
+        self.assertIn("thieves", str(p[0]))
+
+    def test_l_animation_aussi(self):
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = ANIMATION.replace(
+            "Animate", "The attacker smashes the glass. Animate")
+        self.assertTrue([x for x in valider(raw) if x.code == "REFUS"])
+
+    def test_la_narration_garde_ses_mots(self):
+        """Elle n'est jamais envoyee a un generateur d'image."""
+        raw = board()
+        raw["shots"][0]["voice"] = "Les voleurs ouvrent la voiture en trente secondes."
+        self.assertEqual([x for x in valider(raw) if x.code == "REFUS"], [])
+
+    def test_un_prompt_technique_passe(self):
+        self.assertEqual([x for x in valider(board()) if x.code == "REFUS"], [])
+
+
 class TestAncrage(unittest.TestCase):
     """L'image est le premier plan de l'animation, pas une illustration."""
 

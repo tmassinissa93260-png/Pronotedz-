@@ -94,7 +94,7 @@ PLANS = [
         "flat black box in one hand. Position: eight metres of wet cobblestone between "
         "the figure and the car, a neon sign glowing above the shopfront behind them "
         "both. A red luminous glow spreads outward from the box across the car's flank "
-        "and settles along its panel seams, clearly representing the intrusion "
+        "and settles along its panel seams, clearly representing the radio command "
         "reaching the vehicle. Camera: static wide view at chest height, shallow depth "
         "of field so the figure is sharp and the far end of the street falls into "
         "bokeh. Lighting: warm street lamp from above left, cold neon wash from the "
@@ -130,7 +130,7 @@ PLANS += [
         "chest height; mannequin 1 in the fitted dark black polo shirt holds an "
         "identical box against the car's driver door, eight metres away at the same "
         "height. A red luminous beam opens between the two boxes across the wet "
-        "cobblestone, clearly representing the link the thieves add. Camera: static "
+        "cobblestone, clearly representing the added link between them. Camera: static "
         "wide view at chest height, shallow depth of field so both figures are sharp "
         "and the courtyard gate falls into bokeh. Lighting: warm street lamp from "
         "above left, cold LED glow from each box, deep shadow across the ground. "
@@ -355,8 +355,8 @@ PLANS += [
         "Des pirates percent sous l'aile avant et se branchent sur le câble du phare.", 4.5,
         "Macro shot of the underside of the front left wing of the dark near-black "
         "car, the white plastic hands of mannequin 1 entering from below, a small "
-        "drilled hole through the black plastic liner at centre frame. Position: a "
-        "thin steel probe passes through that hole from below and clamps directly onto "
+        "round service opening in the black plastic liner at centre frame. Position: a "
+        "thin steel probe passes through that opening from below and clamps directly onto "
         "the exposed headlight cable, where the twisted pair of the CAN bus is "
         "spliced. Blue luminous pulses travel rightwards along that pair toward the "
         "control unit, clearly representing the frames already running on the bus, and "
@@ -366,7 +366,7 @@ PLANS += [
         "across the liner, warm street lamp rim along the cable sheath, deep shadow in "
         "the arch. Materials: textured black plastic liner, braided grey sheath, bare "
         "copper strands at the splice, bright steel probe, matte white plastic skin.",
-        "The steel probe advances through the hole and closes onto the cable, and as "
+        "The steel probe advances through the opening and closes onto the cable, and as "
         "the clamp seats, the red glow around it steadily builds while the blue pulses "
         "keep travelling rightwards along the pair, undisturbed, until the clamp is "
         "fully lit. The liner, the cable and the hands stay perfectly rigid once the "
@@ -522,13 +522,13 @@ PLANS += [
     ),
     (
         "Un pirate copie leur signal et annonce une crevaison qui n'existe pas.", 4.5,
-        "Medium night shot of mannequin 2 in the heather grey hoodie crouching at the "
+        "Medium night shot of mannequin 2 in the heather grey hoodie kneeling at the "
         "kerb beside the dark near-black car, a small handheld radio unit held toward "
         "the front wheel. Position: the figure fills frame left, the wheel and its "
         "arch fill frame right, half a metre of wet cobblestone between the unit and "
         "the tyre. Red luminous pulses leave the handheld unit and travel toward the "
         "wheel arch in exactly the same shape and spacing as the blue ones still "
-        "leaving the sensor inside the rim, clearly representing a forged reading. "
+        "leaving the sensor inside the rim, clearly representing a second reading sent from outside the wheel. "
         "Camera: static medium view at hub height, shallow depth of field so the unit "
         "and the tyre are sharp and the street falls into bokeh. Lighting: warm street "
         "lamp from above right, cold LED glow from the handheld unit, deep shadow in "
@@ -539,7 +539,7 @@ PLANS += [
         "them until red and blue rise through the arch together at the same rhythm. "
         "The figure, the unit and the wheel stay perfectly rigid. The camera holds "
         "still." + FIN,
-        "red forged pulses leaving the handheld unit in the same shape as the blue ones",
+        "red pulses leaving the handheld unit in the same shape as the blue ones",
         "Montre la copie : le faux signal a exactement la forme du vrai.",
         "energy_flow",
         {"information": "le faux signal a la même forme que celui du capteur",
@@ -559,8 +559,8 @@ PLANS += [
         "filling frame right. Position: the cluster sits below the steering wheel rim, "
         "its dials dark; beyond the glass the hard shoulder and its white line run "
         "away into the night. Red luminous pulses arrive at the cluster from below and "
-        "spread across its face, clearly representing the forged reading being "
-        "believed; a red glow settles on the tyre-pressure indicator well. Camera: "
+        "spread across its face, clearly representing the reading the cluster accepts "
+        "as its own; a red glow settles on the tyre-pressure indicator well. Camera: "
         "static medium view from the passenger seat at cluster height, shallow depth "
         "of field so the dials are sharp and the road beyond falls into bokeh. "
         "Lighting: cold cluster backlight from within, warm sodium light sweeping "
@@ -724,8 +724,8 @@ BOARD = {
         {"notion": "signal", "color": "blue", "moving": True,
          "meaning": "the legitimate radio and data frames the car's own parts exchange"},
         {"notion": "intrusion", "color": "red", "moving": True,
-         "meaning": "everything the attacker adds — the relay, the injected frames, "
-                    "the forged sensor readings"},
+         "meaning": "everything added from outside the car — the relay link, the "
+                    "injected frames, the second sensor reading"},
         {"notion": "controle", "color": "green", "moving": True,
          "meaning": "the commands the driver puts back on the same bus on purpose"},
         {"notion": "mecanique", "color": "grey", "moving": False,

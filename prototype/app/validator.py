@@ -253,6 +253,30 @@ BOUCLE = ("cyclical", "cyclically", "in a loop", "a loop", "continuous loop",
           "closed loop", "energy cycle", "cycle of energy", "loops back", "endless")
 
 # L'energie n'est ni de la fumee ni des paillettes.
+# LE PROMPT DOIT ETRE GENERABLE.
+#
+# Un prompt parfait que le generateur refuse ne vaut rien. Et ce qui le fait
+# refuser n'est presque jamais ce qu'on VOIT — une pince sur un cable, un pene
+# qui remonte, un boitier contre une porte — mais l'INTENTION qu'on prete a la
+# scene en la nommant : « the thieves », « the attacker », « a drilled hole ».
+# Le generateur ne sait pas juger une intention, alors il refuse.
+#
+# Le prompt photo decrit ce qui est DANS LE CADRE. L'intention, elle, est le
+# travail de la narration — et la narration ne part chez aucun generateur
+# d'image : elle garde ses mots, voleurs et pirates compris. Ce controle ne
+# regarde donc que les deux textes qu'on colle dans un generateur.
+NON_GENERABLE = (
+    "thief", "thieves", "theft", "steal", "steals", "stealing", "stolen",
+    "burglar", "burglary", "rob", "robs", "robbery", "hacker", "hackers",
+    "hacking", "attacker", "attackers", "intruder", "intruders", "intrusion",
+    "criminal", "criminals", "gang", "break in", "breaking in", "break-in",
+    "forced entry", "pry", "prying", "crowbar", "smash", "smashes", "smashing",
+    "smashed", "shatter", "shatters", "shattering", "shattered", "tamper",
+    "tampers", "tampering", "sabotage", "victim", "illegal", "forge", "forged",
+    "forging", "drilled hole", "drilling into", "drill through", "crouching",
+    "lurking", "suspicious",
+)
+
 # Meme regle, meme raison : « smoke » vit dans « smoked glass », qui est un
 # materiau, pas de la fumee. On liste donc les flexions et on cherche le mot
 # entier.
@@ -338,6 +362,7 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _correspondance(sb)
     problems += _explication(sb)
     problems += _ancrage(sb)
+    problems += _generable(sb)
     problems += _dynamique(sb)
     problems += _physique(sb)
     problems += _texte(sb)
@@ -953,6 +978,32 @@ def _physique(sb: Storyboard) -> list[Problem]:
                                    f"near-black electric sedan in every shot — same geometry, "
                                    f"proportions, wheels, glass, materials. Never redesign, "
                                    f"replace or recolour it between shots."))
+    return out
+
+
+def _generable(sb: Storyboard) -> list[Problem]:
+    """Ce qu'on colle dans un generateur doit pouvoir en sortir.
+
+    Le run des vingt plans sur la securite automobile l'a montre : les prompts
+    etaient corrects et le generateur les refusait, sur six mots qui nommaient
+    l'intention au lieu du cadre.
+    """
+    out = []
+    for s in sb.shots:
+        for ou, texte in (("le prompt photo", s.image_prompt),
+                          ("l'animation", s.animation_prompt)):
+            mots = presents(NON_GENERABLE, texte.lower())
+            if not mots:
+                continue
+            out.append(Problem(
+                "REFUS", s.slug,
+                f"{ou} nomme l'intention (« {mots[0]} ») : le generateur refusera",
+                f"Shot {s.id}: remove « {' », « '.join(mots[:3])} » from the prompt. "
+                f"Describe what is IN THE FRAME — the tool, the part, the movement — "
+                f"never who is acting or why. A test lead clipped onto a cable, a "
+                f"service opening in a liner, a second reading arriving from outside: "
+                f"same picture, and the generator returns it. The narration keeps those "
+                f"words; it is never sent to an image generator."))
     return out
 
 
