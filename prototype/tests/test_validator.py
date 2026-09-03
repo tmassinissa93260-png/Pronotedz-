@@ -193,6 +193,24 @@ class TestExplicationVisuelle(unittest.TestCase):
 class TestAncrage(unittest.TestCase):
     """L'image est le premier plan de l'animation, pas une illustration."""
 
+    def test_l_objet_nomme_en_anglais_est_trouve_directement(self):
+        """Le champ est un pointeur dans le prompt photo, qui est en anglais.
+
+        Le dictionnaire francais->anglais ne couvre que les pieces d'une
+        voiture electrique : sur tout autre sujet — un barillet, un boitier,
+        une aile — il ne traduit rien et le controle s'allume sur chaque plan.
+        Le prompt demande donc ce champ EN ANGLAIS, nomme comme dans l'image.
+        """
+        raw = board()
+        raw["shots"][0]["visual_explanation"]["physical_element"] = "the copper busbars"
+        self.assertEqual([x for x in valider(raw) if x.code == "ANCRAGE"], [])
+
+    def test_un_objet_absent_de_l_image_est_toujours_refuse(self):
+        raw = board()
+        raw["shots"][0]["visual_explanation"]["physical_element"] = "the brake caliper"
+        p = [x for x in valider(raw) if x.code == "ANCRAGE"]
+        self.assertIn("brake caliper", str(p[0]))
+
     def test_une_destination_ne_met_rien_dans_le_cadre(self):
         """Le defaut vu en production sur le plan du freinage regeneratif :
         l'animation ramene l'energie « vers la batterie », le prompt photo ne

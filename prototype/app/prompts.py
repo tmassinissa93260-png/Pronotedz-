@@ -352,7 +352,12 @@ An image that is only beautiful is rejected. For EVERY shot, answer these seven
 questions IN ORDER, and only then write the prompts. Fill
 "visual_explanation" with the seven answers:
   1. information        WHICH information must be understood, in one sentence
-  2. physical_element   WHICH single object lets you show it
+  2. physical_element   WHICH single object lets you show it — IN ENGLISH,
+                        named with the SAME word you will use for it in the
+                        image prompt. This field is a pointer into that
+                        prompt: a machine checks that the object is really
+                        in the picture, and it can only do that if the two
+                        texts call it by the same name.
   3. secondary_elements WHICH other objects are needed to make it readable
   4. visual_behavior    WHICH visible phenomenon represents that information
   5. animation_movement WHICH movement will animate it
@@ -625,7 +630,8 @@ concretely, e.g. yellow energy flow entering the stator windings",
       "motion_intent": "one value from the list above",
       "visual_explanation": {{
         "information": "which information must be understood here",
-        "physical_element": "the single object that lets you show it",
+        "physical_element": "IN ENGLISH, the single object that lets you show \
+it, named exactly as in the image prompt",
         "secondary_elements": "the other objects needed to make it readable",
         "visual_behavior": "the visible phenomenon that represents it",
         "animation_movement": "the movement that will animate it",
@@ -793,7 +799,9 @@ Return only this JSON:
   "image_prompt": "in English, very detailed, ending with the art direction",
   "animation_prompt": "in English, that same action, moving, progressing in time",
   "visual_explanation": {{
-    "information": "...", "physical_element": "...", "secondary_elements": "...",
+    "information": "...",
+    "physical_element": "IN ENGLISH, named exactly as in the image prompt",
+    "secondary_elements": "...",
     "visual_behavior": "...", "animation_movement": "...",
     "camera_position": "...", "composition": "..."
   }}
