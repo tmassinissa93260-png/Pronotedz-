@@ -96,6 +96,28 @@ class TestCorrespondance(unittest.TestCase):
     def test_une_animation_complete_passe(self):
         self.assertEqual([x for x in valider(board()) if x.code == "CORRESPONDANCE"], [])
 
+    def test_un_panneau_n_est_pas_un_panoramique(self):
+        """« pan » vit dans « panel ». Une animation qui nommait les joints de
+        carrosserie etait lue comme un mouvement de camera, donc comme vide."""
+        self.assertTrue(validator._mouvement_non_camera(
+            "The red glow travels up the flank and settles along the panel seams."))
+        self.assertFalse(validator._mouvement_non_camera(
+            "The camera pans slowly across the bodywork."))
+
+    def test_du_verre_fume_n_est_pas_de_la_fumee(self):
+        """« smoke » vit dans « smoked glass », qui est un materiau."""
+        raw = board()
+        raw["shots"][0]["image_prompt"] = IMAGE.replace(
+            "brushed aluminium casing", "brushed aluminium casing, smoked glass")
+        self.assertEqual([x for x in valider(raw) if x.code == "PHYSIQUE"], [])
+
+    def test_mais_la_vraie_fumee_est_toujours_refusee(self):
+        raw = board()
+        raw["shots"][0]["animation_prompt"] = ANIMATION.replace(
+            "The camera performs", "The energy drifts as smoke. The camera performs")
+        p = [x for x in valider(raw) if x.code == "PHYSIQUE"]
+        self.assertIn("decor", str(p[0]))
+
     def test_mouvement_hors_camera_detecte(self):
         self.assertTrue(validator._mouvement_non_camera(
             "The rotor rotates. The camera slowly pushes in."))

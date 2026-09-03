@@ -203,8 +203,13 @@ VAGUE = ("notamment", "principalement", "généralement", "différentes formes",
          "de manière", "il est possible", "on peut dire")
 
 # Mouvements de camera : ils ne comptent pas comme mouvement pedagogique.
-CAMERA = ("camera", "zoom", "dolly", "pan", "tilt", "orbit", "push in", "pull out",
-          "tracking shot")
+# Les mouvements d'appareil, avec leurs flexions. Ils sont cherches comme des
+# MOTS ENTIERS : « pan » vit dans « panel », et une animation qui nommait les
+# joints de carrosserie — « settles along the panel seams » — etait lue comme
+# un mouvement de camera, donc comme une animation vide. Le plan etait bon.
+CAMERA = ("camera", "zoom", "zooms", "zooming", "dolly", "dollies", "pan", "pans",
+          "panning", "tilt", "tilts", "tilting", "orbit", "orbits", "orbiting",
+          "push in", "pull out", "tracking shot")
 
 # Composant nomme -> mouvement attendu si l'image le met en avant.
 COMPOSANT_MOUVEMENT = {
@@ -248,8 +253,13 @@ BOUCLE = ("cyclical", "cyclically", "in a loop", "a loop", "continuous loop",
           "closed loop", "energy cycle", "cycle of energy", "loops back", "endless")
 
 # L'energie n'est ni de la fumee ni des paillettes.
-DECORATIF = ("smoke", "sparkle", "glitter", "lens flare", "floating particle",
-             "randomly", "magical", "fairy")
+# Meme regle, meme raison : « smoke » vit dans « smoked glass », qui est un
+# materiau, pas de la fumee. On liste donc les flexions et on cherche le mot
+# entier.
+DECORATIF = ("smoke", "smokes", "smoky", "sparkle", "sparkles", "sparkling",
+             "glitter", "glitters", "glittering", "lens flare", "lens flares",
+             "floating particle", "floating particles", "randomly", "magical",
+             "fairy")
 
 # La voiture est sombre, presque noire, et elle ne change pas de plan en plan.
 VEHICULE_NOMS = ("car", "sedan", "vehicle", "bodywork", "body", "chassis", "paint")
@@ -560,6 +570,16 @@ def _forme(mot: str) -> str:
     return rf"\b{re.escape(radical)}(e?s|es|ing|ed|e)?\b"
 
 
+def presents(mots: tuple[str, ...], texte: str) -> list[str]:
+    """Ceux de `mots` presents comme MOTS ENTIERS dans le texte.
+
+    La sous-chaine ment, et elle a coute deux plans corrects sur vingt : « pan »
+    vit dans « panel », « smoke » dans « smoked glass ». Les flexions sont
+    listees dans les tuples eux-memes, pas devinees ici.
+    """
+    return [m for m in mots if re.search(rf"\b{re.escape(m)}\b", texte)]
+
+
 def mot_present(mot: str, texte: str) -> bool:
     """Mot entier, flexions tolerees. « engine » ne matche pas
     « engineering », mais « winding » matche « windings » et « brake »
@@ -631,7 +651,7 @@ def notions_pedagogiques(texte: str, table: dict[str, str] | None = None) -> set
 def _mouvement_non_camera(texte: str) -> bool:
     """Vrai s'il reste un mouvement une fois les phrases de camera retirees."""
     phrases = re.split(r"[.;]", texte.lower())
-    utiles = [p for p in phrases if not any(c in p for c in CAMERA)]
+    utiles = [p for p in phrases if not presents(CAMERA, p)]
     return any(v in " ".join(utiles) for v in MOUVEMENT)
 
 
@@ -819,7 +839,7 @@ def _ancrage(sb: Storyboard) -> list[Problem]:
 def _hors_camera(texte: str) -> str:
     """Le texte prive de ses phrases de camera."""
     phrases = re.split(r"[.;]", texte.lower())
-    return " ".join(p for p in phrases if not any(c in p for c in CAMERA))
+    return " ".join(p for p in phrases if not presents(CAMERA, p))
 
 
 def _acteur(mot: str, proposition: str) -> bool:
@@ -909,7 +929,7 @@ def _physique(sb: Storyboard) -> list[Problem]:
                                    f"this shot, and follow it from where the phenomenon "
                                    f"starts to where it arrives."))
 
-            decoratifs = [d for d in DECORATIF if d in bas]
+            decoratifs = presents(DECORATIF, bas)
             if decoratifs:
                 out.append(Problem("PHYSIQUE", s.slug,
                                    f"{ou} traite l'energie en decor "
