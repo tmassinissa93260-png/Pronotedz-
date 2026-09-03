@@ -517,14 +517,20 @@ def _style(sb: Storyboard) -> list[Problem]:
 # --- precision et continuite ------------------------------------------------
 
 
-def own_part(image_prompt: str) -> str:
+def own_part(image_prompt: str, empreinte: str = "") -> str:
     """Le prompt photo prive de la direction artistique commune.
 
     On COUPE a la signature : la supprimer d'abord rendrait la coupe
     introuvable et laisserait la fin de la phrase de style passer pour du
     contenu propre au plan.
+
+    `empreinte` est celle DU PLATEAU. Sans elle on retombe sur celle du
+    processus, qui n'est la bonne que si personne n'a change de direction
+    artistique entre la production et la relecture — et c'est exactement ce
+    qui s'est produit deux fois.
     """
-    debut = image_prompt.lower().find(STYLE_FINGERPRINT.lower())
+    marque = (empreinte or STYLE_FINGERPRINT).lower()
+    debut = image_prompt.lower().find(marque)
     return image_prompt if debut < 0 else image_prompt[:debut]
 
 
@@ -543,7 +549,7 @@ def familles_absentes(image_prompt: str) -> list[str]:
 def _precision(sb: Storyboard) -> list[Problem]:
     out = []
     for s in sb.shots:
-        propre = own_part(s.image_prompt)
+        propre = own_part(s.image_prompt, sb.empreinte())
         if len(propre.strip()) < MIN_IMAGE_PROMPT_CHARS:
             out.append(Problem("PRECISION", s.slug,
                                f"prompt photo trop general ({len(propre.strip())} caracteres "
@@ -575,7 +581,9 @@ def _continuite(sb: Storyboard) -> list[Problem]:
                     "le prompt photo ne reprend rien de la visual_bible",
                     f"Shot {s.id}: restate the subject, the environment and the materials "
                     f"fixed by visual_bible, so every shot shows the same object.")
-            for s in sb.shots if not any(a in own_part(s.image_prompt).lower() for a in ancres)]
+            for s in sb.shots
+            if not any(a in own_part(s.image_prompt, sb.empreinte()).lower()
+                       for a in ancres)]
 
 
 def _ancres(sb: Storyboard) -> list[str]:
@@ -592,7 +600,7 @@ def _alignement(sb: Storyboard) -> list[Problem]:
         # own_part et pas le prompt entier : la direction artistique contient
         # « 3D engineering visualization », dont le « engine » suffisait a faire
         # croire qu'un moteur etait montre.
-        manquants = _non_montres(s.voice, own_part(s.image_prompt))
+        manquants = _non_montres(s.voice, own_part(s.image_prompt, sb.empreinte()))
         if manquants:
             out.append(Problem("ALIGNEMENT", s.slug,
                                f"la voix parle de {', '.join(manquants)} — "
@@ -741,7 +749,7 @@ def _correspondance(sb: Storyboard) -> list[Problem]:
     table = sb.notion_par_couleur()
     mobiles_du_sujet = set(sb.notions_mobiles())
     for s in sb.shots:
-        image, anim = own_part(s.image_prompt), s.animation_prompt
+        image, anim = own_part(s.image_prompt, sb.empreinte()), s.animation_prompt
         bas_anim = anim.lower()
 
         notions_image = notions_pedagogiques(image, table)
@@ -849,7 +857,7 @@ def _ancrage(sb: Storyboard) -> list[Problem]:
     """
     out = []
     for s in sb.shots:
-        image = own_part(s.image_prompt)
+        image = own_part(s.image_prompt, sb.empreinte())
         anim = s.animation_prompt
 
         # 1. L'objet principal du raisonnement doit etre dans l'image.
@@ -974,7 +982,7 @@ def _physique(sb: Storyboard) -> list[Problem]:
     """Ce qui est montre doit rester vrai, et l'energie rester de l'energie."""
     out = []
     for s in sb.shots:
-        image, anim = own_part(s.image_prompt), s.animation_prompt
+        image, anim = own_part(s.image_prompt, sb.empreinte()), s.animation_prompt
         for ou, texte in (("le prompt photo", image), ("l'animation", anim)):
             bas = texte.lower()
 
@@ -1193,7 +1201,8 @@ def _code_couleur(sb: Storyboard) -> list[Problem]:
     # texte ferait matcher le « blue » de la direction artistique.
     table = sb.notion_par_couleur()
     jamais = [e.notion for e in sb.color_code if e.moving
-              and not any(e.notion in notions_pedagogiques(own_part(s.image_prompt), table)
+              and not any(e.notion in notions_pedagogiques(
+                  own_part(s.image_prompt, sb.empreinte()), table)
                           for s in sb.shots)]
     # Le code couleur est une convention VISUELLE : la voix ne la dit pas.
     # Au run 34 le script annoncait « ce signal infrarouge rouge », ce qui

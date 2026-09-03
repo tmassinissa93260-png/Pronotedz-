@@ -34,6 +34,7 @@ from . import (  # noqa: E402
     juge,
     manuel,
     memoire,
+    mesures,
     montage,
     prompts,
     redacteur,
@@ -123,6 +124,9 @@ def construire(subject: str, duration: float, shot_count: int,
 
     sb, problems = generate_storyboard(subject, duration, shot_count,
                                        on_attempt=a_chaque_tentative, script=script)
+    # Le plateau garde LA direction avec laquelle il a ete produit : c'est
+    # elle, et pas celle du prochain processus, qui dit ou finit le style.
+    sb.style_directive = prompts.STYLE_DIRECTIVE
     config.reset_shots()
     config.ensure_dirs(len(sb.shots))
     sb.save(config.PROJECT_FILE)
@@ -961,6 +965,31 @@ def cmd_coller(args) -> int:
     return 0
 
 
+def cmd_mesurer_videos(args) -> int:
+    """Format, durée et couleurs des vidéos rendues. Aucun appel, 0 €."""
+    sb = charger()
+    videos = trouver_videos(sb)
+    if not videos:
+        log("ERREUR", f"aucune vidéo dans {chemin_lisible(config.VIDEOS_DIR)}")
+        return 4
+
+    mesurees = mesures.mesurer(sb, videos)
+    texte = mesures.rapport(mesurees)
+    chemin = config.OUTPUT_DIR / "mesures_videos.md"
+    chemin.parent.mkdir(parents=True, exist_ok=True)
+    chemin.write_text(texte + "\n", encoding="utf-8")
+    print()
+    print(texte)
+    fautives = [m for m in mesurees if not m.ok]
+    log("OUTPUT", chemin_lisible(chemin))
+    if fautives:
+        log("ATTENTION", f"{len(fautives)} vidéo(s) sur {len(mesurees)} ne tiennent "
+                         f"pas le plan.")
+        return 1
+    log("OK", f"{len(mesurees)} vidéo(s) conformes au plan.")
+    return 0
+
+
 def cmd_banc(args) -> int:
     """Chaque contrôle, rejoué sur tous les storyboards déjà produits."""
     log("BANC", "Relecture des storyboards de l'historique...")
@@ -1060,6 +1089,9 @@ def build_parser() -> argparse.ArgumentParser:
                    ).set_defaults(func=cmd_analyser_videos)
     sub.add_parser("controle", help="les vidéos rendues face au plan : quoi refaire"
                    ).set_defaults(func=cmd_controle)
+    sub.add_parser("mesurer-videos",
+                   help="format, durée et couleurs des vidéos rendues (aucun appel)"
+                   ).set_defaults(func=cmd_mesurer_videos)
     sub.add_parser("juger", help="le juge aveugle : a-t-on compris sans le son ?"
                    ).set_defaults(func=cmd_juger)
 

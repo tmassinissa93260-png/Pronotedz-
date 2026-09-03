@@ -298,6 +298,19 @@ class Storyboard:
     shots: list[Shot] = field(default_factory=list)
     quality_check: dict = field(default_factory=dict)
     color_code: list[ColorEntry] = field(default_factory=list)
+    #: La direction artistique AVEC LAQUELLE ce plateau a ete produit. Elle
+    #: vivait dans l'environnement seulement : un plateau relu par un
+    #: processus qui n'a pas la meme STYLE_DIRECTIVE ne savait plus ou finit
+    #: le style et ou commence le plan, et tous les controles mesuraient le
+    #: prompt direction comprise. C'est le defaut du run 47, revenu par une
+    #: autre porte le jour ou les videos ont ete mesurees.
+    style_directive: str = ""
+
+    def empreinte(self) -> str:
+        """Ce qui marque, DANS CE PLATEAU, le debut de la direction artistique."""
+        from . import prompts
+        return (prompts.empreinte(self.style_directive) if self.style_directive
+                else prompts.STYLE_FINGERPRINT)
 
     @property
     def total_duration(self) -> float:
@@ -373,6 +386,7 @@ class Storyboard:
             shots=[Shot.from_dict(i, s) for i, s in enumerate(shots_raw)],
             quality_check={a: _nombre(qualite.get(a), f"quality_check.{a}") for a in QUALITY_AXES},
             color_code=_code_couleur(raw.get("color_code")),
+            style_directive=str(raw.get("style_directive") or "").strip(),
         )
 
 

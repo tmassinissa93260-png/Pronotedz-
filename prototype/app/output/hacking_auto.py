@@ -733,6 +733,7 @@ BOARD = {
         {"notion": "mecanique", "color": "grey", "moving": False,
          "meaning": "the bodywork, the lock, the wheels and the structure"},
     ],
+    "style_directive": os.environ["STYLE_DIRECTIVE"],
     "shots": [
         {"id": i + 1, "duration_seconds": p[1], "voice": p[0],
          "visual_description": f"Parisian street at night, the dark car, shot {i + 1}.",
@@ -789,3 +790,11 @@ def exporter(chemin: Path) -> None:
 
 if "--export" in sys.argv:
     exporter(Path("/home/user/Pronotedz-/prototype/app/output/hacking_auto.md"))
+
+if "--projet" in sys.argv:
+    from app import config
+    sb = Storyboard.from_dict(BOARD)
+    config.reset_shots()
+    config.ensure_dirs(len(sb.shots))
+    sb.save(config.PROJECT_FILE)
+    print(f"écrit : {config.PROJECT_FILE}")

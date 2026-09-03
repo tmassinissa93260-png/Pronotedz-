@@ -186,7 +186,7 @@ def _problemes(sb: Storyboard, shot: Shot, plan: dict) -> list[str]:
                    f"{MIN_MUTE_TEST}. Go back to step 3 and choose an action a "
                    f"viewer reads faster with the sound off.")
 
-    image = validator.own_part(plan["image_prompt"]).lower()
+    image = validator.own_part(plan["image_prompt"], sb.empreinte()).lower()
     mots = validator.mots_du_concept(plan["chosen"])
     presents = [m for m in mots if validator.mot_present(m, image)]
     if mots and len(presents) < len(mots) * PART_ACTION_EXIGEE:

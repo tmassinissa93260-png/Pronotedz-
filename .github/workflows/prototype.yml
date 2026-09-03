@@ -66,6 +66,7 @@ on:
           - affiner-tout
           - analyser-videos
           - controle
+          - mesurer-videos
           - juger
           - montage
           - manuel
@@ -144,12 +145,12 @@ jobs:
 
       - name: Installer ffmpeg
         if: inputs.etape == 'analyser-videos' || inputs.etape == 'montage'
-            || inputs.etape == 'juger'
+            || inputs.etape == 'juger' || inputs.etape == 'mesurer-videos'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
 
       - name: Vérifier qu'un cerveau est disponible
         if: inputs.etape != 'controle' && inputs.etape != 'manuel'
-            && inputs.etape != 'coller'
+            && inputs.etape != 'coller' && inputs.etape != 'mesurer-videos'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
@@ -226,6 +227,17 @@ jobs:
           fi
           python -m app.main juger
 
+      - name: Mesurer les vidéos rendues — format, durée, couleurs
+        if: inputs.etape == 'mesurer-videos'
+        run: |
+          if [ ! -d app/output/videos ]; then
+            echo "::error::app/output/videos absent."
+            echo "Dépose tes vidéos (shot_01.mp4, shot_03.mp4, …), commite-les,"
+            echo "puis relance cette étape. Aucune clé n'est nécessaire."
+            exit 1
+          fi
+          python -m app.main mesurer-videos
+
       - name: Le verdict sur les vidéos, sans rien réanalyser
         if: inputs.etape == 'controle'
         run: python -m app.main controle || true
@@ -294,6 +306,9 @@ jobs:
             if [ -f app/output/elements.md ]; then
               cat app/output/elements.md
             fi
+            if [ -f app/output/mesures_videos.md ]; then
+              cat app/output/mesures_videos.md
+            fi
             if [ -f app/output/controle_videos.md ]; then
               cat app/output/controle_videos.md
             fi
@@ -337,6 +352,7 @@ jobs:
                      app/output/controle_videos.md app/output/identite.md
                      app/output/memoire/plans.json app/output/texte.json
                      app/output/manuel/*.md
+                     app/output/mesures_videos.md
                      app/output/shots/*/verdict.json
                      app/output/shots/*/image_analysis.json
                      app/output/shots/*/image_prompt.txt

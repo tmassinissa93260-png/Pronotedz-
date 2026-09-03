@@ -69,6 +69,7 @@ def relire_storyboard(brut: object, duration: float,
                       shots: int) -> tuple[Storyboard, list]:
     """Le storyboard collé, mis en forme et validé — le validateur complet."""
     sb = Storyboard.from_dict(brut)
+    sb.style_directive = prompts.STYLE_DIRECTIVE
     for s in sb.shots:
         s.image_prompt = prompts.enforce_style(s.image_prompt)
     return sb, validator.validate(sb, duration, shots)
