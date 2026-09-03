@@ -167,6 +167,25 @@ class TestExplicationVisuelle(unittest.TestCase):
         p = [x for x in valider(raw) if x.code == "EXPLICATION"]
         self.assertIn("aucun mouvement reel", str(p[0]))
 
+    def test_un_mouvement_ecrit_en_francais_est_un_mouvement(self):
+        """Le champ est le seul du raisonnement que le schema ne demande pas en
+        anglais. Il etait juge sur un vocabulaire anglais : une phrase francaise
+        ne passait que si elle portait par hasard une racine anglaise."""
+        raw = board()
+        raw["shots"][0]["visual_explanation"]["animation_movement"] = (
+            "les impulsions bleues parcourent la paire torsadée jusqu'au "
+            "calculateur, dont les broches s'allument à leur arrivée")
+        self.assertEqual([x for x in valider(raw) if x.code == "EXPLICATION"], [])
+
+    def test_une_preposition_n_est_pas_un_mouvement(self):
+        """« entre » est ecarte du vocabulaire francais : c'est d'abord une
+        preposition, et « entre le pack et le moteur » ne bouge rien."""
+        raw = board()
+        raw["shots"][0]["visual_explanation"]["animation_movement"] = (
+            "une vue calme entre le pack et le moteur, sans rien d'autre")
+        p = [x for x in valider(raw) if x.code == "EXPLICATION"]
+        self.assertIn("aucun mouvement reel", str(p[0]))
+
     def test_une_explication_complete_passe(self):
         self.assertEqual([x for x in valider(board()) if x.code == "EXPLICATION"], [])
 

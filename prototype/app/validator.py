@@ -59,6 +59,21 @@ MOUVEMENT = ("flow", "travel", "move", "pulse", "circulat", "rotat", "spin", "tu
              "illuminat", "light up", "glow", "advance", "progress", "accelerat",
              "reverse", "enter", "exit", "rise", "propagat", "sweep")
 
+# Les memes verbes, en francais. `animation_movement` est le seul champ du
+# raisonnement que le schema ne demande PAS en anglais : le modele l'ecrit donc
+# en francais, et il etait juge sur un vocabulaire anglais. Il ne passait que
+# par accident — quand sa phrase francaise contenait par hasard une racine
+# anglaise (« progresse » porte « progress »). La fixture des tests trichait de
+# la meme facon : « le flux jaune travels along the busbars ».
+# On n'y met que des racines sans ambiguite : « entre » est ecarte, c'est
+# d'abord une preposition.
+MOUVEMENT_FR = ("parcour", "avance", "circul", "tourn", "pivot", "allum",
+                "traverse", "propag", "jaillit", "remonte", "descend", "monte",
+                "defile", "défile", "deplace", "déplace", "balaie", "glisse",
+                "accelere", "accélère", "repand", "répand", "rejoint", "arrive",
+                "part de", "partent", "ecoule", "écoule", "coule", "file vers",
+                "sort de", "gagne", "melent", "mêlent", "etend", "étend")
+
 # MULTI-MOTION : les familles de mouvement physique. Une animation qui n'en
 # porte qu'une seule ne donne au generateur qu'une chose a faire bouger, et
 # il comble le temps avec la camera — c'est ce qu'on a vu sur les plans 1 et 2.
@@ -708,7 +723,7 @@ def _explication(sb: Storyboard) -> list[Problem]:
             continue
 
         mouvement = s.visual_explanation["animation_movement"].lower()
-        if not any(v in mouvement for v in MOUVEMENT):
+        if not any(v in mouvement for v in MOUVEMENT + MOUVEMENT_FR):
             out.append(Problem("EXPLICATION", s.slug,
                                "animation_movement ne decrit aucun mouvement reel",
                                f"Shot {s.id}: animation_movement must name a real motion — a "
