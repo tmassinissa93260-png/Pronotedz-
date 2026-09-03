@@ -17,8 +17,8 @@ os.environ["STYLE_DIRECTIVE"] = (
 )
 
 sys.path.insert(0, str(Path("/home/user/Pronotedz-/prototype")))
-from app import prompts, validator          # noqa: E402
-from app.models import Storyboard           # noqa: E402
+from app import prompts, validator  # noqa: E402
+from app.models import Storyboard  # noqa: E402
 
 FIN = (" Preserve exact geometry, proportions and materials. "
        "No deformation, no floating parts.")
@@ -27,34 +27,36 @@ PLANS = [
     # (voix, duree, image, animation, concept, fonction, intent, explication)
     (
         "Ta voiture peut être volée en trente secondes.", 3.0,
-        "Macro shot of the driver's door handle and lock barrel of a modern dark "
-        "near-black car parked on a Parisian street at night, nobody within reach of "
-        "it. Position: the lock barrel fills the lower centre of the frame, the "
-        "handle running across above it, the locking pin visible through a technical "
-        "semi-cutaway of the door skin behind. Red luminous pulses arrive along the "
-        "inside of the door skin and sink into the barrel, clearly representing a "
-        "command the car never received from its owner. Camera: static macro at "
-        "handle height, shallow depth of field so the barrel is sharp and the street "
-        "behind falls into bokeh. Lighting: warm street lamp raking along the metal "
-        "from above left, cold neon rim on the upper edge of the handle, deep shadow "
-        "inside the door cavity. Materials: brushed steel barrel and pin, matte "
-        "near-black paint, chrome handle, tinted glass.",
-        "The red pulses arrive one after another and sink into the barrel, and as "
-        "they do the locking pin travels steadily upward inside the door cavity "
-        "until it seats at the top of its travel and the handle lifts slightly. The "
-        "door skin, the glass and the street stay perfectly rigid. The camera holds "
-        "still." + FIN,
-        "red pulses sinking into the lock barrel and the locking pin travelling upward",
+        "Macro shot of the driver's door mirror and the top of the door handle of a "
+        "modern dark near-black car parked on a Parisian street at night, nobody "
+        "within reach of it. Position: the folded wing mirror fills the left half of "
+        "the frame with its indicator repeater along the lower edge of the housing, "
+        "the handle running across the lower right, the wet street behind. Red "
+        "luminous pulses travel along the flank of the car and reach the mirror "
+        "housing, clearly representing a command arriving from outside. Camera: "
+        "static macro at mirror height, shallow depth of field so the repeater is "
+        "sharp and the street falls into bokeh. Lighting: warm street lamp raking "
+        "along the paint from above left, cold neon rim on the upper edge of the "
+        "mirror, deep shadow beneath the housing. Materials: matte near-black paint, "
+        "gloss black mirror cap, chrome handle, tinted glass.",
+        "The red pulses travel steadily along the flank and reach the mirror housing, "
+        "and as the last of them arrives the indicator repeater lights up once and "
+        "the folded mirror rotates outward until it stands fully open. The paint, the "
+        "handle and the street stay perfectly rigid. The camera holds still." + FIN,
+        "red pulses reaching the mirror housing, the repeater lighting and the mirror opening",
         "Montre le résultat avant la cause : la voiture s'ouvre sans personne.",
         "cause_effect",
         {"information": "la voiture s'ouvre sans que personne ne la touche",
-         "physical_element": "the lock barrel of the driver's door",
-         "secondary_elements": "la poignée, le pêne en coupe, la rue derrière",
-         "visual_behavior": "des impulsions rouges entrent dans le barillet",
-         "animation_movement": "les impulsions rouges arrivent dans le barillet et le "
-                               "pêne remonte jusqu'en haut de sa course",
-         "camera_position": "macro statique à hauteur de poignée, faible profondeur de champ",
-         "composition": "le barillet en bas au centre, la poignée en travers au-dessus"},
+         "physical_element": "the folded wing mirror and its indicator repeater",
+         "secondary_elements": "la poignée, la carrosserie, la rue mouillée derrière",
+         "visual_behavior": "des impulsions rouges longent la carrosserie et "
+                            "atteignent le rétroviseur",
+         "animation_movement": "les impulsions rouges parcourent le flanc jusqu'au "
+                               "rétroviseur, le répétiteur s'allume et le rétroviseur "
+                               "se déplie",
+         "camera_position": "macro statique à hauteur de rétroviseur, faible "
+                            "profondeur de champ",
+         "composition": "le rétroviseur sur la moitié gauche, la poignée en bas à droite"},
     ),
     (
         "Sans casser une vitre, sans toucher à la serrure.", 3.5,
@@ -250,35 +252,35 @@ PLANS += [
     ),
     (
         "La voiture croit que tu es à côté, et se déverrouille.", 4.5,
-        "Macro shot of the driver's door handle and lock barrel of the dark near-black "
-        "car, the second flat black box still held against the panel at frame left. "
-        "Position: the barrel fills the lower centre of the frame, the locking pin "
-        "visible through a technical semi-cutaway of the door skin behind it, the "
-        "handle running across above. Blue luminous pulses arrive at the handle from "
-        "the box and sink into the barrel, clearly representing the signal the car "
-        "accepts as its own; the pin travels upward as they arrive. Camera: static "
-        "macro at handle height, shallow depth of field so the barrel is sharp and the "
-        "courtyard falls into bokeh. Lighting: warm street lamp raking along the metal, "
-        "cold LED rim from the housing, deep shadow inside the door cavity. Materials: "
-        "brushed steel barrel and pin, matte near-black paint, chrome handle, matte "
-        "black plastic housing.",
-        "The blue pulses arrive at the handle one after another and sink into the "
-        "barrel, and as they do the locking pin travels steadily upward inside the "
-        "door cavity until it seats at the top of its travel and the handle lifts "
-        "slightly. The box, the door skin and the glass stay perfectly rigid. The "
-        "camera holds still." + FIN,
-        "blue pulses sinking into the barrel and the locking pin travelling upward",
-        "Montre l'effet : la voiture reçoit le vrai signal et ouvre.",
+        "Medium night shot of the driver's door of the dark near-black car, the second "
+        "flat black box held flat against the panel at frame left. Position: the door "
+        "handle runs across the centre of the frame, the folded wing mirror sits above "
+        "it at frame right with its indicator repeater along the lower edge of the "
+        "housing, the courtyard behind. Blue luminous pulses leave the box and travel "
+        "along the panel into the handle, clearly representing the signal the car "
+        "accepts as its own. Camera: static medium view at handle height, shallow "
+        "depth of field so the handle is sharp and the courtyard falls into bokeh. "
+        "Lighting: warm street lamp raking along the paint from above left, cold LED "
+        "rim from the housing, deep shadow beneath the sill. Materials: matte "
+        "near-black paint, matte black plastic housing, chrome handle, gloss black "
+        "mirror cap, tinted glass.",
+        "The blue pulses leave the box and travel steadily along the panel into the "
+        "handle, and as the last of them arrives the indicator repeater lights up once "
+        "and the folded mirror rotates outward until it stands fully open. The box, "
+        "the panel and the glass stay perfectly rigid. The camera holds still." + FIN,
+        "blue pulses entering the handle, the repeater lighting and the mirror opening",
+        "Montre l'effet : la voiture reçoit le vrai signal et s'ouvre.",
         "cause_effect",
-        {"information": "la voiture accepte le signal et libère le pêne",
-         "physical_element": "the locking pin of the door, in semi-cutaway",
-         "secondary_elements": "le barillet, la poignée, le boîtier resté contre la tôle",
-         "visual_behavior": "les impulsions bleues entrent dans le barillet et le pêne "
-                            "remonte",
-         "animation_movement": "les impulsions bleues arrivent dans le barillet et le "
-                               "pêne remonte jusqu'en haut de sa course",
-         "camera_position": "macro statique à hauteur de poignée, faible profondeur de champ",
-         "composition": "le barillet en bas au centre, le pêne en coupe derrière"},
+        {"information": "la voiture accepte le signal et s'ouvre",
+         "physical_element": "the folded wing mirror and its indicator repeater",
+         "secondary_elements": "la poignée, le boîtier resté contre la tôle, la cour",
+         "visual_behavior": "des impulsions bleues entrent dans la poignée puis le "
+                            "répétiteur s'allume",
+         "animation_movement": "les impulsions bleues parcourent la tôle jusqu'à la "
+                               "poignée, le répétiteur s'allume et le rétroviseur se "
+                               "déplie",
+         "camera_position": "moyen statique à hauteur de poignée, faible profondeur de champ",
+         "composition": "la poignée au centre, le rétroviseur en haut à droite"},
     ),
 ]
 
@@ -352,103 +354,103 @@ PLANS += [
          "composition": "le phare à gauche, le combiné au centre, le feu arrière à droite"},
     ),
     (
-        "Des pirates percent sous l'aile avant et se branchent sur le câble du phare.", 4.5,
-        "Macro shot of the underside of the front left wing of the dark near-black "
-        "car, the white plastic hands of mannequin 1 entering from below, a small "
-        "round service opening in the black plastic liner at centre frame. Position: a "
-        "thin steel probe passes through that opening from below and clamps directly onto "
-        "the exposed headlight cable, where the twisted pair of the CAN bus is "
-        "spliced. Blue luminous pulses travel rightwards along that pair toward the "
-        "control unit, clearly representing the frames already running on the bus, and "
-        "a red luminous glow builds around the clamp itself. Camera: static macro at "
-        "low angle looking up into the wheel arch, shallow depth of field on the "
-        "clamp, the kerb falling into bokeh. Lighting: hard cold neon key raking "
-        "across the liner, warm street lamp rim along the cable sheath, deep shadow in "
-        "the arch. Materials: textured black plastic liner, braided grey sheath, bare "
-        "copper strands at the splice, bright steel probe, matte white plastic skin.",
-        "The steel probe advances through the opening and closes onto the cable, and as "
-        "the clamp seats, the red glow around it steadily builds while the blue pulses "
-        "keep travelling rightwards along the pair, undisturbed, until the clamp is "
-        "fully lit. The liner, the cable and the hands stay perfectly rigid once the "
-        "clamp is closed. The camera holds still." + FIN,
-        "a steel probe clamping onto the headlight cable while blue pulses keep running",
-        "Montre le point d'entrée : la pince se pose sur le câble du bus.",
-        "energy_transfer",
-        {"information": "le pirate atteint le bus par le câble du phare",
-         "physical_element": "the steel probe clamped onto the headlight cable",
-         "secondary_elements": "le trou percé, le passage de roue, les mains du mannequin",
-         "visual_behavior": "une lueur rouge monte autour de la pince pendant que le "
-                            "bleu continue de circuler",
-         "animation_movement": "la pince descend et se referme sur le câble, et la "
-                               "lueur rouge monte pendant que les impulsions bleues "
-                               "parcourent toujours la paire",
-         "camera_position": "macro statique en contre-plongée dans le passage de roue",
-         "composition": "la pince au centre, le câble filant vers la droite"},
+        "Des pirates arrivent à se brancher sur ce réseau interne.", 4.5,
+        "Macro shot of the wiring loom running along the inner wing of the dark "
+        "near-black car at night, its braided sheath ghosted to transparency over a "
+        "short length so the twisted pair inside reads clearly. Position: the loom "
+        "crosses the frame from the lower left to the upper right, the headlight "
+        "housing sits behind it at frame left, the edge of the wheel arch runs along "
+        "the lower border. Blue luminous pulses travel rightwards along the twisted "
+        "pair, clearly representing the frames already running on the network, and red "
+        "luminous pulses enter the same pair from beyond the lower edge of the frame. "
+        "Camera: static macro at low angle, shallow depth of field so the pair is "
+        "sharp and the arch falls into bokeh. Lighting: hard cold neon key raking "
+        "across the sheath, warm street lamp rim along the loom, deep shadow behind. "
+        "Materials: braided grey sheath, copper conductors, textured black plastic "
+        "liner, matte near-black paint.",
+        "The blue pulses travel steadily rightwards along the twisted pair, and red "
+        "pulses begin to enter it from beyond the lower edge of the frame, gradually "
+        "building in number until red and blue travel side by side at the same "
+        "spacing. The loom, the sheath and the arch stay perfectly rigid. The camera "
+        "holds still." + FIN,
+        "red pulses entering the twisted pair from off-frame beside the blue ones",
+        "Montre le point d'arrivée : quelque chose d'extérieur entre sur le réseau.",
+        "energy_flow",
+        {"information": "quelque chose d'extérieur arrive à entrer sur le réseau",
+         "physical_element": "the twisted pair inside the wiring loom",
+         "secondary_elements": "la gaine tressée, le phare, le passage de roue",
+         "visual_behavior": "des impulsions rouges rejoignent les bleues sur la même paire",
+         "animation_movement": "les impulsions rouges entrent par le bas du cadre et "
+                               "parcourent la paire à côté des bleues",
+         "camera_position": "macro statique en contre-plongée, faible profondeur de champ",
+         "composition": "la paire en diagonale, le phare derrière à gauche"},
     ),
     (
         "Les pirates injectent leurs propres trames sur ce câble.", 3.0,
-        "Macro shot of the clamp on the exposed headlight cable inside the front left "
-        "wheel arch of the dark near-black car. Position: the clamp fills the lower "
-        "left of the frame, the twisted pair of the CAN bus running from it toward the "
-        "upper right, the bare copper strands visible at the splice. Blue luminous "
-        "pulses already travel rightwards along that pair; red luminous pulses enter "
-        "at the clamp and join the same pair, travelling in the same direction and the "
-        "same shape, clearly representing the injected data frames. Camera: static "
-        "macro at low angle, shallow depth of field so the splice is sharp and the "
-        "arch falls into bokeh. Lighting: hard cold neon key raking across the sheath, "
-        "warm street lamp rim on the clamp jaw, deep shadow behind. Materials: "
-        "braided grey sheath, bare copper strands, bright steel clamp, textured black "
-        "plastic liner.",
-        "The red pulses begin at the clamp, gradually build in number, and travel "
-        "rightwards along the twisted pair mixed in with the blue ones, until red and "
-        "blue pulses keep travelling at their own spacing, until red and blue run side "
-        "by side at the same speed. The clamp, the "
-        "cable and the liner stay perfectly rigid. The camera holds still with a slow "
-        "secondary drift." + FIN,
-        "red injected pulses joining the blue ones on the same twisted pair",
+        "Macro shot of the twisted pair of the car's internal network inside the front "
+        "left wheel arch of the dark near-black car, its braided sheath ghosted to "
+        "transparency so both copper conductors read clearly. Position: the pair "
+        "crosses the frame from the lower left to the upper right, the conductors "
+        "visible along its whole length, the edge of the wheel arch along the lower "
+        "border. Blue luminous pulses already travel rightwards along the pair; red "
+        "luminous pulses enter from beyond the lower left corner of the frame and join "
+        "the same pair, travelling in the same direction and the same shape, clearly "
+        "representing frames added from outside. Camera: static macro at low angle, "
+        "shallow depth of field so the conductors are sharp and the arch falls into "
+        "bokeh. Lighting: hard cold neon key raking across the sheath, warm street "
+        "lamp rim on the conductors, deep shadow behind. Materials: braided grey "
+        "cable sheath around the pair, copper conductors, textured black plastic "
+        "liner, matte near-black paint.",
+        "The red pulses enter from beyond the lower left corner, gradually build in "
+        "number, and travel rightwards along the twisted pair mixed in with the blue "
+        "ones, while the blue pulses keep travelling at their own spacing, until red "
+        "and blue run side by side at the same speed. The pair, the sheath and the "
+        "liner stay perfectly rigid. The camera holds still with a slow secondary "
+        "drift." + FIN,
+        "red added pulses joining the blue ones on the same twisted pair",
         "Montre la tromperie : les fausses trames prennent le même chemin que les vraies.",
         "energy_flow",
         {"information": "les fausses trames circulent sur le même fil que les vraies",
-         "physical_element": "the twisted pair running from the clamp",
-         "secondary_elements": "la pince, les brins de cuivre, le passage de roue",
-         "visual_behavior": "des impulsions rouges entrent à la pince et rejoignent "
-                            "les bleues",
-         "animation_movement": "les impulsions rouges partent de la pince et parcourent "
-                               "la paire mêlées aux bleues jusqu'à la même cadence",
+         "physical_element": "the twisted pair inside the wheel arch",
+         "secondary_elements": "la gaine tressée, les conducteurs de cuivre, le "
+                               "passage de roue",
+         "visual_behavior": "des impulsions rouges rejoignent les bleues et prennent "
+                            "la même cadence",
+         "animation_movement": "les impulsions rouges entrent par le coin du cadre et "
+                               "parcourent la paire mêlées aux bleues jusqu'à la même "
+                               "cadence",
          "camera_position": "macro statique en contre-plongée, faible profondeur de champ",
-         "composition": "la pince en bas à gauche, la paire filant vers le haut à droite"},
+         "composition": "la paire en diagonale, les conducteurs visibles sur toute sa longueur"},
     ),
     (
         "Le calculateur les lit, croit reconnaître la vraie clé, et ouvre.", 4.5,
-        "Macro shot of the engine control unit connector of the dark near-black car, "
-        "its aluminium lid ghosted to transparency so the row of copper pins reads "
-        "clearly. Position: the twisted pair enters the connector from frame left, the "
-        "pins run across the centre, the door lock actuator sits behind them at frame "
-        "right in technical semi-cutaway with its locking pin visible. Blue and red "
-        "luminous pulses arrive together along the pair and sink into the same pins, "
-        "clearly representing frames the unit cannot tell apart. Camera: static macro "
-        "at connector height, shallow depth of field so the pins are sharp and the "
-        "engine bay falls into bokeh. Lighting: cold neon key from the upper left, "
-        "warm street lamp rim on the aluminium edge, deep shadow inside the housing. "
-        "Materials: brushed aluminium lid, copper pins, braided grey sheath, brushed "
-        "steel actuator pin.",
-        "The blue and red pulses arrive together and sink into the pins, which light "
-        "up identically for both, and as they do the locking pin of the actuator "
-        "behind travels steadily upward until it seats at the top of its travel. The "
-        "connector, the loom and the actuator body stay perfectly rigid. The camera "
-        "holds still." + FIN,
-        "blue and red pulses lighting the same connector pins and the lock pin rising",
-        "Montre pourquoi ça marche : le calculateur ne distingue pas les deux.",
+        "Medium night shot through the driver's window of the dark near-black car, the "
+        "cabin dark behind the glass. Position: the door sill button stands at the "
+        "lower centre of the frame just behind the pane, the seat and the lower rim of "
+        "the steering wheel beyond it at frame right, the reflection of a neon sign "
+        "sliding across the glass. Blue and red luminous pulses arrive together along "
+        "the inside of the window frame and reach the door trim, clearly representing "
+        "frames the car treats exactly the same way. Camera: static medium view at "
+        "window height, shallow depth of field so the button is sharp and the cabin "
+        "falls into bokeh. Lighting: warm street lamp from above left, cold neon "
+        "reflection across the pane, deep shadow inside the cabin. Materials: tinted "
+        "glass, matte black door trim, chrome button head, leather seat.",
+        "The blue and red pulses arrive together along the window frame and reach the "
+        "door trim, and as they arrive the sill button rises steadily until it stands "
+        "proud of the trim and the cabin light glows on behind it. The glass, the trim "
+        "and the seat stay perfectly rigid. The camera holds still." + FIN,
+        "blue and red pulses arriving together and the sill button rising behind the glass",
+        "Montre pourquoi ça marche : la voiture ne distingue pas les deux.",
         "cause_effect",
-        {"information": "le calculateur traite les fausses trames comme les vraies",
-         "physical_element": "the copper pins of the control unit connector",
-         "secondary_elements": "la paire torsadée, l'actionneur de serrure en coupe",
-         "visual_behavior": "les impulsions bleues et rouges allument les mêmes broches",
-         "animation_movement": "les impulsions arrivent dans les broches qui s'allument "
-                               "pareil, et le pêne de l'actionneur remonte",
-         "camera_position": "macro statique à hauteur de connecteur, faible profondeur "
-                            "de champ",
-         "composition": "la paire à gauche, les broches au centre, l'actionneur à droite"},
+        {"information": "la voiture traite les fausses trames comme les vraies",
+         "physical_element": "the door sill button behind the window glass",
+         "secondary_elements": "la vitre, la garniture de porte, le siège, le volant",
+         "visual_behavior": "les impulsions bleues et rouges arrivent ensemble à la "
+                            "garniture",
+         "animation_movement": "les impulsions arrivent ensemble et le bouton de "
+                               "condamnation remonte, puis le plafonnier s'allume",
+         "camera_position": "moyen statique à hauteur de vitre, faible profondeur de champ",
+         "composition": "le bouton en bas au centre, le siège et le volant à droite"},
     ),
 ]
 

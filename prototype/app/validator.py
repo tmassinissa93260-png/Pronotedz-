@@ -277,6 +277,41 @@ NON_GENERABLE = (
     "lurking", "suspicious",
 )
 
+# LE MECANISME DE SECURITE NE SE MONTRE PAS EN COUPE.
+#
+# Le premier controle ne visait que le vocabulaire. Le refus suivant portait
+# sur autre chose, et le generateur l'a dit clairement : une coupe technique
+# qui montre le pene interne d'une serrure ET le signal qui l'actionne donne
+# un detail de fonctionnement sur la securite d'un vehicule. Ca ne se
+# reformule pas — ca se filme autrement.
+#
+# Et c'est un meilleur plan : personne ne reconnait un pene en coupe, tout le
+# monde reconnait des clignotants qui font un eclat et des retroviseurs qui se
+# deplient. La video doit expliquer CE QUI ARRIVE et POURQUOI ca marche, pas
+# COMMENT le faire. L'effet observable depuis le trottoir dit exactement la
+# meme chose, et il se lit plus vite.
+PIECE_SECURITE = ("lock barrel", "locking pin", "lock pin", "lock actuator",
+                  "locking actuator", "door lock", "latch", "deadbolt",
+                  "immobiliser", "immobilizer", "ignition barrel", "key barrel",
+                  "alarm module", "keyless module", "transponder")
+VUE_INTERNE = ("cutaway", "semi-cutaway", "ghosted", "transparency", "transparent",
+               "see-through", "internal view", "door cavity", "inside the door",
+               "exposed internals")
+
+# Et le point de branchement sur le reseau d'un vehicule ne se montre pas non
+# plus : ou poser la pince est le seul detail vraiment operationnel de toute
+# la video. Le fil et les impulsions suffisent a comprendre que les fausses
+# trames prennent le meme chemin que les vraies.
+# Ce n'est pas le mot « pince » qui pose probleme, c'est la pince POSEE SUR le
+# fil : un boitier « clipped behind the rear-view mirror with a braided cable »
+# est un montage legal du commerce, et le premier jet du controle le refusait.
+# On cherche donc le geste, pas le vocabulaire.
+PIQUAGE = re.compile(
+    r"\b(?:test lead|lead|probe|clip|clamp|tap|alligator clip|jumper wire)\w*\s+"
+    r"(?:directly\s+)?(?:onto|on to|on|to)\s+"
+    r"(?:the\s+|that\s+|a\s+|its\s+)?(?:\w+\s+){0,3}"
+    r"(?:cable|cables|twisted pair|pair|loom|harness|wiring)\b")
+
 # Meme regle, meme raison : « smoke » vit dans « smoked glass », qui est un
 # materiau, pas de la fumee. On liste donc les flexions et on cherche le mot
 # entier.
@@ -363,6 +398,7 @@ def validate(sb: Storyboard, duration: float, shot_count: int) -> list[Problem]:
     problems += _explication(sb)
     problems += _ancrage(sb)
     problems += _generable(sb)
+    problems += _sensible(sb)
     problems += _dynamique(sb)
     problems += _physique(sb)
     problems += _texte(sb)
@@ -1004,6 +1040,39 @@ def _generable(sb: Storyboard) -> list[Problem]:
                 f"service opening in a liner, a second reading arriving from outside: "
                 f"same picture, and the generator returns it. The narration keeps those "
                 f"words; it is never sent to an image generator."))
+    return out
+
+
+def _sensible(sb: Storyboard) -> list[Problem]:
+    """Ce qui se refuse meme parfaitement formule : le mecanisme lui-meme."""
+    out = []
+    for s in sb.shots:
+        bas = s.image_prompt.lower()
+
+        pieces = presents(PIECE_SECURITE, bas)
+        vues = presents(VUE_INTERNE, bas)
+        if pieces and vues:
+            out.append(Problem(
+                "SENSIBLE", s.slug,
+                f"le prompt photo ouvre un mecanisme de securite "
+                f"(« {pieces[0]} » en « {vues[0]} »)",
+                f"Shot {s.id}: never open a lock, a latch or an immobiliser in "
+                f"cutaway, and never show what moves inside it. Show the effect "
+                f"anyone can see from the pavement instead — the indicators flashing "
+                f"once, the mirrors unfolding, the handle light coming on, the door "
+                f"easing open. Same information for the viewer, and it reads faster."))
+
+        geste = PIQUAGE.search(bas)
+        if geste:
+            out.append(Problem(
+                "SENSIBLE", s.slug,
+                f"le prompt photo montre ou se brancher "
+                f"(« {geste.group(0)} »)",
+                f"Shot {s.id}: where to attach a lead on a vehicle network is the one "
+                f"operational detail in the whole video, and it does not belong in the "
+                f"picture. Keep the wire and the pulses: the false frames joining the "
+                f"real ones on the same pair is what the viewer must understand. Let "
+                f"them enter from off-frame."))
     return out
 
 

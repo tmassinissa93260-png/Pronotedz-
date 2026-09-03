@@ -239,6 +239,51 @@ class TestGenerable(unittest.TestCase):
         self.assertEqual([x for x in valider(board()) if x.code == "REFUS"], [])
 
 
+class TestSensible(unittest.TestCase):
+    """Ce qui se refuse meme parfaitement formule : le mecanisme lui-meme."""
+
+    def test_une_serrure_ouverte_en_coupe_est_refusee(self):
+        raw = board()
+        raw["shots"][0]["image_prompt"] = IMAGE.replace(
+            "Macro shot of the battery pack",
+            "Macro shot of the lock barrel in technical semi-cutaway, the battery pack")
+        p = [x for x in valider(raw) if x.code == "SENSIBLE"]
+        self.assertTrue(p)
+        self.assertIn("lock barrel", str(p[0]))
+
+    def test_une_serrure_vue_du_dehors_passe(self):
+        """L'interdit porte sur la COUPE, pas sur la serrure."""
+        raw = board()
+        raw["shots"][0]["image_prompt"] = IMAGE.replace(
+            "Macro shot of the battery pack",
+            "Macro shot of the lock barrel and its chrome handle, the battery pack")
+        self.assertEqual([x for x in valider(raw) if x.code == "SENSIBLE"], [])
+
+    def test_une_pince_posee_sur_le_fil_est_refusee(self):
+        raw = board()
+        raw["shots"][0]["image_prompt"] = IMAGE.replace(
+            "Macro shot of the battery pack",
+            "Macro shot of a test lead clipped onto the twisted pair, the battery pack")
+        p = [x for x in valider(raw) if x.code == "SENSIBLE"]
+        self.assertTrue(p)
+        self.assertIn("se brancher", str(p[0]))
+
+    def test_un_montage_legal_n_est_pas_un_piquage(self):
+        """« clipped behind the mirror with a braided cable » est un boîtier du
+        commerce : le premier jet du contrôle le refusait."""
+        raw = board()
+        raw["shots"][0]["image_prompt"] = IMAGE.replace(
+            "Macro shot of the battery pack",
+            "Macro shot of a black box clipped behind the mirror with a braided "
+            "cable running down, the battery pack")
+        self.assertEqual([x for x in valider(raw) if x.code == "SENSIBLE"], [])
+
+    def test_une_coupe_de_transmission_reste_permise(self):
+        """Tout le système repose sur des semi-coupes : seules celles d'un
+        organe de sécurité sont visées."""
+        self.assertEqual([x for x in valider(board()) if x.code == "SENSIBLE"], [])
+
+
 class TestAncrage(unittest.TestCase):
     """L'image est le premier plan de l'animation, pas une illustration."""
 
