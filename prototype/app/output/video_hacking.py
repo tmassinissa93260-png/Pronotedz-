@@ -12,7 +12,6 @@ la place d'en montrer deux.
 """
 
 import importlib.util
-import os
 import sys
 from pathlib import Path
 
