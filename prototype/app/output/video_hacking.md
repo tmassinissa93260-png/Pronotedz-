@@ -1,567 +1,297 @@
 # Comment on vole une voiture récente sans casser une vitre
 
-75 secondes · 15 plans
+75 secondes · 15 plans · 210 mots
 
-## Script
+*Le texte de la voix est celui de l'auteur, mot pour mot.*
 
-Ta voiture récente peut se faire voler en moins de 30 secondes chrono, et sans même casser une vitre. Bienvenue dans le monde du hacking automobile. Première technique : l'attaque par relais. Les voleurs n'ont plus besoin de crochetage. Un premier complice capte le signal de ta clé à travers ta porte d'entrée et le retransmet à un second boîtier près du véhicule. La voiture croit que tu es à côté et se déverrouille. Plus lourd encore : le bus CAN. C'est le réseau informatique interne où tous les composants de ta voiture se parlent. Des pirates percent sous l'aile avant pour se brancher directement sur le câble du phare, injectent des trames de données, et font croire au calculateur qu'ils ont la vraie clé. Même tes pneus sont vulnérables ! Le système TPMS mesure la pression via des capteurs radio non chiffrés. En envoyant de fausses données de crevaison ou de surchauffe à distance, un hacker peut créer une erreur système ou forcer un convoi à s'arrêter. Heureusement, ce même bus CAN sert aussi à reprendre le contrôle ! Avec un logiciel open-source comme OpenPilot et un boîtier à 900 €, tu peux ajouter une vraie conduite autonome niveau 2 sur ta voiture. Abonne-toi pour la partie 2 !
+## La direction artistique
 
-## Visual bible
+```
+Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
+```
 
-À réutiliser dans **chaque** image. Les couleurs ont un sens fixe.
+Elle est déjà collée à la fin de chaque prompt image.
 
-- **main subject** : a modern dark near-black car on a Parisian street at night, and two featureless white mannequins acting on it
-- **characters objects** : mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie, both featureless and smooth matte white
-- **vehicle** : modern dark near-black car, realistic proportions, unchanged in every shot
-- **colors** : blue for the legitimate radio and data frames, red for what the attacker adds, green for the control given back to the driver, grey for the mechanical parts
-- **environment** : Parisian street and courtyard at night, wet cobblestone, neon signs, dark car interior
-- **materials** : matte white plastic skin, black cotton polo, grey brushed cotton hoodie, matte near-black paint, brushed aluminium, braided grey sheath, tinted glass
-- **lighting** : warm street lamps and sodium light, cold neon and LED, deep shadows, high contrast
-- **camera** : static views, 35mm lens at f/1.8, shallow depth of field, realistic bokeh
-- **style 3d** : photorealistic editorial photography, physically accurate
-- **realism** : photorealistic, no stylisation
-- **invisible phenomena** : radio and data frames shown as discrete luminous pulses travelling along their real physical path
+## Le code couleur
 
-## Code couleur
+| notion | couleur | sens |
+|---|---|---|
+| signal | **blue** | the legitimate radio and data frames the car's own parts exchange |
+| intrusion | **red** | everything added from outside the car — the relay link, the injected frames, the second sensor reading |
+| controle | **green** | the commands the driver puts back on the same bus on purpose |
+| mecanique | **grey** | the bodywork, the lock, the wheels and the structure |
 
-Une notion, une couleur, la même du début à la fin.
+## Le script
 
-- **blue** = signal — the legitimate radio and data frames the car's own parts exchange  *(se déplace)*
-- **red** = intrusion — everything added from outside the car — the relay link, the injected frames, the second sensor reading  *(se déplace)*
-- **green** = controle — the commands the driver puts back on the same bus on purpose  *(se déplace)*
-- **grey** = mecanique — the bodywork, the lock, the wheels and the structure
+> Ta voiture récente peut se faire voler en moins de 30 secondes chrono, et sans même casser une vitre. Bienvenue dans le monde du hacking automobile. Première technique : l'attaque par relais. Les voleurs n'ont plus besoin de crochetage. Un premier complice capte le signal de ta clé à travers ta porte d'entrée et le retransmet à un second boîtier près du véhicule. La voiture croit que tu es à côté et se déverrouille. Plus lourd encore : le bus CAN. C'est le réseau informatique interne où tous les composants de ta voiture se parlent. Des pirates percent sous l'aile avant pour se brancher directement sur le câble du phare, injectent des trames de données, et font croire au calculateur qu'ils ont la vraie clé. Même tes pneus sont vulnérables ! Le système TPMS mesure la pression via des capteurs radio non chiffrés. En envoyant de fausses données de crevaison ou de surchauffe à distance, un hacker peut créer une erreur système ou forcer un convoi à s'arrêter. Heureusement, ce même bus CAN sert aussi à reprendre le contrôle ! Avec un logiciel open-source comme OpenPilot et un boîtier à 900 €, tu peux ajouter une vraie conduite autonome niveau 2 sur ta voiture. Abonne-toi pour la partie 2 !
 
-## Contrôle qualité
+## Plan 01 · 6.5 s
 
-- narrative quality : 0.92
-- visual quality : 0.91
-- scientific accuracy : 0.92
-- voice visual alignment : 0.94
-- visual continuity : 0.93
-- pedagogical clarity : 0.92
-- animation potential : 0.94
+**Voix :** « Ta voiture récente peut se faire voler en moins de 30 secondes chrono, et sans même casser une vitre. »
 
----
+*Montre le résultat avant la cause : la voiture s'ouvre sans personne.*
 
-## Plan 01 — 6.5s
-
-**Voix** : Ta voiture récente peut se faire voler en moins de 30 secondes chrono, et sans même casser une vitre.
-
-**Fonction** : Montre le résultat avant la cause : la voiture s'ouvre sans personne.
-
-**Élément pédagogique** : red pulses reaching the mirror housing, the repeater lighting and the mirror opening
-
-**Intention de mouvement** : `cause_effect`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : la voiture s'ouvre sans que personne ne la touche
-2. **physical element** : the folded wing mirror and its indicator repeater
-3. **secondary elements** : la poignée, la carrosserie, la rue mouillée derrière
-4. **visual behavior** : des impulsions rouges longent la carrosserie et atteignent le rétroviseur
-5. **animation movement** : les impulsions rouges parcourent le flanc jusqu'au rétroviseur, le répétiteur s'allume et le rétroviseur se déplie
-6. **camera position** : macro statique à hauteur de rétroviseur, faible profondeur de champ
-7. **composition** : le rétroviseur sur la moitié gauche, la poignée en bas à droite
-
-### Prompt image
+**Prompt image**
 
 ```
 Macro shot of the driver's door mirror and the top of the door handle of a modern dark near-black car parked on a Parisian street at night, nobody within reach of it. Position: the folded wing mirror fills the left half of the frame with its indicator repeater along the lower edge of the housing, the handle running across the lower right, the wet street behind. Red luminous pulses travel along the flank of the car and reach the mirror housing, clearly representing a command arriving from outside. Camera: static macro at mirror height, shallow depth of field so the repeater is sharp and the street falls into bokeh. Lighting: warm street lamp raking along the paint from above left, cold neon rim on the upper edge of the mirror, deep shadow beneath the housing. Materials: matte near-black paint, gloss black mirror cap, chrome handle, tinted glass. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The red pulses travel steadily along the flank and reach the mirror housing, and as the last of them arrives the indicator repeater lights up once and the folded mirror rotates outward until it stands fully open. The paint, the handle and the street stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 02 · 2.5 s
 
-## Plan 02 — 2.5s
+**Voix :** « Bienvenue dans le monde du hacking automobile. »
 
-**Voix** : Bienvenue dans le monde du hacking automobile.
+*Nomme le sujet : quelqu'un agit sur la voiture à distance.*
 
-**Fonction** : Nomme le sujet : quelqu'un agit sur la voiture à distance.
-
-**Élément pédagogique** : a red glow travelling from the hacker's box across the street onto the car
-
-**Intention de mouvement** : `energy_transfer`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : quelqu'un agit sur la voiture sans la toucher
-2. **physical element** : the small flat black box in the mannequin's hand
-3. **secondary elements** : le mannequin en polo noir, la voiture au trottoir, l'enseigne néon
-4. **visual behavior** : une lueur rouge quitte le boîtier et gagne la carrosserie
-5. **animation movement** : la lueur rouge se propage du boîtier jusqu'à la voiture, puis la poignée s'allume
-6. **camera position** : large statique à hauteur de poitrine, faible profondeur de champ
-7. **composition** : le mannequin à gauche, la voiture à droite, la rue mouillée entre
-
-### Prompt image
+**Prompt image**
 
 ```
 Wide night shot of a Parisian street, the same dark near-black car parked at the kerb at frame right and mannequin 1, a featureless smooth matte white figure in a fitted dark black polo shirt, standing at frame left with a small flat black box in one hand. Position: eight metres of wet cobblestone between the figure and the car, a neon sign glowing above the shopfront behind them both. A red luminous glow spreads outward from the box across the car's flank and settles along its panel seams, clearly representing the radio command reaching the vehicle. Camera: static wide view at chest height, shallow depth of field so the figure is sharp and the far end of the street falls into bokeh. Lighting: warm street lamp from above left, cold neon wash from the shopfront, deep shadow between them. Materials: matte white plastic skin, black cotton polo fabric, wet cobblestone, matte near-black paint, chrome trim. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The red glow spreads outward from the box, gradually travelling across the wet cobblestone and up the car's flank, until it settles along the panel seams and the door handle lights up in answer. The figure, the box and the car stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 03 · 2 s
 
-## Plan 03 — 2s
+**Voix :** « Première technique : l'attaque par relais. »
 
-**Voix** : Première technique : l'attaque par relais.
+*Pose le dispositif : deux boîtiers, une ligne entre la porte et la voiture.*
 
-**Fonction** : Pose le dispositif : deux boîtiers, une ligne entre la porte et la voiture.
-
-**Élément pédagogique** : a red beam opening between the two boxes held by the two mannequins
-
-**Intention de mouvement** : `energy_transfer`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : l'attaque tient en deux boîtiers reliés entre eux
-2. **physical element** : the red beam running between the two boxes
-3. **secondary elements** : les deux mannequins, la porte de l'immeuble, la voiture
-4. **visual behavior** : un faisceau rouge s'ouvre entre les deux boîtiers
-5. **animation movement** : le faisceau rouge s'allume sur toute sa longueur et les LED des deux boîtiers se mettent à battre ensemble
-6. **camera position** : large statique à hauteur de poitrine, faible profondeur de champ
-7. **composition** : un mannequin à chaque bord du cadre, le faisceau en travers
-
-### Prompt image
+**Prompt image**
 
 ```
 Wide night shot of a Parisian courtyard, the front door of a building at frame left and the dark near-black car parked at frame right. Position: mannequin 2, a featureless smooth matte white figure in a heather grey pullover hoodie with drawstrings, holds a flat black box against the door at chest height; mannequin 1 in the fitted dark black polo shirt holds an identical box against the car's driver door, eight metres away at the same height. A red luminous beam opens between the two boxes across the wet cobblestone, clearly representing the added link between them. Camera: static wide view at chest height, shallow depth of field so both figures are sharp and the courtyard gate falls into bokeh. Lighting: warm street lamp from above left, cold LED glow from each box, deep shadow across the ground. Materials: matte white plastic skin, grey brushed-cotton hoodie, black cotton polo, matte black plastic housings, wet cobblestone. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The red beam opens between the two boxes and steadily brightens along its whole length, and as it reaches full strength the LED on each housing begins to pulse in time with the other. The two figures, the boxes and the car stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 04 · 2.5 s
 
-## Plan 04 — 2.5s
+**Voix :** « Les voleurs n'ont plus besoin de crochetage. »
 
-**Voix** : Les voleurs n'ont plus besoin de crochetage.
+*Montre que la serrure n'est jamais touchée : l'attaque est ailleurs.*
 
-**Fonction** : Montre que la serrure n'est jamais touchée : l'attaque est ailleurs.
-
-**Élément pédagogique** : blue pulses crossing the air gap while the untouched lock barrel stays still
-
-**Intention de mouvement** : `energy_flow`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : aucun outil ne touche la serrure, elle reste intacte
-2. **physical element** : the lock barrel of the driver's door
-3. **secondary elements** : la main du mannequin, le boîtier noir, la poignée
-4. **visual behavior** : des impulsions bleues traversent l'air puis la poignée
-5. **animation movement** : les impulsions bleues parcourent la poignée de gauche à droite pendant que le barillet reste immobile
-6. **camera position** : macro statique à hauteur de poignée, faible profondeur de champ
-7. **composition** : le barillet en bas au centre, la main et le boîtier à gauche
-
-### Prompt image
+**Prompt image**
 
 ```
 Macro shot of the driver's door handle and lock barrel of the dark near-black car, the gloved white plastic hand of mannequin 1 holding its flat black box a few centimetres from the panel without contact. Position: the barrel fills the lower centre of the frame, the hand and the box enter from frame left, a visible gap of air between the box and the paint. Blue luminous pulses cross that gap and pass through the handle from left to right, clearly representing the signal the car is listening for. Camera: static macro at handle height, shallow depth of field so the barrel is sharp and the hoodie behind falls into bokeh. Lighting: hard cold neon key raking along the metal, warm street lamp rim on the upper edge of the handle, deep shadow inside the barrel. Materials: matte white plastic skin, matte black plastic housing, brushed steel barrel, matte near-black paint, chrome handle. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The blue pulses cross the gap and travel steadily through the handle from left to right, and as each one passes the lock barrel the barrel stays perfectly still and unmoved, building over the shot into a rhythm the untouched metal never resists. The hand, the box and the barrel stay perfectly rigid. The camera holds still with a slow secondary drift. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 05 · 8.5 s
 
-## Plan 05 — 8.5s
+**Voix :** « Un premier complice capte le signal de ta clé à travers ta porte d'entrée et le retransmet à un second boîtier près du véhicule. »
 
-**Voix** : Un premier complice capte le signal de ta clé à travers ta porte d'entrée et le retransmet à un second boîtier près du véhicule.
+*Montre le premier maillon : le signal de la clé est capté à travers la porte.*
 
-**Fonction** : Montre le premier maillon : le signal de la clé est capté à travers la porte.
-
-**Élément pédagogique** : blue key pulses crossing the wood into the box antenna, red glow building on it
-
-**Intention de mouvement** : `energy_transfer`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : le signal de la clé est capté puis reporté jusqu'à la voiture
-2. **physical element** : the flat black box pressed against the front door
-3. **secondary elements** : la clé au crochet, le panneau vitré, le second boîtier contre la voiture au fond
-4. **visual behavior** : les impulsions bleues traversent le bois, entrent dans l'antenne, puis longent le faisceau rouge
-5. **animation movement** : les impulsions bleues traversent le bois et gagnent l'antenne, puis parcourent le faisceau rouge jusqu'à la poignée de la voiture
-6. **camera position** : moyen statique à hauteur de poitrine, foyer profond
-7. **composition** : la porte et le boîtier au centre, la voiture au fond à droite
-
-### Prompt image
+**Prompt image**
 
 ```
 Medium night shot of the building's front door from outside, mannequin 2 in the heather grey hoodie pressing a flat black box against the painted wood at chest height. Position: the car key hangs on its hook inside, framed through the glazed panel just above the box; the antenna face is pressed flat to the door, and beyond the figure, eight metres away at frame right, the dark near-black car waits at the kerb with a second identical box held against its driver door. Blue luminous pulses leave the key, cross the wood, and are drawn into the antenna face, clearly representing the key's own signal being picked up; a red luminous beam runs from that box across the courtyard to the second one. Camera: static medium view at chest height, deep enough focus to hold both the door and the car, the gate falling into bokeh. Lighting: warm hallway glow behind the glazed panel, cold street lamp from above left, deep shadow on the wood. Materials: painted wood, glass, matte black plastic housings, brass key, matte near-black paint, wet cobblestone. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The blue pulses leave the key, cross the wood one after another, and are drawn into the antenna face, and as each one enters, the red beam across the courtyard steadily brightens; then the blue pulses begin to travel along that beam from left to right until they reach the second box at the car and enter its door handle unchanged. The door, the key, the boxes and the car stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 06 · 4 s
 
-## Plan 06 — 4s
+**Voix :** « La voiture croit que tu es à côté et se déverrouille. »
 
-**Voix** : La voiture croit que tu es à côté et se déverrouille.
+*Montre l'effet : la voiture reçoit le vrai signal et s'ouvre.*
 
-**Fonction** : Montre l'effet : la voiture reçoit le vrai signal et s'ouvre.
-
-**Élément pédagogique** : blue pulses entering the handle, the repeater lighting and the mirror opening
-
-**Intention de mouvement** : `cause_effect`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : la voiture accepte le signal et s'ouvre
-2. **physical element** : the folded wing mirror and its indicator repeater
-3. **secondary elements** : la poignée, le boîtier resté contre la tôle, la cour
-4. **visual behavior** : des impulsions bleues entrent dans la poignée puis le répétiteur s'allume
-5. **animation movement** : les impulsions bleues parcourent la tôle jusqu'à la poignée, le répétiteur s'allume et le rétroviseur se déplie
-6. **camera position** : moyen statique à hauteur de poignée, faible profondeur de champ
-7. **composition** : la poignée au centre, le rétroviseur en haut à droite
-
-### Prompt image
+**Prompt image**
 
 ```
 Medium night shot of the driver's door of the dark near-black car, the second flat black box held flat against the panel at frame left. Position: the door handle runs across the centre of the frame, the folded wing mirror sits above it at frame right with its indicator repeater along the lower edge of the housing, the courtyard behind. Blue luminous pulses leave the box and travel along the panel into the handle, clearly representing the signal the car accepts as its own. Camera: static medium view at handle height, shallow depth of field so the handle is sharp and the courtyard falls into bokeh. Lighting: warm street lamp raking along the paint from above left, cold LED rim from the housing, deep shadow beneath the sill. Materials: matte near-black paint, matte black plastic housing, chrome handle, gloss black mirror cap, tinted glass. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The blue pulses leave the box and travel steadily along the panel into the handle, and as the last of them arrives the indicator repeater lights up once and the folded mirror rotates outward until it stands fully open. The box, the panel and the glass stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 07 · 2.5 s
 
-## Plan 07 — 2.5s
+**Voix :** « Plus lourd encore : le bus CAN. »
 
-**Voix** : Plus lourd encore : le bus CAN.
+*Nomme l'objet dont parle la suite : le câble partagé qui relie tout.*
 
-**Fonction** : Nomme l'objet dont parle la suite : le câble partagé qui relie tout.
-
-**Élément pédagogique** : blue data pulses igniting along the CAN twisted pair toward the control unit
-
-**Intention de mouvement** : `energy_flow`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : un seul câble relie tous les composants de la voiture
-2. **physical element** : the twisted pair of the CAN bus inside the loom
-3. **secondary elements** : le phare, le faisceau tressé, le boîtier du calculateur
-4. **visual behavior** : des impulsions bleues s'allument l'une après l'autre le long de la paire
-5. **animation movement** : les impulsions bleues s'allument depuis le phare et se propagent vers le calculateur, dont les broches s'allument à leur tour
-6. **camera position** : trois-quarts statique à hauteur de phare, foyer profond
-7. **composition** : le phare à gauche, le calculateur à droite, le faisceau entre
-
-### Prompt image
+**Prompt image**
 
 ```
 Medium technical semi-cutaway of the front left quarter of the dark near-black car at night, the wing panel ghosted to transparency so the wiring loom beneath it comes into view. Position: the braided loom runs from the headlight housing at frame left, back along the inner wing, to the engine control unit box at frame right; a single twisted pair inside the loom is separated out and reads clearly against the darker cables around it. Blue luminous pulses ignite one after another along that twisted pair and travel rightwards, clearly representing the data frames the components exchange. Camera: static three-quarter view at headlight height, deep enough focus to hold the whole run of the loom, the street behind falling into bokeh. Lighting: cold neon key from the upper left, warm street lamp rim along the painted panel edge, deep shadow in the wheel arch. Materials: matte near-black paint, braided grey cable sheath, brushed aluminium housing, copper connector pins. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The blue pulses ignite one after another along the twisted pair, starting at the headlight housing and steadily travelling rightwards along the pair, until the whole run is alive and the control unit connector pins brighten in answer. The loom, the panel and the control unit stay perfectly rigid. The camera holds still with a slow secondary drift. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 08 · 5 s
 
-## Plan 08 — 5s
+**Voix :** « C'est le réseau informatique interne où tous les composants de ta voiture se parlent. »
 
-**Voix** : C'est le réseau informatique interne où tous les composants de ta voiture se parlent.
+*Montre que le bus est partagé : ce qui y entre atteint tous les calculateurs.*
 
-**Fonction** : Montre que le bus est partagé : ce qui y entre atteint tous les calculateurs.
-
-**Élément pédagogique** : blue pulses travelling between every module along one continuous twisted pair
-
-**Intention de mouvement** : `energy_flow`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : tous les modules sont sur le même fil, du phare au coffre
-2. **physical element** : the continuous twisted pair running the length of the car
-3. **secondary elements** : le phare, le calculateur, le combiné de bord, le module de porte
-4. **visual behavior** : des impulsions bleues circulent d'un module à l'autre
-5. **animation movement** : les impulsions bleues parcourent la paire d'un module à l'autre et les broches de chacun s'allument à leur tour
-6. **camera position** : profil statique à hauteur de taille, foyer profond
-7. **composition** : le phare à gauche, le combiné au centre, le feu arrière à droite
-
-### Prompt image
+**Prompt image**
 
 ```
 Wide technical semi-cutaway of the whole dark near-black car seen from the side at night, the bodywork ghosted to transparency so the full wiring loom reads from bumper to boot. Position: the headlight sits at frame left, the engine control unit behind it, the dashboard cluster at centre frame, the door module and the rear light at frame right, all strung on one continuous twisted pair running the length of the car. Blue luminous pulses travel along that pair in both directions between the modules, clearly representing the conversation the parts hold with each other. Camera: static side view at waist height, deep enough focus to hold the whole car, the street falling into bokeh. Lighting: cold neon key from above left, warm street lamp rim along the roofline, deep shadow beneath the sills. Materials: matte near-black paint, braided grey cable sheath, brushed aluminium housings, copper connector pins, tinted glass. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The blue pulses travel steadily along the twisted pair from module to module in both directions, and as each pulse reaches a module that module's connector pins brighten in turn, building over the shot until every module along the car has answered at least once. The bodywork, the loom and the modules stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 09 · 10.5 s
 
-## Plan 09 — 10.5s
+**Voix :** « Des pirates percent sous l'aile avant pour se brancher directement sur le câble du phare, injectent des trames de données, et font croire au calculateur qu'ils ont la vraie clé. »
 
-**Voix** : Des pirates percent sous l'aile avant pour se brancher directement sur le câble du phare, injectent des trames de données, et font croire au calculateur qu'ils ont la vraie clé.
+*Montre la tromperie : les fausses trames prennent le même chemin que les vraies.*
 
-**Fonction** : Montre la tromperie : les fausses trames prennent le même chemin que les vraies.
-
-**Élément pédagogique** : red added pulses joining the blue ones on the same twisted pair
-
-**Intention de mouvement** : `energy_flow`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : les fausses trames prennent le même fil que les vraies et arrivent au calculateur
-2. **physical element** : the twisted pair ending at the control unit connector
-3. **secondary elements** : la gaine tressée, les broches de cuivre, le passage de roue
-4. **visual behavior** : des impulsions rouges rejoignent les bleues puis allument les mêmes broches
-5. **animation movement** : les impulsions rouges entrent par le coin du cadre, parcourent la paire mêlées aux bleues, et les broches du connecteur s'allument pareil pour les deux
-6. **camera position** : macro statique en contre-plongée, faible profondeur de champ
-7. **composition** : la paire en diagonale, le connecteur en haut à droite
-
-### Prompt image
+**Prompt image**
 
 ```
 Macro shot of the twisted pair of the car's internal network inside the front left wheel arch of the dark near-black car, its braided sheath ghosted to transparency so both copper conductors read clearly. Position: the pair crosses the frame from the lower left to the upper right and ends at the control unit connector at the top right, its row of copper pins visible through the ghosted aluminium lid; the edge of the wheel arch runs along the lower border. Blue luminous pulses already travel rightwards along the pair; red luminous pulses enter from beyond the lower left corner of the frame and join the same pair, travelling in the same direction and the same shape, clearly representing frames added from outside. Camera: static macro at low angle, shallow depth of field so the conductors are sharp and the arch falls into bokeh. Lighting: hard cold neon key raking across the sheath, warm street lamp rim on the conductors, deep shadow behind. Materials: braided grey cable sheath around the pair, copper conductors, brushed aluminium lid, textured black plastic liner. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The red pulses enter from beyond the lower left corner, gradually build in number, and travel rightwards along the twisted pair mixed in with the blue ones, while the blue pulses keep travelling at their own spacing; then red and blue reach the connector together and its copper pins light up identically for both, until the whole row is glowing. The pair, the sheath and the connector stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 10 · 2 s
 
-## Plan 10 — 2s
+**Voix :** « Même tes pneus sont vulnérables ! »
 
-**Voix** : Même tes pneus sont vulnérables !
+*Nomme l'objet : un émetteur radio vit dans chaque roue.*
 
-**Fonction** : Nomme l'objet : un émetteur radio vit dans chaque roue.
-
-**Élément pédagogique** : blue pressure pulses leaving the in-rim sensor through the tyre wall
-
-**Intention de mouvement** : `energy_flow`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : chaque roue porte un émetteur radio à l'intérieur
-2. **physical element** : the pressure sensor clamped inside the wheel rim
-3. **secondary elements** : la valve, le flanc du pneu, le disque de frein
-4. **visual behavior** : des impulsions bleues quittent le capteur et traversent le pneu
-5. **animation movement** : les impulsions bleues partent du capteur et parcourent le flanc jusqu'au passage de roue, et le capteur s'allume derrière elles
-6. **camera position** : macro statique à hauteur de moyeu, faible profondeur de champ
-7. **composition** : le capteur en bas au centre, la valve au-dessus, le disque derrière les rayons
-
-### Prompt image
+**Prompt image**
 
 ```
 Macro shot of the front left wheel of the dark near-black car at night, the tyre wall ghosted to transparency at the valve so the small sensor clamped inside the rim reads clearly. Position: the sensor sits at the lower centre of the frame on the inner face of the rim, the valve stem rising from it, the brake disc and caliper visible behind the spokes. Blue luminous pulses radiate outward from the sensor through the tyre wall and travel up toward the wheel arch, clearly representing the pressure reading it broadcasts. Camera: static macro at hub height, shallow depth of field so the sensor is sharp and the kerb falls into bokeh. Lighting: cold neon key from the upper left, warm street lamp rim along the rim edge, deep shadow inside the arch. Materials: black rubber tyre, brushed aluminium rim, matte grey sensor housing, cast iron brake disc. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The blue pulses leave the sensor in steady bursts and travel outward through the tyre wall toward the wheel arch, and as each burst clears the rim the sensor housing brightens faintly behind it, building over the shot into a regular beat. The wheel, the tyre and the disc stay perfectly rigid. The camera holds still with a slow secondary drift. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 11 · 4.5 s
 
-## Plan 11 — 4.5s
+**Voix :** « Le système TPMS mesure la pression via des capteurs radio non chiffrés. »
 
-**Voix** : Le système TPMS mesure la pression via des capteurs radio non chiffrés.
+*Montre le trajet : les mesures arrivent en clair jusqu'au tableau de bord.*
 
-**Fonction** : Montre le trajet : les mesures arrivent en clair jusqu'au tableau de bord.
-
-**Élément pédagogique** : blue pulses travelling from all four wheel sensors up to the dashboard receiver
-
-**Intention de mouvement** : `energy_transfer`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : les quatre mesures arrivent en clair au tableau de bord
-2. **physical element** : the receiver module behind the dashboard
-3. **secondary elements** : les capteurs dans les jantes, les passages de roue
-4. **visual behavior** : des impulsions bleues montent de chaque roue vers le récepteur
-5. **animation movement** : les impulsions bleues parcourent les passages de roue jusqu'au récepteur, qui s'allume à chaque arrivée
-6. **camera position** : profil statique à hauteur de taille, foyer profond
-7. **composition** : les roues en bas du cadre, le récepteur au centre, plus haut
-
-### Prompt image
+**Prompt image**
 
 ```
 Wide technical semi-cutaway of the whole dark near-black car seen from the side at night, the bodywork ghosted to transparency so the four wheels and the dashboard receiver read at once. Position: the front and rear wheels sit at the lower left and lower right of the frame, each with its sensor visible inside the rim; the receiver module sits behind the dashboard at centre frame, higher up. Blue luminous pulses leave each sensor and travel up through the arches to that receiver, clearly representing four unencrypted readings arriving in the open. Camera: static side view at waist height, deep enough focus to hold both wheels and the receiver, the street falling into bokeh. Lighting: cold neon key from above left, warm street lamp rim along the roofline, deep shadow beneath the sills. Materials: black rubber tyres, brushed aluminium rims, matte grey sensor housings, matte near-black paint, tinted glass. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The blue pulses leave each sensor in turn and travel steadily up through the arches toward the receiver, and as each one arrives the receiver module brightens once, building over the shot until all four wheels have reported and the module holds a steady glow. The car, the wheels and the receiver stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 12 · 9 s
 
-## Plan 12 — 9s
+**Voix :** « En envoyant de fausses données de crevaison ou de surchauffe à distance, un hacker peut créer une erreur système ou forcer un convoi à s'arrêter. »
 
-**Voix** : En envoyant de fausses données de crevaison ou de surchauffe à distance, un hacker peut créer une erreur système ou forcer un convoi à s'arrêter.
+*Montre la copie : le faux signal a exactement la forme du vrai.*
 
-**Fonction** : Montre la copie : le faux signal a exactement la forme du vrai.
-
-**Élément pédagogique** : red pulses leaving the handheld unit in the same shape as the blue ones
-
-**Intention de mouvement** : `energy_flow`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : un faux signal envoyé de loin suffit à arrêter la voiture
-2. **physical element** : the handheld radio unit in the mannequin's hand
-3. **secondary elements** : la roue, le passage de roue, le répétiteur de clignotant sur l'aile
-4. **visual behavior** : des impulsions rouges quittent le boîtier au rythme des bleues, puis le répétiteur s'allume
-5. **animation movement** : les impulsions rouges parcourent le passage de roue à côté des bleues, le répétiteur s'allume et la roue s'arrête de tourner
-6. **camera position** : moyen statique à hauteur de moyeu, faible profondeur de champ
-7. **composition** : le mannequin à gauche, la roue à droite, le répétiteur au-dessus
-
-### Prompt image
+**Prompt image**
 
 ```
 Medium night shot of mannequin 2 in the heather grey hoodie kneeling at the kerb beside the dark near-black car, a small handheld radio unit held toward the front wheel. Position: the figure fills frame left, the wheel and its arch fill frame right, the side indicator repeater sits on the wing just above the arch, half a metre of wet cobblestone between the unit and the tyre. Red luminous pulses leave the handheld unit and travel toward the wheel arch in exactly the same shape and spacing as the blue ones still leaving the sensor inside the rim, clearly representing a second reading sent from outside the wheel. Camera: static medium view at hub height, shallow depth of field so the unit and the tyre are sharp and the street falls into bokeh. Lighting: warm street lamp from above right, cold LED glow from the handheld unit, deep shadow in the arch. Materials: matte white plastic skin, grey brushed-cotton hoodie, matte black plastic unit, black rubber tyre, brushed aluminium rim. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The red pulses begin to leave the handheld unit, gradually matching the spacing of the blue ones, and travel steadily toward the wheel arch beside them; as they rise through the arch together the side indicator repeater above it lights up and holds, and the wheel slows until it stops turning. The figure, the unit and the car stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 13 · 4.5 s
 
-## Plan 13 — 4.5s
+**Voix :** « Heureusement, ce même bus CAN sert aussi à reprendre le contrôle ! »
 
-**Voix** : Heureusement, ce même bus CAN sert aussi à reprendre le contrôle !
+*Retourne le sujet : le même câble porte aussi les commandes voulues.*
 
-**Fonction** : Retourne le sujet : le même câble porte aussi les commandes voulues.
-
-**Élément pédagogique** : green command pulses travelling down the column into the moving steering rack
-
-**Intention de mouvement** : `energy_flow`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : le même bus peut porter des commandes voulues par le conducteur
-2. **physical element** : the twisted pair inside the steering column
-3. **secondary elements** : la jante du volant, la crémaillère en coupe, le combiné
-4. **visual behavior** : des impulsions vertes descendent la colonne vers la crémaillère
-5. **animation movement** : les impulsions vertes parcourent la colonne jusqu'à la crémaillère, qui se met à coulisser
-6. **camera position** : moyen statique depuis le siège passager, à hauteur de volant
-7. **composition** : la jante en haut, la colonne au centre, la crémaillère en bas
-
-### Prompt image
+**Prompt image**
 
 ```
 Interior night shot of the dark cabin of the dark near-black car, the steering column ghosted to transparency below the wheel so the twisted pair of the CAN bus reads clearly inside it. Position: the wheel rim runs across the top of the frame, the column drops from it through the centre, the steering rack sits at the lower edge in technical semi-cutaway. Green luminous pulses travel down that pair from the top of the column toward the rack, clearly representing a command sent on purpose by the driver's own hardware. Camera: static medium view from the passenger seat at wheel height, shallow depth of field so the column is sharp and the windscreen falls into bokeh. Lighting: cold cluster backlight from the left, warm sodium light through the windscreen, deep shadow in the footwell. Materials: leather wheel rim, matte black column shroud, braided grey sheath, brushed steel rack. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The green pulses travel steadily down the twisted pair from the top of the column toward the rack, and as the first of them reaches the rack the rack shaft begins to slide sideways in its housing, building until it moves continuously. The wheel, the shroud and the dashboard stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 14 · 8.5 s
 
-## Plan 14 — 8.5s
+**Voix :** « Avec un logiciel open-source comme OpenPilot et un boîtier à 900 €, tu peux ajouter une vraie conduite autonome niveau 2 sur ta voiture. »
 
-**Voix** : Avec un logiciel open-source comme OpenPilot et un boîtier à 900 €, tu peux ajouter une vraie conduite autonome niveau 2 sur ta voiture.
+*Montre le montage réel : un boîtier, un câble, et la commande part.*
 
-**Fonction** : Montre le montage réel : un boîtier, un câble, et la commande part.
-
-**Élément pédagogique** : green pulses leaving the aftermarket box down the pillar into the turning wheel
-
-**Intention de mouvement** : `energy_transfer`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : un boîtier du commerce écrit sur le même bus
-2. **physical element** : the matte black box clipped behind the rear-view mirror
-3. **secondary elements** : le câble tressé, le montant, la jante du volant
-4. **visual behavior** : des impulsions vertes quittent le boîtier et descendent le câble
-5. **animation movement** : les impulsions vertes parcourent le câble jusqu'à la colonne, et la jante du volant se met à tourner
-6. **camera position** : moyen statique depuis le siège passager, à hauteur de rétroviseur
-7. **composition** : le boîtier en haut au centre, le câble descendant à gauche
-
-### Prompt image
+**Prompt image**
 
 ```
 Interior night shot of the top of the windscreen of the dark near-black car, a small matte black box clipped behind the rear-view mirror with a thin braided cable running down the A-pillar. Position: the box fills the upper centre of the frame, the mirror stem beside it, the cable dropping along the pillar at frame left; the steering wheel rim fills the lower edge of the frame, its leather grip and upper spokes clearly in shot below the column shroud. Green luminous pulses leave the box, travel down that cable and continue into the steering column, clearly representing the commands the box puts on the bus. Camera: static medium view from the passenger seat at mirror height, shallow depth of field so the box is sharp and the road beyond the glass falls into bokeh. Lighting: cold LED glow from the box itself, warm sodium light sweeping through the windscreen, deep shadow along the headliner. Materials: matte black plastic housing, braided grey cable, smoked mirror glass, matte black pillar trim. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The green pulses leave the box one after another and travel steadily down the cable along the pillar, and as they reach the column below the wheel rim begins to rotate slightly of its own accord, building until it holds a continuous correction. The box, the mirror and the pillar stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
+## Plan 15 · 2.5 s
 
-## Plan 15 — 2.5s
+**Voix :** « Abonne-toi pour la partie 2 ! »
 
-**Voix** : Abonne-toi pour la partie 2 !
+*Montre le résultat vécu : la voiture tient la route sans les mains.*
 
-**Fonction** : Montre le résultat vécu : la voiture tient la route sans les mains.
-
-**Élément pédagogique** : the wheel rim turning by itself beneath the lifted hands, green pulses in the column
-
-**Intention de mouvement** : `cause_effect`
-
-### Le raisonnement, avant le prompt
-
-1. **information** : les commandes tiennent le volant à la place du conducteur
-2. **physical element** : the steering wheel rim under the lifted hands
-3. **secondary elements** : les mains du mannequin, la colonne, la route de nuit
-4. **visual behavior** : des impulsions vertes circulent dans la colonne pendant que la jante tourne
-5. **animation movement** : la jante tourne toute seule sous les mains levées pendant que les impulsions vertes parcourent la colonne
-6. **camera position** : moyen statique à hauteur de volant, faible profondeur de champ
-7. **composition** : le mannequin à gauche, la jante au centre, la route à droite
-
-### Prompt image
+**Prompt image**
 
 ```
 Interior night shot from the passenger seat of the dark near-black car, mannequin 1, a featureless smooth matte white figure in a fitted dark black polo shirt, sitting at the wheel with both white plastic hands lifted clear of the rim. Position: the figure fills frame left, the wheel rim fills the centre, the windscreen and the night road fill frame right, the hands hover a few centimetres above the leather. Green luminous pulses run through the steering column below the rim, clearly representing the commands now steering in the driver's place. Camera: static medium view at wheel height, shallow depth of field so the hands are sharp and the road falls into bokeh. Lighting: cold cluster backlight from below, warm sodium light sweeping through the windscreen from the left, deep shadow across the seat. Materials: matte white plastic skin, black cotton polo fabric, leather wheel rim, matte black column shroud. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.
 ```
 
-### Prompt animation
+**Prompt animation**
 
 ```
 The green pulses travel steadily through the column, and as they do the wheel rim rotates slowly on its own beneath the lifted hands, which stay clear of it, the rotation building until the sodium light through the windscreen swings with it. The figure, the seat and the dashboard stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
----
-
-## Ce que tu fais maintenant
-
-1. Génère chaque **image** avec l'outil de ton choix, à partir du prompt image.
-2. Dépose les images dans `app/output/images` nommées `shot_01.png`, `shot_02.png`…
-3. Lance `affiner-tout` : chaque prompt d'animation est réécrit sur ton image réelle, et non plus sur une image imaginée. **Les prompts ci-dessus sont alors remplacés** — reviens les lire ici.
-4. Génère chaque **animation** à partir de ton image, avec le prompt animation.
-5. Dépose les vidéos dans `app/output/videos` nommées `shot_01.mp4`, `shot_02.mp4`…
-6. Reviens : `analyser-videos`, puis `juger`, puis `timeline`, puis `montage`.
-
-**`juger`** est le contrôle qui ne se ment pas : un modèle qui ne sait rien regarde tes vidéos **sans la narration** et dit ce qu'il a compris. On compare à ce que chaque plan devait faire comprendre. Les plans compris entrent dans la mémoire et serviront aux vidéos suivantes.
-
-Pour que l'objet reste le même d'un plan à l'autre, produis d'abord l'image maîtresse et dérive les autres : voir `app/output/identite.md`.

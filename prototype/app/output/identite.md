@@ -6,7 +6,7 @@ autres a partir d'elle au lieu de les redecrire.
 
 ## 1. L'image maitresse
 
-C'est le plan 10 : celui qui montre l'objet le plus entier.
+C'est le plan 08 : celui qui montre l'objet le plus entier.
 Genere-le en premier, et garde-le.
 
 ```
@@ -34,7 +34,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. macro statique à hauteur de vitre, faible profondeur de champ le barillet en bas à gauche, la vitre sur les deux tiers droits Show: des impulsions bleues traversent la vitre sans la déformer Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. large statique à hauteur de poitrine, faible profondeur de champ le mannequin à gauche, la voiture à droite, la rue mouillée entre Show: une lueur rouge quitte le boîtier et gagne la carrosserie Keep the reference lighting and art direction.
 ```
 
 ### Plan 03
@@ -43,7 +43,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. large statique à hauteur de poitrine, faible profondeur de champ le mannequin à gauche, la voiture à droite, la rue mouillée entre Show: une lueur rouge quitte le boîtier et gagne la carrosserie Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. large statique à hauteur de poitrine, faible profondeur de champ un mannequin à chaque bord du cadre, le faisceau en travers Show: un faisceau rouge s'ouvre entre les deux boîtiers Keep the reference lighting and art direction.
 ```
 
 ### Plan 04
@@ -52,7 +52,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. large statique à hauteur de poitrine, faible profondeur de champ un mannequin à chaque bord du cadre, le faisceau en travers Show: un faisceau rouge s'ouvre entre les deux boîtiers Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. macro statique à hauteur de poignée, faible profondeur de champ le barillet en bas au centre, la main et le boîtier à gauche Show: des impulsions bleues traversent l'air puis la poignée Keep the reference lighting and art direction.
 ```
 
 ### Plan 05
@@ -61,7 +61,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. macro statique à hauteur de poignée, faible profondeur de champ le barillet en bas au centre, la main et le boîtier à gauche Show: des impulsions bleues traversent l'air puis la poignée Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique à hauteur de poitrine, foyer profond la porte et le boîtier au centre, la voiture au fond à droite Show: les impulsions bleues traversent le bois, entrent dans l'antenne, puis longent le faisceau rouge Keep the reference lighting and art direction.
 ```
 
 ### Plan 06
@@ -70,7 +70,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique à hauteur de poitrine, foyer sur le boîtier le boîtier au centre, la clé visible derrière la vitre au-dessus Show: les impulsions bleues traversent le bois et entrent dans l'antenne, et le boîtier rougit Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique à hauteur de poignée, faible profondeur de champ la poignée au centre, le rétroviseur en haut à droite Show: des impulsions bleues entrent dans la poignée puis le répétiteur s'allume Keep the reference lighting and art direction.
 ```
 
 ### Plan 07
@@ -79,16 +79,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. large statique à hauteur de poitrine, faible profondeur de champ un boîtier à chaque bord du cadre, le faisceau en travers Show: des impulsions bleues défilent le long du faisceau rouge et ressortent inchangées Keep the reference lighting and art direction.
-```
-
-### Plan 08
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique à hauteur de poignée, faible profondeur de champ la poignée au centre, le rétroviseur en haut à droite Show: des impulsions bleues entrent dans la poignée puis le répétiteur s'allume Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. trois-quarts statique à hauteur de phare, foyer profond le phare à gauche, le calculateur à droite, le faisceau entre Show: des impulsions bleues s'allument l'une après l'autre le long de la paire Keep the reference lighting and art direction.
 ```
 
 ### Plan 09
@@ -97,37 +88,10 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. trois-quarts statique à hauteur de phare, foyer profond le phare à gauche, le calculateur à droite, le faisceau entre Show: des impulsions bleues s'allument l'une après l'autre le long de la paire Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. macro statique en contre-plongée, faible profondeur de champ la paire en diagonale, le connecteur en haut à droite Show: des impulsions rouges rejoignent les bleues puis allument les mêmes broches Keep the reference lighting and art direction.
 ```
 
-### Plan 11
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. macro statique en contre-plongée, faible profondeur de champ la paire en diagonale, le phare derrière à gauche Show: des impulsions rouges rejoignent les bleues sur la même paire Keep the reference lighting and art direction.
-```
-
-### Plan 12
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. macro statique en contre-plongée, faible profondeur de champ la paire en diagonale, les conducteurs visibles sur toute sa longueur Show: des impulsions rouges rejoignent les bleues et prennent la même cadence Keep the reference lighting and art direction.
-```
-
-### Plan 13
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique à hauteur de vitre, faible profondeur de champ le bouton en bas au centre, le siège et le volant à droite Show: les impulsions bleues et rouges arrivent ensemble à la garniture Keep the reference lighting and art direction.
-```
-
-### Plan 14
+### Plan 10
 
 **Depuis l'image maitresse** — meme objet, meme geometrie, memes
 materiaux, meme code couleur ; ne change que le point de vue :
@@ -136,7 +100,7 @@ materiaux, meme code couleur ; ne change que le point de vue :
 Same object as the reference image, unchanged in geometry, proportions, materials and colour code. macro statique à hauteur de moyeu, faible profondeur de champ le capteur en bas au centre, la valve au-dessus, le disque derrière les rayons Show: des impulsions bleues quittent le capteur et traversent le pneu Keep the reference lighting and art direction.
 ```
 
-### Plan 15
+### Plan 11
 
 **Depuis l'image maitresse** — meme objet, meme geometrie, memes
 materiaux, meme code couleur ; ne change que le point de vue :
@@ -145,25 +109,16 @@ materiaux, meme code couleur ; ne change que le point de vue :
 Same object as the reference image, unchanged in geometry, proportions, materials and colour code. profil statique à hauteur de taille, foyer profond les roues en bas du cadre, le récepteur au centre, plus haut Show: des impulsions bleues montent de chaque roue vers le récepteur Keep the reference lighting and art direction.
 ```
 
-### Plan 16
+### Plan 12
 
 **Depuis l'image maitresse** — meme objet, meme geometrie, memes
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique à hauteur de moyeu, faible profondeur de champ le mannequin à gauche, la roue à droite, l'écart entre les deux Show: des impulsions rouges quittent le boîtier au même rythme que les bleues Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique à hauteur de moyeu, faible profondeur de champ le mannequin à gauche, la roue à droite, le répétiteur au-dessus Show: des impulsions rouges quittent le boîtier au rythme des bleues, puis le répétiteur s'allume Keep the reference lighting and art direction.
 ```
 
-### Plan 17
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique depuis le siège passager, à hauteur de combiné le combiné à gauche, le pare-brise et la route à droite Show: une lueur rouge gagne la face du combiné Keep the reference lighting and art direction.
-```
-
-### Plan 18
+### Plan 13
 
 **Depuis l'image maitresse** — meme objet, meme geometrie, memes
 materiaux, meme code couleur ; ne change que le point de vue :
@@ -172,7 +127,7 @@ materiaux, meme code couleur ; ne change que le point de vue :
 Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique depuis le siège passager, à hauteur de volant la jante en haut, la colonne au centre, la crémaillère en bas Show: des impulsions vertes descendent la colonne vers la crémaillère Keep the reference lighting and art direction.
 ```
 
-### Plan 19
+### Plan 14
 
 **Depuis l'image maitresse** — meme objet, meme geometrie, memes
 materiaux, meme code couleur ; ne change que le point de vue :
@@ -181,7 +136,7 @@ materiaux, meme code couleur ; ne change que le point de vue :
 Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique depuis le siège passager, à hauteur de rétroviseur le boîtier en haut au centre, le câble descendant à gauche Show: des impulsions vertes quittent le boîtier et descendent le câble Keep the reference lighting and art direction.
 ```
 
-### Plan 20
+### Plan 15
 
 **Depuis l'image maitresse** — meme objet, meme geometrie, memes
 materiaux, meme code couleur ; ne change que le point de vue :
