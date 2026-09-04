@@ -1022,12 +1022,29 @@ def cmd_mesurer_videos(args) -> int:
     return 0
 
 
+A_DIRE = ("Colle ce texte dans ElevenLabs (ou lis-le au micro). La ligne vide "
+          "entre les phrases compte : c'est la pause qui permettra de retrouver "
+          "la fin de chaque plan dans la piste. Rends un seul fichier, dépose-le "
+          "dans app/output/voix.mp3, puis lance « voix --sur app/output/voix.mp3 "
+          "--caler ».")
+
+
 def cmd_voix(args) -> int:
-    """Dire le texte pour connaître sa durée. espeak-ng en local, 0 €."""
+    """La durée de chaque phrase — dite par espeak, ou lue sur ta vraie voix."""
     sb = charger()
-    dossier = config.OUTPUT_DIR / "voix"
-    fichier = config.OUTPUT_DIR / "voix_guide.mp3"
-    piste, mesurees = voix.piste(sb, dossier, fichier, args.vitesse)
+    fiche = ecrire_fiche("voix_a_dire.md",
+                         manuel.fiche("Le texte à dire", voix.a_coller(sb), A_DIRE))
+    log("À DIRE", chemin_lisible(fiche))
+
+    if args.sur:
+        piste = Path(args.sur)
+        mesurees = voix.caler_sur(sb, piste, args.seuil)
+        log("VOIX", f"durées lues sur {chemin_lisible(piste)} : "
+                    f"{len(mesurees)} phrase(s) retrouvée(s)")
+    else:
+        dossier = config.OUTPUT_DIR / "voix"
+        fichier = config.OUTPUT_DIR / "voix_guide.mp3"
+        piste, mesurees = voix.piste(sb, dossier, fichier, args.vitesse)
 
     texte = voix.rapport(sb, mesurees)
     print()
@@ -1042,8 +1059,10 @@ def cmd_voix(args) -> int:
                     f"({sb.duration_seconds:g}s au total)")
         log("OUTPUT", chemin_lisible(config.PROJECT_FILE))
     log("OUTPUT", chemin_lisible(piste))
-    log("RAPPEL", "cette voix est un repérage, pas un rendu. Pose ta vraie voix "
-                  f"dans {chemin_lisible(config.VOICE_FILE)} et relance « montage ».")
+    if not args.sur:
+        log("RAPPEL", "cette voix est un repérage, pas un rendu. Pose ta vraie voix "
+                      f"dans {chemin_lisible(config.VOICE_FILE)}, puis relance avec "
+                      "« --sur » pour caler le montage dessus.")
     return 0
 
 
@@ -1161,6 +1180,11 @@ def build_parser() -> argparse.ArgumentParser:
                         help="poser sur chaque plan la durée que sa phrase prend vraiment")
     p_voix.add_argument("--vitesse", type=int, default=voix.VITESSE,
                         help="débit espeak-ng, en mots par minute")
+    p_voix.add_argument("--sur", default="",
+                        help="lire les durées sur une VRAIE piste (ElevenLabs, "
+                             "ta voix) au lieu de la faire dire par espeak-ng")
+    p_voix.add_argument("--seuil", type=float, default=voix.SEUIL_SILENCE_DB,
+                        help="niveau, en dB, en dessous duquel c'est du silence")
     p_voix.set_defaults(func=cmd_voix)
 
     sub.add_parser("timeline", help="timeline + sous-titres").set_defaults(func=cmd_timeline)

@@ -234,9 +234,16 @@ jobs:
         if: inputs.etape == 'voix' || inputs.etape == 'montage'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq espeak-ng
 
-      - name: Dire le texte pour connaître sa durée
+      - name: La durée de chaque phrase — espeak, ou ta vraie voix
         if: inputs.etape == 'voix'
-        run: python -m app.main voix --caler
+        run: |
+          # Une vraie piste déposée dans app/output/voix.mp3 gagne toujours :
+          # espeak ne sert que tant qu'elle n'existe pas.
+          if [ -f app/output/voix.mp3 ]; then
+            python -m app.main voix --sur app/output/voix.mp3 --caler
+          else
+            python -m app.main voix --caler
+          fi
 
       - name: Mesurer les vidéos rendues — format, durée, couleurs
         if: inputs.etape == 'mesurer-videos'
@@ -365,6 +372,7 @@ jobs:
                      app/output/manuel/*.md
                      app/output/mesures_videos.md
                      app/output/voix.md
+                     app/output/manuel/voix_a_dire.md
                      app/output/shots/*/verdict.json
                      app/output/shots/*/image_analysis.json
                      app/output/shots/*/image_prompt.txt
