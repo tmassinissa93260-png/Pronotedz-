@@ -1,19 +1,89 @@
 1
-00:00:00,000 --> 00:00:04,000
-Découvrez comment une voiture électrique
-transforme l'énergie en mouvement.
+00:00:00,000 --> 00:00:03,034
+Bienvenue dans le monde
+du hacking automobile.
 
 2
-00:00:04,000 --> 00:00:08,000
-D'abord, la batterie fournit l'électricité
-essentielle pour le moteur.
+00:00:03,034 --> 00:00:04,963
+Un premier complice
+capte le signal
 
 3
-00:00:08,000 --> 00:00:12,000
-Ensuite, elle alimente le moteur qui
-démarre et crée de la puissance.
+00:00:04,963 --> 00:00:06,892
+de ta clé à travers
+ta
 
 4
-00:00:12,000 --> 00:00:16,000
-Lors du freinage, l'énergie est récupérée
-pour recharger la batterie.
+00:00:06,892 --> 00:00:08,820
+porte d'entrée et le
+retransmet à
+
+5
+00:00:08,820 --> 00:00:10,749
+un second boîtier
+près du véhicule.
+
+6
+00:00:10,749 --> 00:00:12,673
+Des pirates percent
+sous l'aile avant
+
+7
+00:00:12,673 --> 00:00:14,597
+pour se brancher
+directement sur le
+
+8
+00:00:14,597 --> 00:00:16,520
+câble du phare,
+injectent des trames
+
+9
+00:00:16,520 --> 00:00:18,444
+de données, et font
+croire au
+
+10
+00:00:18,444 --> 00:00:20,368
+calculateur qu'ils
+ont la vraie clé.
+
+11
+00:00:20,368 --> 00:00:22,689
+En envoyant de fausses
+données de crevaison
+
+12
+00:00:22,689 --> 00:00:25,009
+ou de surchauffe à
+distance, un hacker
+
+13
+00:00:25,009 --> 00:00:27,330
+peut créer une erreur
+système ou forcer
+
+14
+00:00:27,330 --> 00:00:28,656
+un convoi à
+s'arrêter.
+
+15
+00:00:28,656 --> 00:00:30,902
+Avec un logiciel
+open-source comme OpenPilot
+
+16
+00:00:30,902 --> 00:00:33,149
+et un boîtier à 900
+€,
+
+17
+00:00:33,149 --> 00:00:35,396
+tu peux ajouter une
+vraie conduite
+
+18
+00:00:35,396 --> 00:00:37,642
+autonome niveau 2
+sur ta voiture.

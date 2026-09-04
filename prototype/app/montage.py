@@ -106,16 +106,47 @@ def horodatage(secondes: float) -> str:
     return f"{h:02d}:{m:02d}:{s:02d},{ms:03d}"
 
 
+#: Ce qu'un oeil lit sans quitter l'image. Une phrase de vingt-quatre mots
+#: affichee d'un coup fait six lignes au milieu du cadre : elle cache le plan
+#: qu'elle est censee accompagner, et personne ne la lit jusqu'au bout.
+MOTS_PAR_CARTON = 6
+#: Deux lignes au plus, et une ligne tient dans la largeur d'un telephone.
+LARGEUR_LIGNE = 20
+
+
 def sous_titres(entrees: list[Entree]) -> str:
-    """Un bloc SRT par plan, cale sur la voix off."""
-    blocs = []
-    for numero, e in enumerate(entrees, start=1):
-        blocs.append(f"{numero}\n{horodatage(e.start)} --> {horodatage(e.end)}\n"
-                     f"{_couper(e.voice)}\n")
+    """Des cartons courts, cales dans la duree de leur plan.
+
+    La duree du plan est repartie entre ses cartons au prorata du nombre de
+    mots : c'est la meilleure approximation du debit reel quand on n'a pas les
+    horodatages mot a mot de la voix.
+    """
+    blocs, numero = [], 0
+    for e in entrees:
+        morceaux = cartons(e.voice)
+        total = sum(len(m.split()) for m in morceaux) or 1
+        curseur = e.start
+        for morceau in morceaux:
+            part = len(morceau.split()) / total
+            fin = min(curseur + (e.duration * part), e.end)
+            numero += 1
+            blocs.append(f"{numero}\n{horodatage(curseur)} --> {horodatage(fin)}\n"
+                         f"{_couper(morceau)}\n")
+            curseur = fin
     return "\n".join(blocs)
 
 
-def _couper(texte: str, largeur: int = 42) -> str:
+def cartons(texte: str, mots_max: int = MOTS_PAR_CARTON) -> list[str]:
+    """La phrase decoupee en cartons de longueur voisine."""
+    mots = texte.split()
+    if not mots:
+        return []
+    nombre = max(1, round(len(mots) / mots_max))
+    taille = -(-len(mots) // nombre)          # arrondi au-dessus
+    return [" ".join(mots[i:i + taille]) for i in range(0, len(mots), taille)]
+
+
+def _couper(texte: str, largeur: int = LARGEUR_LIGNE) -> str:
     """Deux lignes au plus, coupees entre les mots : lisible en vertical."""
     mots, lignes, courante = texte.split(), [], ""
     for mot in mots:
@@ -129,7 +160,7 @@ def _couper(texte: str, largeur: int = 42) -> str:
         lignes.append(courante)
     if len(lignes) <= 2:
         return "\n".join(lignes)
-    milieu = len(mots) // 2
+    milieu = -(-len(mots) // 2)
     return " ".join(mots[:milieu]) + "\n" + " ".join(mots[milieu:])
 
 
@@ -175,8 +206,12 @@ def assembler(entrees: list[Entree], sortie: Path, voix: Path | None = None,
 
     if srt and srt.is_file():
         avec_st = travail / "avec_sous_titres.mp4"
-        style = ("FontSize=16,PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,"
-                 "BorderStyle=1,Outline=2,Shadow=0,Alignment=2,MarginV=90")
+        # libass lit un SRT dans son cadre par defaut (384x288), pas dans
+        # celui de la video : une marge de 120 mettait le texte au milieu de
+        # l'image, sur le plan qu'il devait accompagner.
+        style = ("FontName=DejaVu Sans,FontSize=15,Bold=1,"
+                 "PrimaryColour=&H00FFFFFF,OutlineColour=&H00000000,"
+                 "BorderStyle=1,Outline=2,Shadow=1,Alignment=2,MarginV=34")
         _ffmpeg(["-i", str(courant), "-vf",
                  f"subtitles={_echapper(srt)}:force_style='{style}'",
                  "-c:a", "copy", str(avec_st)])

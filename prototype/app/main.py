@@ -39,6 +39,7 @@ from . import (  # noqa: E402
     prompts,
     redacteur,
     validator,
+    voix,
 )
 from .models import EXPLICATION_FIELDS, Shot, Storyboard, StoryboardError  # noqa: E402
 from .openai_client import OpenAIError, generate_storyboard  # noqa: E402
@@ -782,24 +783,55 @@ def cmd_timeline(args) -> int:
     return 0
 
 
+def plateau_partiel(sb: Storyboard, videos: dict) -> Storyboard:
+    """Le même plateau, réduit aux plans qui ont vraiment une vidéo.
+
+    On produit les plans par paquets ; attendre les quinze pour voir le
+    premier montage, c'est attendre pour rien.
+    """
+    import copy
+
+    extrait = copy.deepcopy(sb)
+    extrait.shots = [s for s in sb.shots if s.id in videos]
+    extrait.shot_count = len(extrait.shots)
+    extrait.duration_seconds = round(sum(s.duration_seconds for s in extrait.shots), 3)
+    extrait.script = " ".join(s.voice for s in extrait.shots)
+    return extrait
+
+
 def cmd_montage(args) -> int:
     sb = charger()
     videos = trouver_videos(sb)
     manquants = [s.id for s in sb.shots if s.id not in videos]
-    if manquants:
+    if manquants and not args.partiel:
         log("STOP", f"vidéo manquante pour le(s) plan(s) : "
                     f"{', '.join(f'{i:02d}' for i in manquants)}")
+        print("  Ajoute --partiel pour monter seulement ce qui existe.")
         return 1
+
+    if manquants:
+        sb = plateau_partiel(sb, videos)
+        if not sb.shots:
+            log("STOP", "aucune vidéo déposée.")
+            return 1
+        log("EXTRAIT", f"{len(sb.shots)} plan(s) montés sur {len(videos) + len(manquants)} : "
+                       f"{', '.join(f'{s.id:02d}' for s in sb.shots)}")
 
     entrees = montage.construire_timeline(sb, videos, charger_analyses(sb))
     montage.sauver_timeline(entrees, config.TIMELINE_FILE)
     config.SRT_FILE.write_text(montage.sous_titres(entrees), encoding="utf-8")
 
-    voix = config.VOICE_FILE if config.VOICE_FILE.is_file() else None
+    voix_off = config.VOICE_FILE if config.VOICE_FILE.is_file() else None
+    if voix_off is None and args.reperage:
+        # La piste de reperage est refaite POUR CET EXTRAIT : celle du plateau
+        # entier parlerait par-dessus des plans qui ne sont pas la.
+        voix_off, _ = voix.piste(sb, config.OUTPUT_DIR / "voix",
+                                 config.OUTPUT_DIR / "voix_montage.mp3")
+        log("VOIX", "aucune vraie voix : piste de repérage espeak-ng (à remplacer)")
     musique = config.MUSIC_FILE if config.MUSIC_FILE.is_file() else None
-    log("MONTAGE", f"{len(entrees)} plans · voix : {'oui' if voix else 'non'} · "
+    log("MONTAGE", f"{len(entrees)} plans · voix : {'oui' if voix_off else 'non'} · "
                    f"musique : {'oui' if musique else 'non'} · sous-titres : oui")
-    sortie = montage.assembler(entrees, config.FINAL_FILE, voix, musique,
+    sortie = montage.assembler(entrees, config.FINAL_FILE, voix_off, musique,
                                config.SRT_FILE if not args.sans_sous_titres else None)
     log("OK", f"MP4 final -> {sortie}")
     return 0
@@ -990,6 +1022,31 @@ def cmd_mesurer_videos(args) -> int:
     return 0
 
 
+def cmd_voix(args) -> int:
+    """Dire le texte pour connaître sa durée. espeak-ng en local, 0 €."""
+    sb = charger()
+    dossier = config.OUTPUT_DIR / "voix"
+    fichier = config.OUTPUT_DIR / "voix_guide.mp3"
+    piste, mesurees = voix.piste(sb, dossier, fichier, args.vitesse)
+
+    texte = voix.rapport(sb, mesurees)
+    print()
+    print(texte)
+    (config.OUTPUT_DIR / "voix.md").write_text(texte + "\n", encoding="utf-8")
+
+    if args.caler:
+        voix.caler(sb, mesurees)
+        sb.save(config.PROJECT_FILE)
+        ecrire_elements(sb)
+        log("CALÉ", f"les durées de plan viennent maintenant de la voix "
+                    f"({sb.duration_seconds:g}s au total)")
+        log("OUTPUT", chemin_lisible(config.PROJECT_FILE))
+    log("OUTPUT", chemin_lisible(piste))
+    log("RAPPEL", "cette voix est un repérage, pas un rendu. Pose ta vraie voix "
+                  f"dans {chemin_lisible(config.VOICE_FILE)} et relance « montage ».")
+    return 0
+
+
 def cmd_banc(args) -> int:
     """Chaque contrôle, rejoué sur tous les storyboards déjà produits."""
     log("BANC", "Relecture des storyboards de l'historique...")
@@ -1098,10 +1155,22 @@ def build_parser() -> argparse.ArgumentParser:
     p_duel = sub.add_parser("duel", help="la deuxième piste de l'agent, pour comparer")
     p_duel.add_argument("--shot", type=int, required=True)
     p_duel.set_defaults(func=cmd_duel)
+    p_voix = commun(sub.add_parser(
+        "voix", help="dire le texte pour connaître sa durée (espeak-ng, aucun appel)"))
+    p_voix.add_argument("--caler", action="store_true",
+                        help="poser sur chaque plan la durée que sa phrase prend vraiment")
+    p_voix.add_argument("--vitesse", type=int, default=voix.VITESSE,
+                        help="débit espeak-ng, en mots par minute")
+    p_voix.set_defaults(func=cmd_voix)
+
     sub.add_parser("timeline", help="timeline + sous-titres").set_defaults(func=cmd_timeline)
 
     p_mon = sub.add_parser("montage", help="assembler le MP4 final")
     p_mon.add_argument("--sans-sous-titres", dest="sans_sous_titres", action="store_true")
+    p_mon.add_argument("--partiel", action="store_true",
+                       help="monter seulement les plans qui ont déjà une vidéo")
+    p_mon.add_argument("--reperage", action="store_true",
+                       help="poser la voix espeak-ng si aucune vraie voix n'est déposée")
     p_mon.set_defaults(func=cmd_montage)
 
     commun(sub.add_parser("valider", help="rejouer les vérifications")

@@ -496,10 +496,31 @@ class TestTimelineEtSousTitres(unittest.TestCase):
     def test_sous_titres_cales_sur_la_timeline(self):
         entrees = montage.construire_timeline(self.sb, self.videos)
         srt = montage.sous_titres(entrees)
-        self.assertTrue(srt.startswith("1\n00:00:00,000 --> 00:00:03,000"))
-        self.assertEqual(srt.count("-->"), 4)
+        self.assertTrue(srt.startswith("1\n00:00:00,000 --> "))
+        # Plus de cartons que de plans : une phrase longue en fait plusieurs.
+        self.assertGreater(srt.count("-->"), len(self.sb.shots))
         for s in self.sb.shots:
             self.assertIn(s.voice.split()[0], srt)
+
+    def test_les_cartons_couvrent_la_phrase_entiere(self):
+        for s in self.sb.shots:
+            with self.subTest(shot=s.id):
+                self.assertEqual(" ".join(montage.cartons(s.voice)), s.voice)
+
+    def test_un_carton_ne_depasse_pas_la_taille_lisible(self):
+        for s in self.sb.shots:
+            for carton in montage.cartons(s.voice):
+                self.assertLessEqual(len(carton.split()),
+                                     montage.MOTS_PAR_CARTON + 1, carton)
+
+    def test_les_cartons_d_un_plan_tiennent_dans_son_temps(self):
+        entrees = montage.construire_timeline(self.sb, self.videos)
+        srt = montage.sous_titres(entrees).strip().split("\n\n")
+        fins = [b.splitlines()[1].split(" --> ")[1] for b in srt]
+        self.assertEqual(fins[-1], montage.horodatage(entrees[-1].end))
+
+    def test_une_phrase_vide_ne_fait_aucun_carton(self):
+        self.assertEqual(montage.cartons("   "), [])
 
     def test_sous_titres_deux_lignes_au_plus(self):
         entrees = montage.construire_timeline(self.sb, self.videos)

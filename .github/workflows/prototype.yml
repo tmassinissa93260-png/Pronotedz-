@@ -67,6 +67,7 @@ on:
           - analyser-videos
           - controle
           - mesurer-videos
+          - voix
           - juger
           - montage
           - manuel
@@ -146,11 +147,13 @@ jobs:
       - name: Installer ffmpeg
         if: inputs.etape == 'analyser-videos' || inputs.etape == 'montage'
             || inputs.etape == 'juger' || inputs.etape == 'mesurer-videos'
+            || inputs.etape == 'voix'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
 
       - name: Vérifier qu'un cerveau est disponible
         if: inputs.etape != 'controle' && inputs.etape != 'manuel'
             && inputs.etape != 'coller' && inputs.etape != 'mesurer-videos'
+            && inputs.etape != 'voix'
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
@@ -227,6 +230,14 @@ jobs:
           fi
           python -m app.main juger
 
+      - name: Installer espeak-ng
+        if: inputs.etape == 'voix' || inputs.etape == 'montage'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq espeak-ng
+
+      - name: Dire le texte pour connaître sa durée
+        if: inputs.etape == 'voix'
+        run: python -m app.main voix --caler
+
       - name: Mesurer les vidéos rendues — format, durée, couleurs
         if: inputs.etape == 'mesurer-videos'
         run: |
@@ -292,7 +303,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-        run: python -m app.main montage
+        run: python -m app.main montage --partiel --reperage
 
       - name: Récapitulatif lisible en fin de page
         if: always()
@@ -353,6 +364,7 @@ jobs:
                      app/output/memoire/plans.json app/output/texte.json
                      app/output/manuel/*.md
                      app/output/mesures_videos.md
+                     app/output/voix.md
                      app/output/shots/*/verdict.json
                      app/output/shots/*/image_analysis.json
                      app/output/shots/*/image_prompt.txt
