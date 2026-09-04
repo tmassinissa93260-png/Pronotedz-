@@ -1,1 +1,0 @@
-En envoyant de fausses données de crevaison ou de surchauffe à distance, un hacker peut créer une erreur système ou forcer un convoi à s'arrêter.
