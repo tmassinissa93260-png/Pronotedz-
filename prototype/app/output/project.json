@@ -1,8 +1,8 @@
 {
   "subject": "Comment on vole une voiture récente sans casser une vitre",
-  "duration_seconds": 49.394,
+  "duration_seconds": 44.504,
   "shot_count": 5,
-  "script": "Ta voiture récente peut se faire voler en moins de 30 secondes, sans même casser une vitre. Bienvenue dans le monde du hacking automobile. Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte et le renvoie à ta voiture qui s'ouvre. Plus lourd : le bus CAN, le réseau interne où tous les composants se parlent. Des pirates s'y branchent et se font passer pour ta clé. Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison, envoyée de loin, peut arrêter un convoi entier. Mais ce même bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome niveau 2.",
+  "script": "Ta voiture récente peut se faire voler en moins de 30 secondes, sans casser une vitre. Bienvenue dans le hacking automobile. Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte, et ta voiture s'ouvre. Plus lourd : le bus CAN, le réseau où tous les composants de ta voiture se parlent. Des pirates s'y branchent et imitent ta clé. Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison peut arrêter un convoi entier. Mais ce bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome.",
   "visual_bible": {
     "main_subject": "a modern dark near-black car on a Parisian street at night, and two featureless white mannequins acting on it",
     "characters_objects": "mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie, both featureless and smooth matte white",
@@ -19,8 +19,8 @@
   "shots": [
     {
       "id": 1,
-      "duration_seconds": 9.922,
-      "voice": "Ta voiture récente peut se faire voler en moins de 30 secondes, sans même casser une vitre. Bienvenue dans le monde du hacking automobile.",
+      "duration_seconds": 8.915,
+      "voice": "Ta voiture récente peut se faire voler en moins de 30 secondes, sans casser une vitre. Bienvenue dans le hacking automobile.",
       "visual_description": "Parisian street at night, the dark car, shot 1.",
       "educational_function": "Nomme le sujet : quelqu'un agit sur la voiture à distance.",
       "visual_concept": "a red glow travelling from the hacker's box across the street onto the car",
@@ -39,8 +39,8 @@
     },
     {
       "id": 2,
-      "duration_seconds": 9.994,
-      "voice": "Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte et le renvoie à ta voiture qui s'ouvre.",
+      "duration_seconds": 8.843,
+      "voice": "Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte, et ta voiture s'ouvre.",
       "visual_description": "Parisian street at night, the dark car, shot 2.",
       "educational_function": "Montre le premier maillon : le signal de la clé est capté à travers la porte.",
       "visual_concept": "blue key pulses crossing the wood into the box antenna, red glow building on it",
@@ -59,8 +59,8 @@
     },
     {
       "id": 3,
-      "duration_seconds": 9.634,
-      "voice": "Plus lourd : le bus CAN, le réseau interne où tous les composants se parlent. Des pirates s'y branchent et se font passer pour ta clé.",
+      "duration_seconds": 9.203,
+      "voice": "Plus lourd : le bus CAN, le réseau où tous les composants de ta voiture se parlent. Des pirates s'y branchent et imitent ta clé.",
       "visual_description": "Parisian street at night, the dark car, shot 3.",
       "educational_function": "Montre la tromperie : les fausses trames prennent le même chemin que les vraies.",
       "visual_concept": "red added pulses joining the blue ones on the same twisted pair",
@@ -79,8 +79,8 @@
     },
     {
       "id": 4,
-      "duration_seconds": 9.994,
-      "voice": "Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison, envoyée de loin, peut arrêter un convoi entier.",
+      "duration_seconds": 8.7,
+      "voice": "Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison peut arrêter un convoi entier.",
       "visual_description": "Parisian street at night, the dark car, shot 4.",
       "educational_function": "Montre la copie : le faux signal a exactement la forme du vrai.",
       "visual_concept": "red pulses leaving the handheld unit in the same shape as the blue ones",
@@ -99,8 +99,8 @@
     },
     {
       "id": 5,
-      "duration_seconds": 9.85,
-      "voice": "Mais ce même bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome niveau 2.",
+      "duration_seconds": 8.843,
+      "voice": "Mais ce bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome.",
       "visual_description": "Parisian street at night, the dark car, shot 5.",
       "educational_function": "Montre le montage réel : un boîtier, un câble, et la commande part.",
       "visual_concept": "green pulses leaving the aftermarket box down the pillar into the turning wheel",

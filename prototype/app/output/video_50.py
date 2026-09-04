@@ -32,7 +32,15 @@ _quinze = _charger("video_hacking")
 from app import prompts, validator  # noqa: E402
 from app.models import Storyboard  # noqa: E402
 
+#: Mesure sur la piste d'Adrien : 1 187 caracteres en 85,343 s.
 CAR_PAR_S = 1187 / 85.343
+#: L'image utile d'un clip. Le conteneur annonce 10,24 s ; la piste video,
+#: elle, s'arrete a 10,00 s.
+IMAGE_UTILE = 10.0
+#: On ne remplit pas les dix secondes : le debit d'une voix varie d'une phrase
+#: a l'autre, et un plan qui deborde oblige a ralentir l'image. Huit dixiemes
+#: de marge, c'est une phrase qui traine sans que rien ne casse.
+MARGE = 0.8
 
 
 def _de(i: int):
@@ -48,23 +56,23 @@ def _sur_mesure(image, anim, expl, source: int):
 BLOCS = [
     # 1 — la rue : le crochet et l'annonce
     ("Ta voiture récente peut se faire voler en moins de 30 secondes, "
-     "sans même casser une vitre. Bienvenue dans le monde du hacking automobile.",
+     "sans casser une vitre. Bienvenue dans le hacking automobile.",
      _de(2)),
     # 2 — la porte : l'attaque par relais, de la clé à la voiture
     ("Première technique : l'attaque par relais. Un complice capte le signal "
-     "de ta clé à travers la porte et le renvoie à ta voiture qui s'ouvre.",
+     "de ta clé à travers la porte, et ta voiture s'ouvre.",
      _sur_mesure(_quinze.IMAGE_5, _quinze.ANIM_5, _quinze.EXPL_SUR_MESURE[5], 5)),
     # 3 — le faisceau : le bus CAN
-    ("Plus lourd : le bus CAN, le réseau interne où tous les composants "
-     "se parlent. Des pirates s'y branchent et se font passer pour ta clé.",
+    ("Plus lourd : le bus CAN, le réseau où tous les composants de ta voiture "
+     "se parlent. Des pirates s'y branchent et imitent ta clé.",
      _sur_mesure(_quinze.IMAGE_9, _quinze.ANIM_9, _quinze.EXPL_SUR_MESURE[9], 11)),
     # 4 — la roue : le TPMS
     ("Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. "
-     "Une fausse crevaison, envoyée de loin, peut arrêter un convoi entier.",
+     "Une fausse crevaison peut arrêter un convoi entier.",
      _sur_mesure(_quinze.IMAGE_12, _quinze.ANIM_12, _quinze.EXPL_SUR_MESURE[12], 15)),
     # 5 — l'habitacle : la reprise de contrôle
-    ("Mais ce même bus sert aussi à reprendre le contrôle. Avec OpenPilot "
-     "et un boîtier à 900 euros, tu ajoutes une conduite autonome niveau 2.",
+    ("Mais ce bus sert aussi à reprendre le contrôle. Avec OpenPilot et un "
+     "boîtier à 900 euros, tu ajoutes une conduite autonome.",
      _de(18)),
 ]
 

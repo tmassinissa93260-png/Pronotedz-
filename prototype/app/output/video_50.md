@@ -1,6 +1,6 @@
 # Comment on vole une voiture récente sans casser une vitre
 
-50.258 secondes · 5 plans · 699 caractères
+44.504 secondes · 5 plans · 619 caractères
 
 *Un paragraphe, un plan, un clip de 10 s.*
 
@@ -16,20 +16,20 @@
 ## Le texte à dire
 
 ```
-Ta voiture récente peut se faire voler en moins de 30 secondes, et sans même casser une vitre. Bienvenue dans le monde du hacking automobile.
+Ta voiture récente peut se faire voler en moins de 30 secondes, sans casser une vitre. Bienvenue dans le hacking automobile.
 
-Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers ta porte, et le renvoie à ta voiture, qui s'ouvre.
+Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte, et ta voiture s'ouvre.
 
-Plus lourd encore : le bus CAN, le réseau interne où tous les composants se parlent. Des pirates s'y branchent et se font passer pour ta clé.
+Plus lourd : le bus CAN, le réseau où tous les composants de ta voiture se parlent. Des pirates s'y branchent et imitent ta clé.
 
-Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison, envoyée de loin, peut arrêter un convoi entier.
+Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison peut arrêter un convoi entier.
 
-Mais ce même bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome niveau 2.
+Mais ce bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome.
 ```
 
-## Plan 01 · 10.138 s
+## Plan 01 · 8.915 s
 
-**Voix :** « Ta voiture récente peut se faire voler en moins de 30 secondes, et sans même casser une vitre. Bienvenue dans le monde du hacking automobile. »
+**Voix :** « Ta voiture récente peut se faire voler en moins de 30 secondes, sans casser une vitre. Bienvenue dans le hacking automobile. »
 
 *Nomme le sujet : quelqu'un agit sur la voiture à distance.*
 
@@ -45,9 +45,9 @@ Wide night shot of a Parisian street, the same dark near-black car parked at the
 The red glow spreads outward from the box, gradually travelling across the wet cobblestone and up the car's flank, until it settles along the panel seams and the door handle lights up in answer. The figure, the box and the car stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
-## Plan 02 · 10.138 s
+## Plan 02 · 8.843 s
 
-**Voix :** « Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers ta porte, et le renvoie à ta voiture, qui s'ouvre. »
+**Voix :** « Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte, et ta voiture s'ouvre. »
 
 *Montre le premier maillon : le signal de la clé est capté à travers la porte.*
 
@@ -63,9 +63,9 @@ Medium night shot of the building's front door from outside, mannequin 2 in the 
 The blue pulses leave the key, cross the wood one after another, and are drawn into the antenna face, and as each one enters, the red beam across the courtyard steadily brightens; then the blue pulses begin to travel along that beam from left to right until they reach the second box at the car and enter its door handle unchanged. The door, the key, the boxes and the car stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
-## Plan 03 · 10.138 s
+## Plan 03 · 9.203 s
 
-**Voix :** « Plus lourd encore : le bus CAN, le réseau interne où tous les composants se parlent. Des pirates s'y branchent et se font passer pour ta clé. »
+**Voix :** « Plus lourd : le bus CAN, le réseau où tous les composants de ta voiture se parlent. Des pirates s'y branchent et imitent ta clé. »
 
 *Montre la tromperie : les fausses trames prennent le même chemin que les vraies.*
 
@@ -81,9 +81,9 @@ Macro shot of the twisted pair of the car's internal network inside the front le
 The red pulses enter from beyond the lower left corner, gradually build in number, and travel rightwards along the twisted pair mixed in with the blue ones, while the blue pulses keep travelling at their own spacing; then red and blue reach the connector together and its copper pins light up identically for both, until the whole row is glowing. The pair, the sheath and the connector stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
-## Plan 04 · 9.994 s
+## Plan 04 · 8.7 s
 
-**Voix :** « Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison, envoyée de loin, peut arrêter un convoi entier. »
+**Voix :** « Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison peut arrêter un convoi entier. »
 
 *Montre la copie : le faux signal a exactement la forme du vrai.*
 
@@ -99,9 +99,9 @@ Medium night shot of mannequin 2 in the heather grey hoodie kneeling at the kerb
 The red pulses begin to leave the handheld unit, gradually matching the spacing of the blue ones, and travel steadily toward the wheel arch beside them; as they rise through the arch together the side indicator repeater above it lights up and holds, and the wheel slows until it stops turning. The figure, the unit and the car stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.
 ```
 
-## Plan 05 · 9.85 s
+## Plan 05 · 8.843 s
 
-**Voix :** « Mais ce même bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome niveau 2. »
+**Voix :** « Mais ce bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome. »
 
 *Montre le montage réel : un boîtier, un câble, et la commande part.*
 

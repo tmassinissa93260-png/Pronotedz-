@@ -1,10 +1,10 @@
 # Comment on vole une voiture récente sans casser une vitre
 
-49.394 secondes · 5 plans
+44.504 secondes · 5 plans
 
 ## Script
 
-Ta voiture récente peut se faire voler en moins de 30 secondes, sans même casser une vitre. Bienvenue dans le monde du hacking automobile. Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte et le renvoie à ta voiture qui s'ouvre. Plus lourd : le bus CAN, le réseau interne où tous les composants se parlent. Des pirates s'y branchent et se font passer pour ta clé. Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison, envoyée de loin, peut arrêter un convoi entier. Mais ce même bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome niveau 2.
+Ta voiture récente peut se faire voler en moins de 30 secondes, sans casser une vitre. Bienvenue dans le hacking automobile. Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte, et ta voiture s'ouvre. Plus lourd : le bus CAN, le réseau où tous les composants de ta voiture se parlent. Des pirates s'y branchent et imitent ta clé. Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison peut arrêter un convoi entier. Mais ce bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome.
 
 ## Visual bible
 
@@ -43,9 +43,9 @@ Une notion, une couleur, la même du début à la fin.
 
 ---
 
-## Plan 01 — 9.922s
+## Plan 01 — 8.915s
 
-**Voix** : Ta voiture récente peut se faire voler en moins de 30 secondes, sans même casser une vitre. Bienvenue dans le monde du hacking automobile.
+**Voix** : Ta voiture récente peut se faire voler en moins de 30 secondes, sans casser une vitre. Bienvenue dans le hacking automobile.
 
 **Fonction** : Nomme le sujet : quelqu'un agit sur la voiture à distance.
 
@@ -77,9 +77,9 @@ The red glow spreads outward from the box, gradually travelling across the wet c
 
 ---
 
-## Plan 02 — 9.994s
+## Plan 02 — 8.843s
 
-**Voix** : Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte et le renvoie à ta voiture qui s'ouvre.
+**Voix** : Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte, et ta voiture s'ouvre.
 
 **Fonction** : Montre le premier maillon : le signal de la clé est capté à travers la porte.
 
@@ -111,9 +111,9 @@ The blue pulses leave the key, cross the wood one after another, and are drawn i
 
 ---
 
-## Plan 03 — 9.634s
+## Plan 03 — 9.203s
 
-**Voix** : Plus lourd : le bus CAN, le réseau interne où tous les composants se parlent. Des pirates s'y branchent et se font passer pour ta clé.
+**Voix** : Plus lourd : le bus CAN, le réseau où tous les composants de ta voiture se parlent. Des pirates s'y branchent et imitent ta clé.
 
 **Fonction** : Montre la tromperie : les fausses trames prennent le même chemin que les vraies.
 
@@ -145,9 +145,9 @@ The red pulses enter from beyond the lower left corner, gradually build in numbe
 
 ---
 
-## Plan 04 — 9.994s
+## Plan 04 — 8.7s
 
-**Voix** : Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison, envoyée de loin, peut arrêter un convoi entier.
+**Voix** : Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison peut arrêter un convoi entier.
 
 **Fonction** : Montre la copie : le faux signal a exactement la forme du vrai.
 
@@ -179,9 +179,9 @@ The red pulses begin to leave the handheld unit, gradually matching the spacing 
 
 ---
 
-## Plan 05 — 9.85s
+## Plan 05 — 8.843s
 
-**Voix** : Mais ce même bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome niveau 2.
+**Voix** : Mais ce bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome.
 
 **Fonction** : Montre le montage réel : un boîtier, un câble, et la commande part.
 

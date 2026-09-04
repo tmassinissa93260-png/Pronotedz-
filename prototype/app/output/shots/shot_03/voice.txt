@@ -1,1 +1,1 @@
-Plus lourd : le bus CAN, le réseau interne où tous les composants se parlent. Des pirates s'y branchent et se font passer pour ta clé.
+Plus lourd : le bus CAN, le réseau où tous les composants de ta voiture se parlent. Des pirates s'y branchent et imitent ta clé.
