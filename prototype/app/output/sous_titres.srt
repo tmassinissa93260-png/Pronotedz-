@@ -1,89 +1,89 @@
 1
-00:00:00,000 --> 00:00:02,682
+00:00:00,000 --> 00:00:03,307
 Bienvenue dans le monde
 du hacking automobile.
 
 2
-00:00:02,682 --> 00:00:04,547
+00:00:03,307 --> 00:00:05,608
 Un premier complice
 capte le signal
 
 3
-00:00:04,547 --> 00:00:06,413
+00:00:05,608 --> 00:00:07,908
 de ta clé à travers
 ta
 
 4
-00:00:06,413 --> 00:00:08,278
+00:00:07,908 --> 00:00:10,209
 porte d'entrée et le
 retransmet à
 
 5
-00:00:08,278 --> 00:00:10,144
+00:00:10,209 --> 00:00:12,510
 un second boîtier
 près du véhicule.
 
 6
-00:00:10,144 --> 00:00:12,208
+00:00:12,510 --> 00:00:15,055
 Des pirates percent
 sous l'aile avant
 
 7
-00:00:12,208 --> 00:00:14,271
+00:00:15,055 --> 00:00:17,600
 pour se brancher
 directement sur le
 
 8
-00:00:14,271 --> 00:00:16,335
+00:00:17,600 --> 00:00:20,146
 câble du phare,
 injectent des trames
 
 9
-00:00:16,335 --> 00:00:18,398
+00:00:20,146 --> 00:00:22,691
 de données, et font
 croire au
 
 10
-00:00:18,398 --> 00:00:20,462
+00:00:22,691 --> 00:00:25,236
 calculateur qu'ils
 ont la vraie clé.
 
 11
-00:00:20,462 --> 00:00:22,829
+00:00:25,236 --> 00:00:28,155
 En envoyant de fausses
 données de crevaison
 
 12
-00:00:22,829 --> 00:00:25,196
+00:00:28,155 --> 00:00:31,074
 ou de surchauffe à
 distance, un hacker
 
 13
-00:00:25,196 --> 00:00:27,563
+00:00:31,074 --> 00:00:33,993
 peut créer une erreur
 système ou forcer
 
 14
-00:00:27,563 --> 00:00:28,915
+00:00:33,993 --> 00:00:35,661
 un convoi à
 s'arrêter.
 
 15
-00:00:28,915 --> 00:00:30,897
+00:00:35,661 --> 00:00:38,106
 Avec un logiciel
 open-source comme OpenPilot
 
 16
-00:00:30,897 --> 00:00:32,879
+00:00:38,106 --> 00:00:40,550
 et un boîtier à 900
 €,
 
 17
-00:00:32,879 --> 00:00:34,861
+00:00:40,550 --> 00:00:42,994
 tu peux ajouter une
 vraie conduite
 
 18
-00:00:34,861 --> 00:00:36,843
+00:00:42,994 --> 00:00:45,439
 autonome niveau 2
 sur ta voiture.

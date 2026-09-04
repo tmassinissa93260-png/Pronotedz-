@@ -64,13 +64,17 @@ def construire_timeline(sb: Storyboard, videos: dict[int, Path],
                 f"  Attendu : videos/shot_{shot.id:02d}.mp4 (ou .mov, .webm)")
 
         analyse = analyses.get(shot.id)
-        mesuree = analyse.measured_duration if analyse else 0.0
+        # Sans analyse payante, ffprobe donne la duree pour rien.
+        mesuree = analyse.measured_duration if analyse else duree_reelle(video)
         prevue = shot.duration_seconds
 
         if not mesuree:
             ajustement = "duree reelle inconnue : la video sera coupee a la duree prevue"
         elif mesuree < prevue - 0.15:
-            ajustement = f"video plus courte de {prevue - mesuree:.2f}s : ralentie pour tenir"
+            manque = prevue - mesuree
+            comment = ("ralentie" if prevue / mesuree <= RALENTI_MAX
+                       else "derniere image tenue")
+            ajustement = f"video plus courte de {manque:.2f}s : {comment} pour tenir"
         elif mesuree > prevue + 0.15:
             ajustement = f"video plus longue de {mesuree - prevue:.2f}s : coupee a {prevue}s"
         else:
@@ -175,6 +179,10 @@ def assembler(entrees: list[Entree], sortie: Path, voix: Path | None = None,
     """Coupe chaque plan a sa duree, les enchaine, ajoute son et sous-titres."""
     exiger_ffmpeg()
     travail = travail or sortie.parent / "montage"
+    # Un montage plus court que le precedent laissait ses morceaux derriere
+    # lui : ils ne partent pas dans le film, mais ils trainent et mentent.
+    if travail.is_dir():
+        shutil.rmtree(travail)
     travail.mkdir(parents=True, exist_ok=True)
     sortie.parent.mkdir(parents=True, exist_ok=True)
 
@@ -221,11 +229,46 @@ def assembler(entrees: list[Entree], sortie: Path, voix: Path | None = None,
     return sortie
 
 
+#: Au-dela, ralentir ne passe plus : on tient la derniere image.
+RALENTI_MAX = 1.6
+
+
+def duree_reelle(source: Path) -> float:
+    """La duree du fichier, ou 0 si on ne peut pas la lire."""
+    resultat = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+         "-of", "csv=p=0", str(source)],
+        capture_output=True, text=True)
+    try:
+        return round(float(resultat.stdout.strip()), 3)
+    except ValueError:
+        return 0.0
+
+
 def _normaliser(source: Path, duree: float, cible: Path) -> None:
-    """Chaque plan sort en 1080x1920, 30 i/s, a la duree exacte du plan."""
-    _ffmpeg(["-i", str(source), "-t", f"{duree}",
-             "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,"
-                    "crop=1080:1920,fps=30,setsar=1",
+    """Chaque plan sort en 1080x1920, 30 i/s, a la duree exacte du plan.
+
+    Une video plus COURTE que son plan laissait un trou : ffmpeg rendait ce
+    qu'il avait, le montage prenait du retard sur la voix, et le decalage
+    s'accumulait de plan en plan. Une voix plus lente que prevue suffit a
+    creer le cas — celle d'Adrien demande 12,7 s la ou le clip en fait 10,2.
+    On ralentit tant que ca reste credible, et au-dela on tient la derniere
+    image plutot que de tordre le mouvement.
+    """
+    cadrage = ("scale=1080:1920:force_original_aspect_ratio=increase,"
+               "crop=1080:1920,fps=30,setsar=1")
+    reelle = duree_reelle(source)
+    filtres = cadrage
+    if reelle and reelle < duree - 0.05:
+        facteur = duree / reelle
+        if facteur <= RALENTI_MAX:
+            filtres = f"setpts={facteur:.4f}*PTS,{cadrage}"
+        # Ralentir ne suffit pas a la milliseconde : la derniere image d'un
+        # clip de 24 i/s tombe ou elle tombe, et il manquait deux a trois
+        # dixiemes par plan — un retard qui s'accumule sur toute la video.
+        # On clone donc la derniere image bien au-dela, et « -t » tranche net.
+        filtres = f"{filtres},tpad=stop_mode=clone:stop_duration={duree:.3f}"
+    _ffmpeg(["-i", str(source), "-t", f"{duree}", "-vf", filtres,
              "-an", "-c:v", "libx264", "-preset", "medium", "-crf", "20",
              "-pix_fmt", "yuv420p", str(cible)])
 
