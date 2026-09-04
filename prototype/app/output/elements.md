@@ -1,6 +1,6 @@
 # Comment on vole une voiture récente sans casser une vitre
 
-44.504 secondes · 5 plans
+46.472 secondes · 5 plans
 
 ## Script
 
@@ -43,7 +43,7 @@ Une notion, une couleur, la même du début à la fin.
 
 ---
 
-## Plan 01 — 8.915s
+## Plan 01 — 9.283s
 
 **Voix** : Ta voiture récente peut se faire voler en moins de 30 secondes, sans casser une vitre. Bienvenue dans le hacking automobile.
 
@@ -77,7 +77,7 @@ The red glow spreads outward from the box, gradually travelling across the wet c
 
 ---
 
-## Plan 02 — 8.843s
+## Plan 02 — 9.973s
 
 **Voix** : Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte, et ta voiture s'ouvre.
 
@@ -111,7 +111,7 @@ The blue pulses leave the key, cross the wood one after another, and are drawn i
 
 ---
 
-## Plan 03 — 9.203s
+## Plan 03 — 8.547s
 
 **Voix** : Plus lourd : le bus CAN, le réseau où tous les composants de ta voiture se parlent. Des pirates s'y branchent et imitent ta clé.
 
@@ -145,7 +145,7 @@ The red pulses enter from beyond the lower left corner, gradually build in numbe
 
 ---
 
-## Plan 04 — 8.7s
+## Plan 04 — 8.634s
 
 **Voix** : Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison peut arrêter un convoi entier.
 
@@ -179,7 +179,7 @@ The red pulses begin to leave the handheld unit, gradually matching the spacing 
 
 ---
 
-## Plan 05 — 8.843s
+## Plan 05 — 10.035s
 
 **Voix** : Mais ce bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome.
 
