@@ -79,15 +79,24 @@ def piste(sb: Storyboard, dossier: Path, sortie: Path,
           vitesse: int = VITESSE) -> tuple[Path, dict[int, float]]:
     """La piste entiere, phrase apres phrase, avec le souffle entre elles."""
     mesurees = par_plan(sb, dossier, vitesse)
+    fichiers = [dossier / f"shot_{s.id:02d}.wav" for s in sb.shots]
+    return assembler(fichiers, dossier, sortie), mesurees
 
-    morceaux = []
+
+def assembler(fichiers: list[Path], dossier: Path, sortie: Path) -> Path:
+    """Les phrases bout a bout, avec le souffle entre elles.
+
+    La meme pause qui est comptee dans la duree de chaque plan : la piste et
+    la timeline finissent donc a la meme seconde.
+    """
     silence = dossier / "_pause.wav"
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i",
-                    "anullsrc=r=22050:cl=mono", "-t", str(PAUSE), str(silence)],
+                    "anullsrc=r=44100:cl=mono", "-t", str(PAUSE), str(silence)],
                    check=True, capture_output=True, timeout=60)
-    for shot in sb.shots:
-        morceaux.append(dossier / f"shot_{shot.id:02d}.wav")
-        morceaux.append(silence)
+
+    morceaux = []
+    for fichier in fichiers:
+        morceaux += [fichier, silence]
 
     liste = dossier / "_piste.txt"
     liste.write_text("".join(f"file '{m.resolve()}'\n" for m in morceaux), encoding="utf-8")
@@ -98,7 +107,7 @@ def piste(sb: Storyboard, dossier: Path, sortie: Path,
         capture_output=True, text=True, timeout=300)
     if resultat.returncode != 0:
         raise VoixError(f"ffmpeg a refusé l'assemblage : {resultat.stderr.strip()[:200]}")
-    return sortie, mesurees
+    return sortie
 
 
 # ---------------------------------------------------------------------------

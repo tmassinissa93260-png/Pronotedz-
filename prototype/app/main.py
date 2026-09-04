@@ -31,6 +31,7 @@ from . import (  # noqa: E402
     analyzer,
     banc,
     config,
+    eleven,
     juge,
     manuel,
     memoire,
@@ -1041,6 +1042,14 @@ def cmd_voix(args) -> int:
         mesurees = voix.caler_sur(sb, piste, args.seuil)
         log("VOIX", f"durées lues sur {chemin_lisible(piste)} : "
                     f"{len(mesurees)} phrase(s) retrouvée(s)")
+    elif args.eleven:
+        def dite(shot, duree):
+            log("ELEVEN", f"plan {shot.id:02d} · {duree:g}s · {shot.voice[:44]}")
+
+        piste, mesurees = eleven.piste(sb, config.OUTPUT_DIR / "voix",
+                                       config.VOICE_FILE, args.voix, on_shot=dite)
+        log("VOIX", f"ElevenLabs, {len(mesurees)} phrase(s) — les durées sont "
+                    f"exactes, rien n'est deviné")
     else:
         dossier = config.OUTPUT_DIR / "voix"
         fichier = config.OUTPUT_DIR / "voix_guide.mp3"
@@ -1059,10 +1068,21 @@ def cmd_voix(args) -> int:
                     f"({sb.duration_seconds:g}s au total)")
         log("OUTPUT", chemin_lisible(config.PROJECT_FILE))
     log("OUTPUT", chemin_lisible(piste))
-    if not args.sur:
+    if not args.sur and not args.eleven:
         log("RAPPEL", "cette voix est un repérage, pas un rendu. Pose ta vraie voix "
                       f"dans {chemin_lisible(config.VOICE_FILE)}, puis relance avec "
                       "« --sur » pour caler le montage dessus.")
+    return 0
+
+
+def cmd_voix_dispo(args) -> int:
+    """Les voix du compte ElevenLabs, pour en choisir une."""
+    for v in eleven.voix_disponibles():
+        etiquettes = " · ".join(f"{k}={x}" for k, x in (v["labels"] or {}).items())
+        print(f"  {v['voice_id']}  {v['name']:22} {etiquettes}")
+    print()
+    log("RAPPEL", "mets l'identifiant choisi dans ELEVENLABS_VOICE_ID, "
+                  "ou passe-le avec --voix.")
     return 0
 
 
@@ -1185,6 +1205,11 @@ def build_parser() -> argparse.ArgumentParser:
                              "ta voix) au lieu de la faire dire par espeak-ng")
     p_voix.add_argument("--seuil", type=float, default=voix.SEUIL_SILENCE_DB,
                         help="niveau, en dB, en dessous duquel c'est du silence")
+    p_voix.add_argument("--eleven", action="store_true",
+                        help="faire dire le texte par ElevenLabs, une phrase par "
+                             "plan (ELEVENLABS_API_KEY requise)")
+    p_voix.add_argument("--voix", default="",
+                        help="l'identifiant de voix ElevenLabs à utiliser")
     p_voix.set_defaults(func=cmd_voix)
 
     sub.add_parser("timeline", help="timeline + sous-titres").set_defaults(func=cmd_timeline)
@@ -1221,6 +1246,8 @@ def build_parser() -> argparse.ArgumentParser:
                        help="le fichier où tu as collé la réponse (- pour l'entrée standard)")
     p_col.set_defaults(func=cmd_coller)
 
+    sub.add_parser("voix-dispo", help="les voix du compte ElevenLabs"
+                   ).set_defaults(func=cmd_voix_dispo)
     sub.add_parser("selfcheck", help="état de la configuration").set_defaults(func=cmd_selfcheck)
     return parser
 
@@ -1238,6 +1265,12 @@ def main(argv: list[str] | None = None) -> int:
     except montage.MontageError as exc:
         print(f"\n[ERREUR MONTAGE] {exc}", file=sys.stderr)
         return 3
+    except eleven.ElevenError as exc:
+        print(f"\n[ERREUR ELEVENLABS] {exc}", file=sys.stderr)
+        return 6
+    except voix.VoixError as exc:
+        print(f"\n[ERREUR VOIX] {exc}", file=sys.stderr)
+        return 7
     except StoryboardError as exc:
         print(f"\n[ERREUR STORYBOARD] {exc}", file=sys.stderr)
         return 5

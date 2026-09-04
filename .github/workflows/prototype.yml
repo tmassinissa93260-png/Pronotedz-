@@ -32,6 +32,9 @@
 #                          dit ce qu'il a compris. On compare à ce que le plan
 #                          devait faire comprendre. Les plans compris entrent
 #                          dans la mémoire et serviront aux vidéos suivantes.
+#    « voix »            → la durée de CHAQUE phrase, pour de vrai. ElevenLabs
+#                          si le secret ELEVENLABS_API_KEY existe, sinon la
+#                          piste déjà déposée, sinon espeak-ng en repérage.
 #    « montage »         → timeline calée sur la voix, sous-titres, MP4.
 #
 #  SANS CRÉDIT OPENAI, deux étapes de plus — les mêmes prompts, à la main :
@@ -117,6 +120,13 @@ on:
         required: false
         default: ""
         type: string
+      refaire_la_voix:
+        description: >-
+          Refaire la voix avec ElevenLabs même si app/output/voix.mp3 existe
+          déjà. Chaque passage consomme du quota.
+        required: false
+        default: false
+        type: boolean
       enregistrer:
         description: >-
           Enregistrer le storyboard et la feuille d'éléments dans la branche,
@@ -234,14 +244,23 @@ jobs:
         if: inputs.etape == 'voix' || inputs.etape == 'montage'
         run: sudo apt-get update -qq && sudo apt-get install -y -qq espeak-ng
 
-      - name: La durée de chaque phrase — espeak, ou ta vraie voix
+      - name: La durée de chaque phrase — ElevenLabs, ta voix, ou espeak
         if: inputs.etape == 'voix'
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          ELEVENLABS_VOICE_ID: ${{ vars.ELEVENLABS_VOICE_ID || '' }}
+          ELEVENLABS_MODEL: ${{ vars.ELEVENLABS_MODEL || '' }}
         run: |
-          # Une vraie piste déposée dans app/output/voix.mp3 gagne toujours :
-          # espeak ne sert que tant qu'elle n'existe pas.
-          if [ -f app/output/voix.mp3 ]; then
+          # Trois sources, dans cet ordre : une piste déjà déposée gagne
+          # toujours, puis ElevenLabs si la clé est là, puis espeak en dernier
+          # recours — lui ne se publie pas, il ne sert qu'à mesurer.
+          if [ -f app/output/voix.mp3 ] && [ "${{ inputs.refaire_la_voix }}" != "true" ]; then
+            echo "Piste déjà déposée : les durées sont lues dessus."
             python -m app.main voix --sur app/output/voix.mp3 --caler
+          elif [ -n "$ELEVENLABS_API_KEY" ]; then
+            python -m app.main voix --eleven --caler
           else
+            echo "::warning::Aucune ELEVENLABS_API_KEY : voix de repérage espeak-ng."
             python -m app.main voix --caler
           fi
 
@@ -373,6 +392,7 @@ jobs:
                      app/output/mesures_videos.md
                      app/output/voix.md
                      app/output/manuel/voix_a_dire.md
+                     app/output/voix.mp3
                      app/output/shots/*/verdict.json
                      app/output/shots/*/image_analysis.json
                      app/output/shots/*/image_prompt.txt

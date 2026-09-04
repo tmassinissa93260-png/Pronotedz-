@@ -61,6 +61,14 @@ MAX_OUTPUT_TOKENS = int(env("MAX_OUTPUT_TOKENS", "16000"))
 # fournie mais qu'une cle Groq l'est, on bascule dessus automatiquement.
 GROQ_BASE_URL = "https://api.groq.com/openai/v1"
 
+# ElevenLabs : la vraie voix. La cle ne vit que dans l'environnement — .env en
+# local, un secret de depot sur GitHub — jamais dans le code, jamais dans un
+# fichier du projet.
+ELEVENLABS_API_KEY = env("ELEVENLABS_API_KEY")
+ELEVENLABS_VOICE_ID = env("ELEVENLABS_VOICE_ID")
+#: Le modele multilingue rend le francais sans accent anglais.
+ELEVENLABS_MODEL = env("ELEVENLABS_MODEL") or "eleven_multilingual_v2"
+
 _openai_key = env("OPENAI_API_KEY")
 _groq_key = env("GROQ_API_KEY")
 

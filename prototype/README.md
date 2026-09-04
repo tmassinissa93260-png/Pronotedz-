@@ -91,8 +91,26 @@ python -m app.main affiner --shot 1 --image X       # image réelle → animatio
 python -m app.main analyser-videos                  # tes vidéos → ce qu'elles montrent
 python -m app.main timeline                         # timeline + sous-titres
 python -m app.main montage                          # MP4 final
+python -m app.main voix                             # durée de chaque phrase
+python -m app.main voix --eleven --caler            # ElevenLabs dit le texte
+python -m app.main voix --sur voix.mp3 --caler      # caler sur TA piste
+python -m app.main montage --partiel --reperage     # monter ce qui existe déjà
+python -m app.main mesurer-videos                   # format, durée, couleurs
 python -m app.main selfcheck                        # état de la configuration
 ```
+
+**La voix est la référence temporelle.** Trois façons de l'obtenir, de la
+meilleure à la dernière :
+
+1. `--eleven` : ElevenLabs dit chaque phrase, une piste par plan. Les durées
+   sont **exactes**, rien n'est deviné. `ELEVENLABS_API_KEY` dans `.env` (ou en
+   secret de dépôt sur GitHub), jamais dans le code.
+2. `--sur ta_piste.mp3` : ta propre voix, ou un fichier venu d'ailleurs. Le
+   système écoute les **silences** pour retrouver la fin de chaque phrase —
+   0,06 s d'écart moyen sur nos quinze phrases. Laisse une vraie pause entre
+   les phrases quand tu enregistres.
+3. sans rien : `espeak-ng` en local. Robotique, **ne se publie pas** — il ne
+   sert qu'à mesurer les durées avant d'avoir la vraie voix.
 
 Tout ce qu'il te faut pour produire est rassemblé dans **`output/elements.md`** :
 script, visual bible, et pour chaque plan la voix, la fonction, l'élément
