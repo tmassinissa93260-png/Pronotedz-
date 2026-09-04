@@ -1,1 +1,1 @@
-Plus lourd encore : le bus CAN, le réseau interne où tout se parle. Des pirates s'y branchent et se font passer pour ta clé.
+Mais ce même bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome niveau 2.

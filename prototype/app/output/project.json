@@ -1,8 +1,8 @@
 {
   "subject": "Comment on vole une voiture récente sans casser une vitre",
-  "duration_seconds": 75.348,
-  "shot_count": 8,
-  "script": "Ta voiture récente peut se faire voler en moins de 30 secondes, et sans même casser une vitre. Bienvenue dans le monde du hacking automobile. Première technique : l'attaque par relais. Les voleurs n'ont plus besoin de crochetage : ils volent ton signal, pas ta clé. Un complice capte le signal de ta clé à travers ta porte d'entrée, et le retransmet à un second boîtier posé contre ta voiture. La voiture croit que tu es à côté, et se déverrouille. Aucune trace, aucune alarme, aucune vitre cassée. Trente secondes, montre en main. Plus lourd encore : le bus CAN, le réseau interne où tout se parle. Des pirates s'y branchent et se font passer pour ta clé. Même tes pneus sont vulnérables. Le système TPMS mesure la pression via des capteurs radio non chiffrés. Non chiffrés, donc copiables. En envoyant une fausse crevaison à distance, un hacker peut créer une erreur système, ou forcer un convoi entier à s'arrêter. Mais ce même bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome niveau 2.",
+  "duration_seconds": 49.394,
+  "shot_count": 5,
+  "script": "Ta voiture récente peut se faire voler en moins de 30 secondes, sans même casser une vitre. Bienvenue dans le monde du hacking automobile. Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte et le renvoie à ta voiture qui s'ouvre. Plus lourd : le bus CAN, le réseau interne où tous les composants se parlent. Des pirates s'y branchent et se font passer pour ta clé. Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison, envoyée de loin, peut arrêter un convoi entier. Mais ce même bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome niveau 2.",
   "visual_bible": {
     "main_subject": "a modern dark near-black car on a Parisian street at night, and two featureless white mannequins acting on it",
     "characters_objects": "mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie, both featureless and smooth matte white",
@@ -19,8 +19,8 @@
   "shots": [
     {
       "id": 1,
-      "duration_seconds": 10.138,
-      "voice": "Ta voiture récente peut se faire voler en moins de 30 secondes, et sans même casser une vitre. Bienvenue dans le monde du hacking automobile.",
+      "duration_seconds": 9.922,
+      "voice": "Ta voiture récente peut se faire voler en moins de 30 secondes, sans même casser une vitre. Bienvenue dans le monde du hacking automobile.",
       "visual_description": "Parisian street at night, the dark car, shot 1.",
       "educational_function": "Nomme le sujet : quelqu'un agit sur la voiture à distance.",
       "visual_concept": "a red glow travelling from the hacker's box across the street onto the car",
@@ -39,29 +39,9 @@
     },
     {
       "id": 2,
-      "duration_seconds": 8.843,
-      "voice": "Première technique : l'attaque par relais. Les voleurs n'ont plus besoin de crochetage : ils volent ton signal, pas ta clé.",
+      "duration_seconds": 9.994,
+      "voice": "Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte et le renvoie à ta voiture qui s'ouvre.",
       "visual_description": "Parisian street at night, the dark car, shot 2.",
-      "educational_function": "Pose le dispositif : deux boîtiers, une ligne entre la porte et la voiture.",
-      "visual_concept": "a red beam opening between the two boxes held by the two mannequins",
-      "image_prompt": "Wide night shot of a Parisian courtyard, the front door of a building at frame left and the dark near-black car parked at frame right. Position: mannequin 2, a featureless smooth matte white figure in a heather grey pullover hoodie with drawstrings, holds a flat black box against the door at chest height; mannequin 1 in the fitted dark black polo shirt holds an identical box against the car's driver door, eight metres away at the same height. A red luminous beam opens between the two boxes across the wet cobblestone, clearly representing the added link between them. Camera: static wide view at chest height, shallow depth of field so both figures are sharp and the courtyard gate falls into bokeh. Lighting: warm street lamp from above left, cold LED glow from each box, deep shadow across the ground. Materials: matte white plastic skin, grey brushed-cotton hoodie, black cotton polo, matte black plastic housings, wet cobblestone. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.",
-      "animation_prompt": "The red beam opens between the two boxes and steadily brightens along its whole length, and as it reaches full strength the LED on each housing begins to pulse in time with the other. The two figures, the boxes and the car stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.",
-      "motion_intent": "energy_transfer",
-      "visual_explanation": {
-        "information": "l'attaque tient en deux boîtiers reliés entre eux",
-        "physical_element": "the red beam running between the two boxes",
-        "secondary_elements": "les deux mannequins, la porte de l'immeuble, la voiture",
-        "visual_behavior": "un faisceau rouge s'ouvre entre les deux boîtiers",
-        "animation_movement": "le faisceau rouge s'allume sur toute sa longueur et les LED des deux boîtiers se mettent à battre ensemble",
-        "camera_position": "large statique à hauteur de poitrine, faible profondeur de champ",
-        "composition": "un mannequin à chaque bord du cadre, le faisceau en travers"
-      }
-    },
-    {
-      "id": 3,
-      "duration_seconds": 9.131,
-      "voice": "Un complice capte le signal de ta clé à travers ta porte d'entrée, et le retransmet à un second boîtier posé contre ta voiture.",
-      "visual_description": "Parisian street at night, the dark car, shot 3.",
       "educational_function": "Montre le premier maillon : le signal de la clé est capté à travers la porte.",
       "visual_concept": "blue key pulses crossing the wood into the box antenna, red glow building on it",
       "image_prompt": "Medium night shot of the building's front door from outside, mannequin 2 in the heather grey hoodie pressing a flat black box against the painted wood at chest height. Position: the car key hangs on its hook inside, framed through the glazed panel just above the box; the antenna face is pressed flat to the door, and beyond the figure, eight metres away at frame right, the dark near-black car waits at the kerb with a second identical box held against its driver door. Blue luminous pulses leave the key, cross the wood, and are drawn into the antenna face, clearly representing the key's own signal being picked up; a red luminous beam runs from that box across the courtyard to the second one. Camera: static medium view at chest height, deep enough focus to hold both the door and the car, the gate falling into bokeh. Lighting: warm hallway glow behind the glazed panel, cold street lamp from above left, deep shadow on the wood. Materials: painted wood, glass, matte black plastic housings, brass key, matte near-black paint, wet cobblestone. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.",
@@ -78,30 +58,10 @@
       }
     },
     {
-      "id": 4,
-      "duration_seconds": 9.85,
-      "voice": "La voiture croit que tu es à côté, et se déverrouille. Aucune trace, aucune alarme, aucune vitre cassée. Trente secondes, montre en main.",
-      "visual_description": "Parisian street at night, the dark car, shot 4.",
-      "educational_function": "Montre l'effet : la voiture reçoit le vrai signal et s'ouvre.",
-      "visual_concept": "blue pulses entering the handle, the repeater lighting and the mirror opening",
-      "image_prompt": "Medium night shot of the driver's door of the dark near-black car, the second flat black box held flat against the panel at frame left. Position: the door handle runs across the centre of the frame, the folded wing mirror sits above it at frame right with its indicator repeater along the lower edge of the housing, the courtyard behind. Blue luminous pulses leave the box and travel along the panel into the handle, clearly representing the signal the car accepts as its own. Camera: static medium view at handle height, shallow depth of field so the handle is sharp and the courtyard falls into bokeh. Lighting: warm street lamp raking along the paint from above left, cold LED rim from the housing, deep shadow beneath the sill. Materials: matte near-black paint, matte black plastic housing, chrome handle, gloss black mirror cap, tinted glass. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.",
-      "animation_prompt": "The blue pulses leave the box and travel steadily along the panel into the handle, and as the last of them arrives the indicator repeater lights up once and the folded mirror rotates outward until it stands fully open. The box, the panel and the glass stay perfectly rigid. The camera holds still. Preserve exact geometry, proportions and materials. No deformation, no floating parts.",
-      "motion_intent": "cause_effect",
-      "visual_explanation": {
-        "information": "la voiture accepte le signal et s'ouvre",
-        "physical_element": "the folded wing mirror and its indicator repeater",
-        "secondary_elements": "la poignée, le boîtier resté contre la tôle, la cour",
-        "visual_behavior": "des impulsions bleues entrent dans la poignée puis le répétiteur s'allume",
-        "animation_movement": "les impulsions bleues parcourent la tôle jusqu'à la poignée, le répétiteur s'allume et le rétroviseur se déplie",
-        "camera_position": "moyen statique à hauteur de poignée, faible profondeur de champ",
-        "composition": "la poignée au centre, le rétroviseur en haut à droite"
-      }
-    },
-    {
-      "id": 5,
-      "duration_seconds": 8.915,
-      "voice": "Plus lourd encore : le bus CAN, le réseau interne où tout se parle. Des pirates s'y branchent et se font passer pour ta clé.",
-      "visual_description": "Parisian street at night, the dark car, shot 5.",
+      "id": 3,
+      "duration_seconds": 9.634,
+      "voice": "Plus lourd : le bus CAN, le réseau interne où tous les composants se parlent. Des pirates s'y branchent et se font passer pour ta clé.",
+      "visual_description": "Parisian street at night, the dark car, shot 3.",
       "educational_function": "Montre la tromperie : les fausses trames prennent le même chemin que les vraies.",
       "visual_concept": "red added pulses joining the blue ones on the same twisted pair",
       "image_prompt": "Macro shot of the twisted pair of the car's internal network inside the front left wheel arch of the dark near-black car, its braided sheath ghosted to transparency so both copper conductors read clearly. Position: the pair crosses the frame from the lower left to the upper right and ends at the control unit connector at the top right, its row of copper pins visible through the ghosted aluminium lid; the edge of the wheel arch runs along the lower border. Blue luminous pulses already travel rightwards along the pair; red luminous pulses enter from beyond the lower left corner of the frame and join the same pair, travelling in the same direction and the same shape, clearly representing frames added from outside. Camera: static macro at low angle, shallow depth of field so the conductors are sharp and the arch falls into bokeh. Lighting: hard cold neon key raking across the sheath, warm street lamp rim on the conductors, deep shadow behind. Materials: braided grey cable sheath around the pair, copper conductors, brushed aluminium lid, textured black plastic liner. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.",
@@ -118,30 +78,10 @@
       }
     },
     {
-      "id": 6,
-      "duration_seconds": 9.634,
-      "voice": "Même tes pneus sont vulnérables. Le système TPMS mesure la pression via des capteurs radio non chiffrés. Non chiffrés, donc copiables.",
-      "visual_description": "Parisian street at night, the dark car, shot 6.",
-      "educational_function": "Nomme l'objet : un émetteur radio vit dans chaque roue.",
-      "visual_concept": "blue pressure pulses leaving the in-rim sensor through the tyre wall",
-      "image_prompt": "Macro shot of the front left wheel of the dark near-black car at night, the tyre wall ghosted to transparency at the valve so the small sensor clamped inside the rim reads clearly. Position: the sensor sits at the lower centre of the frame on the inner face of the rim, the valve stem rising from it, the brake disc and caliper visible behind the spokes. Blue luminous pulses radiate outward from the sensor through the tyre wall and travel up toward the wheel arch, clearly representing the pressure reading it broadcasts. Camera: static macro at hub height, shallow depth of field so the sensor is sharp and the kerb falls into bokeh. Lighting: cold neon key from the upper left, warm street lamp rim along the rim edge, deep shadow inside the arch. Materials: black rubber tyre, brushed aluminium rim, matte grey sensor housing, cast iron brake disc. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.",
-      "animation_prompt": "The blue pulses leave the sensor in steady bursts and travel outward through the tyre wall toward the wheel arch, and as each burst clears the rim the sensor housing brightens faintly behind it, building over the shot into a regular beat. The wheel, the tyre and the disc stay perfectly rigid. The camera holds still with a slow secondary drift. Preserve exact geometry, proportions and materials. No deformation, no floating parts.",
-      "motion_intent": "energy_flow",
-      "visual_explanation": {
-        "information": "chaque roue porte un émetteur radio à l'intérieur",
-        "physical_element": "the pressure sensor clamped inside the wheel rim",
-        "secondary_elements": "la valve, le flanc du pneu, le disque de frein",
-        "visual_behavior": "des impulsions bleues quittent le capteur et traversent le pneu",
-        "animation_movement": "les impulsions bleues partent du capteur et parcourent le flanc jusqu'au passage de roue, et le capteur s'allume derrière elles",
-        "camera_position": "macro statique à hauteur de moyeu, faible profondeur de champ",
-        "composition": "le capteur en bas au centre, la valve au-dessus, le disque derrière les rayons"
-      }
-    },
-    {
-      "id": 7,
-      "duration_seconds": 8.987,
-      "voice": "En envoyant une fausse crevaison à distance, un hacker peut créer une erreur système, ou forcer un convoi entier à s'arrêter.",
-      "visual_description": "Parisian street at night, the dark car, shot 7.",
+      "id": 4,
+      "duration_seconds": 9.994,
+      "voice": "Même tes pneus sont vulnérables : leurs capteurs radio sont en clair. Une fausse crevaison, envoyée de loin, peut arrêter un convoi entier.",
+      "visual_description": "Parisian street at night, the dark car, shot 4.",
       "educational_function": "Montre la copie : le faux signal a exactement la forme du vrai.",
       "visual_concept": "red pulses leaving the handheld unit in the same shape as the blue ones",
       "image_prompt": "Medium night shot of mannequin 2 in the heather grey hoodie kneeling at the kerb beside the dark near-black car, a small handheld radio unit held toward the front wheel. Position: the figure fills frame left, the wheel and its arch fill frame right, the side indicator repeater sits on the wing just above the arch, half a metre of wet cobblestone between the unit and the tyre. Red luminous pulses leave the handheld unit and travel toward the wheel arch in exactly the same shape and spacing as the blue ones still leaving the sensor inside the rim, clearly representing a second reading sent from outside the wheel. Camera: static medium view at hub height, shallow depth of field so the unit and the tyre are sharp and the street falls into bokeh. Lighting: warm street lamp from above right, cold LED glow from the handheld unit, deep shadow in the arch. Materials: matte white plastic skin, grey brushed-cotton hoodie, matte black plastic unit, black rubber tyre, brushed aluminium rim. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.",
@@ -158,10 +98,10 @@
       }
     },
     {
-      "id": 8,
+      "id": 5,
       "duration_seconds": 9.85,
       "voice": "Mais ce même bus sert aussi à reprendre le contrôle. Avec OpenPilot et un boîtier à 900 euros, tu ajoutes une conduite autonome niveau 2.",
-      "visual_description": "Parisian street at night, the dark car, shot 8.",
+      "visual_description": "Parisian street at night, the dark car, shot 5.",
       "educational_function": "Montre le montage réel : un boîtier, un câble, et la commande part.",
       "visual_concept": "green pulses leaving the aftermarket box down the pillar into the turning wheel",
       "image_prompt": "Interior night shot of the top of the windscreen of the dark near-black car, a small matte black box clipped behind the rear-view mirror with a thin braided cable running down the A-pillar. Position: the box fills the upper centre of the frame, the mirror stem beside it, the cable dropping along the pillar at frame left; the steering wheel rim fills the lower edge of the frame, its leather grip and upper spokes clearly in shot below the column shroud. Green luminous pulses leave the box, travel down that cable and continue into the steering column, clearly representing the commands the box puts on the bus. Camera: static medium view from the passenger seat at mirror height, shallow depth of field so the box is sharp and the road beyond the glass falls into bokeh. Lighting: cold LED glow from the box itself, warm sodium light sweeping through the windscreen, deep shadow along the headliner. Materials: matte black plastic housing, braided grey cable, smoked mirror glass, matte black pillar trim. Aesthetic photorealistic 9:16 vertical frame with featureless smooth matte white blank mannequins, no facial features — mannequin 1 in a fitted dark black polo shirt, mannequin 2 in a heather grey pullover hoodie with drawstrings; moody dark cinematic night atmosphere with deep shadows, warm ambient light from street lamps, neon signs and subtle glowing tech LEDs, cinematic Parisian street setting with modern cars and dark interiors; shot on a 35mm lens at f/1.8 with shallow depth of field and realistic bokeh, high-end streetwear editorial photography, hyper-detailed fabric texture, realistic plastic skin shading, 8k, no text, no labels, no logos, no watermark.",

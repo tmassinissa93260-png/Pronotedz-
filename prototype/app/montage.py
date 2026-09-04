@@ -261,15 +261,23 @@ def _carton(duree: float, cible: Path) -> None:
 
 
 def duree_reelle(source: Path) -> float:
-    """La duree du fichier, ou 0 si on ne peut pas la lire."""
-    resultat = subprocess.run(
-        ["ffprobe", "-v", "error", "-show_entries", "format=duration",
-         "-of", "csv=p=0", str(source)],
-        capture_output=True, text=True)
-    try:
-        return round(float(resultat.stdout.strip()), 3)
-    except ValueError:
-        return 0.0
+    """La duree de l'IMAGE, ou 0 si on ne peut pas la lire.
+
+    Pas celle du conteneur : les clips du generateur portent une piste son
+    qui deborde l'image de deux dixiemes. On croyait donc avoir 10,24 s
+    d'image la ou il n'y en a que 10,00, et chaque plan finissait plus court
+    que prevu — 0,4 s de retard accumule sur cinq plans.
+    """
+    for entrees in (["-select_streams", "v:0", "-show_entries", "stream=duration"],
+                    ["-show_entries", "format=duration"]):
+        resultat = subprocess.run(
+            ["ffprobe", "-v", "error", *entrees, "-of", "csv=p=0", str(source)],
+            capture_output=True, text=True)
+        try:
+            return round(float(resultat.stdout.strip().rstrip(",")), 3)
+        except ValueError:
+            continue
+    return 0.0
 
 
 def _normaliser(source: Path, duree: float, cible: Path) -> None:

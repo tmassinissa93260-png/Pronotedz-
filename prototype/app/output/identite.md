@@ -25,7 +25,7 @@ Sinon, colle le prompt complet : il est ecrit pour tenir tout seul.
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. large statique à hauteur de poitrine, faible profondeur de champ un mannequin à chaque bord du cadre, le faisceau en travers Show: un faisceau rouge s'ouvre entre les deux boîtiers Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique à hauteur de poitrine, foyer profond la porte et le boîtier au centre, la voiture au fond à droite Show: les impulsions bleues traversent le bois, entrent dans l'antenne, puis longent le faisceau rouge Keep the reference lighting and art direction.
 ```
 
 ### Plan 03
@@ -34,7 +34,7 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique à hauteur de poitrine, foyer profond la porte et le boîtier au centre, la voiture au fond à droite Show: les impulsions bleues traversent le bois, entrent dans l'antenne, puis longent le faisceau rouge Keep the reference lighting and art direction.
+Same object as the reference image, unchanged in geometry, proportions, materials and colour code. macro statique en contre-plongée, faible profondeur de champ la paire en diagonale, le connecteur en haut à droite Show: des impulsions rouges rejoignent les bleues puis allument les mêmes broches Keep the reference lighting and art direction.
 ```
 
 ### Plan 04
@@ -43,37 +43,10 @@ Same object as the reference image, unchanged in geometry, proportions, material
 materiaux, meme code couleur ; ne change que le point de vue :
 
 ```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique à hauteur de poignée, faible profondeur de champ la poignée au centre, le rétroviseur en haut à droite Show: des impulsions bleues entrent dans la poignée puis le répétiteur s'allume Keep the reference lighting and art direction.
-```
-
-### Plan 05
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. macro statique en contre-plongée, faible profondeur de champ la paire en diagonale, le connecteur en haut à droite Show: des impulsions rouges rejoignent les bleues puis allument les mêmes broches Keep the reference lighting and art direction.
-```
-
-### Plan 06
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
-Same object as the reference image, unchanged in geometry, proportions, materials and colour code. macro statique à hauteur de moyeu, faible profondeur de champ le capteur en bas au centre, la valve au-dessus, le disque derrière les rayons Show: des impulsions bleues quittent le capteur et traversent le pneu Keep the reference lighting and art direction.
-```
-
-### Plan 07
-
-**Depuis l'image maitresse** — meme objet, meme geometrie, memes
-materiaux, meme code couleur ; ne change que le point de vue :
-
-```
 Same object as the reference image, unchanged in geometry, proportions, materials and colour code. moyen statique à hauteur de moyeu, faible profondeur de champ le mannequin à gauche, la roue à droite, le répétiteur au-dessus Show: des impulsions rouges quittent le boîtier au rythme des bleues, puis le répétiteur s'allume Keep the reference lighting and art direction.
 ```
 
-### Plan 08
+### Plan 05
 
 **Depuis l'image maitresse** — meme objet, meme geometrie, memes
 materiaux, meme code couleur ; ne change que le point de vue :

@@ -1,156 +1,99 @@
 1
-00:00:00,000 --> 00:00:02,839
+00:00:00,000 --> 00:00:02,480
 Ta voiture récente
-peut se faire voler
+peut se faire
 
 2
-00:00:02,839 --> 00:00:05,677
-en moins de 30
-secondes, et sans
+00:00:02,480 --> 00:00:04,961
+voler en moins de 30
+secondes,
 
 3
-00:00:05,677 --> 00:00:08,516
-même casser une vitre.
-Bienvenue dans le
+00:00:04,961 --> 00:00:07,442
+sans même casser une
+vitre. Bienvenue
 
 4
-00:00:08,516 --> 00:00:10,138
-monde du hacking
-automobile.
+00:00:07,442 --> 00:00:09,922
+dans le monde du
+hacking automobile.
 
 5
-00:00:10,138 --> 00:00:12,665
-Première technique :
-l'attaque par relais.
+00:00:09,922 --> 00:00:12,613
+Première technique : l'attaque
+par relais. Un
 
 6
-00:00:12,665 --> 00:00:15,191
-Les voleurs n'ont
-plus besoin de
+00:00:12,613 --> 00:00:15,303
+complice capte le
+signal de ta clé
 
 7
-00:00:15,191 --> 00:00:17,718
-crochetage : ils
-volent ton signal,
+00:00:15,303 --> 00:00:17,994
+à travers la porte
+et le renvoie
 
 8
-00:00:17,718 --> 00:00:18,981
-pas ta clé.
+00:00:17,994 --> 00:00:19,916
+à ta voiture qui
+s'ouvre.
 
 9
-00:00:18,981 --> 00:00:21,264
-Un complice capte le
-signal de
+00:00:19,916 --> 00:00:22,510
+Plus lourd : le bus
+CAN, le
 
 10
-00:00:21,264 --> 00:00:23,546
-ta clé à travers ta
-porte
+00:00:22,510 --> 00:00:25,104
+réseau interne où tous
+les composants se
 
 11
-00:00:23,546 --> 00:00:25,829
-d'entrée, et le
-retransmet à un
+00:00:25,104 --> 00:00:27,697
+parlent. Des pirates
+s'y branchent et se
 
 12
-00:00:25,829 --> 00:00:28,112
-second boîtier posé
-contre ta voiture.
+00:00:27,697 --> 00:00:29,550
+font passer pour ta
+clé.
 
 13
-00:00:28,112 --> 00:00:30,682
-La voiture croit que
-tu es
+00:00:29,550 --> 00:00:32,157
+Même tes pneus sont
+vulnérables :
 
 14
-00:00:30,682 --> 00:00:33,251
-à côté, et se
-déverrouille. Aucune
+00:00:32,157 --> 00:00:34,764
+leurs capteurs radio
+sont en clair.
 
 15
-00:00:33,251 --> 00:00:35,821
-trace, aucune alarme,
-aucune vitre cassée.
+00:00:34,764 --> 00:00:37,371
+Une fausse crevaison,
+envoyée de loin,
 
 16
-00:00:35,821 --> 00:00:37,962
-Trente secondes,
-montre en main.
+00:00:37,371 --> 00:00:39,544
+peut arrêter un
+convoi entier.
 
 17
-00:00:37,962 --> 00:00:40,458
-Plus lourd encore :
-le bus CAN,
-
-18
-00:00:40,458 --> 00:00:42,954
-le réseau interne où
-tout se parle.
-
-19
-00:00:42,954 --> 00:00:45,451
-Des pirates s'y
-branchent et se font
-
-20
-00:00:45,451 --> 00:00:46,877
-passer pour ta clé.
-
-21
-00:00:46,877 --> 00:00:49,630
-Même tes pneus sont
-vulnérables. Le
-
-22
-00:00:49,630 --> 00:00:52,382
-système TPMS mesure
-la pression via
-
-23
-00:00:52,382 --> 00:00:55,135
-des capteurs radio
-non chiffrés. Non
-
-24
-00:00:55,135 --> 00:00:56,511
-chiffrés, donc
-copiables.
-
-25
-00:00:56,511 --> 00:00:59,079
-En envoyant une
-fausse crevaison à
-
-26
-00:00:59,079 --> 00:01:01,646
-distance, un hacker
-peut créer une
-
-27
-00:01:01,646 --> 00:01:04,214
-erreur système, ou
-forcer un convoi
-
-28
-00:01:04,214 --> 00:01:05,498
-entier à s'arrêter.
-
-29
-00:01:05,498 --> 00:01:08,256
+00:00:39,544 --> 00:00:42,302
 Mais ce même bus
 sert aussi à
 
-30
-00:01:08,256 --> 00:01:11,014
+18
+00:00:42,302 --> 00:00:45,060
 reprendre le contrôle. Avec
 OpenPilot et un
 
-31
-00:01:11,014 --> 00:01:13,772
+19
+00:00:45,060 --> 00:00:47,818
 boîtier à 900 euros,
 tu ajoutes une
 
-32
-00:01:13,772 --> 00:01:15,348
+20
+00:00:47,818 --> 00:00:49,394
 conduite autonome
 niveau 2.

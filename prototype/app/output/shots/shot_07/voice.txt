@@ -1,1 +1,0 @@
-En envoyant une fausse crevaison à distance, un hacker peut créer une erreur système, ou forcer un convoi entier à s'arrêter.

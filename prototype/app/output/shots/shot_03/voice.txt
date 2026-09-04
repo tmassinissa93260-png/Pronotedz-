@@ -1,1 +1,1 @@
-Un complice capte le signal de ta clé à travers ta porte d'entrée, et le retransmet à un second boîtier posé contre ta voiture.
+Plus lourd : le bus CAN, le réseau interne où tous les composants se parlent. Des pirates s'y branchent et se font passer pour ta clé.

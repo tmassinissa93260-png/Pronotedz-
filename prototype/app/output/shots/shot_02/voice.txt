@@ -1,1 +1,1 @@
-Première technique : l'attaque par relais. Les voleurs n'ont plus besoin de crochetage : ils volent ton signal, pas ta clé.
+Première technique : l'attaque par relais. Un complice capte le signal de ta clé à travers la porte et le renvoie à ta voiture qui s'ouvre.
