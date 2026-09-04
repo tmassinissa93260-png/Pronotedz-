@@ -144,6 +144,59 @@ class TestErreurs(unittest.TestCase):
         self.assertIn("quota", str(ctx.exception))
         self.assertIn("gratuit", str(ctx.exception))
 
+    def test_un_quota_epuise_annonce_en_401_reste_un_quota(self):
+        """Le run 50 : ElevenLabs rend 401 quand il manque des credits. Le
+        message disait « cle refusee » alors que la cle etait bonne."""
+        corps = json.dumps({"detail": {"code": "quota_exceeded",
+                                       "message": "You have 57 credits remaining, "
+                                                  "while 101 credits are required"}})
+        with self.assertRaises(eleven.ElevenError) as ctx:
+            eleven.voix_disponibles(refuser(401, corps.encode()))
+        self.assertIn("quota", str(ctx.exception))
+        self.assertIn("la clé, elle, est bonne", str(ctx.exception))
+        self.assertIn("57 credits remaining", str(ctx.exception))
+
+    def test_une_vraie_cle_refusee_reste_une_cle_refusee(self):
+        with self.assertRaises(eleven.ElevenError) as ctx:
+            eleven.voix_disponibles(refuser(401, b'{"detail":"invalid api key"}'))
+        self.assertIn("clé refusée", str(ctx.exception))
+
+
+class TestBudget(unittest.TestCase):
+    """Refuser avant de depenser, pas a mi-chemin."""
+
+    def setUp(self):
+        from app.models import Storyboard
+        from fixtures import board
+        self.ancienne = config.ELEVENLABS_API_KEY
+        config.ELEVENLABS_API_KEY = "cle-de-test"
+        self.sb = Storyboard.from_dict(board())
+
+    def tearDown(self):
+        config.ELEVENLABS_API_KEY = self.ancienne
+
+    def abonnement(self, consomme, limite):
+        return repondre(json.dumps({"character_count": consomme,
+                                    "character_limit": limite}).encode())
+
+    def test_le_devis_compte_les_caracteres_dits(self):
+        self.assertEqual(eleven.devis(self.sb),
+                         sum(len(s.voice) for s in self.sb.shots))
+
+    def test_un_budget_suffisant_passe(self):
+        besoin, reste = eleven.verifier_le_budget(self.sb, self.abonnement(0, 10000))
+        self.assertEqual(reste, 10000)
+        self.assertGreater(besoin, 0)
+
+    def test_un_budget_insuffisant_s_arrete_avant_le_premier_appel(self):
+        with self.assertRaises(eleven.ElevenError) as ctx:
+            eleven.verifier_le_budget(self.sb, self.abonnement(9943, 10000))
+        self.assertIn("Rien n'a été dépensé", str(ctx.exception))
+        self.assertIn("57 caractère(s) restant(s)", str(ctx.exception))
+
+    def test_un_compte_sans_limite_annoncee_ne_bloque_rien(self):
+        eleven.verifier_le_budget(self.sb, self.abonnement(0, 0))
+
     def test_une_voix_inconnue_le_dit(self):
         with self.assertRaises(eleven.ElevenError) as ctx:
             eleven.voix_disponibles(refuser(422))

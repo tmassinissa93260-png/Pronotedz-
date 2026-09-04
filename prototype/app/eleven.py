@@ -59,22 +59,66 @@ def _demander(chemin: str, corps: dict | None = None, methode: str = "GET",
             return reponse.read()
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", "replace")[:300]
+        # Le quota epuise arrive en 401, pas en 429 : le run 50 l'a annonce
+        # comme une « cle refusee » alors que la cle etait bonne et que seuls
+        # les credits manquaient. C'est le meme piege que le compte OpenAI a
+        # sec, deja corrige ailleurs — le CODE ment, le CORPS dit la verite.
+        if "quota_exceeded" in detail or exc.code == 429:
+            raise ElevenError(
+                f"quota ElevenLabs épuisé — la clé, elle, est bonne.\n"
+                f"  {_credits(detail)}\n"
+                "  Le palier gratuit rend 10 000 caractères par mois, remis à zéro\n"
+                "  à la date d'anniversaire de l'abonnement.") from exc
         if exc.code == 401:
             raise ElevenError(f"clé refusée par ElevenLabs : {detail}") from exc
         if exc.code == 422:
             raise ElevenError(f"requête refusée (voix ou modèle inconnu ?) : "
                               f"{detail}") from exc
-        if exc.code == 429:
-            raise ElevenError(
-                "quota ElevenLabs épuisé pour ce mois.\n"
-                "  Le palier gratuit tient environ dix minutes de voix.\n"
-                f"  {detail}") from exc
         raise ElevenError(f"ElevenLabs a répondu {exc.code} : {detail}") from exc
     except urllib.error.URLError as exc:
         raise ElevenError(
             f"service injoignable : {exc.reason}\n"
             "  Certaines machines n'ont pas accès à api.elevenlabs.io ; un "
             "runner GitHub, si.") from exc
+
+
+def _credits(detail: str) -> str:
+    """Le message du service, si on peut le sortir de son enveloppe."""
+    try:
+        brut = json.loads(detail)
+        return str(brut.get("detail", {}).get("message") or detail).strip()
+    except (json.JSONDecodeError, AttributeError):
+        return detail
+
+
+def quota(ouvrir=None) -> tuple[int, int]:
+    """Les caracteres deja consommes ce mois-ci, et la limite du compte."""
+    brut = json.loads(_demander("/user/subscription", ouvrir=ouvrir) or b"{}")
+    return (int(brut.get("character_count") or 0),
+            int(brut.get("character_limit") or 0))
+
+
+def devis(sb: Storyboard) -> int:
+    """Ce que dire ce plateau coutera, en caracteres."""
+    return sum(len(shot.voice) for shot in sb.shots)
+
+
+def verifier_le_budget(sb: Storyboard, ouvrir=None) -> tuple[int, int]:
+    """Refuser AVANT de depenser, plutot qu'a mi-chemin.
+
+    Sans ca, le premier plan passe, le troisieme echoue, et le compte a paye
+    deux phrases dont on ne fera rien.
+    """
+    besoin = devis(sb)
+    consomme, limite = quota(ouvrir)
+    reste = limite - consomme
+    if limite and reste < besoin:
+        raise ElevenError(
+            f"quota ElevenLabs insuffisant : {reste} caractère(s) restant(s), "
+            f"{besoin} nécessaires pour les {len(sb.shots)} phrases.\n"
+            f"  Rien n'a été dépensé : on s'arrête avant le premier appel.\n"
+            "  Attends la remise à zéro mensuelle, ou dis le texte autrement.")
+    return besoin, reste
 
 
 def voix_disponibles(ouvrir=None) -> list[dict]:
@@ -116,6 +160,7 @@ def dire(texte: str, mp3: Path, voice_id: str, modele: str = "",
 def par_plan(sb: Storyboard, dossier: Path, voice_id: str = "",
              ouvrir=None, on_shot=None) -> dict[int, float]:
     """Une phrase par plan, dite et mesuree. La duree n'est plus devinee."""
+    verifier_le_budget(sb, ouvrir)
     voice_id = voice_id or choisir_voix(ouvrir)
     mesurees = {}
     for shot in sb.shots:
