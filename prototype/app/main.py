@@ -804,13 +804,18 @@ def cmd_montage(args) -> int:
     sb = charger()
     videos = trouver_videos(sb)
     manquants = [s.id for s in sb.shots if s.id not in videos]
-    if manquants and not args.partiel:
+    if manquants and not args.partiel and not args.brouillon:
         log("STOP", f"vidéo manquante pour le(s) plan(s) : "
                     f"{', '.join(f'{i:02d}' for i in manquants)}")
-        print("  Ajoute --partiel pour monter seulement ce qui existe.")
+        print("  --brouillon : tout monter, carton noir là où l'image manque.")
+        print("  --partiel   : ne monter que les plans qui ont une vidéo.")
         return 1
 
     voix_extraite = None
+    if manquants and args.brouillon:
+        log("BROUILLON", f"{len(manquants)} plan(s) sans vidéo montés en carton "
+                         f"noir : {', '.join(f'{i:02d}' for i in manquants)}")
+        manquants = []
     if manquants:
         entier = sb
         sb = plateau_partiel(sb, videos)
@@ -828,7 +833,8 @@ def cmd_montage(args) -> int:
                 config.OUTPUT_DIR / "voix", config.OUTPUT_DIR / "voix_extrait.mp3")
             log("VOIX", f"piste recoupée sur les {len(gardes)} plans montés")
 
-    entrees = montage.construire_timeline(sb, videos, charger_analyses(sb))
+    entrees = montage.construire_timeline(sb, videos, charger_analyses(sb),
+                                          brouillon=args.brouillon)
     montage.sauver_timeline(entrees, config.TIMELINE_FILE)
     config.SRT_FILE.write_text(montage.sous_titres(entrees), encoding="utf-8")
 
@@ -1226,6 +1232,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_mon = sub.add_parser("montage", help="assembler le MP4 final")
     p_mon.add_argument("--sans-sous-titres", dest="sans_sous_titres", action="store_true")
+    p_mon.add_argument("--brouillon", action="store_true",
+                       help="monter TOUS les plans : carton noir là où la vidéo "
+                            "manque, pour entendre la voix entière")
     p_mon.add_argument("--partiel", action="store_true",
                        help="monter seulement les plans qui ont déjà une vidéo")
     p_mon.add_argument("--reperage", action="store_true",

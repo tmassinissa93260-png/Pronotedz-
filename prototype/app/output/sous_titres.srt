@@ -1,89 +1,169 @@
 1
-00:00:00,000 --> 00:00:03,307
+00:00:00,000 --> 00:00:02,675
+Ta voiture récente
+peut se faire voler
+
+2
+00:00:02,675 --> 00:00:05,351
+en moins de 30
+secondes chrono, et
+
+3
+00:00:05,351 --> 00:00:07,262
+sans même casser une
+vitre.
+
+4
+00:00:07,262 --> 00:00:10,569
 Bienvenue dans le monde
 du hacking automobile.
 
-2
-00:00:03,307 --> 00:00:05,608
+5
+00:00:10,569 --> 00:00:13,589
+Première technique :
+l'attaque par relais.
+
+6
+00:00:13,589 --> 00:00:16,752
+Les voleurs n'ont plus
+besoin de crochetage.
+
+7
+00:00:16,752 --> 00:00:19,053
 Un premier complice
 capte le signal
 
-3
-00:00:05,608 --> 00:00:07,908
+8
+00:00:19,053 --> 00:00:21,354
 de ta clé à travers
 ta
 
-4
-00:00:07,908 --> 00:00:10,209
+9
+00:00:21,354 --> 00:00:23,654
 porte d'entrée et le
 retransmet à
 
-5
-00:00:10,209 --> 00:00:12,510
+10
+00:00:23,654 --> 00:00:25,955
 un second boîtier
 près du véhicule.
 
-6
-00:00:12,510 --> 00:00:15,055
+11
+00:00:25,955 --> 00:00:28,034
+La voiture croit que
+tu es
+
+12
+00:00:28,034 --> 00:00:29,766
+à côté et se
+déverrouille.
+
+13
+00:00:29,766 --> 00:00:31,995
+Plus lourd encore :
+le bus CAN.
+
+14
+00:00:31,995 --> 00:00:35,050
+C'est le réseau informatique
+interne où tous
+
+15
+00:00:35,050 --> 00:00:38,106
+les composants de ta
+voiture se parlent.
+
+16
+00:00:38,106 --> 00:00:40,651
 Des pirates percent
 sous l'aile avant
 
-7
-00:00:15,055 --> 00:00:17,600
+17
+00:00:40,651 --> 00:00:43,196
 pour se brancher
 directement sur le
 
-8
-00:00:17,600 --> 00:00:20,146
+18
+00:00:43,196 --> 00:00:45,742
 câble du phare,
 injectent des trames
 
-9
-00:00:20,146 --> 00:00:22,691
+19
+00:00:45,742 --> 00:00:48,287
 de données, et font
 croire au
 
-10
-00:00:22,691 --> 00:00:25,236
+20
+00:00:48,287 --> 00:00:50,832
 calculateur qu'ils
 ont la vraie clé.
 
-11
-00:00:25,236 --> 00:00:28,155
+21
+00:00:50,832 --> 00:00:53,205
+Même tes pneus sont
+vulnérables !
+
+22
+00:00:53,205 --> 00:00:55,758
+Le système TPMS
+mesure la pression
+
+23
+00:00:55,758 --> 00:00:58,310
+via des capteurs
+radio non chiffrés.
+
+24
+00:00:58,310 --> 00:01:01,229
 En envoyant de fausses
 données de crevaison
 
-12
-00:00:28,155 --> 00:00:31,074
+25
+00:01:01,229 --> 00:01:04,148
 ou de surchauffe à
 distance, un hacker
 
-13
-00:00:31,074 --> 00:00:33,993
+26
+00:01:04,148 --> 00:01:07,067
 peut créer une erreur
 système ou forcer
 
-14
-00:00:33,993 --> 00:00:35,661
+27
+00:01:07,067 --> 00:01:08,735
 un convoi à
 s'arrêter.
 
-15
-00:00:35,661 --> 00:00:38,106
+28
+00:01:08,735 --> 00:01:11,108
+Heureusement, ce
+même bus CAN sert
+
+29
+00:01:11,108 --> 00:01:13,480
+aussi à reprendre le
+contrôle !
+
+30
+00:01:13,480 --> 00:01:15,925
 Avec un logiciel
 open-source comme OpenPilot
 
-16
-00:00:38,106 --> 00:00:40,550
+31
+00:01:15,925 --> 00:01:18,369
 et un boîtier à 900
 €,
 
-17
-00:00:40,550 --> 00:00:42,994
+32
+00:01:18,369 --> 00:01:20,814
 tu peux ajouter une
 vraie conduite
 
-18
-00:00:42,994 --> 00:00:45,439
+33
+00:01:20,814 --> 00:01:23,258
 autonome niveau 2
 sur ta voiture.
+
+34
+00:01:23,258 --> 00:01:25,343
+Abonne-toi pour la
+partie 2 !

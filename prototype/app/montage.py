@@ -51,24 +51,35 @@ class Entree:
 
 
 def construire_timeline(sb: Storyboard, videos: dict[int, Path],
-                        analyses: dict[int, VideoAnalysis] | None = None) -> list[Entree]:
-    """Enchaine les plans dans l'ordre, cales sur la duree prevue par la voix."""
+                        analyses: dict[int, VideoAnalysis] | None = None,
+                        brouillon: bool = False) -> list[Entree]:
+    """Enchaine les plans dans l'ordre, cales sur la duree prevue par la voix.
+
+    En BROUILLON, un plan sans video ne bloque plus : il devient un carton
+    noir de la bonne duree. On entend alors la voix entiere, du premier mot au
+    dernier, et on voit exactement ce qu'il reste a produire — au lieu de
+    monter cinq plans sur quinze et de commencer la video au milieu d'une
+    phrase.
+    """
     analyses = analyses or {}
     entrees, curseur = [], 0.0
 
     for shot in sb.shots:
         video = videos.get(shot.id)
-        if video is None:
+        if video is None and not brouillon:
             raise MontageError(
                 f"aucune video pour le plan {shot.id:02d}.\n"
                 f"  Attendu : videos/shot_{shot.id:02d}.mp4 (ou .mov, .webm)")
 
         analyse = analyses.get(shot.id)
         # Sans analyse payante, ffprobe donne la duree pour rien.
-        mesuree = analyse.measured_duration if analyse else duree_reelle(video)
+        mesuree = (analyse.measured_duration if analyse
+                   else (duree_reelle(video) if video else 0.0))
         prevue = shot.duration_seconds
 
-        if not mesuree:
+        if video is None:
+            ajustement = "AUCUNE VIDEO : carton noir, le plan reste a produire"
+        elif not mesuree:
             ajustement = "duree reelle inconnue : la video sera coupee a la duree prevue"
         elif mesuree < prevue - 0.15:
             manque = prevue - mesuree
@@ -85,7 +96,8 @@ def construire_timeline(sb: Storyboard, videos: dict[int, Path],
             remarques.insert(0, "la video ne correspond pas au plan prevu")
 
         entrees.append(Entree(shot.id, round(curseur, 3), round(curseur + prevue, 3),
-                              prevue, str(video), shot.voice, mesuree, ajustement, remarques))
+                              prevue, str(video) if video else "", shot.voice,
+                              mesuree, ajustement, remarques))
         curseur += prevue
 
     return entrees
@@ -189,7 +201,10 @@ def assembler(entrees: list[Entree], sortie: Path, voix: Path | None = None,
     morceaux = []
     for e in entrees:
         morceau = travail / f"plan_{e.shot_id:02d}.mp4"
-        _normaliser(Path(e.video), e.duration, morceau)
+        if e.video:
+            _normaliser(Path(e.video), e.duration, morceau)
+        else:
+            _carton(e.duration, morceau)
         morceaux.append(morceau)
 
     liste = travail / "plans.txt"
@@ -231,6 +246,18 @@ def assembler(entrees: list[Entree], sortie: Path, voix: Path | None = None,
 
 #: Au-dela, ralentir ne passe plus : on tient la derniere image.
 RALENTI_MAX = 1.6
+
+
+#: Le noir du carton : celui de la direction artistique, pas un noir mort.
+NOIR = "0x0d0f14"
+
+
+def _carton(duree: float, cible: Path) -> None:
+    """Un plan qui n'existe pas encore : le temps passe, l'image attend."""
+    _ffmpeg(["-f", "lavfi", "-i",
+             f"color=c={NOIR}:s=1080x1920:d={duree}:r=30",
+             "-vf", "setsar=1", "-c:v", "libx264", "-preset", "medium",
+             "-crf", "20", "-pix_fmt", "yuv420p", str(cible)])
 
 
 def duree_reelle(source: Path) -> float:
