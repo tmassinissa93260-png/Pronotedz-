@@ -1,6 +1,6 @@
 {
   "subject": "Comment on vole une voiture récente sans casser une vitre",
-  "duration_seconds": 75.493,
+  "duration_seconds": 69.198,
   "shot_count": 15,
   "script": "Ta voiture récente peut se faire voler en moins de 30 secondes chrono, et sans même casser une vitre. Bienvenue dans le monde du hacking automobile. Première technique : l'attaque par relais. Les voleurs n'ont plus besoin de crochetage. Un premier complice capte le signal de ta clé à travers ta porte d'entrée et le retransmet à un second boîtier près du véhicule. La voiture croit que tu es à côté et se déverrouille. Plus lourd encore : le bus CAN. C'est le réseau informatique interne où tous les composants de ta voiture se parlent. Des pirates percent sous l'aile avant pour se brancher directement sur le câble du phare, injectent des trames de données, et font croire au calculateur qu'ils ont la vraie clé. Même tes pneus sont vulnérables ! Le système TPMS mesure la pression via des capteurs radio non chiffrés. En envoyant de fausses données de crevaison ou de surchauffe à distance, un hacker peut créer une erreur système ou forcer un convoi à s'arrêter. Heureusement, ce même bus CAN sert aussi à reprendre le contrôle ! Avec un logiciel open-source comme OpenPilot et un boîtier à 900 €, tu peux ajouter une vraie conduite autonome niveau 2 sur ta voiture. Abonne-toi pour la partie 2 !",
   "visual_bible": {
@@ -19,7 +19,7 @@
   "shots": [
     {
       "id": 1,
-      "duration_seconds": 5.957,
+      "duration_seconds": 5.888,
       "voice": "Ta voiture récente peut se faire voler en moins de 30 secondes chrono, et sans même casser une vitre.",
       "visual_description": "Parisian street at night, the dark car, shot 1.",
       "educational_function": "Montre le résultat avant la cause : la voiture s'ouvre sans personne.",
@@ -39,7 +39,7 @@
     },
     {
       "id": 2,
-      "duration_seconds": 3.058,
+      "duration_seconds": 2.682,
       "voice": "Bienvenue dans le monde du hacking automobile.",
       "visual_description": "Parisian street at night, the dark car, shot 2.",
       "educational_function": "Nomme le sujet : quelqu'un agit sur la voiture à distance.",
@@ -59,7 +59,7 @@
     },
     {
       "id": 3,
-      "duration_seconds": 3.036,
+      "duration_seconds": 2.448,
       "voice": "Première technique : l'attaque par relais.",
       "visual_description": "Parisian street at night, the dark car, shot 3.",
       "educational_function": "Pose le dispositif : deux boîtiers, une ligne entre la porte et la voiture.",
@@ -79,7 +79,7 @@
     },
     {
       "id": 4,
-      "duration_seconds": 2.794,
+      "duration_seconds": 2.565,
       "voice": "Les voleurs n'ont plus besoin de crochetage.",
       "visual_description": "Parisian street at night, the dark car, shot 4.",
       "educational_function": "Montre que la serrure n'est jamais touchée : l'attaque est ailleurs.",
@@ -99,7 +99,7 @@
     },
     {
       "id": 5,
-      "duration_seconds": 7.714,
+      "duration_seconds": 7.462,
       "voice": "Un premier complice capte le signal de ta clé à travers ta porte d'entrée et le retransmet à un second boîtier près du véhicule.",
       "visual_description": "Parisian street at night, the dark car, shot 5.",
       "educational_function": "Montre le premier maillon : le signal de la clé est capté à travers la porte.",
@@ -119,7 +119,7 @@
     },
     {
       "id": 6,
-      "duration_seconds": 3.487,
+      "duration_seconds": 3.09,
       "voice": "La voiture croit que tu es à côté et se déverrouille.",
       "visual_description": "Parisian street at night, the dark car, shot 6.",
       "educational_function": "Montre l'effet : la voiture reçoit le vrai signal et s'ouvre.",
@@ -139,7 +139,7 @@
     },
     {
       "id": 7,
-      "duration_seconds": 2.931,
+      "duration_seconds": 1.807,
       "voice": "Plus lourd encore : le bus CAN.",
       "visual_description": "Parisian street at night, the dark car, shot 7.",
       "educational_function": "Nomme l'objet dont parle la suite : le câble partagé qui relie tout.",
@@ -159,7 +159,7 @@
     },
     {
       "id": 8,
-      "duration_seconds": 4.771,
+      "duration_seconds": 4.955,
       "voice": "C'est le réseau informatique interne où tous les composants de ta voiture se parlent.",
       "visual_description": "Parisian street at night, the dark car, shot 8.",
       "educational_function": "Montre que le bus est partagé : ce qui y entre atteint tous les calculateurs.",
@@ -179,7 +179,7 @@
     },
     {
       "id": 9,
-      "duration_seconds": 9.589,
+      "duration_seconds": 10.318,
       "voice": "Des pirates percent sous l'aile avant pour se brancher directement sur le câble du phare, injectent des trames de données, et font croire au calculateur qu'ils ont la vraie clé.",
       "visual_description": "Parisian street at night, the dark car, shot 9.",
       "educational_function": "Montre la tromperie : les fausses trames prennent le même chemin que les vraies.",
@@ -199,7 +199,7 @@
     },
     {
       "id": 10,
-      "duration_seconds": 2.347,
+      "duration_seconds": 1.924,
       "voice": "Même tes pneus sont vulnérables !",
       "visual_description": "Parisian street at night, the dark car, shot 10.",
       "educational_function": "Nomme l'objet : un émetteur radio vit dans chaque roue.",
@@ -219,7 +219,7 @@
     },
     {
       "id": 11,
-      "duration_seconds": 5.027,
+      "duration_seconds": 4.139,
       "voice": "Le système TPMS mesure la pression via des capteurs radio non chiffrés.",
       "visual_description": "Parisian street at night, the dark car, shot 11.",
       "educational_function": "Montre le trajet : les mesures arrivent en clair jusqu'au tableau de bord.",
@@ -239,7 +239,7 @@
     },
     {
       "id": 12,
-      "duration_seconds": 8.289,
+      "duration_seconds": 8.453,
       "voice": "En envoyant de fausses données de crevaison ou de surchauffe à distance, un hacker peut créer une erreur système ou forcer un convoi à s'arrêter.",
       "visual_description": "Parisian street at night, the dark car, shot 12.",
       "educational_function": "Montre la copie : le faux signal a exactement la forme du vrai.",
@@ -259,7 +259,7 @@
     },
     {
       "id": 13,
-      "duration_seconds": 4.85,
+      "duration_seconds": 3.848,
       "voice": "Heureusement, ce même bus CAN sert aussi à reprendre le contrôle !",
       "visual_description": "Parisian street at night, the dark car, shot 13.",
       "educational_function": "Retourne le sujet : le même câble porte aussi les commandes voulues.",
@@ -279,7 +279,7 @@
     },
     {
       "id": 14,
-      "duration_seconds": 8.994,
+      "duration_seconds": 7.928,
       "voice": "Avec un logiciel open-source comme OpenPilot et un boîtier à 900 €, tu peux ajouter une vraie conduite autonome niveau 2 sur ta voiture.",
       "visual_description": "Parisian street at night, the dark car, shot 14.",
       "educational_function": "Montre le montage réel : un boîtier, un câble, et la commande part.",
@@ -299,7 +299,7 @@
     },
     {
       "id": 15,
-      "duration_seconds": 2.649,
+      "duration_seconds": 1.691,
       "voice": "Abonne-toi pour la partie 2 !",
       "visual_description": "Parisian street at night, the dark car, shot 15.",
       "educational_function": "Montre le résultat vécu : la voiture tient la route sans les mains.",

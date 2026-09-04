@@ -83,20 +83,26 @@ def piste(sb: Storyboard, dossier: Path, sortie: Path,
     return assembler(fichiers, dossier, sortie), mesurees
 
 
-def assembler(fichiers: list[Path], dossier: Path, sortie: Path) -> Path:
+def assembler(fichiers: list[Path], dossier: Path, sortie: Path,
+              pause: float = PAUSE) -> Path:
     """Les phrases bout a bout, avec le souffle entre elles.
 
     La meme pause qui est comptee dans la duree de chaque plan : la piste et
-    la timeline finissent donc a la meme seconde.
+    la timeline finissent donc a la meme seconde. `pause=0` quand les
+    morceaux portent DEJA leur silence — recouper une vraie voix, par
+    exemple : y rajouter un souffle decalerait chaque plan d'un quart de
+    seconde de plus que le precedent.
     """
-    silence = dossier / "_pause.wav"
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i",
-                    "anullsrc=r=44100:cl=mono", "-t", str(PAUSE), str(silence)],
-                   check=True, capture_output=True, timeout=60)
-
     morceaux = []
-    for fichier in fichiers:
-        morceaux += [fichier, silence]
+    if pause > 0:
+        silence = dossier / "_pause.wav"
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i",
+                        "anullsrc=r=44100:cl=mono", "-t", str(pause), str(silence)],
+                       check=True, capture_output=True, timeout=60)
+        for fichier in fichiers:
+            morceaux += [fichier, silence]
+    else:
+        morceaux = list(fichiers)
 
     liste = dossier / "_piste.txt"
     liste.write_text("".join(f"file '{m.resolve()}'\n" for m in morceaux), encoding="utf-8")
@@ -227,14 +233,55 @@ def _les_longs(plages: list[tuple[float, float]],
     return longs if len(longs) >= minimum else []
 
 
+#: Au-dela de cet ecart avec la place attendue, une coupe n'est pas une fin de
+#: phrase : c'est une respiration qu'on a prise pour telle.
+ECART_MAX_CALAGE = 1.5
+
+
+def repartir(media: Path, poids: list[float]) -> list[float]:
+    """Les durees au prorata, sans ecouter les silences.
+
+    Le filet quand la piste n'en a pas d'exploitables. Une voix de synthese
+    debite a un rythme tres regulier : le nombre de CARACTERES d'une phrase
+    predit sa duree mieux que son nombre de mots, parce qu'un mot long prend
+    plus de temps qu'un mot court.
+    """
+    totale = duree(media)
+    total_poids = sum(poids) or 1.0
+    return [round(totale * part / total_poids, 3) for part in poids]
+
+
 def caler_sur(sb: Storyboard, media: Path, seuil_db: float = SEUIL_SILENCE_DB,
-              duree_min: float = SILENCE_MIN) -> dict[int, float]:
-    """Les durees que CETTE piste donne a chaque plan."""
+              duree_min: float = SILENCE_MIN) -> tuple[dict[int, float], str]:
+    """Les durees que CETTE piste donne a chaque plan, et comment on les a eues.
+
+    On ecoute d'abord les silences : sur une voix humaine, qui marque
+    vraiment la fin de ses phrases, c'est la mesure juste. Une voix de
+    synthese, elle, enchaine — la piste ElevenLabs du run 50 n'avait que des
+    pauses de 0,15 a 0,29 s, impossibles a distinguer des respirations. On
+    verifie donc que les coupes trouvees tombent la ou elles devraient, et
+    sinon on repartit au prorata en le disant.
+    """
     if not media.is_file():
         raise VoixError(f"piste introuvable : {media}")
-    poids = [float(len(shot.voice.split()) or 1) for shot in sb.shots]
-    morceaux = decouper(media, poids, seuil_db, duree_min)
-    return {shot.id: duree for shot, duree in zip(sb.shots, morceaux, strict=True)}
+    poids = [float(len(shot.voice) or 1) for shot in sb.shots]
+
+    proportion = repartir(media, poids)
+    try:
+        morceaux = decouper(media, poids, seuil_db, duree_min)
+    except VoixError:
+        morceaux, methode = proportion, "prorata (aucun silence exploitable)"
+    else:
+        ecart = max(abs(a - b) for a, b in zip(morceaux, proportion, strict=True))
+        if ecart > ECART_MAX_CALAGE:
+            morceaux = proportion
+            methode = (f"prorata (les silences tombaient à {ecart:.1f}s de leur "
+                       f"place attendue)")
+        else:
+            methode = "silences de la piste"
+
+    return ({shot.id: duree for shot, duree in zip(sb.shots, morceaux, strict=True)},
+            methode)
 
 
 def a_coller(sb: Storyboard) -> str:
@@ -244,6 +291,39 @@ def a_coller(sb: Storyboard) -> str:
     c'est cette pause qui permettra de retrouver la fin de chaque plan.
     """
     return "\n\n".join(s.voice for s in sb.shots)
+
+
+def extraire(media: Path, bornes: list[tuple[float, float]], dossier: Path,
+             sortie: Path) -> Path:
+    """Les morceaux de LA piste qui correspondent aux plans gardes.
+
+    Un extrait ne monte que quelques plans : poser dessus la piste entiere
+    ferait parler la voix des plans absents par-dessus les images presentes.
+    On decoupe donc la vraie voix aux memes endroits que les images.
+    """
+    dossier.mkdir(parents=True, exist_ok=True)
+    morceaux = []
+    for i, (debut, fin) in enumerate(bornes):
+        bout = dossier / f"_extrait_{i:02d}.mp3"
+        resultat = subprocess.run(
+            ["ffmpeg", "-v", "error", "-y", "-ss", f"{debut}", "-to", f"{fin}",
+             "-i", str(media), "-c:a", "libmp3lame", "-b:a", "128k", str(bout)],
+            capture_output=True, text=True, timeout=300)
+        if resultat.returncode != 0:
+            raise VoixError(f"ffmpeg a refusé la découpe : "
+                            f"{resultat.stderr.strip()[:200]}")
+        morceaux.append(bout)
+    return assembler(morceaux, dossier, sortie, pause=0.0)
+
+
+def bornes(sb: Storyboard, gardes: list[int]) -> list[tuple[float, float]]:
+    """Ou chaque plan garde commence et finit DANS LA PISTE entiere."""
+    out, curseur = [], 0.0
+    for shot in sb.shots:
+        if shot.id in gardes:
+            out.append((round(curseur, 3), round(curseur + shot.duration_seconds, 3)))
+        curseur += shot.duration_seconds
+    return out
 
 
 def caler(sb: Storyboard, mesurees: dict[int, float]) -> None:

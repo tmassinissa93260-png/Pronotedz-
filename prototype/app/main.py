@@ -810,19 +810,30 @@ def cmd_montage(args) -> int:
         print("  Ajoute --partiel pour monter seulement ce qui existe.")
         return 1
 
+    voix_extraite = None
     if manquants:
+        entier = sb
         sb = plateau_partiel(sb, videos)
         if not sb.shots:
             log("STOP", "aucune vidéo déposée.")
             return 1
         log("EXTRAIT", f"{len(sb.shots)} plan(s) montés sur {len(videos) + len(manquants)} : "
                        f"{', '.join(f'{s.id:02d}' for s in sb.shots)}")
+        if config.VOICE_FILE.is_file():
+            # La piste entiere ferait parler les plans absents par-dessus les
+            # images presentes : on n'en garde que les morceaux montes.
+            gardes = [s.id for s in sb.shots]
+            voix_extraite = voix.extraire(
+                config.VOICE_FILE, voix.bornes(entier, gardes),
+                config.OUTPUT_DIR / "voix", config.OUTPUT_DIR / "voix_extrait.mp3")
+            log("VOIX", f"piste recoupée sur les {len(gardes)} plans montés")
 
     entrees = montage.construire_timeline(sb, videos, charger_analyses(sb))
     montage.sauver_timeline(entrees, config.TIMELINE_FILE)
     config.SRT_FILE.write_text(montage.sous_titres(entrees), encoding="utf-8")
 
-    voix_off = config.VOICE_FILE if config.VOICE_FILE.is_file() else None
+    voix_off = voix_extraite or (config.VOICE_FILE if config.VOICE_FILE.is_file()
+                                 else None)
     if voix_off is None and args.reperage:
         # La piste de reperage est refaite POUR CET EXTRAIT : celle du plateau
         # entier parlerait par-dessus des plans qui ne sont pas la.
@@ -1039,9 +1050,8 @@ def cmd_voix(args) -> int:
 
     if args.sur:
         piste = Path(args.sur)
-        mesurees = voix.caler_sur(sb, piste, args.seuil)
-        log("VOIX", f"durées lues sur {chemin_lisible(piste)} : "
-                    f"{len(mesurees)} phrase(s) retrouvée(s)")
+        mesurees, methode = voix.caler_sur(sb, piste, args.seuil)
+        log("VOIX", f"durées lues sur {chemin_lisible(piste)} — {methode}")
     elif args.eleven:
         def dite(shot, duree):
             log("ELEVEN", f"plan {shot.id:02d} · {duree:g}s · {shot.voice[:44]}")

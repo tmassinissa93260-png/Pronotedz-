@@ -152,6 +152,61 @@ class TestCalerSurUnePiste(unittest.TestCase):
             self.assertEqual(len(voix.decouper(piste, [1.0])), 1)
 
 
+class TestBornes(unittest.TestCase):
+    """Ou chaque plan garde tombe DANS la piste entiere."""
+
+    def test_les_bornes_suivent_le_plateau_entier(self):
+        sb = Storyboard.from_dict(board())          # 3.0 / 4.5 / 4.5 / 4.0
+        self.assertEqual(voix.bornes(sb, [1, 3]), [(0.0, 3.0), (7.5, 12.0)])
+
+    def test_aucun_plan_garde(self):
+        self.assertEqual(voix.bornes(Storyboard.from_dict(board()), []), [])
+
+
+@unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"),
+                     "ffmpeg absent")
+class TestRepartirEtBasculer(unittest.TestCase):
+    """Quand les silences ne disent rien, le prorata prend la main."""
+
+    def piste_continue(self, tmp, secondes=10.0):
+        import subprocess
+        sortie = Path(tmp) / "continue.wav"
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-f", "lavfi", "-i",
+                        f"sine=frequency=440:duration={secondes}", str(sortie)],
+                       check=True, capture_output=True)
+        return sortie
+
+    def test_le_prorata_suit_les_poids(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            piste = self.piste_continue(tmp, 10.0)
+            self.assertEqual(voix.repartir(piste, [1.0, 4.0]), [2.0, 8.0])
+
+    def test_le_prorata_couvre_toute_la_piste(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            piste = self.piste_continue(tmp, 9.0)
+            morceaux = voix.repartir(piste, [3.0, 5.0, 7.0])
+            self.assertAlmostEqual(sum(morceaux), 9.0, places=2)
+
+    def test_une_piste_sans_silence_bascule_sur_le_prorata(self):
+        """La piste ElevenLabs du run 50 : elle enchaîne sans respirer."""
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            piste = self.piste_continue(tmp, 12.0)
+            sb = Storyboard.from_dict(board())
+            mesurees, methode = voix.caler_sur(sb, piste)
+            self.assertIn("prorata", methode)
+            self.assertEqual(len(mesurees), len(sb.shots))
+            self.assertAlmostEqual(sum(mesurees.values()), 12.0, places=1)
+
+    def test_une_piste_absente_le_dit(self):
+        sb = Storyboard.from_dict(board())
+        with self.assertRaises(voix.VoixError) as ctx:
+            voix.caler_sur(sb, Path("/tmp/aucune_piste_ici.mp3"))
+        self.assertIn("introuvable", str(ctx.exception))
+
+
 class TestEspeakAbsent(unittest.TestCase):
     def test_le_message_dit_comment_l_installer(self):
         import unittest.mock as mock

@@ -1,6 +1,6 @@
 # Comment on vole une voiture récente sans casser une vitre
 
-75.493 secondes · 15 plans
+69.198 secondes · 15 plans
 
 ## Script
 
@@ -43,7 +43,7 @@ Une notion, une couleur, la même du début à la fin.
 
 ---
 
-## Plan 01 — 5.957s
+## Plan 01 — 5.888s
 
 **Voix** : Ta voiture récente peut se faire voler en moins de 30 secondes chrono, et sans même casser une vitre.
 
@@ -77,7 +77,7 @@ The red pulses travel steadily along the flank and reach the mirror housing, and
 
 ---
 
-## Plan 02 — 3.058s
+## Plan 02 — 2.682s
 
 **Voix** : Bienvenue dans le monde du hacking automobile.
 
@@ -111,7 +111,7 @@ The red glow spreads outward from the box, gradually travelling across the wet c
 
 ---
 
-## Plan 03 — 3.036s
+## Plan 03 — 2.448s
 
 **Voix** : Première technique : l'attaque par relais.
 
@@ -145,7 +145,7 @@ The red beam opens between the two boxes and steadily brightens along its whole 
 
 ---
 
-## Plan 04 — 2.794s
+## Plan 04 — 2.565s
 
 **Voix** : Les voleurs n'ont plus besoin de crochetage.
 
@@ -179,7 +179,7 @@ The blue pulses cross the gap and travel steadily through the handle from left t
 
 ---
 
-## Plan 05 — 7.714s
+## Plan 05 — 7.462s
 
 **Voix** : Un premier complice capte le signal de ta clé à travers ta porte d'entrée et le retransmet à un second boîtier près du véhicule.
 
@@ -213,7 +213,7 @@ The blue pulses leave the key, cross the wood one after another, and are drawn i
 
 ---
 
-## Plan 06 — 3.487s
+## Plan 06 — 3.09s
 
 **Voix** : La voiture croit que tu es à côté et se déverrouille.
 
@@ -247,7 +247,7 @@ The blue pulses leave the box and travel steadily along the panel into the handl
 
 ---
 
-## Plan 07 — 2.931s
+## Plan 07 — 1.807s
 
 **Voix** : Plus lourd encore : le bus CAN.
 
@@ -281,7 +281,7 @@ The blue pulses ignite one after another along the twisted pair, starting at the
 
 ---
 
-## Plan 08 — 4.771s
+## Plan 08 — 4.955s
 
 **Voix** : C'est le réseau informatique interne où tous les composants de ta voiture se parlent.
 
@@ -315,7 +315,7 @@ The blue pulses travel steadily along the twisted pair from module to module in 
 
 ---
 
-## Plan 09 — 9.589s
+## Plan 09 — 10.318s
 
 **Voix** : Des pirates percent sous l'aile avant pour se brancher directement sur le câble du phare, injectent des trames de données, et font croire au calculateur qu'ils ont la vraie clé.
 
@@ -349,7 +349,7 @@ The red pulses enter from beyond the lower left corner, gradually build in numbe
 
 ---
 
-## Plan 10 — 2.347s
+## Plan 10 — 1.924s
 
 **Voix** : Même tes pneus sont vulnérables !
 
@@ -383,7 +383,7 @@ The blue pulses leave the sensor in steady bursts and travel outward through the
 
 ---
 
-## Plan 11 — 5.027s
+## Plan 11 — 4.139s
 
 **Voix** : Le système TPMS mesure la pression via des capteurs radio non chiffrés.
 
@@ -417,7 +417,7 @@ The blue pulses leave each sensor in turn and travel steadily up through the arc
 
 ---
 
-## Plan 12 — 8.289s
+## Plan 12 — 8.453s
 
 **Voix** : En envoyant de fausses données de crevaison ou de surchauffe à distance, un hacker peut créer une erreur système ou forcer un convoi à s'arrêter.
 
@@ -451,7 +451,7 @@ The red pulses begin to leave the handheld unit, gradually matching the spacing 
 
 ---
 
-## Plan 13 — 4.85s
+## Plan 13 — 3.848s
 
 **Voix** : Heureusement, ce même bus CAN sert aussi à reprendre le contrôle !
 
@@ -485,7 +485,7 @@ The green pulses travel steadily down the twisted pair from the top of the colum
 
 ---
 
-## Plan 14 — 8.994s
+## Plan 14 — 7.928s
 
 **Voix** : Avec un logiciel open-source comme OpenPilot et un boîtier à 900 €, tu peux ajouter une vraie conduite autonome niveau 2 sur ta voiture.
 
@@ -519,7 +519,7 @@ The green pulses leave the box one after another and travel steadily down the ca
 
 ---
 
-## Plan 15 — 2.649s
+## Plan 15 — 1.691s
 
 **Voix** : Abonne-toi pour la partie 2 !
 
